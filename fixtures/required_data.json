@@ -1,0 +1,545 @@
+[
+    {
+        "model": "data.formtype",
+        "pk": 1,
+        "fields": {
+            "type": "form",
+            "label_name": "\u00danico"
+        }
+    },
+    {
+        "model": "data.formtype",
+        "pk": 2,
+        "fields": {
+            "type": "multi-form",
+            "label_name": "M\u00faltiplo"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 1,
+        "fields": {
+            "type": "number",
+            "label_name": "N\u00famero"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 2,
+        "fields": {
+            "type": "text",
+            "label_name": "Texto"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 3,
+        "fields": {
+            "type": "date",
+            "label_name": "Data"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 4,
+        "fields": {
+            "type": "option",
+            "label_name": "Op\u00e7\u00e3o"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 5,
+        "fields": {
+            "type": "form",
+            "label_name": "Conex\u00e3o com Formul\u00e1rio"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 6,
+        "fields": {
+            "type": "attachment",
+            "label_name": "Anexo"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 7,
+        "fields": {
+            "type": "long_text",
+            "label_name": "Texto Longo"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 10,
+        "fields": {
+            "type": "email",
+            "label_name": "E-mail"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 11,
+        "fields": {
+            "type": "multi_option",
+            "label_name": "Multiplas Op\u00e7\u00f5es"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 12,
+        "fields": {
+            "type": "id",
+            "label_name": "ID"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 13,
+        "fields": {
+            "type": "user",
+            "label_name": "Usu\u00e1rios"
+        }
+    },
+    {
+        "model": "data.fieldtype",
+        "pk": 14,
+        "fields": {
+            "type": "period",
+            "label_name": "Per\u00edodo"
+        }
+    },
+    {
+        "model": "data.conditionaltype",
+        "pk": 1,
+        "fields": {
+            "type": "equal",
+            "label_name": "Igual"
+        }
+    },
+    {
+        "model": "data.fieldperiodintervaltype",
+        "pk": 1,
+        "fields": {
+            "type": "seconds",
+            "label_name": "Segundos",
+            "in_seconds": 1
+        }
+    },
+    {
+        "model": "data.fieldperiodintervaltype",
+        "pk": 2,
+        "fields": {
+            "type": "minutes",
+            "label_name": "Minutos",
+            "in_seconds": 60
+        }
+    },
+    {
+        "model": "data.fieldperiodintervaltype",
+        "pk": 3,
+        "fields": {
+            "type": "hours",
+            "label_name": "Horas",
+            "in_seconds": 360
+        }
+    },
+    {
+        "model": "data.fieldperiodintervaltype",
+        "pk": 4,
+        "fields": {
+            "type": "days",
+            "label_name": "Dias",
+            "in_seconds": 8640
+        }
+    },
+    {
+        "model": "data.fieldperiodintervaltype",
+        "pk": 5,
+        "fields": {
+            "type": "weeks",
+            "label_name": "Semanas",
+            "in_seconds": 60480
+        }
+    },
+    {
+        "model": "data.fieldperiodintervaltype",
+        "pk": 6,
+        "fields": {
+            "type": "month",
+            "label_name": "Meses",
+            "in_seconds": 259200
+        }
+    },
+    {
+        "model": "data.fielddateformattype",
+        "pk": 1,
+        "fields": {
+            "type": "date",
+            "label_name": "Data",
+            "format": "%d/%m/%Y",
+            "order": 1
+        }
+    },
+    {
+        "model": "data.fielddateformattype",
+        "pk": 2,
+        "fields": {
+            "type": "datetime",
+            "label_name": "Data e Hora",
+            "format": "%d/%m/%Y %H:%M",
+            "order": 2
+        }
+    },
+    {
+        "model": "login.profiles",
+        "pk": 2,
+        "fields": {
+            "name": "coordinator",
+            "label_name": "Coordenador",
+            "can_edit": true
+        }
+    },
+    {
+        "model": "login.profiles",
+        "pk": 3,
+        "fields": {
+            "name": "admin",
+            "label_name": "Admin",
+            "can_edit": true
+        }
+    },
+    {
+        "model": "login.profiles",
+        "pk": 4,
+        "fields": {
+            "name": "simple_user",
+            "label_name": "Analista",
+            "can_edit": true
+        }
+    },
+    {
+        "model": "login.datatype",
+        "pk": 1,
+        "fields": {
+            "name": "kanban",
+            "label_name": "Kanban"
+        }
+    },
+    {
+        "model": "login.datatype",
+        "pk": 2,
+        "fields": {
+            "name": "listing",
+            "label_name": "Listagem"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 1,
+        "fields": {
+            "name": "software",
+            "label_name": "Software, Desenvolvimento de Aplicativos"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 2,
+        "fields": {
+            "name": "insurance",
+            "label_name": "Seguros"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 3,
+        "fields": {
+            "name": "health",
+            "label_name": "Sa\u00fade"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 4,
+        "fields": {
+            "name": "startup",
+            "label_name": "Start-up"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 5,
+        "fields": {
+            "name": "education",
+            "label_name": "Educa\u00e7\u00e3o"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 6,
+        "fields": {
+            "name": "realestate",
+            "label_name": "Imobili\u00e1rio"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 7,
+        "fields": {
+            "name": "agency",
+            "label_name": "Ag\u00eancia Criativa"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 8,
+        "fields": {
+            "name": "financial",
+            "label_name": "Servi\u00e7os Financeiros"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 9,
+        "fields": {
+            "name": "news",
+            "label_name": "Imprensa"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 10,
+        "fields": {
+            "name": "industry",
+            "label_name": "Ind\u00fastria"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 11,
+        "fields": {
+            "name": "consulting",
+            "label_name": "Consultoria"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 12,
+        "fields": {
+            "name": "smallbusiness",
+            "label_name": "Atacado, Varejo"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 13,
+        "fields": {
+            "name": "building",
+            "label_name": "Constru\u00e7\u00e3o"
+        }
+    },
+    {
+        "model": "login.companytype",
+        "pk": 14,
+        "fields": {
+            "name": "others",
+            "label_name": "Outros"
+        }
+    },
+    {
+        "model": "login.grouptype",
+        "pk": 1,
+        "fields": {
+            "name": "empty",
+            "label_name": "Outro"
+        }
+    },
+    {
+        "model": "login.grouptype",
+        "pk": 2,
+        "fields": {
+            "name": "sales",
+            "label_name": "Vendas"
+        }
+    },
+    {
+        "model": "login.grouptype",
+        "pk": 3,
+        "fields": {
+            "name": "development",
+            "label_name": "T.I."
+        }
+    },
+    {
+        "model": "login.grouptype",
+        "pk": 4,
+        "fields": {
+            "name": "rh",
+            "label_name": "Recursos Humanos"
+        }
+    },
+    {
+        "model": "login.grouptype",
+        "pk": 5,
+        "fields": {
+            "name": "design",
+            "label_name": "Design"
+        }
+    },
+    {
+        "model": "login.grouptype",
+        "pk": 6,
+        "fields": {
+            "name": "marketing",
+            "label_name": "Marketing"
+        }
+    },
+    {
+        "model": "login.grouptype",
+        "pk": 7,
+        "fields": {
+            "name": "operations",
+            "label_name": "Opera\u00e7\u00f5es"
+        }
+    },
+    {
+        "model": "login.grouptype",
+        "pk": 8,
+        "fields": {
+            "name": "projects",
+            "label_name": "Projetos"
+        }
+    },
+    {
+        "model": "login.grouptype",
+        "pk": 9,
+        "fields": {
+            "name": "finance",
+            "label_name": "Financeiro"
+        }
+    },
+    {
+        "model": "billing.chargetype",
+        "pk": 1,
+        "fields": {
+            "name": "user"
+        }
+    },
+    {
+        "model": "billing.chargetype",
+        "pk": 2,
+        "fields": {
+            "name": "company"
+        }
+    },
+    {
+        "model": "billing.chargefrequencytype",
+        "pk": 1,
+        "fields": {
+            "name": "monthly"
+        }
+    },
+    {
+        "model": "billing.invoicedatetype",
+        "pk": 1,
+        "fields": {
+            "date": 4
+        }
+    },
+    {
+        "model": "billing.invoicedatetype",
+        "pk": 2,
+        "fields": {
+            "date": 1
+        }
+    },
+    {
+        "model": "billing.invoicedatetype",
+        "pk": 3,
+        "fields": {
+            "date": 15
+        }
+    },
+    {
+        "model": "billing.invoicedatetype",
+        "pk": 4,
+        "fields": {
+            "date": 25
+        }
+    },
+    {
+        "model": "billing.paymentmethodtype",
+        "pk": 1,
+        "fields": {
+            "name": "credit_card"
+        }
+    },
+    {
+        "model": "billing.paymentmethodtype",
+        "pk": 2,
+        "fields": {
+            "name": "invoice"
+        }
+    },
+    {
+        "model": "billing.individualchargevaluetype",
+        "pk": 1,
+        "fields": {
+            "charge_type": 2,
+            "charge_frequency_type": 1,
+            "name": "per_gb",
+            "value": "1.00",
+            "default_quantity": 5
+        }
+    },
+    {
+        "model": "billing.individualchargevaluetype",
+        "pk": 2,
+        "fields": {
+            "charge_type": 1,
+            "charge_frequency_type": 1,
+            "name": "per_user",
+            "value": "40.00",
+            "default_quantity": 1
+        }
+    },
+    {
+        "model": "billing.discountbyindividualvalue",
+        "pk": 1,
+        "fields": {
+            "individual_charge_value_type": 1,
+            "quantity": 10,
+            "value": "0.90",
+            "name": "per_10gb"
+        }
+    },
+    {
+        "model": "billing.discountbyindividualvalue",
+        "pk": 2,
+        "fields": {
+            "individual_charge_value_type": 1,
+            "quantity": 20,
+            "value": "0.75",
+            "name": "per_25gb"
+        }
+    },
+    {
+        "model": "billing.discountbyindividualvalue",
+        "pk": 3,
+        "fields": {
+            "individual_charge_value_type": 1,
+            "quantity": 0,
+            "value": "0.00",
+            "name": "per_5gb"
+        }
+    },
+    {
+        "model": "login.pushnotificationtagtype",
+        "pk": 1,
+        "fields": {
+            "name": "web"
+        }
+    }
+]

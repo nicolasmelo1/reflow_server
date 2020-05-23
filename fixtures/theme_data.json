@@ -1,0 +1,73 @@
+[
+    {
+        "model": "configuration.theme",
+        "pk": 1,
+        "fields": {
+            "display_name": "Vazio",
+            "created_at": "2019-07-16T22:48:06.938Z",
+            "company_type": 1,
+            "user": 1,
+            "description": "- Para quem quer come\u00e7ar do 0 sem dor de cabe\u00e7a\n- Apenas com um formul\u00e1rio de exemplo",
+            "is_public": true
+        }
+    },
+    {
+        "model": "configuration.themeform",
+        "pk": 1,
+        "fields": {
+            "created_at": "2019-07-16T22:50:21.816Z",
+            "updated_at": "2019-07-16T22:50:24.188Z",
+            "form_name": "empty_form",
+            "label_name": "Clique no card para editar",
+            "type": 1,
+            "order": 0,
+            "conditional_type": null,
+            "conditional_value": null,
+            "depends_on": null,
+            "form_id": null,
+            "conditional_on_field": null,
+            "theme": 1
+        }
+    },
+    {
+        "model": "configuration.themeform",
+        "pk": 2,
+        "fields": {
+            "created_at": "2019-07-16T22:50:26.443Z",
+            "updated_at": "2019-07-16T22:50:28.499Z",
+            "form_name": "empty_topic",
+            "label_name": "Clique no card ou no l\u00e1pis",
+            "type": 1,
+            "order": 0,
+            "conditional_type": null,
+            "conditional_value": null,
+            "depends_on": 1,
+            "form_id": null,
+            "conditional_on_field": null,
+            "theme": 1
+        }
+    },
+    {
+        "model": "configuration.themefield",
+        "pk": 1,
+        "fields": {
+            "created_at": "2019-07-17T00:03:47.559Z",
+            "updated_at": "2019-07-17T00:03:48.758Z",
+            "name": "empty_field",
+            "type": 2,
+            "label_name": "Clique no campo para editar",
+            "placeholder": null,
+            "required": false,
+            "order": 0,
+            "is_unique": false,
+            "field_is_hidden": false,
+            "label_is_hidden": false,
+            "date_configuration_auto_create": false,
+            "date_configuration_auto_update": false,
+            "date_configuration_date_format_type": null,
+            "period_configuration_period_interval_type": null,
+            "form": 2,
+            "form_field_as_option": null
+        }
+    }
+]
