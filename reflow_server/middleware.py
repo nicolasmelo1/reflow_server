@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AnonymousUser
 from channels.db import database_sync_to_async
 from reflow_server.auth.models import UserExtended
+from reflow_server.core.utils import encrypt
 from reflow_server.auth.utils.jwt_auth import JWT
 
 @database_sync_to_async

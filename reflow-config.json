@@ -1,0 +1,51 @@
+{
+  "secret_key": "&m*v=#d6^#_ac%l(n04lzt*3ug_!amawv89n+hl4g^@dorrnyj",
+  "debug": true,
+  "email": {
+    "emails": {
+      "add_new_user": {
+        "email": "Teste<reflow.crm@gmail.com>"
+      }
+    },
+    "host": "smtp.gmail.com",
+    "user": "reflow.crm@gmail.com",
+    "password": "Reflow123",
+    "port": 587
+  },
+  "apps": {
+    "reflow_billing": ["http://host.docker.internal:5001"],
+    "reflow_worker": ["http://host.docker.internal:8001"],
+    "reflow_front": ["http://localhost:3000", "http://host.docker.internal:3000"]
+  },
+  "auth_bearer": {
+    "host": "",
+    "username": "",
+    "password": ""
+  },
+  "vindi": {
+    "host": "https://sandbox-app.vindi.com.br/api/v1",
+    "public_api_key": "uNZqO8kJbVRIRSiBEsbyWRGtpTGLd432AxXHYltw_Ow",
+    "payment_methods": {
+        "invoice": "cash"
+    }
+  },
+  "databases": {
+    "name": "reflow",
+    "user": "postgres",
+    "password": "",
+    "host": "db",
+    "port": 5432
+  },
+  "aws": {
+    "access_key": "foo",
+    "secret_key": "bar",
+    "s3_region_name": "",
+    "s3_file_attachments_path": "file-attachments",
+    "s3_bucket": "reflow-crm"
+  },
+  "channels": {
+    "backend": "channels_redis.core.RedisChannelLayer",
+    "host": "redis",
+    "port": 6379
+  }
+}

@@ -1,4 +1,5 @@
 from reflow_server.auth.services import permissions
+from reflow_server.core.utils import encrypt
 from reflow_server.auth.utils.jwt_auth import JWT
 from reflow_server.auth.models import UserExtended
 from django.urls import resolve
@@ -31,10 +32,12 @@ def jwt_required(function):
 
     return wrap
 
+
 @jwt_required
 def permission_required(function):
     """
     Validates all of the permission of a user while validating if the user is logged or not.
+    This decorator also automatically decrypts the company_id for you, so you don't have to care about it.
     This decorator is used primarly on view functions. So in order to render a response to a user it first needs
     to check if the user is accessing the data that he has access to.  If the user is not valid in some of these validations, since he
     is logged in, we render a dumb 404 face in the content with menus on top so he can navigate in our website.
@@ -75,6 +78,10 @@ def permission_required(function):
                 return Response({
                     'status': 'error'
                 }, status=status.HTTP_404_NOT_FOUND)
+            else:
+                # automatically decrypts the company_id pk for your views
+                encrypting = encrypt.Encrypt()
+                kwargs['company_id'] = encrypting.decrypt_pk(company_id)
         else:
             return Response({
                 'status': 'error'

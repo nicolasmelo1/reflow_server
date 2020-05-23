@@ -10,11 +10,13 @@ class RepresentationService:
         Used for presenting data from this app to the user, everywhere you need to present the data to the user
         so serializers, totals, dashboard and all that stuff.
 
+        Usually you can call just `.representation()` sending your value
+
         Arguments:
             field_type {str} -- str from one of the possible `reflow_server.formulary.models.FieldType`, check the field_type table in our database for reference
-            date_format_type {reflow_server.formulary.models.DateFormatType} -- `reflow_server.formulary.models.DateFormatType` model
-            number_format_type {reflow_server.formulary.models.NumberFormatType} -- `reflow_server.formulary.models.NumberFormatType` model
-            form_field_as_option {reflow_server.formulary.models.Field, reflow_server.theme.models.ThemeField} -- `Field` or `ThemeField` model
+            date_format_type {reflow_server.formulary.models.DateFormatType} -- `reflow_server.formulary.models.DateFormatType` model, can be None
+            number_format_type {reflow_server.formulary.models.NumberFormatType} -- `reflow_server.formulary.models.NumberFormatType` model, can be None
+            form_field_as_option {reflow_server.formulary.models.Field, reflow_server.theme.models.ThemeField} -- `Field` or `ThemeField` model, can be None
 
         Keyword Arguments:
             load_ids {bool} -- retrieves the ids instead of the value in fields_types like **user** or **form** (default: {False})
@@ -27,6 +29,15 @@ class RepresentationService:
         self.load_ids = load_ids
 
     def representation(self, value):
+        """
+        Usually you want to call this function to represent your values
+
+        Arguments:
+            value {str} -- the value you want to format
+
+        Returns:
+            str -- formatted value
+        """
         if value and value != '':
             handler = getattr(self, 'representation_%s' % self.field_type, None)
             if handler:
@@ -42,11 +53,17 @@ class RepresentationService:
                 if not self.load_ids:
                     field_type = self.field_type
                     form_field_as_option_id = self.form_field_as_option.id
-                    while field_type == 'form' and value != '' and form_field_as_option_id != '':
+                    
+                    connection_limit = 10
+                    connection_count = 0
+                    # we put in a while but sometimes you can have a connection referencing a connection, we always want 
+                    # to represent the last connection value
+                    while (field_type == 'form' and value != '' and form_field_as_option_id != '') or connection_count != connection_limit:
                         obj = FormValue.objects.filter(form_id=int(value), field_id=form_field_as_option_id).values('value', 'field_type__type', 'form_field_as_option_id').first()
                         value = obj['value'] if obj else ''
                         field_type = obj['field_type__type'] if obj else None
                         form_field_as_option_id = obj['form_field_as_option_id'] if obj else None
+                        connection_count = connection_count + 1
             else:
                 value = ''
         except ValueError as ve:
