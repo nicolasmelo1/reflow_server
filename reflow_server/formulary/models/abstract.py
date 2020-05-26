@@ -1,0 +1,98 @@
+from django.db import models
+
+
+class AbstractForm(models.Model):
+    """
+    This is the abstract for Forms (do not mistake with DynamicForm), this abstract is used to define
+    Forms, forms are a mix of sections, and within each section some fields. Right now Sections are defined with this
+    model also. Each object that has depends_on = None is a formulary, each object that has depends_on not None is a section.
+    
+    I know it is confusing but it was required when we were dependending on django Formsets to create formularies, now we don't
+    need it anymore, so it can be changed.
+    """
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    form_name = models.CharField(max_length=150, db_index=True)
+    label_name = models.CharField(max_length=150)
+    type = models.ForeignKey('formulary.FormType', models.CASCADE, db_index=True)
+    order = models.BigIntegerField()
+    conditional_type = models.ForeignKey('formulary.ConditionalType', models.CASCADE, null=True, blank=True, db_index=True)
+    conditional_value = models.CharField(max_length=200, null=True, blank=True)
+
+    class Meta:
+        abstract = True
+        app_label = 'formulary'
+
+
+class AbstractFieldStates(models.Model):
+    """
+    THIS MODEL IS IMPORTANT AND CONTAINS SOME IMPORTANTE BUSINESS RULES
+
+    So this abstract model is actually for saving the state of the field inside of the 
+    `formulary.models.FormValue` model and on `formulary.models.Field` model.
+
+    This model contains the `FieldStates` string in its name because it is used to hold the State of 
+    the field of the data that was saved.
+
+    If you ever used Airtable or other dynamic database creation programs, or even a simple Postgres database
+    you will notice a similar behaviour with them, this behaviour is:
+    Like a database, if the user change a column type, all of the items in the column should change the
+    type too, requiring some kind of migration. 
+    We don't work this way, we work more like a NoSQL database. If a user change the type of the field
+    or many other configurations of a field the data he saved before the change is preserved with its state.
+
+    This way we prevent the user from loosing important data when he changes something in the formulary.
+    """
+    date_configuration_date_format_type = models.ForeignKey('formulary.FieldDateFormatType', on_delete=models.CASCADE, blank=True, null=True, db_index=True)
+    period_configuration_period_interval_type = models.ForeignKey('formulary.FieldPeriodIntervalType', on_delete=models.CASCADE, blank=True, null=True, db_index=True)
+    number_configuration_mask = models.CharField(max_length=250, blank=True, null=True) # Needs to be removed
+    number_configuration_number_format_type = models.ForeignKey('formulary.FieldNumberFormatType', on_delete=models.CASCADE, blank=True, null=True, db_index=True)
+    formula_configuration = models.CharField(max_length=1000, blank=True, null=True)
+
+    class Meta:
+        abstract = True
+        app_label = 'formulary'
+
+
+class AbstractField(AbstractFieldStates):
+    """
+    As it was explained earlier, in the AbstractForm, a formulary is a composition of Section and fields within a section.
+
+    This abstract is for defining the field. Also as i said earlier, it inherits from AbstractFieldStates because it must 
+    contain the state of the field. (This might be kinda obvious but anyway)
+    """
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=300, db_index=True)
+    type = models.ForeignKey('formulary.FieldType', models.CASCADE, db_index=True)
+    label_name = models.CharField(max_length=300, blank=True, null=True)
+    placeholder = models.CharField(blank=True, null=True, max_length=450)
+    required = models.BooleanField(default=True)
+    order = models.BigIntegerField()
+    is_unique = models.BooleanField(default=False)
+    field_is_hidden = models.BooleanField(default=False)
+    label_is_hidden = models.BooleanField(default=False)
+    date_configuration_auto_create = models.BooleanField(default=False)
+    date_configuration_auto_update = models.BooleanField(default=False)
+    number_configuration_allow_negative = models.BooleanField(default=True)
+    number_configuration_allow_zero = models.BooleanField(default=True)
+
+    class Meta:
+        abstract = True
+        app_label = 'formulary'
+
+
+class AbstractFieldOptions(models.Model):
+    """
+    This simple abstract model is used for holding the Field Option. The Field as you know has many `types`. It can be a `option`,
+    a `multi-option`, a `form`, `text`, `number`, etc. For `option` and `multi-option` we use this model here to store
+    all of the options of a field.
+    """
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    option = models.CharField(max_length=500, db_index=True)
+    order = models.BigIntegerField()
+
+    class Meta:
+        abstract = True
+        app_label = 'formulary'
