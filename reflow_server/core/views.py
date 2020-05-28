@@ -38,7 +38,7 @@ class Types(views.APIView):
         field_type = list(FieldType.objects.all().values())
         form_type = list(FormType.objects.all().values())
         company_type = list(CompanyType.objects.all().values())
-        data_type = list(DataType.objects.all().values())
+        data_type = list(VisualizationType.objects.all().values())
         group_type = list(GroupType.objects.all().values())
         profile_type = list(Profiles.objects.all().values())
         """

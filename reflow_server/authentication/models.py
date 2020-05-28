@@ -46,7 +46,7 @@ class Company(models.Model):
     """
     name = models.CharField(max_length=400, default=None, db_index=True)
     endpoint = models.CharField(max_length=280, default=None, db_index=True)
-    company_type = models.ForeignKey('auth.CompanyType', on_delete=models.CASCADE, null=True, blank=True)
+    company_type = models.ForeignKey('authentication.CompanyType', on_delete=models.CASCADE, null=True, blank=True)
     address = models.CharField(max_length=500, default=None, null=True)
     zip_code = models.CharField(max_length=500, default=None, null=True)
     street = models.CharField(max_length=500, default=None, null=True)
@@ -87,12 +87,12 @@ class UserExtended(AbstractUser):
     This model defines stuff we might want to have on a `user` level. We define stuff like company, profile, if the user is
     an admin (this admin is the admin that can access the default django url /admin, not the profile admin) or not, and etc.
     """
-    company = models.ForeignKey('auth.Company', on_delete=models.CASCADE, default=None)
-    profile = models.ForeignKey('auth.ProfileType', on_delete=models.CASCADE, default=None)
+    company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, default=None)
+    profile = models.ForeignKey('authentication.ProfileType', on_delete=models.CASCADE, default=None)
     phone = models.CharField(max_length=250, default=None, null=True, blank=True)
     timezone = models.IntegerField(default=-3)
     is_admin = models.BooleanField(default=False)
-    data_type = models.ForeignKey('visualization.DataType', on_delete=models.CASCADE, default=None, null=True)
+    data_type = models.ForeignKey('visualization.VisualizationType', on_delete=models.CASCADE, default=None, null=True)
     temp_password = models.CharField(max_length=250, default=None, null=True, blank=True)
     
     class Meta:

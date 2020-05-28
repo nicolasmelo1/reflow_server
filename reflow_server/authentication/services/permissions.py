@@ -1,6 +1,6 @@
 from django.db.models import Sum
 from reflow_server.core.utils import encrypt
-from reflow_server.auth.models import UserExtended, Company
+from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.notification.models import NotificationConfiguration
 from reflow_server.visualization.models import KanbanCard
 from reflow_server.billing.models import CurrentCompanyCharge

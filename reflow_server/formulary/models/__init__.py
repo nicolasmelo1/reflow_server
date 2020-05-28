@@ -1,7 +1,8 @@
+from django.conf import settings
 from django.db import models
+from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldStates, AbstractFieldOptions
 
-
-class FormType(models.Model):
+class SectionType(models.Model):
     """
     This model is a `type` so it contains required data used for this program to work. This holds each type of the form
     This is actually for SECTIONS not for FORMS, we need to rename it later.
@@ -73,10 +74,10 @@ class FieldNumberFormatType(models.Model):
     For percentages we use the "base" field of this model. This is the number that we devides to when we display a number to the user.
     So let's understand with this example:
 
-    1 - The user saves a formulary that contains a `number` `field_type` that is formated as `percentage` (`percentage` format has base 100)
-    2 - This number when it is saved to our database it is multiplied by DEFAULT_BASE_NUMBER_FIELD_FORMAT so `number*DEFAULT_BASE_NUMBER_FIELD_FORMAT`
-    3 - Then we devide the multiplied number by the number format base. So if the user typed 70,00% in the front end, with basic math skills
-    you know 70% means 0,7. So we devide the number he typed for the base (that for percentage is 100)
+    - The user saves a formulary that contains a `number` `field_type` that is formated as `percentage` (`percentage` format has base 100)
+    - This number when it is saved to our database it is multiplied by DEFAULT_BASE_NUMBER_FIELD_FORMAT so `number*DEFAULT_BASE_NUMBER_FIELD_FORMAT`
+    - Then we devide the multiplied number by the number format base. So if the user typed 70,00% in the front end, with basic math skills
+    you know 70% means 0,7. So we devide the number he typed for the base (that for `percentage` is 100)
 
     Then when we display the number for the user we do the same thing but in the opposite order.
 
@@ -145,6 +146,7 @@ class ConditionalType(models.Model):
     - Less than Value
     - Equal to Value
     - Different than Value
+    
     With this model we define the type for a condition, right now we only have Equal.
     """
     type = models.CharField(max_length=150, db_index=True)
@@ -175,6 +177,12 @@ class FieldType(models.Model):
         db_table = 'field_type'
         app_label = 'formulary'
 
+#############
+#           #
+#   BUILD   #
+# FORMULARY #
+#           #
+#############
 
 class Group(models.Model):
     """
@@ -192,7 +200,7 @@ class Group(models.Model):
     selecting a theme.
     """
     name = models.CharField(max_length=500)
-    company = models.ForeignKey('auth.Company', models.CASCADE, db_index=True)
+    company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True)
     enabled = models.BooleanField(default=False)
     order = models.BigIntegerField()
 
@@ -202,6 +210,7 @@ class Group(models.Model):
 
 
 class Form(AbstractForm):
+    #TODO: Create a section model, for sections
     """
     Check reflow_server.formulary.models.abstract.AbstractForm for further explanation.
 
@@ -215,7 +224,7 @@ class Form(AbstractForm):
     depends_on = models.ForeignKey('self', models.CASCADE, null=True, blank=True, db_index=True,
                                    related_name='depends_on_form')
     enabled = models.BooleanField(default=True)
-    company = models.ForeignKey('auth.Company', models.CASCADE, db_index=True)
+    company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True)
     conditional_on_field = models.ForeignKey('formulary.Field', models.SET_NULL, null=True, blank=True,
                                              related_name='conditional_on_field', db_index=True)
     group = models.ForeignKey(Group, models.CASCADE, db_index=True, null=True, related_name='form_group')
@@ -226,7 +235,24 @@ class Form(AbstractForm):
 
 
 class Field(AbstractField):
-    form = models.ForeignKey(Form, models.CASCADE, db_index=True, related_name='form_fields')
+    """
+    Check reflow_server.formulary.models.abstract.AbstractField for further explanation.
+
+    This model defines each field in the SECTION. If you haven't got it yet the order is: Group > Form > Section > Field
+    I think this is kind of self explanatory, but this is the model that defines each field inside of a formulary.
+
+    `form_field_as_otion` - This is used when the `field_type` is `form`. It means: use the data inserted of this field
+    as the option for the user to select. So with this a user can connect a formulary with another and use the data inserted
+    in a field of a formulary as the options displayed on another field.
+
+    References:
+    reflow_server.formulary.models.abstract.AbstractFieldOption
+    reflow_server.formulary.models.FieldType
+    reflow_server.formulary.models.FieldPeriodIntervalType
+    reflow_server.formulary.models.FieldNumberFormatType
+    reflow_server.formulary.models.FieldDateFormatType
+    """
+    form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True, related_name='form_fields')
     enabled = models.BooleanField(default=True, db_index=True)
     # this is actually a field state
     form_field_as_option = models.ForeignKey('self', models.SET_NULL, blank=True, null=True, db_index=True)
@@ -234,35 +260,181 @@ class Field(AbstractField):
     class Meta:
         db_table = 'field'
         ordering = ('order',)
-        app_label = 'data'
+        app_label = 'formulary'
 
 
 class FieldOptions(AbstractFieldOptions):
-    field = models.ForeignKey(Field, models.CASCADE, db_index=True, related_name='field_option')
+    """
+    Check reflow_server.formulary.models.abstract.AbstractFieldOptions for further explanation.
+
+    When the field_type is of type `option` or `multi-option`, we need to define some options for the field. 
+    (kinda obvious) We define this here.
+    """
+    field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, related_name='field_option')
     
     class Meta:
         db_table = 'field_options'
         ordering = ('order',)
-        app_label = 'data'
+        app_label = 'formulary'
 
 
 class OptionAccessedBy(models.Model):
+    """
+    This model is used to filter the options defined in reflow_server.formulary.models.FieldOptions that a user have access to
+
+    You can check reflow_server.authentication.models.ProfileType for further explanation about profiles.
+
+    So for example:
+
+    If a user has a formulary with 3 fields: Status, Company Location and Client Name, and each of them being of the type `option`.
+    When we create or update the user we can define a filter, the filter is as simple as: 
+    "Which of the following options the user has access to?"
+
+    This filter than does more than just display the options that a user has access to when he opens the formulary but it also
+    filters only the formularies that have the option defined if he is a coordinator or an admin.
+
+    So in the example i said above:
+    - If Status have the following options: 'Negotiation Open', 'Negotiation Closed', 'Negotiating'
+    - If the user A have access to the options:  'Negotiation Open' and 'Negotiating'
+    - If user A is `admin` or `coordinator` on the listing and kanban he can view, or update the data of all 
+    formularies that is filled with 'Negotiation Open' and 'Negotiating'. He WILL NOT be able to see data that
+    was filled with 'Negotiation Closed'
+
+    BY DEFAULT WHEN YOU CREATE A NEW OPTION ON THE FIELD ALL THE USERS HAVE ACCESS TO THIS FIELD, WHEN YOU CREATE A NEW USER, ALL
+    THE NEW USER WILL HAVE ACCESS TO ALL FORMULARIES
+    """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    field_option = models.ForeignKey(FieldOptions, models.CASCADE, db_index=True, related_name='option_accessed_by')
-    user = models.ForeignKey(UserExtended, models.CASCADE, db_index=True, related_name='option_accessed_by_user')
+    field_option = models.ForeignKey('formulary.FieldOptions', models.CASCADE, db_index=True, related_name='option_accessed_by')
+    user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True, related_name='option_accessed_by_user')
 
     class Meta:
         db_table = 'option_accessed_by'
-        app_label = 'data'
+        app_label = 'formulary'
 
 
 class FormAccessedBy(models.Model):
+    """
+    This works the same way as reflow_server.formulary.models.OptionAccessedBy but on formulary level.
+
+    This defines which formularies a user has access to.
+
+    If a company has formularies for the Finance and Sales teams respectively, than if the user B is from the Sales team
+    he then doesn't have to have access to Finance formularies, only Sales. With this model we can filter the formularies
+    the user has access to.
+    """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    form = models.ForeignKey(Form, models.CASCADE, db_index=True)
-    user = models.ForeignKey(UserExtended, models.CASCADE, db_index=True, related_name='form_accessed_by_user')
+    form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True)
+    user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True, related_name='form_accessed_by_user')
 
     class Meta:
         db_table = 'form_accessed_by'
-        app_label = 'data'
+        app_label = 'formulary'
+
+#############
+#           #
+# FORMULARY #
+#   DATA    #
+#           #
+#############
+
+class DynamicForm(models.Model):
+    #TODO: Create a section model, for sections
+    """
+    TL:DR: While `reflow_server.formulary.models.Form` represents the data to BUILD the form, this represents the data
+    of the Form
+
+    This is the model that represents each formulary and section data. Yup, the data, and how to build the formulary
+    are different from each other.
+
+    This is explained well in the frontend. But we need to explain here also.
+
+    This works kind of the same way as the `reflow_server.formulary.models.Form` works. Except the first has data containg
+    HOW to build the formulary and here we have data that explain WHAT we build on the formulary. OKAY, WUT?
+
+    Okay, think this way: Imagine we have a `multi-form` section called 'Historico'. This section when loaded for the user,
+    is not loaded displaying the fields. Just a simple button to add a new Section. The WHAT here define how many `multi-forms`
+    will be loaded. For further explanation you can check `Reflow Front` app inside the `shared/components/Formulary` read `ABOUT.md`
+
+    Anyway, this works the same way as `reflow_server.formulary.models.Form` so when `depends_on` is None, it is a Form, 
+    if `depends_on` is NOT None then it references a section.
+    """
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True)
+    user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
+    company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True, blank=True, null=True, related_name='company_dynamic_form')
+    depends_on = models.ForeignKey('self', models.CASCADE, blank=True, null=True, db_index=True,
+                                   related_name='depends_on_dynamic_form')
+
+    class Meta:
+        db_table = 'dynamic_forms'
+        ordering = ('-updated_at',)
+        app_label = 'formulary'
+
+
+
+class FormValue(AbstractFieldStates):
+    """
+    This is actually a simple, and might be one of the biggest table of our database. Why? Because this represents
+    the data for EACH field. Every value that the user fill on every formulary is saved as a string in our database,
+    even options.
+
+    Yup, this might not be really efficient, since we need to cast constantly for other formats.
+    But this way we keep the data concise and simple to work.
+
+    It's important to notice, sometimes a same field on the same section, might consume multiple rows on our database.
+    This happens for `multi-options` `field_type`, if the user has selected more than one option in the formulary, each of the
+    option he selected will be displayed in distinct row a single row. 
+
+    This model also holds the state of the fields, you can read more about it on `reflow_server.formulary.models.abstract.AbstractFieldStates`
+    """
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, blank=True, null=True, related_name='field_value')
+    value = models.TextField(db_index=True, blank=True, null=True)
+    form = models.ForeignKey('formulary.DynamicForm', models.CASCADE, db_index=True, blank=True, null=True,
+                             related_name='dynamic_form_value')
+    company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True, blank=True, null=True, related_name='company_value')
+    # below here is actually info about the field state
+    form_field_as_option = models.ForeignKey('formulary.Field', models.SET_NULL, blank=True, null=True, db_index=True)
+    field_type = models.ForeignKey('formulary.FieldType', models.CASCADE, db_index=True, null=True, related_name='field_type_value')
+
+
+    class Meta:
+        db_table = 'form_value'
+        app_label = 'formulary'
+
+
+class Attachments(models.Model):
+    """
+    This model holds all of the attachments of a formulary.
+
+    Right now attachments are saved on S3, but we could change it sometime in the near future. Because of this we use 
+    this model to save stuff like:
+
+    From which SECTION is this attachment referenced to? Okay, but from which Field on this section? What was the bucket 
+    that this attachment was saved (if it has a bucket)? On which path? What is the size of the file? And what is the url to
+    get the file?
+
+    With this we can later change where we save attachments without facing much issues. Making migrations MUCH, MUCH easier.
+
+    It is something that even Django Storages don't give us.
+    """
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    file = models.CharField(max_length=500, null=True, blank=True)
+    field = models.ForeignKey('formulary.Field', on_delete=models.CASCADE, blank=True, null=True, db_index=True,
+                              related_name='field_attachment')
+    form = models.ForeignKey('formulary.DynamicForm', on_delete=models.CASCADE, blank=True, null=True, db_index=True,
+                             related_name='dynamic_form_attachment')
+    bucket = models.CharField(max_length=200, default=settings.S3_BUCKET)
+    file_attachments_path = models.CharField(max_length=250, default=settings.S3_FILE_ATTACHMENTS_PATH)
+    file_url = models.CharField(max_length=1000, null=True, blank=True)
+    file_size = models.BigIntegerField(default=0)
+    date = models.DateField(auto_now=True)
+    
+    class Meta:
+        db_table = 'attachments'
+        app_label = 'formulary'

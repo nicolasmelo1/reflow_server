@@ -9,12 +9,16 @@ class AbstractForm(models.Model):
     
     I know it is confusing but it was required when we were dependending on django Formsets to create formularies, now we don't
     need it anymore, so it can be changed.
+
+    It is important to understand that `form_name` works like `name` in `reflow_server.formulary.models.Fields`. It is a field
+    that works like a slug for that formulary. It NEEDS to be unique for EACH COMPANY, not for the hole system. Usually 
+    this field does not accept any special characters, ponctuations or spaces since it needs to work well on urls or JSON objects.
     """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     form_name = models.CharField(max_length=150, db_index=True)
     label_name = models.CharField(max_length=150)
-    type = models.ForeignKey('formulary.FormType', models.CASCADE, db_index=True)
+    type = models.ForeignKey('formulary.SectionType', models.CASCADE, db_index=True)
     order = models.BigIntegerField()
     conditional_type = models.ForeignKey('formulary.ConditionalType', models.CASCADE, null=True, blank=True, db_index=True)
     conditional_value = models.CharField(max_length=200, null=True, blank=True)
@@ -60,11 +64,16 @@ class AbstractField(AbstractFieldStates):
 
     This abstract is for defining the field. Also as i said earlier, it inherits from AbstractFieldStates because it must 
     contain the state of the field. (This might be kinda obvious but anyway)
+
+    It is important to understand that `name` works like `form_name` in `reflow_server.formulary.models.Form`. It is a field
+    that works like a slug for that formulary. It NEEDS to be unique for EACH COMPANY, not for the hole system. Usually 
+    this field does not accept any special characters, ponctuations or spaces since it needs to work well on urls or JSON objects.
+    Usually is this what we show to the user when adding variables to text in the notification or formulas. Again, it's important
+    to understand this MUST BE UNIQUE for the hole company. So you can have more than one company sharing the same name of a field.
     """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=300, db_index=True)
-    type = models.ForeignKey('formulary.FieldType', models.CASCADE, db_index=True)
     label_name = models.CharField(max_length=300, blank=True, null=True)
     placeholder = models.CharField(blank=True, null=True, max_length=450)
     required = models.BooleanField(default=True)
@@ -76,6 +85,9 @@ class AbstractField(AbstractFieldStates):
     date_configuration_auto_update = models.BooleanField(default=False)
     number_configuration_allow_negative = models.BooleanField(default=True)
     number_configuration_allow_zero = models.BooleanField(default=True)
+    # this is actually a field state
+    type = models.ForeignKey('formulary.FieldType', models.CASCADE, db_index=True)
+
 
     class Meta:
         abstract = True

@@ -2,6 +2,7 @@ from django.db import models
 
 
 class AbstractListingTotalForField(models.Model):
+    # TODO: move this to dashboard. this is deprecated.
     """
     Might be moved to Dashboard, right now this holds all of the totals of the field. The Listing here means it is
     only available on `listing` visualization type
@@ -16,8 +17,8 @@ class AbstractListingTotalForField(models.Model):
 
 class AbstractKanbanCard(models.Model):
     """
-    This abstract holds the kanban Card Data. The Kanban Card itself is really simple. It just holds the dimension 
-    of the kanban card and if this card is default or not (default means that we'll load that first if the user opens
+    This abstract holds the kanban Card Data. The Kanban Card itself is really simple. It is just an id to be used for the
+    KanbanCardField and if this card is default or not (default means that we'll load that Card first if the user opens
     the kanban visualization, otherwise he have to fill a simple obligatory data form to build the kanban)
 
     It's worth mentioning that default is default for the formulary and dimension means a `reflow_server.formulary.models.Field`

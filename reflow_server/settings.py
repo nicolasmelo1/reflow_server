@@ -33,9 +33,15 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'channels',
     'rest_framework',
-    'reflow_server.formulary',
-    'reflow_server.auth',
+    'reflow_server.authentication',
+    'reflow_server.billing',
     'reflow_server.core',
+    'reflow_server.dashboard',
+    'reflow_server.formula',
+    'reflow_server.formulary',
+    'reflow_server.notification',
+    'reflow_server.notify',
+    'reflow_server.visualization',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -87,11 +93,11 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
-#AUTH_USER_MODEL = 'login.UserExtended'
+AUTH_USER_MODEL = 'authentication.UserExtended'
 
-#AUTHENTICATION_BACKENDS = (
-#    'reflow_server.auth.backends.EmailBackend',
-#)
+AUTHENTICATION_BACKENDS = (
+    'reflow_server.authentication.backends.EmailBackend',
+)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -199,3 +205,10 @@ CONSUMERS = {
 # CUSTOM ASYNC CONFIGURATION
 # check core.utils.asynchronous file
 ASYNC_RESPONSE_MAXIMUM_CONCURRENCY_THREADS = 20
+
+
+#S3 CONFIGURATION
+# check core.utils.bucket file
+S3_REGION_NAME = ''
+S3_FILE_ATTACHMENTS_PATH = ''
+S3_BUCKET = ''

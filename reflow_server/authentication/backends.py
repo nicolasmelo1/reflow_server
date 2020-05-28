@@ -1,4 +1,4 @@
-from reflow_server.auth.models import UserExtended
+from reflow_server.authentication.models import UserExtended
 
 
 class EmailBackend:
