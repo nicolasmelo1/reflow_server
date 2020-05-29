@@ -79,8 +79,9 @@ class PermissionService:
         return self.notification_configuration != None
 
     def is_valid_dynamic_form(self):
-        if self.dynamic_form:
-            forms = DataService.get_all_user_dynamic_forms(self.user.id, self.company.id)
+        if self.dynamic_form and self.form:
+            data_service = DataService(self.user.id, self.company.id)
+            forms = data_service.get_user_data_from_form(self.form.id)
             if int(self.dynamic_form.id) in forms.values_list('id', flat=True):
                 return True
             else:
