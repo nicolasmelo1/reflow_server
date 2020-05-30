@@ -13,13 +13,13 @@ class SortItem:
     def convert_sort_data(sort_data):
         sort_objects = list()
         for sort in sort_data:
-            [(field_name, (field_value, search_exact))] = sort.items()
-            sort_objects.append(SortItem(field_name, field_value, search_exact))
+            [(field_name, field_value)] = sort.items()
+            sort_objects.append(SortItem(field_name, field_value))
         return sort_objects
 
 
 class DataSort:
-    def __sort(self, sort_keys):
+    def _sort(self, sort_keys):
         """
         Sorts forms queryset based on sort_keys conditions, since it can be multiple sorts we sort inside of a list, so we sort the first row, than the second field 
         and so on.
@@ -33,7 +33,7 @@ class DataSort:
         # A user can have multiple sorts, so we need to norrow the sort for each sort. 
         # This is why it is on a for loop.
         for to_sort in sort_data:
-            field_data = self.__fields[to_sort.field_name]
+            field_data = self._fields[to_sort.field_name]
             filter_up_or_down = 'value' if 'down' in to_sort.value else '-value'
 
             # tries to find a handler to sort specific field_types
@@ -44,8 +44,8 @@ class DataSort:
                 orderded_values_and_form_ids = handler(filter_up_or_down, field_data)
             else:
                 orderded_values_and_form_ids = FormValue.objects.filter(
-                        company=self.company, 
-                        form__depends_on__in=self.__data, 
+                        company_id=self.company_id, 
+                        form__depends_on__in=self._data, 
                         field_id=field_data['id']
                     ) \
                     .order_by(filter_up_or_down) \
@@ -85,14 +85,14 @@ class DataSort:
                             forms_order[aux_forms_order_value + order_key_value] = exists_in_both_lists
                             
             order = Case(*[When(id__in=value, then=pos) for pos, value in enumerate(forms_order.values())]) if forms_order.values() else None
-            if self.__data and order:
-                self.__data = self.__data.order_by(order)
+            if self._data and order:
+                self._data = self._data.order_by(order)
 
 
     def _sort_date(self, filter_up_or_down, field_data):
         return FormValue.objects.filter(
                 company_id=self.company_id, 
-                form__depends_on__in=self.__data, 
+                form__depends_on__in=self._data, 
                 field_type__type=field_data['type'], 
                 field_id=field_data['id']
             ) \
@@ -116,7 +116,7 @@ class DataSort:
         order = Case(*[When(value=str(value), then=pos) for pos, value in enumerate(user_id_order)])
         return FormValue.objects.filter(
                 company_id=self.company_id, 
-                form__depends_on__in=self.__data, 
+                form__depends_on__in=self._data, 
                 field_type__type=field_data['type'],
                 value__in=list(user_id_order),
                 field_id=field_data['id']
@@ -137,7 +137,7 @@ class DataSort:
         order = Case(*[When(value=str(value), then=pos) for pos, value in enumerate(form_value_order)])
         return FormValue.objects.filter(
                 company=self.company, 
-                form__depends_on__in=self.__data, 
+                form__depends_on__in=self._data, 
                 field_type__type=field_data['type'], 
                 value__in=list(form_value_order),
                 field_id=field_data['id']

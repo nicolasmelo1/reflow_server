@@ -17,15 +17,17 @@ class Encrypt:
 
     so it gets this string, decrypts and get a number. Finally it responds for the user encrypting the data that needs to be encrypted
     """
-    def __init__(self):
-        self.encrypt = URLSafeSerializer(settings.SECRET_KEY)
-
-    def decrypt_pk(self, pk):
+    @staticmethod
+    def decrypt_pk(pk):
+        encrypt = URLSafeSerializer(settings.SECRET_KEY)
         try:
-            pk = self.encrypt.loads(pk)
+            pk = encrypt.loads(pk)
         except Exception as e:
             pk = -1
         return pk
 
+    @staticmethod
     def encrypt_pk(self, pk):
-        return self.encrypt.dumps(pk)
+        encrypt = URLSafeSerializer(settings.SECRET_KEY)
+
+        return encrypt.dumps(pk)

@@ -1,24 +1,28 @@
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import views
+
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
-from reflow_server.core.utils.routes import admin_only_url_names
+from rest_framework import status
+
 
 @method_decorator(csrf_exempt, name='dispatch')
-class HealthCheck(views.APIView):
+class HealthCheck(APIView):
     """
-    Simple healthcheck to check if the application is up and running or not
+    Simple healthcheck to check if the application is up and running or not.
+
+    Methods:
+        .get() -- 
     """
     def get(self, request):
         return Response({
             'status': 'ok'
-        })
+        }, status=status.HTTP_200_OK)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class Types(views.APIView):
+class Types(APIView):
     def get(self, request):
         """
         Types are an important part of our application, they are the core data of our app that NEEDs to be defined

@@ -99,7 +99,7 @@ class UserExtended(AbstractUser):
         db_table = 'users'
 
     def make_temporary_password(self):
-        from reflow_server.auth.utils.jwt_auth import JWT
+        from reflow_server.authentication.utils.jwt_auth import JWT
         
         password = JWT.get_token(self.id)
         self.temp_password = password

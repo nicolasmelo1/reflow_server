@@ -12,6 +12,7 @@ A dependência cryptography pode ter problemas na hora de instalar. Se você der
 export CPPFLAGS=-I/usr/local/opt/openssl/include 
 export LDFLAGS=-L/usr/local/opt/openssl/lib    
 
+SE O SEU PROGRAMA PRECISA CHAMAR OUTROS SERVIÇOS MUITO PROVAVELMENTE ELE É UM SERVIÇO.
 ## Configuration
 O programa não conta com uma venv ja criada, você precisa criar isso na mão usando o arquivo `requirements.txt`.
 Para isso use os seguintes comandos:

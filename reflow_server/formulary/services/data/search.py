@@ -6,7 +6,7 @@ class SearchItem:
     def __init__(self, field_name, value, exact):
         self.field_name = field_name
         self.value = value
-        self.exact = False if exact == "0" else True
+        self.exact = exact == "1"
 
     @staticmethod
     def convert_search_data(serach_data):
@@ -18,16 +18,17 @@ class SearchItem:
 
 class DataSearch:
     def __search_exact(self, search_item):
+        # Searchs for the exact value or parcial value, parcial also ignores the case
         if search_item.exact:
-            return {
-                'value__icontains': search_item.value
-            }
-        else:
             return {
                 'value': search_item.value
             }
+        else:
+            return {
+                'value__icontains': search_item.value
+            }
     
-    def __search(self, search_keys):
+    def _search(self, search_keys):
         """
         Used for searching the keys in the forms, it's a loop so all the filters are satisfied.
         The search keys are a list containing dicts for each key to filter, the key is the field name,
@@ -40,25 +41,26 @@ class DataSearch:
         """
         search_data = SearchItem.convert_search_data(search_keys) 
 
-        form_ids_to_filter = list(self.__data.values_list('id', flat=True))
+        form_ids_to_filter = list(self._data.values_list('id', flat=True))
         for to_search in search_data:
-            field_data = self.__fields[to_search.field_name]
+            field_data = self._fields[to_search.field_name]
 
             handler = getattr(self, '_search_%s' % field_data['type'], None)
             if handler:
                 form_ids_to_filter = handler(to_search, field_data, form_ids_to_filter)
             else:
+
                 form_ids_to_filter = list(
                     FormValue.objects.filter(
-                        company=self.company, 
+                        company_id=self.company_id, 
                         form__depends_on__in=list(form_ids_to_filter),
-                        field_id=field_data['íd'],
+                        field_id=field_data['id'],
                         field_type__type=field_data['type'],
                         **self.__search_exact(to_search)
                     ).values_list('form__depends_on__id', flat=True)
                 )
 
-        self.__data.filter(company_id=self.company_id, id__in=form_ids_to_filter)
+        self._data = self._data.filter(company_id=self.company_id, id__in=form_ids_to_filter)
 
     def _search_date(self, search_item, field_data, form_ids_to_filter):
         search_values = list()
