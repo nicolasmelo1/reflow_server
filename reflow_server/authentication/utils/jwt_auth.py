@@ -53,6 +53,17 @@ class JWT:
 
 
     def is_valid(self):
+        """
+        Checks if a jwt token is valid. .jwt must be defined prior on calling this function. You could define it
+        either on the object initialization, or use the `.extract_jwt_from_scope()` or `.extract_jwt_from_request()`
+        to extract the jwt for either the scope of the request.
+
+        Raises:
+            AssertionError: if the jwt is not valid
+
+        Returns:
+            bool -- True or False depending if the user is valid or not
+        """
         if not hasattr(self, 'jwt'):
             raise AssertionError('You must extract the jwt token from the request before calling `.is_valid()`')
 
