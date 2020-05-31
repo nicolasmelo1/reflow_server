@@ -1,4 +1,6 @@
 from reflow_server.authentication.models import Company
+from reflow_server.core.utils import replace_dumb_characters_from_str
+
 import random
 import unicodedata
 import string

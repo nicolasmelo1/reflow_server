@@ -40,8 +40,7 @@ class BaseConsumer(WebsocketConsumer):
     This `type` is used for sending to the handler method. Your handler methods must contain the `recieve_` 
     keyword in the start of the method.
     
-    So for example, if we can have a consumer like in your `notifications.consumers.py`:
-
+    So for example, if you have a consumer like this in your `notifications.consumers.py`:
     >>> class NotificationConsumer:
             def send_notification(self, event):
                 #...your code here
@@ -151,6 +150,8 @@ class UserConsumer(BaseConsumer, *get_consumers('LOGIN_REQUIRED')):
     """
     def connect(self):
         if 'user' in self.scope and self.scope['user'].is_authenticated:
+            # we create a custom group_name for each user, so when we send 
+            # events we can send them to a specific user.
             self.group_name = 'user_{id}'.format(id=self.scope['user'].id)
 
             async_to_sync(self.channel_layer.group_add)(

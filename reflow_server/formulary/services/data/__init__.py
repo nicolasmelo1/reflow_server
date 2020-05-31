@@ -82,17 +82,17 @@ class DataService(DataSort, DataSearch):
             form_id {int} -- the form_id to retrieve the user data from
 
         Keyword Arguments:
-            search_keys {list(dict)} -- list of fields to search, each dict on the list must be on the following format:
-            {
+            search_keys {list(dict)} -- (default: {None}) -- list of fields to search, each dict on the list must be on the following format:
+            >>> {
                 field_name: (value_to_search, 0 or 1)
             }
-            (default: {None})
-            sort_keys {list(dict)} -- list of fields to sort, value_to_sort must be `upper` or 'down', 
+            
+            sort_keys {list(dict)} -- (default: {None}) -- list of fields to sort, value_to_sort must be `upper` or 'down', 
             each dict on the list must follow the format:
-            {
+            >>> {
                 field_name: value_to_sort
             } 
-            (default: {None})
+
             from_date {datetime.datetime} -- The first date that the form was updated, right now only needed when
             downloading the formulary (default: {None})
             to_date {datetime.datetime} -- The last date the form was updated, right now only needed when downloading
@@ -133,7 +133,7 @@ class DataService(DataSort, DataSearch):
         if search_keys:
             if type(search_keys) != list or any([type(search) != dict for search in search_keys]) or any([type(list(search.values())[0]) != tuple for search in search_keys]):
                 raise AssertionError('Your list of dicts must follow the following formatting: \n'
-                                     '{ \n'
+                                     '>>> { \n'
                                      '  field_name: (value_to_search, 0 or 1) \n'
                                      '} \n'
                                      '\n'
@@ -143,7 +143,7 @@ class DataService(DataSort, DataSearch):
         if sort_keys:
             if type(sort_keys) != list or any([type(sort) != dict for sort in sort_keys]) or any([list(sort.values())[0] not in ['upper', 'down'] for sort in sort_keys]):
                 raise AssertionError('Your list of dicts must follow the following formatting: \n'
-                                     '{ \n'
+                                     '>>> { \n'
                                      '  field_name: sort_value \n'
                                      '} \n'
                                      '\n'
