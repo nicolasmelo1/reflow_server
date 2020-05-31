@@ -3,7 +3,7 @@ from rest_framework import serializers
 from reflow_server.notification.models import NotificationConfigurationVariable
 
 
-class NotificationConfigurationVariableSerializer(serializers.ModelSerializer):
+class NotificationConfigurationVariableRelation(serializers.ModelSerializer):
     field_name = serializers.CharField(source='field.name', allow_null=True)
     field_id = serializers.IntegerField(source='field.id', allow_null=True)
 

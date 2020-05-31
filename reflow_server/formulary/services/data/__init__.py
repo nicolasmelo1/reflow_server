@@ -12,7 +12,7 @@ class DataService(DataSort, DataSearch):
     @staticmethod
     def convert_sort_query_parameters(sort_field_names_list, sort_values_list):
         """
-        Method for converting simple lists to list of dicts used by DataService.get_user_data_from_form() method.
+        Method for converting simple lists to list of dicts used by DataService.get_user_form_data_ids_from_form_id() method.
 
         Arguments:
             sort_field_names_list {list(str)} -- the list of field_names recieved on the query_parameter
@@ -23,7 +23,7 @@ class DataService(DataSort, DataSearch):
             AssertionError: if your lists not have equal lengths
 
         Returns:
-            [list(dict)] -- List of dicts to be used on .get_user_data_from_form() method as sort_keys
+            [list(dict)] -- List of dicts to be used on .get_user_form_data_ids_from_form_id() method as sort_keys
         """
         if any([sort_value not in ['upper', 'down'] for sort_value in sort_values_list]):
             raise AssertionError('Your values must be either `upper` or `down`, '
@@ -41,7 +41,7 @@ class DataService(DataSort, DataSearch):
     @staticmethod
     def convert_search_query_parameters(search_field_names_list, search_values_list, search_exact_list):
         """
-        Method for converting simple lists to list of dicts used by DataService.get_user_data_from_form() method.
+        Method for converting simple lists to list of dicts used by DataService.get_user_form_data_ids_from_form_id() method.
 
         Arguments:
             search_field_names_list {list(str)} -- the list of field_names recieved on the query_parameter
@@ -53,7 +53,7 @@ class DataService(DataSort, DataSearch):
             AssertionError: if your lists not have equal lengths
 
         Returns:
-            [list(dict)] -- List of dicts to be used on .get_user_data_from_form() method as search_keys
+            [list(dict)] -- List of dicts to be used on .get_user_form_data_ids_from_form_id() method as search_keys
         """
         length = len(search_field_names_list)
         if any([str(search_exact) not in ['1', '0'] for search_exact in search_exact_list]):
@@ -73,7 +73,16 @@ class DataService(DataSort, DataSearch):
 
         return formatted_search
 
-    def get_user_data_from_form(self, form_id, search_keys=None, sort_keys=None, from_date=None, to_date=None):
+    def all_form_data_a_user_has_access_to(self):
+        all_dynamic_form_ids_a_user_has_access_to = list()
+
+        for form_id in FormAccessedBy.objects.filter(user=self.user_id).values_list('form_id', flat=True):
+            forms_data = self.get_user_form_data_ids_from_form_id(form_id)
+            all_dynamic_form_ids_a_user_has_access_to = all_dynamic_form_ids_a_user_has_access_to + forms_data
+
+        return all_dynamic_form_ids_a_user_has_access_to
+
+    def get_user_form_data_ids_from_form_id(self, form_id, search_keys=None, sort_keys=None, from_date=None, to_date=None):
         """
         Retrieves all of the data of a formulary that a user has access to. This function already handles search, and sort.
         This function retrieves the formulary data of a single form, not from multiple forms.
@@ -99,8 +108,7 @@ class DataService(DataSort, DataSearch):
             the formulary (default: {None})
 
         Returns:
-            [QuerySet(reflow_server.formulary.models.DynamicForm)] -- Returns a queryset of all of the data the user has access to
-            from a single form_id.
+            list(int) -- Returns a list of all of the dynamic_form_ids that the user has access to from a single form_id.
         """
 
         self._fields = Field.objects.filter(
@@ -151,7 +159,7 @@ class DataService(DataSort, DataSearch):
             self._sort(sort_keys)
 
         self.__filter_by_profile_permissions(form_id)
-        return self._data
+        return self._data.values_list('id', flat=True)
 
     def __filter_by_profile_permissions(self, form_id):
         user = UserExtended.objects.filter(id=self.user_id).first()

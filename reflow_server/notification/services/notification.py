@@ -5,6 +5,15 @@ import math
 
 class UserNotificationItem:
     def __init__(self, user_notifications, total_pages):
+        """
+        Simple class that contains all of the queryset data and the total pages of the data
+
+        Arguments:
+            user_notifications {Queryset(reflow_server.notification.models.UserNotification)} -- The queryset containing
+                                                                                                 all of the notifications
+                                                                                                 of a user.
+            total_pages {int} -- An interger that represents all of the pages to retrieve user notifications
+        """
         self.user_notifications = user_notifications
         self.total_pages = total_pages
         

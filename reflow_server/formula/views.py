@@ -10,6 +10,9 @@ class TestFormula(APIView):
     This view is used just to validate if a formula is valid or not, we validate using the last
     values inserted from a formulary.
 
+    Query Parameters:
+        text -- it is the formula as text to calculate.
+
     Methods:
         .get() -- used for validating if a formula is valid or not. If it has a `field` token 
                   (see `reflow_server.formula.utils.token.Token` for reference) it uses the last

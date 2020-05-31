@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class Login(APIView):
+class LoginView(APIView):
     """
     View responsible for authenticating users inside of reflow.
     
@@ -55,7 +55,7 @@ class Login(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class TestToken(APIView):
+class TestTokenView(APIView):
     """
     Simple view just used to validate if a token is still valid or not.
     
@@ -69,7 +69,7 @@ class TestToken(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class ForgotPassword(View):
+class ForgotPasswordView(APIView):
     """
     This view uses a temporary password instead of the default password in because of brute force. 
     If a person wants to brute force a password change for all of the emails there will be no changes for users who hasn't requested it.
@@ -91,7 +91,7 @@ class ForgotPassword(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class APIOnboarding(View):
+class OnboardingView(APIView):
     """
     View that creates a user and a company in the onboarding, this view is responsible 
     for handling only the onbaording
@@ -120,7 +120,7 @@ class APIOnboarding(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class RefreshToken(View):
+class RefreshTokenView(APIView):
     """
     View that refreshes a token and sends a new token and a new refresh token to the user.
 
@@ -153,7 +153,7 @@ class RefreshToken(View):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class ChangePassword(View):
+class ChangePassword(APIView):
     """
     View that recieves a temporary password and a new password and changes the user password to the new password.
 

@@ -8,7 +8,7 @@ from rest_framework import status
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class HealthCheck(APIView):
+class HealthCheckView(APIView):
     """
     Simple healthcheck to check if the application is up and running or not.
 
@@ -22,7 +22,7 @@ class HealthCheck(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class Types(APIView):
+class TypesView(APIView):
     def get(self, request):
         """
         Types are an important part of our application, they are the core data of our app that NEEDs to be defined

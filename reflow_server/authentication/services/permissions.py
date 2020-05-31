@@ -81,8 +81,8 @@ class PermissionService:
     def is_valid_dynamic_form(self):
         if self.dynamic_form and self.form:
             data_service = DataService(self.user.id, self.company.id)
-            forms = data_service.get_user_data_from_form(self.form.id)
-            if int(self.dynamic_form.id) in forms.values_list('id', flat=True):
+            form_data_ids = data_service.get_user_form_data_ids_from_form_id(self.form.id)
+            if int(self.dynamic_form.id) in form_data_ids:
                 return True
             else:
                 return False
