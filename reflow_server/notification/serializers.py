@@ -1,14 +1,17 @@
 from rest_framework import serializers
 
-from reflow_server.notification.models import UserNotification, NotificationConfiguration
-from reflow_server.notification.relations import NotificationConfigurationVariableRelation
+from reflow_server.notification.models import UserNotification, NotificationConfiguration, PreNotification, Notification
+from reflow_server.notification.relations import NotificationConfigurationVariableRelation, NotificationFormValueVariableDataForBuildRelation
 from reflow_server.notification.services.notification_configuration import NotificationConfigurationService
+from reflow_server.notification.services.pre_notification import PreNotificationService
+from reflow_server.notification.services.notification import NotificationService
 from reflow_server.formulary.models import Field
 
 import re
 
 
 class UnreadAndReadNotificationSerializer(serializers.ModelSerializer):
+    notification_id = serializers.IntegerField()
     """
     Serializer used for updating when the user reads a new notification.
     """
@@ -16,16 +19,16 @@ class UnreadAndReadNotificationSerializer(serializers.ModelSerializer):
         user_notification = UserNotification.objects.filter(
             user_id=self.context['user_id'], 
             id=self.validated_data['notification_id']
-        ).first()
-        user_notification.has_read = True
-        user_notification.save()
+        ).update(
+            has_read=True
+        )
 
     class Meta:
         fields = ('notification_id', )
         model = UserNotification
 
 
-class NotificationSerializer(serializers.ModelSerializer):
+class UserNotificationSerializer(serializers.ModelSerializer):
     """
     Serializer used for retrieving the notifications of a user. 
     (UserNotification may die in the upcomming future, so you can use Notification instead)
@@ -51,7 +54,7 @@ class NotificationConfigurationSerializer(serializers.ModelSerializer):
     Raises:
         serializers.ValidationError: If the NotificationConfiguration is invalid
     """
-    id = serializers.IntegerField(allow_null=True)
+    id = serializers.IntegerField(allow_null=True, required=False)
     notification_configuration_variables = NotificationConfigurationVariableRelation(many=True)
     text = serializers.CharField()
 
@@ -98,3 +101,56 @@ class NotificationFieldsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Field
         fields = ('label_name','name', 'id')
+
+
+class PreNotificationSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(allow_null=True, required=False)
+    dynamic_form_id = serializers.IntegerField(allow_null=True)
+    user_id = serializers.IntegerField(allow_null=True)
+    notification_configuration_id = serializers.IntegerField(allow_null=True)
+
+    def save(self, *args):
+        pre_notification_service = PreNotificationService()
+        pre_notification_service.update_from_request(
+            self.context['company']
+        )
+
+    class Meta:
+        model = PreNotification
+        fields = ('id', 'user_id', 'dynamic_form_id', 'notification_configuration_id')
+
+
+class NotificationDataForBuildSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    for_company = serializers.BooleanField()
+    text = serializers.CharField()
+    pre_notification_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
+    form_id = serializers.IntegerField()
+    variables = NotificationFormValueVariableDataForBuildRelation(many=True)
+
+
+class NotificationListSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        notification_service = NotificationService()
+        [notification_service.add_notification(
+            pre_notification_id=notification['pre_notification_id'],
+            notification_text=notification['notification'],
+            notification_configuration_id=notification['notification_configuration_id'],
+            dynamic_form_id=notification['form_id'],
+            user_id=notification['user_id']
+        ) for notification in validated_data]
+        created_notifications = notification_service.create_notifications()
+        return created_notifications
+
+class NotificationSerializer(serializers.ModelSerializer):
+    notification = serializers.CharField()
+    pre_notification_id = serializers.IntegerField()
+    notification_configuration_id = serializers.IntegerField()
+    form_id = serializers.IntegerField()
+    user_id = serializers.IntegerField(allow_null=True)
+
+    class Meta:
+        model = Notification
+        list_serializer_class = NotificationListSerializer
+        fields = ('notification', 'pre_notification_id', 'notification_configuration_id', 'form_id', 'user_id')

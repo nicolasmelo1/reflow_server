@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from reflow_server.settings import Structure
+from reflow_server.formula.utils.settings import Structure
 
 import random
 import string

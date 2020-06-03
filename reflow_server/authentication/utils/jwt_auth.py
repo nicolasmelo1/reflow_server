@@ -24,6 +24,24 @@ class JWT:
         """
         self.jwt = jwt
 
+    @property
+    def invalid_token_error(self):
+        """
+        We use this to mantain the consistency on the error messages if we want to fire the
+        error outside this class
+
+        Returns:
+            str -- the error message if the token is invalid
+        """
+        return 'invalid_token'
+    
+    @property
+    def expired_token_error(self):
+        return 'expired_token'
+    
+    @property
+    def unknown_error(self):
+        return 'unknown_error'
 
     def __validate_jwt_token(self):
         if not self.jwt:
@@ -40,15 +58,15 @@ class JWT:
             return True
 
         except (jwt.exceptions.DecodeError, jwt.exceptions.InvalidSignatureError) as error:
-            self._error = 'invalid_token'
+            self._error = self.invalid_token_error
             return False
 
         except jwt.exceptions.ExpiredSignatureError as error:
-            self._error = 'expired_token'
+            self._error = self.expired_token_error
             return False
         
         except Exception as e:
-            self._error = 'unknown_error'
+            self._error = self.unknown_error
             return False
 
 
@@ -72,6 +90,16 @@ class JWT:
 
     @property
     def data(self):
+        """
+        Gets the data encoded in the jwt token.
+
+        Raises:
+            AssertionError: If `.is_valid()` is not called prior to calling `.data`
+            AssertionError: If `.is_valid()` is false, you will not be able to call `.data`
+
+        Returns:
+            dict -- a dict containing your encoded data.
+        """
         if not hasattr(self, '_data') and not hasattr(self, '_error'):
             msg = 'You must call `.is_valid()` before trying to retrieve the data'
             raise AssertionError(msg)
@@ -83,6 +111,16 @@ class JWT:
 
     @property
     def error(self):
+        """
+        Retrieves the error message if your jwt token is not valid.
+
+        Raises:
+            AssertionError: If `.is_valid()` is not called prior to calling `.error`
+            AssertionError: If `.is_valid()` is True, you will not be able to call `.error`
+
+        Returns:
+            [type] -- [description]
+        """
         if not hasattr(self, '_data') and not hasattr(self, '_error'):
             msg = 'You must call `.is_valid()` before trying to retrieve the errors'
             raise AssertionError(msg)
@@ -94,10 +132,22 @@ class JWT:
             return self._error
 
     def extract_jwt_from_scope(self, scope):
+        """
+        Takes out the jwt token from the Django Consumer scope
+
+        Arguments:
+            scope {dict} -- Django consumer scope
+        """
         if 'query_string' in scope and 'token=' in str(scope['query_string']):
             self.jwt = scope['query_string'].decode('utf-8').replace('token=', '')
 
     def extract_jwt_from_request(self, request):
+        """
+        Takes out the jwt token from the Django request
+
+        Arguments:
+            request {django.Request} -- django request.
+        """
         if 'HTTP_AUTHORIZATION' in request.META or 'token' in request.GET:
             self.jwt = request.META['HTTP_AUTHORIZATION'] if 'HTTP_AUTHORIZATION' in request.META else request.GET['token']
 
@@ -106,6 +156,9 @@ class JWT:
         """
         Generates a JSON Web Token that stores this user's ID and has an expiry
         date set to 24 hours into the future.
+
+        Arguments:
+            user_id {int} -- The user id to be encoded on the token
         """
         dt = datetime.now() + timedelta(hours=24)
 
@@ -123,6 +176,9 @@ class JWT:
         """
         Generates a JSON Web Token that stores this user's ID and has an expiry
         date set to 60 days into the future.
+
+        Arguments:
+            user_id {int} -- the user id to be enconded inside of the token.
         """
         dt = datetime.now() + timedelta(days=60)
 

@@ -14,6 +14,12 @@ def get_user(user_id):
 
 # HTTP Auth JWT middleware
 class AuthJWTMiddleware:
+    """
+    Custom Django middleware responsible for authenticating the user in request.user.
+    It's important to understand that we handle authentication on the Django side, using custom middleware,
+    not on DRF side. DRF can be quite complicated and create more code than neeeded. Following some default 
+    django guidelines is a lot easier.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 

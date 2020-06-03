@@ -10,12 +10,50 @@ from datetime import datetime, timedelta
 
 
 class PreNotificationService:
+    def update_from_request(self, company_id):
+        """
+        So this is the function to be called internally, it is used when we recieve a request from the worker that a notification
+        configuration must be updated.
+
+        We creates it this way so we can control the pre_notification creation inside of celery in our worker and without affecting
+        the user request at all.
+
+        Arguments:
+            company_id {int} -- The company_id, we don't want to change EVERY notification, just the ones from the company.
+
+        Keyword Arguments:
+            user_id {int} -- the user_id, not obligatory (default: {None})
+            dynamic_form_id {int} -- the dynamic_form_id, also not obligatory (default: {None})
+            notification_configuration_id {int} -- the notification_configuration_id, not obligatory (default: {None})
+        """
+        self.__create_and_update_pre_notifications(company_id)
+
     @staticmethod
-    def update(company_id, user_id=None, dynamic_form_id=None, notification_configuration_id=None):
+    def verify_pre_notifications():
+        """
+        Verify if has a pre_notification configuration to be fired now or less than now and fires the creation
+        of the notification if it has.
+        """
+        now = datetime.now().replace(second=0, microsecond=0)
+        pre_notifications = PreNotification.objects\
+            .filter(has_sent=False, is_sending=False)\
+            .annotate(truncated_when=Func(Value('minute'), F('when'), function='date_trunc'))\
+            .filter(truncated_when__lte=now)
+        if pre_notifications.exists():
+            from reflow_server.notification.externals import NotificationWorkerExternal
+
+            external = NotificationWorkerExternal()
+            external.create_notification(pre_notifications.values_list('id', flat=True))
+            pre_notifications.update(is_sending=True)
+
+    @staticmethod
+    def update(company_id):
         """
         This function is a simple function helper user to update the user`s pre_notification of a company. If the user_id, dynamic_form_id or notification_configuration_id
         has been changed, then you use this function to update the pre-notifications. 
         
+        This function calls the worker so we can update it after the request is completed.
+
         > When the configurations of a user has changed, then he might not need to get
         a specific and particular notification.
         
@@ -27,74 +65,60 @@ class PreNotificationService:
 
         Arguments:
             company_id {int} -- The company_id, we don't want to change EVERY notification, just the ones from the company.
-
-        Keyword Arguments:
-            user_id {int} -- the user_id, not obligatory (default: {None})
-            dynamic_form_id {int} -- the dynamic_form_id, also not obligatory (default: {None})
-            notification_configuration_id {int} -- the notification_configuration_id, not obligatory (default: {None})
         """
-        pre_notification_service = PreNotificationService()
-        if user_id:
-            pre_notification_service.create_and_update_user_pre_notifications(user_id, company_id)
-        if notification_configuration_id:
-            pre_notification_service.create_and_update_notification_configuration_pre_notifications(notification_configuration_id, company_id)
-        if dynamic_form_id:
-            pre_notification_service.create_and_update_form_pre_notifications(dynamic_form_id, company_id)
+        from reflow_server.notification.externals import NotificationWorkerExternal
 
-    def __create_and_update_pre_notifications(self, company_id, user_id, form_names_accessed_by_user, form_id=None, notification_configuration=None):
+        external = NotificationWorkerExternal()
+        external.update_pre_notifications(company_id)
+
+    def __create_and_update_pre_notifications(self, company_id):
         """
-        This function is used to effectively create or update pre_notifications based on certain conditions.
-        If it recieved a user_id, it updates all of the pre_notifications of the formularies that the user has access to.
+        This function is used to effectively create, update and delete pre_notifications.
 
-        So instead of updating each individual pre_notification on user, or notification_configuration level. We always try to
-        update them on form data level. So if a user has changed, we get all the form data that this user has access to to update.
-        If a change in the notification_configuration is made we get all of the form data that this notification configuration
-        complies to. 
+        It's important to understand that we always update the notifications for all of the users of a company and all of the notifications
+        that the users have access to.
 
-        I understand this is kinda tricky, but this is why we need 3 different handler methods `.create_and_update_user_pre_notifications()`,
-        `.create_and_update_notification_configuration_pre_notifications()` and `.create_and_update_form_pre_notifications()` for each condition.
-        The outcome of all of them is ALWAYS the same. We always update based from the user_id
+        Why we gotta do it like this you might ask? The main problem is that we need to delete pre_notifications based on 3 
+        conditions:
+        
+        - delete pre_notifications for users that are not from the same company as the notification (can happen if we are editing the db directly)
+        - delete pre_notifications from formularies that is not meant to send notifications (the user can loose access to a certain form)
+        - delete pre_notifications that the user has no access to (a user can loose access to a certain notification_configuration)
+
+        As you might think, with this this function is not really optimized. :(
+        So if you've got a better way to optimize it, please you can do it, but you gotta respect the conditions above.
 
         Arguments:
             company_id {int} -- The company id you want to update pre_notifications from
-            user_id {int} -- you always need to update pre_notifcations for a certain user. It's never for the hole company.
-
-        Keyword Arguments:
-            form_id {int} -- Only required if you want to update the pre_notifications from a certain
-                             form data. (default: {None})
-            notification_configuration {reflow_server.notification.models.NotificationConfiguration} -- 
-            Only required if you want to update the pre_notifcations of a certain notification_configuration (default: {None})
         """
 
         # if a form_id is defined we don't do anything much, just retrieve the forms data that the user has access to from the
         # form_id. Otherwise we retrieve ALL of the forms a user has access too and all of the forms data
-        data_service = DataService(user_id, company_id)
-
-        if form_id:
-            user_accessed_forms = data_service.get_user_form_data_ids_from_form_id(form_id).values_list('id', flat=True)
-        else:
-            user_accessed_forms = data_service.all_form_data_a_user_has_access_to()
-
-        # checks if it's a single notification_configuration or update multiple notification configurations
-        if notification_configuration:
-            self.__update_pre_notification(notification_configuration, user_id, user_accessed_forms)
-        else:
-            # check if needs to change all notification_configurations or only the ones from a form_id
-            if form_id:
-                notification_configurations = NotificationConfiguration.objects.filter(form_id=form_id)
-            else:
-                # this is used if you are trying to change the pre_notifications of a user. since the user can have his own notifications
-                # we first need to check his own notification_configurations, on the other hand, admins can set notifications for the hole
-                # company, company which the user can be part of. So we have 2 distinct conditions: his own notification_configurations and
-                # his company notification_configurations. 
-                notification_configurations = NotificationConfiguration.objects.filter(Q(user_id=user_id) | Q(user__company_id=company_id, for_company=True))
+        user_ids = UserExtended.objects.filter(company_id=company_id, is_active=True).values_list('id', flat=True)
+        for user_id in user_ids:
+            data_service = DataService(user_id, company_id)
+            notification_configurations = NotificationConfiguration.objects.filter(Q(user_id=user_id) | Q(user__company_id=company_id, for_company=True))
             for notification_configuration in notification_configurations:
-                self.__update_pre_notification(notification_configuration, user_id, user_accessed_forms)
+                form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(notification_configuration.form_id)
+                self.__update_pre_notification(notification_configuration, user_id, form_data_accessed_by_user)
+                
+            # we usually create or update the pre_notifications in `.__update_pre_notification` function
+            # but we usually don't delete the pre_notifications, that's why we need this part here.
+            PreNotification.objects.filter(
+                user_id=user_id, 
+                has_sent=False
+            ).exclude(
+                notification_configuration__in=notification_configurations
+            ).delete()
 
-        # we usually create or update the pre_notifications in `.__update_pre_notification` function
-        # but we usually don't delete the pre_notifications, that's why we need this part here.
-        PreNotification.objects.filter(user_id=user_id, has_sent=False).exclude(dynamic_form_id__in=user_accessed_forms).delete()
-    
+        
+        PreNotification.objects.filter(
+            notification_configuration__form__group__company_id=company_id, 
+            has_sent=False
+        ).exclude(
+            user__company_id=company_id
+        ).delete()
+
     
     def __update_pre_notification(self, notification_configuration, user_id, user_accessed_forms):
         """
@@ -118,56 +142,10 @@ class PreNotificationService:
                                            .filter(value_as_date__gte=datetime.now())\
                                            .values_list('value_as_date','form__depends_on_id')
             for  when, form_id in form_values:
+                # force to just exist ONE pre_notification for this condition
+                PreNotification.objects.filter(has_sent=False, user_id=user_id, dynamic_form_id=form_id, notification_configuration=notification_configuration).delete()
                 PreNotification.objects.update_or_create(has_sent=False, user_id=user_id, dynamic_form_id=form_id, notification_configuration=notification_configuration, defaults={
                     'when':when
                 })
-        
-    def create_and_update_user_pre_notifications(self, user_id, company_id):
-        """
-        Used to update pre_notifications of a user_id. Usually used when a user_id is updated or created
-
-        Arguments:
-            user_id {int} -- The user_id to update
-            company_id {int} -- the company_id that the user resides on to update
-        """
-        self.__create_and_update_pre_notifications(company_id=company_id, user_id=user_id)
-
-    def create_and_update_notification_configuration_pre_notifications(self, notification_configuration_id, company_id):
-        """
-        Used to update the pre_notifications of a notification_configuration, usually used when a notification_configuration
-        is updated or created.
-
-        Arguments:
-            notification_configuration_id {int} -- the id of the notification_configuration that was created or updated
-            company_id {int} -- the id of the company that the notification_configuration resides on
-        """
-        notification_configuration = NotificationConfiguration.objects.filter(id=notification_configuration_id).first()
-        # updates single user or multiple users for a certain company
-        if notification_configuration.for_company:
-            user_ids = UserExtended.objects.filter(company_id=company_id, is_active=True).values_list('id', flat=True)
-            for user_id in user_ids:
-                
-                self.__create_and_update_pre_notifications(company_id=company_id, user_id=user_id, notification_configuration=notification_configuration)
-        else:
-            self.__create_and_update_pre_notifications(company_id=company_id, user_id=notification_configuration.user_id, notification_configuration=notification_configuration)
-
-    def create_and_update_form_pre_notifications(self, dynamic_form_id, company_id):
-        """
-        Used to update the pre_notifications of a form data id, so if a formulary has been created or updated, we need to also update
-        the pre_notification that resides on the form_id
-
-        Arguments:
-            dynamic_form_id {int} -- The form data id that was created or updated
-            company_id {int} -- the company_id that the form_data id resides on.
-        """
-        dynamic_form = DynamicForm.objects.filter(id=dynamic_form_id, depends_on__isnull=True).first()
-        if dynamic_form:
-            form_id = dynamic_form.form_id
-            form_values = FormValue.objects.filter(form__depends_on=dynamic_form, field__type__type__in=['option','multi_option'])
-            user_ids = FormAccessedBy.objects.filter(form=dynamic_form.form, user__company_id=company_id, user__is_active=True).values_list('user_id', flat=True)
-            for form_value in form_values:
-                user_ids = OptionAccessedBy.objects.filter(user_id__in=user_ids, field_option__field=form_value.field, field_option__option=form_value.value).values_list('user_id', flat=True)
-
-            for user_id in user_ids:
-                self.__create_and_update_pre_notifications(company_id=company_id, user_id=user_id, form_id=form_id)
-
+            PreNotification.objects.filter(has_sent=False, user_id=user_id, notification_configuration=notification_configuration).exclude(dynamic_form_id__in=[form_id for _, form_id in form_values]).delete()
+    

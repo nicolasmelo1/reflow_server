@@ -13,7 +13,7 @@ class PermissionService:
                  dynamic_form_id=None, section_id=None, field_id=None,
                  notification_configuration_id=None, kanban_card_id=None):
         self.user = UserExtended.objects.filter(id=user_id).first()
-        self.company = Company.objects.filter(id=company).first()
+        self.company = Company.objects.filter(id=company_id).first()
         
         if url_name:
             self.url_name = url_name
@@ -138,6 +138,8 @@ class PermissionService:
         if hasattr(self, 'kanban_card'):
             if not self.is_valid_kanban_card():
                 return False
+        
+        return True
     '''
     def is_valid_file(self, url_name, request_files):
         """validates the billing"""

@@ -41,7 +41,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
     change_password_url = serializers.CharField()
 
     def save(self):
-        PasswordService.request_new_password_for_user(self.validated_data['email'], self.validated_data['change_password_url'])
+        PasswordService.request_new_temporary_password_for_user(self.validated_data['email'], self.validated_data['change_password_url'])
 
 
 class OnboardingSerializer(serializers.Serializer):
@@ -77,5 +77,11 @@ class ChangePasswordSerializer(serializers.Serializer):
     temporary_password = serializers.CharField()
     password = serializers.CharField()
 
+    def validate(self, data):
+        self.password_service = PasswordService()
+        if not self.password_service.isvalid_temporary_password(data['temporary_password']):
+            raise serializers.ValidationError()
+        return data
+    
     def save(self):
-        PasswordService.change_password(self.validated_data['temporary_password'], self.validated_data['password'])
+        self.password_service.change_password(self.validated_data['password'])

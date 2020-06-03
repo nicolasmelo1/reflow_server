@@ -1,7 +1,9 @@
 from django.db import transaction
 
+from reflow_server.formulary.models import FormValue
 from reflow_server.authentication.models import UserExtended
-from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable
+from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable, \
+    PreNotification
 from reflow_server.notification.services.pre_notification import PreNotificationService
 
 import re
@@ -25,6 +27,10 @@ class NotificationConfigurationService:
         Service used for notification configuration creation and/or update.
 
         Available Methods:
+            .get_notification_configuration_data_from_pre_notifications() -- This method is used when building the notifications.
+                                                                             Before building the notifications you first need the 
+                                                                             data to effectively build the notifications, thats why 
+                                                                             you use this method for.
             .add_notification_variable() -- used for adding notification variables so they can be used for validation and
                                             also on creating or updating notification configurations. If you notification 
                                             configuration has varibles, you must call this function before anything.
@@ -72,13 +78,12 @@ class NotificationConfigurationService:
         if any([variable.id in [None, ''] and variable.name in [None, ''] for variable in self.__variables]):
             raise AssertionError('Invalid `id` or invalid `name` in one of the variables, must not be `None` or empty string')
 
-    def __create_or_update_notification_configuration_variables(self):
+    def __create_or_update_notification_configuration_variables(self, instance):
         """
         Does what the name suggests, based on the variables stored in the list __variables we update each 
         NotificationConfiguration variable model.
         """
-        NotificationConfigurationVariable.objects.filter(notification_configuration=self.instance).delete()
-        update_notification_configuration_variable_ids = []
+        NotificationConfigurationVariable.objects.filter(notification_configuration=instance).delete()
         NotificationConfigurationVariable.objects.bulk_create([
             NotificationConfigurationVariable(
                 field_id=notification_configuration_variable.id,
@@ -107,7 +112,7 @@ class NotificationConfigurationService:
         self.instance.days_diff = days_diff
         self.instance.form = form
         self.instance.field = field
-        self.instance.user = user_id
+        self.instance.user_id = user_id
         self.instance.save()
 
         return self.instance
@@ -137,7 +142,7 @@ class NotificationConfigurationService:
         """
 
         # if the user is not an admin and is trying to set the for_company, we enforce the for_company on being False
-        if for_company and UserExtended.object.filter(id=user_id).excludes(profile__name='admin').exists():
+        if for_company and UserExtended.objects.filter(id=user_id).exclude(profile__name='admin').exists():
             for_company = False
         
         if self.instance:
@@ -145,6 +150,66 @@ class NotificationConfigurationService:
         else:
             instance = self.__create(for_company, name, text, days_diff, form, field, user_id)
 
-        self.__create_or_update_notification_configuration_variables()
-        PreNotificationService.update(company_id, notification_configuration_id=instance.id)
+        self.__create_or_update_notification_configuration_variables(instance)
+        PreNotificationService.update(company_id=company_id)
         return instance
+
+    @staticmethod
+    def remove_notification_configuration(user_id, notification_configuration_id):
+        """
+        Removes a notification configuration
+
+        Arguments:
+            user_id {int} -- the id of the user who this notification configuration is to
+            notification_configuration_id {int} -- the notification_configuration_id to remove.
+        """
+        NotificationConfiguration.objects.filter(user_id=user_id, id=notification_configuration_id).delete()
+
+    @staticmethod
+    def get_notification_configuration_data_from_pre_notifications(pre_notification_list_ids):
+        """
+        This method is used when building the notifications. Before building the notifications
+        you first need the data to effectively build the notifications, thats why you use this method
+        for. You send a pre_notification_list_ids, and it retrieves the data to build each notification
+        from each pre_notification. 
+
+        Then the WORKER application uses this data to build the notification for each user.
+
+        Arguments:
+            pre_notification_list_ids {list(int)} -- list with pre_notification ids. 
+
+        Returns:
+            list(dict) -- List of dicts to be parsed by NotificationDataForBuildSerializer serializer.
+        """
+        response = list()
+        pre_notifications = PreNotification.objects.filter(id__in=pre_notification_list_ids)
+        for pre_notification in pre_notifications:
+            variable_values = []
+
+            notification_configuration = NotificationConfiguration.objects.filter(id=pre_notification.notification_configuration_id).first()
+            notification_configuration_variables = NotificationConfigurationVariable.objects.filter(
+                notification_configuration_id=pre_notification.notification_configuration_id
+            ).values_list('field_id', flat=True)
+
+            for notification_configuration_variable in notification_configuration_variables:
+                form_value = FormValue.objects.filter(
+                    form__depends_on__id=pre_notification.dynamic_form_id, 
+                    field_id=notification_configuration_variable
+                ).first()
+                if form_value:
+                    variable_values.append(form_value)
+                else:
+                    variable_values.append(FormValue(
+                        field_id=notification_configuration_variable, 
+                        value=''))
+
+            response.append({
+                'id': notification_configuration.id,
+                'for_company': notification_configuration.for_company,
+                'text': notification_configuration.text,
+                'pre_notification_id': pre_notification.id,
+                'user_id': pre_notification.user_id,
+                'form_id': pre_notification.dynamic_form_id,
+                'variables': variable_values
+            })
+        return response

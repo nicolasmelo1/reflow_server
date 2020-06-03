@@ -27,7 +27,7 @@ class Encrypt:
         return pk
 
     @staticmethod
-    def encrypt_pk(self, pk):
+    def encrypt_pk(pk):
         encrypt = URLSafeSerializer(settings.SECRET_KEY)
 
         return encrypt.dumps(pk)

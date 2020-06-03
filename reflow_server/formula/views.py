@@ -5,7 +5,7 @@ from reflow_server.formulary.models import DynamicForm
 from reflow_server.formula.services import FormulaService
 
 
-class TestFormula(APIView):
+class TestFormulaView(APIView):
     """
     This view is used just to validate if a formula is valid or not, we validate using the last
     values inserted from a formulary.

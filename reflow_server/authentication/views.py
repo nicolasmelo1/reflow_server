@@ -6,7 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from reflow_server.core.utils import encrypt
+from reflow_server.core.utils.encrypt import Encrypt
+from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.formulary.models import FormAccessedBy
 from reflow_server.authentication.models import UserExtended
 from reflow_server.authentication.utils.jwt_auth import JWT
@@ -25,23 +26,26 @@ class LoginView(APIView):
         .post() -- authenticate the user based on email and login and returns information about the user as well as 
                    jwt tokens.
     """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             request.user = serializer.save()
-            if request.user.is_authenticaded:
+            if request.user.is_authenticated:
                 # we also login on session, so the user can see the admin or other pages.
                 login(request, request.user)
                 
                 # get the first form he has access to as the first page to redirect to.
-                form = FormAccessedBy.objects.filter(user_id=request.user.id).first()
-                form_name = form.form_name if form else None
+                first_form_the_user_has_access_to = FormAccessedBy.objects.filter(user_id=request.user.id).first()
+                form_name = first_form_the_user_has_access_to.form.form_name if first_form_the_user_has_access_to else ''
 
                 user_serializer = UserSerializer(instance=request.user)
+
                 return Response({
                     'status': 'ok',
-                    'company_id': encrypt.Encrypt().encrypt_pk(request.user.company.id),
-                    'form_name': form['form_name'] if form else '',
+                    'company_id': Encrypt.encrypt_pk(request.user.company.id),
+                    'form_name': form_name,
                     'user': user_serializer.data,
                     'access_token': JWT.get_token(request.user.id),
                     'refresh_token': JWT.get_refresh_token(request.user.id),
@@ -80,9 +84,10 @@ class ForgotPasswordView(APIView):
         .post() -- recieves a json containing the url of the front-end and a email to send a new password 
         and sends a temporary password by email.
     """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
     def post(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
-
         if serializer.is_valid():
             serializer.save()
         return Response({
@@ -99,6 +104,8 @@ class OnboardingView(APIView):
     Methods:
         .post() -- recieves data com user and company and creates a new company
     """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
     def post(self, request):
         serializer = OnboardingSerializer(data=request.data)
         if serializer.is_valid():
@@ -133,7 +140,7 @@ class RefreshTokenView(APIView):
         jwt.extract_jwt_from_request(request)
         if jwt.is_valid():
             user = UserExtended.objects.filter(id=jwt.data['id']).first()
-            if user:
+            if user and jwt.data['type'] == 'refresh':
                 user.last_login = datetime.now()
                 user.save()
                 return Response({
@@ -143,23 +150,25 @@ class RefreshTokenView(APIView):
             else:
                 return Response({
                     'status': 'error',
-                    'reason': 'invalid_token'
+                    'reason': jwt.invalid_token_error
                 }, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response({
                 'status': 'error',
-                'reason': 'invalid_token'
+                'reason': jwt.error
             }, status=status.HTTP_403_FORBIDDEN)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class ChangePassword(APIView):
+class ChangePasswordView(APIView):
     """
     View that recieves a temporary password and a new password and changes the user password to the new password.
 
     Methods:
         .post() -- Method that recieves the new password and the temp password and changes the user password.
     """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
         if serializer.is_valid():

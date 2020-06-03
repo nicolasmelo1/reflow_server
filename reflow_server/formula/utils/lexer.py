@@ -29,7 +29,6 @@ class Lexer(Structure):
         Returns the lexed expression, the lexed expression is tokenized values ignoring formulas, 
         and special characters as (, ) and ;
         """
-        
         return self.__expression
 
 
@@ -45,8 +44,9 @@ class Lexer(Structure):
         """
         for match in matches:
             key = self.token_container.add_token(match, token_type, is_first_tokenization=True, *args, **kwargs)
+            # just replaces the first occurrence on the string so on 1 + 1 we don't replace both `1` with the same token
             self.__expression = self.__expression.replace(match, ' {} '.format(key), 1)
-
+    
     def __format_and_validate(self):
         """
         Runs format and validate functions
@@ -64,7 +64,9 @@ class Lexer(Structure):
 
         for character in self.valid_characters:
             self.__expression = self.__expression.replace(character, ' {} '.format(character))
-        
+        # removes all of the extra spaces
+        self.__expression = list(filter(None, self.__expression.split(' ')))
+
         return self.__validate()
     
     def __validate(self):

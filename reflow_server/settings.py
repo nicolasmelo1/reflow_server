@@ -18,6 +18,12 @@ except ImportError:
     compat.register()
 
 
+ENV = os.environ.get('CONFIG', 'development')
+if ENV == 'development':
+    configuration = ''
+elif ENV == 'server':
+    configuration = ''
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -64,6 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'reflow_server.middleware.AuthJWTMiddleware'
 ]
 
 ROOT_URLCONF = 'reflow_server.urls'
@@ -198,23 +205,22 @@ STATICFILES_DIRS = [
 CHANNEL_LAYERS = "channels_redis.core.RedisChannelLayer"
 ASGI_APPLICATION = 'reflow_server.routing.application'
 
-
 # REST FRAMEWORK CONFIGURATION 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer'
-    ],
+    ]
 }
 
 
 # Reflow configurations, configurations specific for Reflow project
 
-# CUSTOM DJANGO CHANNELS CONFIGUTATION 
+# CUSTOM DJANGO CHANNELS CONFIGURATION 
 # check core.consumers file
 CONSUMERS = {
     'LOGIN_REQUIRED': [
-        #'reflow_crm.notifications.consumers.NotificationReadConsumer'
+        'reflow_server.notification.consumers.NotificationReadConsumer'
     ]
 }
 
@@ -222,9 +228,46 @@ CONSUMERS = {
 # check core.utils.asynchronous file
 ASYNC_RESPONSE_MAXIMUM_CONCURRENCY_THREADS = 20
 
+# CUSTOM JWT CONFIGURATION
+# check authentication.utils.jwt_auth file
+JWT_ENCODING = 'HS256'
+JWT_HEADER_TYPES = ('Client',)
 
-#S3 CONFIGURATION
+# FORMULA CONFIGURATION
+# check formula.utils.parser file
+FORMULA_MAXIMUM_EVAL_TIME = 0.1
+FORMULA_FORMULAS = 'reflow_server.formula.utils.formulas'
+FORMULA_KEYWORD = 'Formula'
+FORMULA_TRIM_SPACES = '_'
+FORMULA_TITLE_STRING = True
+
+# DATE FIELD CONFIGURATION
+# check formulary.models.FieldDateFormatType
+"""
+Dates are saved in this default format, this way it becomes easier to work with it regardless
+the location the user is accessing
+"""
+DEFAULT_PSQL_DATE_FIELD_FORMAT = 'YYYY-MM-DD HH24:MI:SS'
+DEFAULT_DATE_FIELD_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+
+# NUMBER FIELD CONFIGURATION
+# check formulary.models.FieldNumberFormatType
+"""
+Numbers are saved as `INTEGERs` in our DB since it's very difficult to work
+with float values in computing, with this, we define a BASE NUMBER, so every integer saved
+is multiplied by it, and every decimal is saved following the rule FLOATNUMBER * (BASE/PRECISION)
+"""
+DEFAULT_BASE_NUMBER_FIELD_FORMAT = 100000000
+DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION = len(str(DEFAULT_BASE_NUMBER_FIELD_FORMAT))-1
+
+# S3 CONFIGURATION
 # check core.utils.bucket file
 S3_REGION_NAME = ''
 S3_FILE_ATTACHMENTS_PATH = ''
 S3_BUCKET = ''
+
+# EXTERNAL APPS CONFIGURATION
+EXTERNAL_APPS={
+    'reflow_worker': ['http://localhost:8001']
+}

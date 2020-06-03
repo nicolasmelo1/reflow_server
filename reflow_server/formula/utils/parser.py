@@ -64,7 +64,7 @@ class Parser(Structure):
             elif content == ')' and stack:
                 start = stack.pop()
                 method = expression[start-1] if self.is_formula(expression[start-1].upper()) else None
-                extracted_expression =' '.join(expression[start + 1: index]).replace('( ', '').replace(' )', '')
+                extracted_expression = ' '.join(expression[start + 1: index]).replace('( ', '').replace(' )', '')
                 response.append((method, extracted_expression))
         return response
 

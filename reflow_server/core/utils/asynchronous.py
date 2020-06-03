@@ -11,9 +11,11 @@ class RunAsyncFunction(threading.Thread):
         You can run your function with `.delay()` and send all of the parameters of the function using the `.delay()` method
 
         MOTIVATION:
-        This app IS NOT async, but sometimes you might face the need to run some bound heavy tasks, for it use THIS in order to send the response to the client
-        before executing some heavy task in the background. 
-        It's important to notice that you don't care about the results of the functions that you run here.
+            This app IS NOT async, but sometimes you might face the need to run some bound heavy tasks, and for it using
+            celery might be like killing an ant with a bazooka.
+            So if you want to run some heavy tasks in the background before sending the response to the client, use this class.
+            It's important to notice that you don't care about the results of the functions that you run here. Also, you don't care
+            about monitoring.
 
         IMPORTANT:
         USE THIS AS LAST RESORT, THIS DOESN'T PROVIDE ANY MONITORING OR EXCEPTION HANDLING, RETRY ON FAILURE, RETURN, ETC. 

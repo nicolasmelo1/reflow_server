@@ -75,8 +75,9 @@ class DataService(DataSort, DataSearch):
 
     def all_form_data_a_user_has_access_to(self):
         all_dynamic_form_ids_a_user_has_access_to = list()
-
-        for form_id in FormAccessedBy.objects.filter(user=self.user_id).values_list('form_id', flat=True):
+        
+        form_ids_a_user_has_access_to = FormAccessedBy.objects.filter(user=self.user_id).values_list('form_id', flat=True).distinct()
+        for form_id in form_ids_a_user_has_access_to:
             forms_data = self.get_user_form_data_ids_from_form_id(form_id)
             all_dynamic_form_ids_a_user_has_access_to = all_dynamic_form_ids_a_user_has_access_to + forms_data
 
@@ -159,7 +160,7 @@ class DataService(DataSort, DataSearch):
             self._sort(sort_keys)
 
         self.__filter_by_profile_permissions(form_id)
-        return self._data.values_list('id', flat=True)
+        return list(self._data.values_list('id', flat=True))
 
     def __filter_by_profile_permissions(self, form_id):
         user = UserExtended.objects.filter(id=self.user_id).first()
