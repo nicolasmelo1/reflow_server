@@ -116,3 +116,26 @@ class KanbanSetDefaultsView(APIView):
         return Response({
             'status': 'error'
         }, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class APIKanbanDimensionsOrder(View):
+    def get(self, request, form, company_id, field_id):
+        dimension_orders = get_create_or_update_kanban_dimension_order(encrypt.decrypt_pk(company_id), request.user, field, form)
+        serializer = KanbanDimensionOrderSerializer(dimension_orders, many=True)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        })
+    
+
+    def put(self, request, form, company_id, field_id):
+        dimension_orders = KanbanDimensionOrder.objects.filter(dimension_id=field_id, user=request.user)\
+            .order_by('order')
+        serializer = KanbanDimensionOrderSerializer(data=data, instance=dimension_orders, many=True)
+
+        if serializer.is_valid():
+            serializer.save()
+        return Response({
+            'status': 'ok'
+        })
