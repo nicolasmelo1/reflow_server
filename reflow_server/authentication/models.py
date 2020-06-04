@@ -2,6 +2,13 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
+class VisualizationType(models.Model):
+    name = models.CharField(max_length=250)
+    label_name = models.CharField(max_length=200)
+
+    class Meta:
+        db_table = 'data_type'
+
 
 class CompanyType(models.Model):
     """
@@ -92,7 +99,7 @@ class UserExtended(AbstractUser):
     phone = models.CharField(max_length=250, default=None, null=True, blank=True)
     timezone = models.IntegerField(default=-3)
     is_admin = models.BooleanField(default=False)
-    data_type = models.ForeignKey('visualization.VisualizationType', on_delete=models.CASCADE, default=None, null=True)
+    data_type = models.ForeignKey('authentication.VisualizationType', on_delete=models.CASCADE, default=None, null=True)
     temp_password = models.CharField(max_length=250, default=None, null=True, blank=True)
     
     class Meta:

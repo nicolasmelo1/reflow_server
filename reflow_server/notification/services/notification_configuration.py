@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from reflow_server.formulary.models import FormValue
+from reflow_server.formulary.models import FormValue, Field
 from reflow_server.authentication.models import UserExtended
 from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable, \
     PreNotification
@@ -21,6 +21,36 @@ class NotificationVariables:
         self.id = field_id
 
 
+class NotificationConfigurationFieldsService:
+    def __init__(self, company_id, form_id):
+        """
+        Gets the possible fields that can be used in your notification configuration such as the `field_type` as date to be used
+        and the possible fields to be used as variable.
+
+        Args:
+            form_id (int): must be set if you are trying to get the notification_configuration_fields you could use
+            for variables and to be notified.
+            company_id (int): must be set if you are trying to get the notification_configuration_fields you could use
+            for variables and to be notified.
+        """
+        self.__fields = Field.objects.filter(
+            form__depends_on_id=form_id, 
+            form__depends_on__group__company_id=company_id, 
+            enabled=True, 
+            form__enabled=True, 
+            form__depends_on__enabled=True, 
+            form__depends_on__group__enabled=True
+        )
+
+    @property
+    def get_notification_fields(self):
+        return self.__fields.filter(type__type='date')
+
+    @property
+    def get_variable_fields(self):
+        return self.__fields
+
+
 class NotificationConfigurationService:
     def __init__(self, instance=None):
         """
@@ -38,9 +68,9 @@ class NotificationConfigurationService:
             .create_or_update() -- creates or updates the notification configuration based on the instance defined when initializing
                                    the class. 
 
-        Keyword Arguments:
-            instance {reflow_server.notification.models.NotificationConfiguration} -- If you are trying to update an 
-            NotificationConfiguration instance you must set use this variable. Works like serializer Instances. (default: {None})
+        Args:
+            instance (reflow_server.notification.models.NotificationConfiguration, optional): If you are trying to update an 
+            NotificationConfiguration instance you must set use this variable. Works like serializer Instances. Defaults to None.
         """
         self.instance = instance
         self.__variables = list()

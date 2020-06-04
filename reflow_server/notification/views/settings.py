@@ -9,7 +9,7 @@ from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.notification.models import NotificationConfiguration
 from reflow_server.notification.services.notification_configuration import NotificationConfigurationService
 from reflow_server.formulary.models import Field
-from reflow_server.notification.serializers import NotificationConfigurationSerializer, NotificationFieldsSerializer
+from reflow_server.notification.serializers import NotificationConfigurationSerializer, NotificationConfigurationFieldsSerializer
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -96,20 +96,8 @@ class NotificationConfigurationFieldsView(APIView):
         .get() -- Returns all of the possible fields to be used as variables, and to be used on the notification_configuration.
     """
     def get(self, request, company_id, form_id):
-        fields = Field.objects.filter(
-            form__depends_on_id=form_id, 
-            form__depends_on__group__company_id=company_id, 
-            enabled=True, 
-            form__enabled=True, 
-            form__depends_on__enabled=True, 
-            form__depends_on__group__enabled=True
-        )
-        notification_fields = NotificationFieldsSerializer(fields.filter(type__type='date'), many=True)
-        variable_fields = NotificationFieldsSerializer(fields, many=True)
+        serializer = NotificationConfigurationFieldsSerializer(form_id=form_id, company_id=company_id)
         return Response({
             'status': 'ok',
-            'data': {
-                'notification_fields': notification_fields.data,
-                'variable_fields': variable_fields.data
-            }
+            'data': serializer.data
         })

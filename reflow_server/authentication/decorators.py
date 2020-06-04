@@ -17,7 +17,6 @@ def jwt_required(function):
     """
     @wraps(function)
     def jwt_required_wrap(request, *args, **kwargs):
-        print(resolve(request.path_info).url_name)
         jwt = JWT()
         jwt.extract_jwt_from_request(request)
         if jwt.is_valid():

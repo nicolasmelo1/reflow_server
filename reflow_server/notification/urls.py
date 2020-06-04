@@ -1,9 +1,9 @@
 from django.conf.urls import re_path, include
-from django.conf import settings
 
 from reflow_server.core.decorators import permission_required, authorize_external_response
 from reflow_server.notification.views import NotificationConfigurationView, NotificationConfigurationEditView, NotificationConfigurationFieldsView, \
     UnreadAndReadNotificationView, NotificationsView, PreNotificationExternalView, NotificationConfigurationExternalView, VerifyPreNotificationExternalView
+
 
 external_urlpatterns = [
     re_path(r'^$', authorize_external_response(NotificationConfigurationExternalView.as_view()), name='notification_external_notification'),

@@ -104,7 +104,8 @@ class NotificationService:
             math.ceil(user_notifications.count()/items_per_page)
         )
         return user_notifications_response
-        
+    
+    #TODO: deprecate
     @staticmethod
     def change_notification_field_names(old_field_name, new_field_name, company_id):
         """

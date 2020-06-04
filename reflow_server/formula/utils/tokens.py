@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db.models import Q
 
 from reflow_server.formula.utils.settings import Structure
 
@@ -125,7 +126,10 @@ class Token(Structure):
 
             field_id = value.replace('{{', '').replace('}}', '')
             if self.dynamic_form_id:
-                value = FormValue.objects.filter(field_id=int(field_id), form__depends_on_id=self.dynamic_form_id).values_list('value', flat=True)
+                value = FormValue.objects.filter(
+                    Q(field_id=int(field_id), form__depends_on_id=self.dynamic_form_id) | 
+                    Q(field_id=int(field_id), form_id=self.dynamic_form_id)
+                ).values_list('value', flat=True)
                 value = ','.join(value)
                 if value and not value.lstrip("-").isdigit():
                     value = r"'"+ value +r"'"

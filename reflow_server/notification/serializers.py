@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
 from reflow_server.notification.models import UserNotification, NotificationConfiguration, PreNotification, Notification
-from reflow_server.notification.relations import NotificationConfigurationVariableRelation, NotificationFormValueVariableDataForBuildRelation
-from reflow_server.notification.services.notification_configuration import NotificationConfigurationService
+from reflow_server.notification.relations import NotificationConfigurationVariableRelation, NotificationFormValueVariableDataForBuildRelation, \
+    NotificationConfigurationFieldsRelation
+from reflow_server.notification.services.notification_configuration import NotificationConfigurationService, \
+    NotificationConfigurationFieldsService
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.notification.services.notification import NotificationService
 from reflow_server.formulary.models import Field
@@ -46,7 +48,7 @@ class UserNotificationSerializer(serializers.ModelSerializer):
 
 class NotificationConfigurationSerializer(serializers.ModelSerializer):
     """
-    Serializer used for CRU of NotificationConfigurations. It retrieves objects, creates, and updates
+    Serializer used for Create/Read/Update of NotificationConfigurations. It retrieves objects, creates, and updates
     the NotificationConfiguration. On create or update we also validate to check if everything is valid on
     NotificationConfigurationService. We create and updates inside the service because it contains some business
     logic that needs to be contained inside of the Service class.
@@ -93,14 +95,40 @@ class NotificationConfigurationSerializer(serializers.ModelSerializer):
         fields = ('id', 'for_company', 'name', 'text', 'user_id', 'days_diff', 'form', 'field', 'notification_configuration_variables')
 
 
-class NotificationFieldsSerializer(serializers.ModelSerializer):
-    """
-    Serializer used for retriving fields that can be used as variables and fields that can be used on
-    NotificationConfiguration. On the second one, we only accept `date` field_types.
-    """
-    class Meta:
-        model = Field
-        fields = ('label_name','name', 'id')
+class NotificationConfigurationFieldsSerializer(serializers.Serializer):
+    notification_fields = NotificationConfigurationFieldsRelation(many=True)
+    variable_fields = NotificationConfigurationFieldsRelation(many=True)
+    
+    def __init__(self, form_id, company_id, *args, **kwargs):
+        """ 
+        Serializer used for retriving fields that can be used as variables and fields that can be used on
+        NotificationConfiguration. On the second one, we only accept `date` field_types.
+
+
+        Args:
+            form_id (int): must be set if you are trying to get the notification_configuration_fields you could use
+            for variables and to be notified.
+            company_id (int): must be set if you are trying to get the notification_configuration_fields you could use
+            for variables and to be notified.
+        """
+        self.notification_configuration_fields_service = NotificationConfigurationFieldsService(company_id, form_id)
+
+        kwargs['data'] = {
+            'notification_fields': self.get_default_kanban_card_id,
+            'variable_fields': self.get_default_dimension_field_id
+        }
+        super(NotificationConfigurationFieldsSerializer, self).__init__(**kwargs)
+        self.is_valid()
+
+    def get_notification_fields(self):
+        # this can be more verbose, but it's better to do this way, so our service don't need to know anything about the serializer
+        # it just gives us the data that we need
+        return NotificationConfigurationFieldsRelation(instance=self.notification_configuration_fields_service.get_notification_fields, many=True).data
+
+    def get_variable_fields(self):
+        # this can be more verbose, but it's better to do this way, so our service don't need to know anything about the serializer
+        return NotificationConfigurationFieldsRelation(instance=self.notification_configuration_fields_service.get_variable_fields, many=True).data
+
 
 
 class PreNotificationSerializer(serializers.ModelSerializer):

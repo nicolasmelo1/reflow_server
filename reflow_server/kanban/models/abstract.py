@@ -1,20 +1,5 @@
 from django.db import models
 
-
-class AbstractListingTotalForField(models.Model):
-    # TODO: move this to dashboard. this is deprecated.
-    """
-    Might be moved to Dashboard, right now this holds all of the totals of the field. The Listing here means it is
-    only available on `listing` visualization type
-    """
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        abstract = True
-        app_label = 'visualization'
-
-
 class AbstractKanbanCard(models.Model):
     """
     This abstract holds the kanban Card Data. The Kanban Card itself is really simple. It is just an id to be used for the
@@ -30,7 +15,7 @@ class AbstractKanbanCard(models.Model):
 
     class Meta:
         abstract = True
-        app_label = 'visualization'
+        app_label = 'kanban'
 
 
 class AbstractKanbanCardField(models.Model):
@@ -43,7 +28,7 @@ class AbstractKanbanCardField(models.Model):
 
     class Meta:
         abstract = True
-        app_label = 'visualization'
+        app_label = 'kanban'
 
 
 class AbstractKanbanDimensionOrder(models.Model):
@@ -67,4 +52,4 @@ class AbstractKanbanDimensionOrder(models.Model):
 
     class Meta:
         abstract = True
-        app_label = 'visualization'
+        app_label = 'kanban'

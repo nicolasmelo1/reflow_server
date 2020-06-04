@@ -2,7 +2,7 @@ from django.db.models import Sum
 from reflow_server.core.utils import encrypt
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.notification.models import NotificationConfiguration
-from reflow_server.visualization.models import KanbanCard
+from reflow_server.kanban.models import KanbanCard
 from reflow_server.billing.models import CurrentCompanyCharge
 from reflow_server.formulary.models import Field, FormAccessedBy, Form, Attachments, DynamicForm
 from reflow_server.formulary.services.data import DataService

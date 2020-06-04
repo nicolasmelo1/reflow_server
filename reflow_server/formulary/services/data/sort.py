@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.db.models import Case, When, Value, CharField, functions
+from django.db.models import Case, When, Value, CharField, FloatField
+from django.db.models.functions import NullIf, Coalesce, Concat, Cast
 from reflow_server.formulary.models import FormValue
 from reflow_server.authentication.models import UserExtended
 
@@ -107,7 +108,7 @@ class DataSort:
                 is_active=True
             ) \
             .annotate(
-                full_name=functions.Concat('first_name', Value(' '), 'last_name', 
+                full_name=Concat('first_name', Value(' '), 'last_name', 
                 output_field=CharField())
             ) \
             .order_by(filter_up_or_down) \
@@ -144,3 +145,12 @@ class DataSort:
             ) \
             .order_by(order) \
             .values('form__depends_on', 'value')
+    def _sort_number(self, filter_up_or_down, field_data):
+        # reference: https://stackoverflow.com/a/18950952/13158385
+        return FormValue.objects.filter(
+                        company=self.company, 
+                        form__depends_on__in=self._data, 
+                        field__name=field_data['type']) \
+                        .annotate(value_as_float=Cast(Coalesce(NullIf('value', Value('')), Value('0')), FloatField()))\
+                        .order_by('-value_as_float' if filter_up_or_down[0] == '-' else 'value_as_float') \
+                        .values_list('form__depends_on', 'value')

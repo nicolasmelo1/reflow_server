@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'^authentication/', include('reflow_server.authentication.urls'), name='authentication_app'),
     url(r'^formula/', include('reflow_server.formula.urls'), name='formula_app'),
     url(r'^notification/', include('reflow_server.notification.urls'), name='notification_app'),
+    url(r'^kanban/', include('reflow_server.kanban.urls'), name='kanban_app')
 ]

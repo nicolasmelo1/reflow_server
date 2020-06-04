@@ -1,7 +1,8 @@
 from django.db import models
 from reflow_server.formulary.models.abstract import AbstractField, AbstractFieldOptions, AbstractForm
 from reflow_server.notification.models.abstract import AbstractNotificationConfiguration
-from reflow_server.visualization.models.abstract import AbstractKanbanCard, AbstractKanbanCardField, AbstractKanbanDimensionOrder, AbstractListingTotalForField
+from reflow_server.kanban.models.abstract import AbstractKanbanCard, AbstractKanbanCardField, AbstractKanbanDimensionOrder
+from reflow_server.listing.models.abstract import AbstractListingTotalForField
 
 
 class ThemeType(models.Model):
@@ -100,8 +101,8 @@ class ThemeFieldOptions(AbstractFieldOptions):
 
 class ThemeListingTotalForField(AbstractListingTotalForField):
     """
-    See `reflow_server.theme.models.Theme`, `reflow_server.visualization.models.abstract.AbstractListingTotalForField` 
-    and `reflow_server.visualization.models.ListingTotalForField` for reference
+    See `reflow_server.theme.models.Theme`, `reflow_server.listing.models.abstract.AbstractListingTotalForField` 
+    and `reflow_server.listing.models.ListingTotalForField` for reference
     """
     field = models.ForeignKey('theme.ThemeField', models.CASCADE, db_index=True)
     theme = models.ForeignKey('theme.Theme', models.CASCADE, db_index=True)
@@ -112,8 +113,8 @@ class ThemeListingTotalForField(AbstractListingTotalForField):
 
 class ThemeKanbanCard(AbstractKanbanCard):
     """
-    See `reflow_server.theme.models.Theme`, `reflow_server.visualization.models.abstract.AbstractKanbanCard` 
-    and `reflow_server.visualization.models.KanbanCard` for reference
+    See `reflow_server.theme.models.Theme`, `reflow_server.kanban.models.abstract.AbstractKanbanCard` 
+    and `reflow_server.kanban.models.KanbanCard` for reference
     """
     theme = models.ForeignKey('theme.Theme', models.CASCADE, db_index=True)
 
@@ -123,8 +124,8 @@ class ThemeKanbanCard(AbstractKanbanCard):
 
 class ThemeKanbanCardField(AbstractKanbanCardField):
     """
-    See `reflow_server.theme.models.Theme`, `reflow_server.visualization.models.abstract.AbstractKanbanCardField` 
-    and `reflow_server.visualization.models.KanbanCardField` for reference
+    See `reflow_server.theme.models.Theme`, `reflow_server.kanban.models.abstract.AbstractKanbanCardField` 
+    and `reflow_server.kanban.models.KanbanCardField` for reference
     """
     field = models.ForeignKey('theme.ThemeField', models.CASCADE, blank=True, null=True)
     kanban_card = models.ForeignKey('theme.ThemeKanbanCard', models.CASCADE, blank=True, null=True,
@@ -136,8 +137,8 @@ class ThemeKanbanCardField(AbstractKanbanCardField):
 
 class ThemeKanbanDimensionOrder(AbstractKanbanDimensionOrder):
     """
-    See `reflow_server.theme.models.Theme`, `reflow_server.visualization.models.abstract.AbstractKanbanDimensionOrder` 
-    and `reflow_server.visualization.models.KanbanDimensionOrder` for reference
+    See `reflow_server.theme.models.Theme`, `reflow_server.kanban.models.abstract.AbstractKanbanDimensionOrder` 
+    and `reflow_server.kanban.models.KanbanDimensionOrder` for reference
     """
     dimension = models.ForeignKey('theme.ThemeField', models.CASCADE, blank=True, null=True)
     theme = models.ForeignKey('theme.Theme', models.CASCADE)
