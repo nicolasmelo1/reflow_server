@@ -55,11 +55,10 @@ class DataService(DataSort, DataSearch):
         Returns:
             [list(dict)] -- List of dicts to be used on .get_user_form_data_ids_from_form_id() method as search_keys
         """
-        length = len(search_field_names_list)
         if any([str(search_exact) not in ['1', '0'] for search_exact in search_exact_list]):
             raise AssertionError('Your search_exact values must be either `0` or `1`, '
                                  'looks like one of your values is not one of those options')
-        if any(len(lst) != length for lst in [search_values_list, search_exact_list]):
+        if any(len(lst) != len(search_field_names_list) for lst in [search_values_list, search_exact_list]):
             raise AssertionError('Your `search_field_names_list` parameter, `search_values_list` parameter '
                                  'and `search_exact_list` parameter does not have equal lengths')
         formatted_search = [
@@ -83,7 +82,7 @@ class DataService(DataSort, DataSearch):
 
         return all_dynamic_form_ids_a_user_has_access_to
 
-    def get_user_form_data_ids_from_form_id(self, form_id, search_keys=None, sort_keys=None, from_date=None, to_date=None):
+    def get_user_form_data_ids_from_form_id(self, form_id, search_keys=[], sort_keys=[], from_date=None, to_date=None):
         """
         Retrieves all of the data of a formulary that a user has access to. This function already handles search, and sort.
         This function retrieves the formulary data of a single form, not from multiple forms.

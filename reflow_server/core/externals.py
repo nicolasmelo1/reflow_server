@@ -32,7 +32,7 @@ class External:
             secure {bool} -- Use True if you are communicating to a Reflow app and False otherwise (default: {True})
             headers {dict} --  The header of your request (default: {None})
             params {dict} -- Custom query param (default: {None})
-            data {dict} -- The data to be send on `PUT` or `POST` requests (default: {None})
+            data {dict} -- The data to be sent on `PUT` or `POST` requests (default: {None})
 
         Raises:
             ce: If this app is in production, we raise the exception on the request, otherwise

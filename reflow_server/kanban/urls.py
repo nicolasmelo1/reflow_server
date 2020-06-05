@@ -1,7 +1,7 @@
 from django.conf.urls import re_path, include
 from django.conf import settings
 
-from reflow_server.core.decorators import permission_required, authorize_external_response
+from reflow_server.core.decorators import permission_required
 from reflow_server.kanban.views import GetKanbanView, KanbanCardsView, KanbanCardsEditView, KanbanSetDefaultsView, KanbanDimensionOrderView
 
 settings_urlpatterns = [

@@ -54,6 +54,7 @@ class PreNotificationExternalView(APIView):
                 'status': 'error'
             }, status=status.HTTP_502_BAD_GATEWAY)
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class NotificationConfigurationExternalView(APIView):
     """

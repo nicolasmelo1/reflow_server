@@ -18,8 +18,8 @@ class RunAsyncFunction(threading.Thread):
             about monitoring.
 
         IMPORTANT:
-        USE THIS AS LAST RESORT, THIS DOESN'T PROVIDE ANY MONITORING OR EXCEPTION HANDLING, RETRY ON FAILURE, RETURN, ETC. 
-        FOR THAT YOU MIGHT WANT TO USE CELERY, SO ALWAYS TRY TO COME UP WITH A SOLUTION USING THE `REFLOW_WORKER` APPLICATION INSTEAD
+            USE THIS AS LAST RESORT, THIS DOESN'T PROVIDE ANY MONITORING OR EXCEPTION HANDLING, RETRY ON FAILURE, RETURN, ETC. 
+            FOR THAT YOU MIGHT WANT TO USE CELERY, SO ALWAYS TRY TO COME UP WITH A SOLUTION USING THE `REFLOW_WORKER` APPLICATION INSTEAD
 
         Arguments:
             callback {function} -- the function to be run.
@@ -31,6 +31,9 @@ class RunAsyncFunction(threading.Thread):
         if not hasattr(self, 'callback_parameters'):
             msg = 'You must call `.delay()` to run your function'
             raise AssertionError(msg)
+        # semaphore is used so we can limit the maximum number of concurrent threads
+        # after the function has run we release this thread so there is room for another threads
+        # to be run.
         semaphore.acquire()
         try:
             self.callback(**self.callback_parameters)

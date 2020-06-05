@@ -25,7 +25,7 @@ class ListingService:
                 id__in=listing_selected_fields.values_list('field_id', flat=True)
             )
             ListingSelectedFields.objects.bulk_create([
-                ListingSelectedFields(user_id=self.user_id, field=field_not_in_selected_fields, default=True) 
+                ListingSelectedFields(user_id=self.user_id, field=field_not_in_selected_fields, is_selected=True) 
                 for field_not_in_selected_fields in self.fields_not_in_selected_fields 
             ])
             return self.get_listing_selected_fields

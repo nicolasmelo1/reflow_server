@@ -13,37 +13,70 @@ export CPPFLAGS=-I/usr/local/opt/openssl/include
 export LDFLAGS=-L/usr/local/opt/openssl/lib    
 
 SE O SEU PROGRAMA PRECISA CHAMAR OUTROS SERVIÇOS MUITO PROVAVELMENTE ELE É UM SERVIÇO.
-## Configuration
-O programa não conta com uma venv ja criada, você precisa criar isso na mão usando o arquivo `requirements.txt`.
-Para isso use os seguintes comandos:
+
+## Configuração
+__IMPORTANTE__: Não pule essa etapa, mesmo se você estiver utilizando containers docker para desenvolver.
+
+Nós utilizamos o [pypy3](https://www.pypy.org/)(Não confundir com o [PyPi](https://pypi.org/)(Onde se baixa as libs com o comando `pip install`)) no projeto ao invés do python devido a sua performance até 4x superior. Como esse projeto é um projeto, como você pode perceber, monolito, que exige muita performance para gerenciar todos os requests a uma boa velocidade. 
+
+Talvez você não conheça o **pypy3**, de maneira resumida ele é um compilador just-in-time (JIT) python feito em python! Incrivel né?
+Ou seja, de maneira resumida como ele é um compilador python feito usando o próprio python você não deve ter problema escrevendo grande parte do seu código python e portando para o **pypy3**. O grande problema que existe com ele é com libs que criam interfaces com código escrito em C como o caso do psycopg2. Você pode ver se o **pypy3** é compativel com a lib que você quer usar [aqui](https://bitbucket.org/pypy/compatibility/wiki/Home)(obviamente eles não checam todas as libs disponiveis, apenas aquelas criticas.)
+
+
+#### Instalando o pypy
+__IMPORTANTE__: O pypy oferece suporte para o python 2.7, mas não utilizamos o python 2.7, utilizamos python 3.x na Reflow, portanto garanta que você não tem a versão compativel com o python 2.7 e sim compativel com o python 3.x.
+
+Você pode seguir a [documentação](https://www.pypy.org/download.html#python-3-6-compatible-pypy3-6-v7-3-1). Baixe um dos arquivos dependendo do seu sistema operacional descomprima e instale em sua máquina.
+
+Caso você esteja em um ambiente _linux_ você pode tentar baixar usando o comando `apt-get`. 
+No _windows_ você pode baixar utilizando o [chocolatey](https://chocolatey.org/packages/python.pypy).
+No _macos_ você pode baixar utilizando o [homebrew](https://formulae.brew.sh/formula/pypy3#default).
+
+Só verifique após a instalação se você tem a versão mais recente instalada usando o comando `pypy3 --version`
+
+
+#### Instalando as bibliotecas
+__IMPORTANTE__: Evite a todo custo desenvolver fora de um _Ambiente Virtual_, você com certeza vai precisar baixar novas libs e vai precisar gerar novos arquivos `requirements.txt`, trabalhar dentro de um ambiente virtual garante que trabalhemos todos em um ambiente controlado :).
+
+Com o __pypy3__ funcionando em sua máquina, é o momento de criar um _Ambiente Virtual_ para você começar a desenvolver.
+O nosso código não conta com uma __venv__ ja criada, então precisamos criar do 0 uma nova. Mas utilizamos estamos utilizando o __pypy3__ e agora? Você cria e acessa seus ambientes virtuais no pypy da mesma maneira que você o faz, vamos lá?
+
+Comece digitando os seguintes comandos:
 ```    
-$ python3 -m venv venv
+$ pypy3 -m venv venv
 ```
+Vamos la, `pypy3` é utilizado para rodar qualquer programa python com o compilador pypy que você instalou.
+`-m venv` representa que você está tentando criar um novo _virtual environment_. 
+O ultimo `venv` é o nome do seu _ambiente virtual_ ou seja, você pode ter mais de um _ambiente virutal_ na sua máquina, nesse caso damos o nome de `venv`.
+
+Agora vamos ativar a `venv` na nossa máquina (Você precisa seguir esses comandos sempre que você ativar seu terminal):
 + __Mac ou Linux__
 ```  
 $ source venv/bin/activate 
 ```
 + __Windows__
 ```
-> \path\to\venv\Scripts\activate
+> venv/Scripts/activate
 ```
+
+Saindo da sua venv
+```
+$ deactivate
+```
+
+Com a venv instalada em seu computador, rode o seguinte comando para instalar as dependências do projeto.
 ```   
 $ pip install -r requirements.txt
 ```
 
-#### Obs
-Se acontecer algum problema com o psycopg2 ou psycopg2cffi, cheque se você tem todos os [pré-requisitos](http://initd.org/psycopg/docs/install.html#prerequisites) da lib configurados no seu computador.
-O sistema usa como dependência o `cryptography`, caso você tenha algum problema com essa lib, tente seguir os passos [daqui](https://cryptography.io/en/latest/installation/) de acordo com seu sistema operacional.
+__OBSERVAÇÃO E ATENÇÃO__
+Algumas dependências podem causar problemas no momento da instalação, mas não tem porque se desesperar.
+Se acontecer algum problema com o `psycopg2` ou `psycopg2cffi`, cheque se você tem todos os [pré-requisitos](http://initd.org/psycopg/docs/install.html#prerequisites) da lib configurados no seu computador.
+O sistema usa como dependência o `cryptography`, que pode causar alguns problemas durante a instalação, caso você tenha algum problema com essa lib, tente seguir os passos de acordo com a [documentação de instalação](https://cryptography.io/en/latest/installation/)
 
-- __linux__ - Caso você esteja no linux, rode os seguintes comandos
-```
-$ sudo apt-get install postgresql
-$ sudo apt-get install python-psycopg2
-$ sudo apt-get install libpq-dev
-```
 
-## Initialization
-Você pode rodar o programa dentro de um docker usando um banco de dados postgres ou usando o sqlite3
+## INICIALIZAR
+Se você não quiser ficar fazendo toda vez o processo acima, na hora que for inicializar o projeto, nós por conveniência colocamos ele dentro de containers docker.
 
 #### Docker
 + Instale o Docker **CE** por esse [link](https://www.docker.com/get-docker)
