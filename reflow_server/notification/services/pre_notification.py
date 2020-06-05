@@ -42,8 +42,7 @@ class PreNotificationService:
         if pre_notifications.exists():
             from reflow_server.notification.externals import NotificationWorkerExternal
 
-            external = NotificationWorkerExternal()
-            external.create_notification(pre_notifications.values_list('id', flat=True))
+            NotificationWorkerExternal().create_notification(pre_notifications.values_list('id', flat=True))
             pre_notifications.update(is_sending=True)
 
     @staticmethod
@@ -68,8 +67,7 @@ class PreNotificationService:
         """
         from reflow_server.notification.externals import NotificationWorkerExternal
 
-        external = NotificationWorkerExternal()
-        external.update_pre_notifications(company_id)
+        NotificationWorkerExternal().update_pre_notifications(company_id)
 
     def __create_and_update_pre_notifications(self, company_id):
         """

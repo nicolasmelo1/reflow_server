@@ -12,6 +12,7 @@ class ListingSelectedFields(models.Model):
     when the user selects another Kanban Card all of the columns go back to page 1. On listing when the user selects
     a new field to display on the column, the pagination doesn't change. 
     """
+    is_selected = models.BooleanField(default=True)
     field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True)
     user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
 

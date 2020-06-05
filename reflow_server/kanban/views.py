@@ -6,9 +6,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.kanban.serializers import GetKanbanSerializer, KanbanCardsSerializer, KanbanDefaultsSerializer
+from reflow_server.kanban.serializers import GetKanbanSerializer, KanbanCardsSerializer, KanbanDefaultsSerializer, \
+    KanbanDimensionOrderSerializer
 from reflow_server.kanban.services import KanbanService
-from reflow_server.kanban.models import KanbanCard
+from reflow_server.kanban.models import KanbanCard, KanbanDimensionOrder
 
 
 class GetKanbanView(APIView):
@@ -119,23 +120,47 @@ class KanbanSetDefaultsView(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class APIKanbanDimensionsOrder(View):
+class KanbanDimensionOrderView(APIView):
+    """
+    This view is responsible for two things:
+
+    1 - retrieve the dimension orders
+    2 - reorder the dimension of the kanban
+
+    It is actually more complicated than that so let me go for each one. First number 1. Dimension orders are nothing more than
+    the options of `option` `field_type` and options of `form` `field_type`. It's as simple as that but this is where things gets
+    complicated.
+    Dimension orders are NOT bound to the field_options itself, but instead it's stored on a completely different table in our database.
+    So we actually don't have direct control when the user changed a option or if he deleted a option in this field of the formulary.
+    With this, we only know the options have changed when we load the kanban again and get the options again. And that is EXACTLY what we do, 
+    we update the DimensionOrder when retrieving the data.
+
+    Okay so this leaves us if the second point, and that one is easy: the user can reorder the options of the kanban, and when he does
+    this we don't need to create or update any dimension, we just reorder with the options that are available for him.
+
+    Methods:
+        .get() -- handles the point number 1
+        .put() -- handles the point number 2
+    """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
     def get(self, request, form, company_id, field_id):
-        dimension_orders = get_create_or_update_kanban_dimension_order(encrypt.decrypt_pk(company_id), request.user, field, form)
-        serializer = KanbanDimensionOrderSerializer(dimension_orders, many=True)
+        kanban_service = KanbanService(user_id=request.user.id, company_id=company_id, form_name=form)
+        kanban_dimension_orders = kanban_service.get_create_or_update_kanban_dimension_order(field_id)
+        serializer = KanbanDimensionOrderSerializer(kanban_dimension_orders, many=True)
         return Response({
             'status': 'ok',
             'data': serializer.data
-        })
-    
+        }, status=status.HTTP_200_OK)
 
     def put(self, request, form, company_id, field_id):
-        dimension_orders = KanbanDimensionOrder.objects.filter(dimension_id=field_id, user=request.user)\
-            .order_by('order')
-        serializer = KanbanDimensionOrderSerializer(data=data, instance=dimension_orders, many=True)
-
+        instance = KanbanDimensionOrder.objects.filter(dimension_id=field_id, user_id=request.user.id)
+        serializer = KanbanDimensionOrderSerializer(data=request.data, instance=instance, many=True)
         if serializer.is_valid():
             serializer.save()
+            return Response({
+                'status': 'ok'            
+            }, status=status.HTTP_200_OK)
         return Response({
-            'status': 'ok'
-        })
+            'status': 'error'
+        }, status=status.HTTP_502_BAD_GATEWAY)

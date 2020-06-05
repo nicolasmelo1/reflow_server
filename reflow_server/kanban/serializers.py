@@ -2,7 +2,7 @@ from django.db import transaction
 
 from rest_framework import serializers
 
-from reflow_server.kanban.models import KanbanCard, KanbanCardField
+from reflow_server.kanban.models import KanbanCard, KanbanCardField, KanbanDimensionOrder
 from reflow_server.kanban.services import KanbanService
 from reflow_server.kanban.relations import GetKanbanFieldsRelation, KanbanCardFieldRelation
 
@@ -98,3 +98,24 @@ class KanbanDefaultsSerializer(serializers.Serializer):
     def save(self, user_id, company_id, form_name):
         kanban_service = KanbanService(user_id=user_id, company_id=company_id, form_name=form_name)
         kanban_service.save_defaults(self.validated_data['default_kanban_card_id'])
+
+
+class KanbanDimensionOrderListSerializer(serializers.ListSerializer):
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        for index, element in enumerate(instance):
+            element.options = validated_data[index]['options']
+            element.order = index
+            element.save()
+        return instance
+
+
+class KanbanDimensionOrderSerializer(serializers.ModelSerializer):
+    """
+    This serializer is used to display dimensionOrders and also updating the order of each KanbanDimensionOrder
+    """
+    options = serializers.CharField()
+    class Meta:
+        model = KanbanDimensionOrder
+        list_serializer_class = KanbanDimensionOrderListSerializer
+        fields = ('options',)

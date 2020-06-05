@@ -148,9 +148,11 @@ class DataSort:
     def _sort_number(self, filter_up_or_down, field_data):
         # reference: https://stackoverflow.com/a/18950952/13158385
         return FormValue.objects.filter(
-                        company=self.company, 
-                        form__depends_on__in=self._data, 
-                        field__name=field_data['type']) \
-                        .annotate(value_as_float=Cast(Coalesce(NullIf('value', Value('')), Value('0')), FloatField()))\
-                        .order_by('-value_as_float' if filter_up_or_down[0] == '-' else 'value_as_float') \
-                        .values_list('form__depends_on', 'value')
+                    company=self.company, 
+                    form__depends_on__in=self._data, 
+                    field__name=field_data['type']
+                ) \
+                .annotate(value_without_na_or_error=Case([When(value__in=['', '#N/A', '#ERROR'], then=None)])) \
+                .annotate(value_as_float=Cast(Coalesce(NullIf('value_without_na_or_error', Value('')), Value('0')), FloatField())) \
+                .order_by('-value_as_float' if filter_up_or_down[0] == '-' else 'value_as_float') \
+                .values_list('form__depends_on', 'value')

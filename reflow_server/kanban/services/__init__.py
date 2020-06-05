@@ -94,6 +94,13 @@ class KanbanService:
 
     @transaction.atomic
     def save_defaults(self, kanban_card_id):
+        """
+        This saves the default configurations so when the user opens the kanban again on a certain formulary 
+        the data is loaded automatically for him.
+
+        Args:
+            kanban_card_id (int): the default kanban_card_id of this particular formulary.
+        """
         kanban_cards = self.get_kanban_cards
         kanban_cards.update(default=False)
         kanban_cards.filter(id=kanban_card_id).update(default=True)
