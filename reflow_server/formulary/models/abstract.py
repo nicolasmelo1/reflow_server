@@ -13,6 +13,19 @@ class AbstractForm(models.Model):
     It is important to understand that `form_name` works like `name` in `reflow_server.formulary.models.Fields`. It is a field
     that works like a slug for that formulary. It NEEDS to be unique for EACH COMPANY, not for the hole system. Usually 
     this field does not accept any special characters, ponctuations or spaces since it needs to work well on urls or JSON objects.
+
+    Conditionals are only set on sections right now, not on formularies but it is important to understand
+    how it works (we want to move it from being bound to sections to become a unique app that can handle
+    other conditionals, like on notifications, on filters and etc)
+    We define 3 things on conditionals:
+    - conditional_type - right now just `equal`, so how to handle the conditionals
+    - conditional_value - the value to verify, checks if the value of a field matches the string defined here
+    - conditional_on_field - the field to consider for this conditional, so when this field has a specific
+                             `conditional_value`
+
+    With the conditionals we have 2 important logics: 
+    - When the conditional is set, a required field SHOULD be required
+    - When the conditional is not set, the data from the conditional section (if it has any) MUST be deleted.
     """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

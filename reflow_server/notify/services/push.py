@@ -18,6 +18,13 @@ class PushService:
         self.variables = variables
 
     @staticmethod
+    def add_variable(variable_name, variable_value):
+        return {
+            'name': variable_name,
+            'value': variable_value
+        }
+
+    @staticmethod
     def send_push(template_name, pushs):
         """
         Handy function to forward push notifications to reflow_worker so reflow_worker can take care of 

@@ -217,7 +217,7 @@ class Form(AbstractForm):
     This model defines two things: Formularies and Sections. We needed to configure it this way in order to create dynamic formsets.
     Okay, formularies are defined if depends_on is None, if depends_on is not None it is probably a section.
 
-    Your conditionals can only be defined in sections, not on formularies. it doesn't make much sense.
+    Your conditionals can only be defined in sections, not on formularies. it doesn't make much sense on formularies.
 
     `company` field can be deleted since it is defined on the group.
     """

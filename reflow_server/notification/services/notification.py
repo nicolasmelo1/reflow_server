@@ -1,9 +1,11 @@
 from django.db import transaction
 
 from reflow_server.notification.models import NotificationConfiguration, UserNotification, Notification, PreNotification
+from reflow_server.notify.services import NotifyService
 
 import math
-    
+
+
 class UserNotificationResponse:
     def __init__(self, user_notifications, total_pages):
         """
@@ -56,7 +58,7 @@ class NotificationService:
         
         PreNotification.objects.filter(id__in=self.__pre_notification_ids, has_sent=False, is_sending=True).update(has_sent=True, is_sending=False)
         created_notifications = Notification.objects.bulk_create(self.__notifications)
-        ToNotify.notify_new_notifications(self.__notifications)
+        NotifyService.send_new_notifications(self.__notifications)
         return created_notifications
 
     @staticmethod
