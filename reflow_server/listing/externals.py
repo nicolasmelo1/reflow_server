@@ -2,13 +2,13 @@ from django.conf import settings
 
 from reflow_server.core import externals
 from reflow_server.formulary.models import DynamicForm, Form
+from reflow_server.listing.serializers import ExtractFormDataSerializer, ExtractFormSerializer
+
 
 class ExtractDataWorkerExternal(externals.External):
     host = settings.EXTERNAL_APPS['reflow_worker'][0]
 
     def build_extraction_data(self, file_format, company_id, user_id, form_id, field_ids, dynamic_form_ids):
-        from reflow_server.listing.serializers import ExtractFormDataSerializer, ExtractFormSerializer
-
         dynamic_forms = DynamicForm.objects.filter(id__in=dynamic_form_ids)
         form = Form.objects.filter(id=form_id).first()
 

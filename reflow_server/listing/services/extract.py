@@ -1,6 +1,5 @@
 from reflow_server.core.utils.asynchronous import RunAsyncFunction
 from reflow_server.listing.models import ListingSelectedFields
-from reflow_server.listing.externals import ExtractDataWorkerExternal
 from reflow_server.formulary.models import Form
 from reflow_server.formulary.services.data import DataService
 
@@ -49,12 +48,13 @@ class ExtractService:
         form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data, from_date, to_date)
         
         # call external service
+        from reflow_server.listing.externals import ExtractDataWorkerExternal
         ExtractDataWorkerExternal().build_extraction_data(file_format, company_id, user_id, form_id, fields_ids, form_data_accessed_by_user)
 
     def extract(self, file_format, from_date, to_date, 
                 sort_value=[], sort_field=[], 
                 search_value=[], search_field=[], search_exact=[]):
-
+                
         from_date = datetime.strptime(from_date, '%d/%m/%Y')
         to_date = datetime.strptime(to_date, '%d/%m/%Y')
         form = Form.objects.filter(form_name=self.form_name, depends_on__isnull=True).first()
