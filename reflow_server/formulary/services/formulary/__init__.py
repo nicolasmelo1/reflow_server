@@ -1,11 +1,23 @@
+from reflow_server.formulary.models import Form, Field
 from reflow_server.formulary.services.formulary.data import FormularyData
+from reflow_server.formulary.services.formulary.pre_save import PreSave
 
-
-class FormularyService(PostSave, PreSave):
+class FormularyService(PreSave):
     def __init__(self, user_id, company_id, form_name):
         self.user_id = user_id
         self.company_id = company_id
         self.form_name = form_name
+        self.sections = Form.objects.filter(
+            depends_on__form_name= self.form_name, 
+            depends_on__group__company_id=self.company_id, 
+            enabled=True
+        )
+        self.fields = Field.objects.filter(
+            form__depends_on__form_name= self.form_name,
+            form__id__in=self.sections,
+            form__enabled=True,
+            enabled=True
+        )
 
     def add_formulary_data(self, form_data_id=None):
         """
@@ -40,3 +52,9 @@ class FormularyService(PostSave, PreSave):
             raise AssertionError('You should call `.add_formulary_data()` method after calling '
                                  'the method you are trying to call')
 
+    def is_valid(self):
+        self.formulary_data = self.clean_data(self.formulary_data)
+        for section in self.formulary_data.sections:
+            for field in section.field_values:
+                print(field.field_name, field.value)
+        return self.formulary_data_is_valid(self.formulary_data)        

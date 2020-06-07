@@ -9,8 +9,8 @@ from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.notification.services.notification import NotificationService
 from reflow_server.notification.serializers import UserNotificationSerializer, UnreadAndReadNotificationSerializer
 
-from .external import *
-from .settings import *
+from .external import VerifyPreNotificationExternalView, NotificationConfigurationExternalView, PreNotificationExternalView
+from .settings import NotificationConfigurationEditView, NotificationConfigurationFieldsView, NotificationConfigurationView
 
 
 @method_decorator(csrf_exempt, name='dispatch')

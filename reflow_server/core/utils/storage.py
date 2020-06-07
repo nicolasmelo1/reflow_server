@@ -1,5 +1,5 @@
 from django.conf import settings
-from boto3.s3.transfer import TransferConfig
+
 from urllib import parse
 from functools import wraps
 import boto3
@@ -14,22 +14,23 @@ class Bucket:
     This class is used for many s3 related operations, for checking if the file exists in a bucket to duplicating data between buckets
     and uploading data.
     """
-    def __init__(self, bucket=S3_BUCKET):
-        self.__config = TransferConfig(multipart_threshold=1024 * 25, max_concurrency=10,
-                                       multipart_chunksize=1024 * 25, use_threads=True)
+    def __init__(self, bucket=None):
+        if not bucket:
+            bucket = settings.S3_BUCKET
+
+        self.__config = boto3.s3.transfer.TransferConfig(multipart_threshold=1024 * 25, max_concurrency=10,
+                                                         multipart_chunksize=1024 * 25, use_threads=True)
 
         self.__session = boto3.Session(
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
         )
-        logging.info('[BUCKET][INIT] Trying to get resource')
         s3 = self.__session.resource('s3', region_name=settings.S3_REGION_NAME, config=botocore.client.Config(signature_version='s3v4'))\
             if settings.ENV != 'development' else \
             self.__session.resource(service_name='s3', endpoint_url='http://localstack:4572')
         self.bucket = s3.Bucket(bucket)
 
     def __get_client(self):
-        logging.info('[BUCKET][GET CLIENT] Trying to get client')
         return self.__session.client('s3', region_name=settings.S3_REGION_NAME, config=botocore.client.Config(signature_version='s3v4')) \
                 if settings.ENV != 'development' else \
                 boto3.client('s3', endpoint_url="http://localstack:4572", use_ssl=False, aws_access_key_id='foo', aws_secret_access_key='bar')
