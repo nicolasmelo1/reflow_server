@@ -1,14 +1,17 @@
 from django.conf import settings
-from django.db.models import Q
 
-from reflow_server.core.utils.storage import Bucket
-from reflow_server.formulary.models import Form, Field, FormValue, Attachments, DynamicForm
+from reflow_server.formulary.services.formulary.validators import Validator
+from reflow_server.formulary.models import FormValue
 
 from datetime import datetime, timedelta
 import re
 
 
-class PreSave:
+class PreSave(Validator):
+    """
+    Class that format and cleans the formulary data and also extends the
+    Validator class to validate the data prior to saving
+    """
     def clean_data(self, formulary_data):
         """
         Cleans the data and remove deleted sections and fields.
@@ -184,58 +187,3 @@ class PreSave:
             value = str(int(value)*int(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT/(precision*base)))
 
         return value
-
-    def formulary_data_is_valid(self, formulary_data):
-        """
-        Validate required fields respecting the section conditionals,
-        if the field is from a conditional section and the conditional is not satisfied, then it's not required.
-
-        :return: True or False
-        """
-        self._errors = {}
-        field_values = formulary_data.get_formatted_fields_data
-        
-        # validate sections
-        section_ids = [section.section_id for section in formulary_data.get_sections if section.section_id and section.section_id != '']
-        for section in self.sections:
-            # check multiforms, if not a multiform, it should have just one instance of this section
-            if section.type.type != 'multi-form' and section_ids.count(section.id) > 1:
-                self._errors = {'detail': section.form_name, 'reason': 'just_one_section', 'data': ''}
-                return False
-
-        # validate fields
-        for field in self.fields:
-            # check unique fields
-            if field.is_unique and field.name in field_values: 
-                for field_values in field_values[field.name]:
-                    if field_values['value'] not in [None, '']:
-                        if not field_values['id'] and FormValue.objects.filter(value=field_values['value'], field=field, form__form_id=field.form_id).exists():
-                            self._errors = {'detail': field.name, 'reason': 'already_exists', 'data': field_values['value']}
-                            return False
-                        elif field_values['id'] and FormValue.objects.filter(value=field_values['value'],field=field, form__form_id=field.form_id).exclude(id=field_values['id']).exists():
-                            self._errors = {'detail': field.name, 'reason': 'already_exists', 'data': field_values['value']}
-                            return False
-
-            # check attachments
-            if field.type.type == 'attachment' and field.name in field_values:
-                for field_values in field_values[field.name]:
-                    attachment_file_format = field_values['value'].split('.').pop()
-                    if field_values['value'] != '' and attachment_file_format.lower() not in ['doc','docx', 'jpeg', 'jpg', 'pdf', 'png',
-                    'wav', 'xls', 'xlsx', 'zip']:
-                        self._errors = {'detail': field.name, 'reason': 'invalid_file', 'data': field_values['value']}
-                        return False
-
-            # check required
-            if field.type.type != 'id' and field.required:
-                if field.name not in field_values or any([not value.get('value', None) or value['value'] == '' for value in field_values.get(field.name, [])]):
-                    self._errors = {'detail': field.name, 'reason': 'required_field', 'data': ''}
-                    return False
-
-        return True
-
-    @property
-    def errors(self):
-        if not hasattr(self, '_errors'):
-            msg = 'You must call `.is_valid()` before accessing `.errors`.'
-            raise AssertionError(msg)
-        return self._errors

@@ -6,15 +6,23 @@ class FieldValueData:
         
 
 class SectionData:
-    def __init__(self, section_data_id, section_id):
+    def __init__(self, section_data_id, section_id, formulary_data_id=None):
         self.section_data_id = section_data_id
         self.section_id = section_id
         self.field_values = list()
+        self.formulary_data_id = formulary_data_id
     
     def add_field_value(self, field_name, value, field_value_data_id=None):
+        # validates if self.instance is defined, than we can use the id recieved, otherwise use None
+        field_value_data_id = field_value_data_id if self.formulary_data_id else None
+
         field_value_obj = FieldValueData(field_value_data_id, field_name, value)
         self.field_values.append(field_value_obj)
         return field_value_obj
+
+    @property
+    def get_field_values(self):
+        return self.field_values
 
 
 class FormularyData:
@@ -23,7 +31,10 @@ class FormularyData:
         self.sections = list()
 
     def add_section_data(self, section_id, section_data_id=None):
-        section_data_obj = SectionData(section_data_id, section_id)
+        # validates if self.instance is defined, than we can use the id recieved, otherwise use None
+        section_data_id = section_data_id if self.form_data_id else None
+
+        section_data_obj = SectionData(section_data_id, section_id, self.form_data_id)
         self.sections.append(section_data_obj)
         return section_data_obj
     
@@ -63,3 +74,9 @@ class FormularyData:
                 field_value_item_list.append(field_value)
                 formatted_field_values[field_value.field_name] = field_value_item_list
         return formatted_field_values
+
+
+class PostSaveData:
+    def __init__(self, section_instance, form_value_instance):
+        self.section_instance = section_instance
+        self.form_value_instance = form_value_instance

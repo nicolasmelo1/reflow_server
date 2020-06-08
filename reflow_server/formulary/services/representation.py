@@ -1,6 +1,8 @@
 from django.conf import settings
+
 from reflow_server.authentication.models import UserExtended
 from reflow_server.formulary.models import FormValue
+
 from datetime import datetime
 from math import ceil
 

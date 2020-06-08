@@ -129,56 +129,21 @@ URL = jdbc:postgresql://localhost:5432/postgres
 USER = postgres
 ```
 
-## Templating (Não usamos mais templates, agora temos um front end em React, YEY)
-Infelizmente, quando comecei a programar o aplicativo em questão, tinha um conhecimento de django bem básico
-portanto iniciei colocando todos os templates de todos os apps na pasta templates no diretório principal.
+## Estilo do código
+Nossa aplicação está toda dentro da pasta `reflow_server`, dentro dessa pasta você irá encontrar novas pastas, cada uma dessas pastas é uma [aplicação Django](https://docs.djangoproject.com/en/3.0/intro/tutorial01/#creating-the-polls-app). A ideia do nosso código é utilizarmos a metodologia de microsserviços e tentar aplicá-la, da melhor maneira possivel, ao Django. Ou seja, cada aplicação deve ser na medida do possivel independente uma da outra (com excessão da aplicação `core`, falaremos dela mais pra frente) compartilhando pouco código entre elas (com excessão dos `services`).
 
-Tentei ao maximo otimizar a estrutura para entregar, dentro dos Templates do Django uma estrutura que se assemelha
-a frameworks de front-end como Vue ou React. (apesar de ter falhado miseravelmente)
+### Estrutura dos apps
++ __views__ - Se você sabe django, acreditamos que você entenda o que são as [views](https://docs.djangoproject.com/en/3.0/intro/tutorial01/#write-your-first-view). As views funcionam como controllers (caso você venha do padrão MVC) no django, portanto, nesse projeto é necessário que as views contenham o MINIMO de lógica possivel, geralmente, elas recebem um request, processam e mandam a resposta, NÃO COLOQUE REGRA DE NEGÓCIO ou MUITA LÓGICA NAS VIEWS, caso necessário crie um `service`. Por padrão do Django as views ficam todas em um unico arquivo, mas para melhorar a legibilidade você pode separá-las em varios arquivos dentro da pasta `views` (Por padrão suas views devem ser importadas pelo caminho `reflow_server.<seu_app>.views`, ou seja, importe elas no arquivo `__init__.py` da pasta `views`)
++ __urls__ - São as urls do seu app. Por padrão no ROOT do projeto, você também vai encontrar um arquivo `urls.py`
 
-Como ja estavamos muito avançados quando percebi o que havia feito, resolvi não e manter o que tinhamos. 
-Então todos os templates estão na pasta `templates`
-ela consiste da seguinte estrutura:
-+ `index.html` -  Todas as aplicações chamam esse arquivo, ele renderiza os demais, como se fosse um codigo feito em react ou vue
-+ `content.html` - Funciona como o __router__ da aplicação, quando renderizamos o template passamos para o template __OBRIGATORIAMENTE__ uma variavel
-chamada `app`. essa variavel é usada como Titulo da pagina em alguns casos e para o router identificar qual app renderizar
-+ `header.html` - Header da nossa aplicação
-+ `footer.html` - Footer da nossa aplicação
-+ `script.html` - Scripts que ficam no head da aplicação, são compartilhados por todos os apps
-+ `style.html` - Estilização básica que fica no header da aplicação
-+ `utils` - pasta com helpers que podem ser usados por apps ou sub-apps
+### Como saber se eu devo criar um novo app ou não?
+Um microsserviço, diferente de como muitas pessoas pensam, não devem resolver uma coisa SUPER especifica do seu código, obviamente um microsserviço pode crescer e não ficar mais tão pequeno. O grande problema, que causa muita confusão, não é o que é "micro" e sim o que é "serviço". Nesse ponto acreditamos que um "serviço" não faz necessariamente uma coisa muito pequena, temos serviços relativamente grandes e complexos, como o __formulary__ por exemplo. E isso volta na nossa pergunta, como saber se o que estou criando é um novo serviço ou não?
 
-#### Estrutura de Pastas
-A estrutura das pastas segue a seguinte ordem `<nome-do-app-django>/<sub-app>`
-
-__`<nome-do-app-django>`__: recebe o mesmo nome que o nome do app no django, assim, fica mais facil se achar no projeto e nos templates
-
-__`<sub-app>`__: Dentro do app notification no django por exemplo trabalhamos tanto com a configuração das notificações 
-tanto com as notificações propriamente ditas, isso são dois sub-apps distintos.
-
-Dentro dos sub-apps temos a seguinte estrutura:
-+ `content.html` - como se fosse a tag <template> do Vue, ela é usada para definir quais componentes se renderiza
-+ `scripts.html` - container com todos os scripts registrados para uso da pagina
-+ `style.html` - container com todos os styles registrados para uso da pagina
-+ `scripts` - pasta com todos os scripts usados pelo sub-app
-+ `components` - é possivel separar o content em partes menores, coloque esses pequenos componentes nessa pasta
-+ `styles` - pasta com todos os styles registrados para o sub-app
-
-
-#### Important
-TODOS OS ARQUIVOS DEVEM SER .html para inclui-los no html usando a função builtin do django chamada `{% includes %}`
-
-Pensei em criar arquivos static para o js e css, porém não quis mexer na pasta static no diretorio principal, uma vez que la 
-contem arquivos static usados pela aplicação no geral.
-
-
-#### Improvements
-Acredito que o principal espaço para melhoria é separar de uma vez por todas o front-end dessa aplicação.
-ainda que eu ache importante seguirmos o guideline da aplicação, não acho necessário perdermos MUITO tempo
-arrumando essa estrutura com algo que provavelmente irá mudar.
- 
-Diria que o primeiro passo, pode ser mover essa estrutura, como está para um codigo a parte.
-
+1 - Verifique os `models`. Como falado anteriormente, queremos pouco ou nenhum compartilhamento de codigo entre as aplicações, o ideal é que seu serviço de `dashboard`, seja o mais independente possivel de outros serviços, um bom passo é fazer uma modelagem que faça sentido com os dados que você mais vai utilizar dentro do seu app.
+2 - Pense em regras de negócio. O que esse app quer resolver? É só uma interface pra uma api? (Talvez não precise ser um serviço separado). É um serviço com regras de negócio que será reaproveitado em outras partes do código? (Provavelmente é um serviço) Tem grandes chances de crescer no futuro? (Provavelmente é um serviço)
+3 - Um exemplo: tinhamos um serviço chamado `visualization` que cuidava primordialmente da visualização dos dados em `Kanban` ou `Listagem`, porém queremos no futuro, criar mais visualizações e melhorar as visualizações de `kanban` e `listagem`, o código não possuia praticamente nenhuma correlação entre si. Então fez sentido separar em serviços menores.
+4 - Outro exemplo: `formulary` talvez seja nosso maior serviço, porém não é de se espantar uma vez que basicamente nosso sistema inteiro é guiado a partir dos formulários de um usuário e de uma companhia. Faz sentido separar entre os serviços de `data` (para puxar e inserir dados), `formulary` (que contém todas as infos de construção do formulário).
+No momento, acreditamos que não porque é uma coisa só e ambas as coisas se complementam. No futuro talvez possamos separar. (O seu serviço vai crescer e não tem problema algum nisso)
 
 ## Data Dump
 O sistema para funcionar depende de alguns dados obrigatórios (geralmente com a flag _type no nome), você pode
