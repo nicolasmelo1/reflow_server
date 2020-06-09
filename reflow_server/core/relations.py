@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 
+
 class ValueField(serializers.Field):
     default_error_messages = {
         'blank': _('blank'),
@@ -43,7 +44,7 @@ class ValueField(serializers.Field):
         the field.type with this if the user change from a form field.type to a text field.type, then i retrieve the hole text
         to the user and not the id the field references to.
         """
-        from reflow_server.core.services.representation import RepresentationService
+        from reflow_server.data.services import RepresentationService
 
         if obj and obj.value != '':
             if self.load_ids and obj.field_type.type == 'form' and obj.field.type.type != 'form':

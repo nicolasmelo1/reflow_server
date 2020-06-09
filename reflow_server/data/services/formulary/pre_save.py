@@ -1,7 +1,7 @@
 from django.conf import settings
 
-from reflow_server.formulary.services.formulary.validators import Validator
-from reflow_server.formulary.models import FormValue
+from reflow_server.data.services.formulary.validators import Validator
+from reflow_server.data.models import FormValue
 
 from datetime import datetime, timedelta
 import re
@@ -89,26 +89,26 @@ class PreSave(Validator):
                     else:
                         for field_value_of_field in self.field_values[field.name]:
                             # clean the data
-                            cleaned_value = self.__dispatch_clean(field, field_value_of_field)
+                            cleaned_value = self.__dispatch_clean(formulary_data, field, field_value_of_field)
                             cleaned_section.add_field_value(field.name, cleaned_value)
         
         return cleaned_formulary_data
 
 
-    def __dispatch_clean(self, field, field_data):
+    def __dispatch_clean(self, formulary_data, field, field_data):
         """
         Cleans certains types of data recieved, it's important to notice it calls `clean_fieldtype` function
         so you need to be aware of all the possible field_types in order to create another clean function
         """
         handler = getattr(self, '_clean_%s' % field.type.type, None)
         if handler:
-            value = handler(field, field_data)
+            value = handler(formulary_data, field, field_data)
         else:
             value = field_data.value
         return value
 
 
-    def _clean_date(self, field, field_data):
+    def _clean_date(self, formulary_data, field, field_data):
         """
         Cleans date from `date` field_type, this checks arguments in the Field model as `auto_update` or `auto_create`
         Also it is important to notice it converts the date to the DEFAULT_DATE_FIELD_FORMAT defined in `settings.py`.
@@ -117,12 +117,12 @@ class PreSave(Validator):
         value = field_data.value
 
         if field.date_configuration_auto_create or field.date_configuration_auto_update:
-            if field.date_configuration_auto_create and self.__instance and field_data.field_value_data_id:
+            if field.date_configuration_auto_create and formulary_data.form_data_id and field_data.field_value_data_id:
                 value = FormValue.objects.filter(id=field_data.field_value_data_id).values_list('value', flat=True).first()
             else:
                 value = datetime.strptime(
                     (
-                        datetime.now() + timedelta(hours=self.__user.timezone)
+                        datetime.now() + timedelta(hours=self.user.timezone)
                     ).strftime(field.date_configuration_date_format_type.format), field.date_configuration_date_format_type.format
                 ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
         elif value != '' and not self.__validate_date(value):
@@ -137,17 +137,17 @@ class PreSave(Validator):
         return value
 
     
-    def _clean_id(self, field, field_data):
+    def _clean_id(self, formulary_data, field, field_data):
         """
         returns: data
 
         Cleans id from `id` field_type, this just adds a value to the id, so it can pass the checks for empty string.
         """
-        value = field_data.value if 'value' in field_data and field_data.value not in [None, ''] and self.__instance else '0'
+        value = field_data.value if 'value' in field_data and field_data.value not in [None, ''] and formulary_data.form_data_id else '0'
         return value
 
 
-    def _clean_number(self, field, field_data):
+    def _clean_number(self, formulary_data, field, field_data):
         """
         returns: data
 

@@ -1,4 +1,4 @@
-from reflow_server.formulary.models import FormValue
+from reflow_server.data.models import FormValue
 from reflow_server.authentication.models import UserExtended
 from datetime import datetime
 

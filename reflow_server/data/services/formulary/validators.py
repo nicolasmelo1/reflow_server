@@ -1,4 +1,4 @@
-from reflow_server.formulary.models import FormValue
+from reflow_server.data.models import FormValue
 
 class Validator:
     """
@@ -31,7 +31,7 @@ class Validator:
     
     def __validate_required_field(self, field, field_values):
         if field.type.type != 'id' and field.required:
-            if field.name not in field_values or any([not field_value.get('value', None) or field_value.value == '' for field_value in field_values.get(field.name, [])]):
+            if field.name not in field_values or any([field_value.value in [None, ''] for field_value in field_values.get(field.name, [])]):
                 self._errors = {'detail': field.name, 'reason': 'required_field', 'data': ''}
                 return False
         return True

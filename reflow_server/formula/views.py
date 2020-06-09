@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from reflow_server.formulary.models import DynamicForm
+from reflow_server.data.models import DynamicForm
 from reflow_server.formula.services import FormulaService
 
 

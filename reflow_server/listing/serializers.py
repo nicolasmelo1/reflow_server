@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from reflow_server.formulary.models import DynamicForm, Form
+from reflow_server.data.models import DynamicForm
+from reflow_server.formulary.models import Form
 from reflow_server.listing.services.extract import ExtractService
 from reflow_server.listing.models import ListingSelectedFields, ExtractFileData
 from reflow_server.listing.relations import ListingHeaderFieldsRelation, ExtractFormValueRelation, ExtractSectionRelation
@@ -68,6 +69,14 @@ class ExtractDataSerializer(serializers.Serializer):
 
 
 class ExtractFormDataSerializer(serializers.ModelSerializer):
+    """
+    Serializer used for retrieving the data of a user to the reflow_worker application
+    to build csv file data to extract.
+
+    Context Args:
+        fields (list(str)): List of string names to add to your data
+        company_id (int): Id of the company that you are trying to extract the data to
+    """
     dynamic_form_value = ExtractFormValueRelation(many=True)
     
     class Meta:

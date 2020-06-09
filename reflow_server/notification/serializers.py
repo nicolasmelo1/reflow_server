@@ -53,6 +53,10 @@ class NotificationConfigurationSerializer(serializers.ModelSerializer):
     NotificationConfigurationService. We create and updates inside the service because it contains some business
     logic that needs to be contained inside of the Service class.
 
+    Obligatory Context Data:
+        company_id (int) -- id of the company
+        user_id (int) -- the id of the user
+
     Raises:
         serializers.ValidationError: If the NotificationConfiguration is invalid
     """

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from reflow_server.formulary.models import FormValue, Field
+from reflow_server.data.models import FormValue
+from reflow_server.formulary.models import Field
 from reflow_server.notification.models import NotificationConfigurationVariable
 from reflow_server.core.relations import ValueField
 

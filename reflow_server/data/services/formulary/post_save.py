@@ -3,15 +3,16 @@ from django.db.models import Q, IntegerField
 from django.db.models.functions import Cast
 
 from reflow_server.core.utils.storage import Bucket
-from reflow_server.formulary.services.formulary.data import PostSaveData
-from reflow_server.formulary.models import Field, FormValue, DynamicForm, Attachments
+from reflow_server.data.services.formulary.data import PostSaveData
+from reflow_server.data.models import FormValue, DynamicForm, Attachments
+from reflow_server.formulary.models import Field
 from reflow_server.formula.services import FormulaService
 
 
 class PostSave:
     def add_saved_field_value_to_post_process(self, section_instance, form_value_instance):
         if form_value_instance and (form_value_instance.field.type.type in ['id', 'attachment'] or form_value_instance.field.formula_configuration not in ('', None)):
-            self.to_process.append(PostSaveData(section_instance, form_value_instance))
+            self.post_save_process.append(PostSaveData(section_instance, form_value_instance))
             return True
         return False
 
@@ -20,7 +21,7 @@ class PostSave:
         Cleans certains types of data after it has been saved, it's important to notice it calls `process_fieldtype` function
         so you need to be aware of all the possible field_types in order to create another process function for the correct field_type
         """
-        for process in self.to_process:
+        for process in self.post_save_process:
             value = process.form_value_instance.value
             handler = getattr(self, '_post_process_%s' % process.form_value_instance.field.type.type, None)
             if handler:
@@ -47,6 +48,7 @@ class PostSave:
             form_value_ids = [field_value.field_value_data_id for field_value in formulary_data.get_field_values if field_value.field_value_data_id and field_value.field_value_data_id != '']
             
             fields = Field.objects.filter(form__depends_on__form_name=self.form_name)
+            # we do not delete the data of disabled fields
             disabled_fields = fields.filter(Q(enabled=False) | Q(form__enabled=False)).values('id', 'form_id')
 
             form_value_to_delete = FormValue.objects.filter(
@@ -130,8 +132,8 @@ class PostSave:
                 dynamic_form_attachment_instance.file_url = url
                 dynamic_form_attachment_instance.file_size = file_data.size
                 dynamic_form_attachment_instance.save()
-            elif self.duplicate:
-                to_duplicate = FormValue.objects.filter(form__depends_on=self.duplicate.id, field_id=process.form_value_instance.field.id, value=str(process.form_value_instance.value)).first()
+            elif hasattr(self, 'duplicate_form_data_id'):
+                to_duplicate = FormValue.objects.filter(form__depends_on=self.duplicate_form_data_id, field_id=process.form_value_instance.field.id, value=str(process.form_value_instance.value)).first()
                 if to_duplicate:
                     url = bucket.copy(
                         from_key="{file_attachments_path}/{id}/{field}/".format(

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'reflow_server.core',
     'reflow_server.dashboard',
     'reflow_server.formula',
+    'reflow_server.data',
     'reflow_server.formulary',
     'reflow_server.notification',
     'reflow_server.notify',

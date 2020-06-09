@@ -1,8 +1,12 @@
-import json
 from django.conf import settings
+
+from channels.layers import get_channel_layer
 from channels.generic.websocket import WebsocketConsumer
 from channels.exceptions import DenyConnection
+
 from asgiref.sync import async_to_sync
+
+import json
 
 
 def get_consumers(key):
@@ -109,6 +113,20 @@ class BaseConsumer(WebsocketConsumer):
                 'reason': 'no_handler_found_for_type' 
             }))
 
+    @classmethod
+    def send_event(cls, event_name, group_name, **kwargs):
+        if not hasattr(event_name, cls):
+            raise KeyError('Seems like there is no handler for %s event' % event_name)
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            '{}'.format(group_name),
+            {
+                'type': event_name,
+                'data': kwargs
+            }
+        )
+
 
 class UserConsumer(BaseConsumer, *get_consumers('LOGIN_REQUIRED')):
     """
@@ -148,11 +166,12 @@ class UserConsumer(BaseConsumer, *get_consumers('LOGIN_REQUIRED')):
         )
     })
     """
+    group_name = 'user_{id}'
     def connect(self):
         if 'user' in self.scope and self.scope['user'].is_authenticated:
             # we create a custom group_name for each user, so when we send 
             # events we can send them to a specific user.
-            self.group_name = 'user_{id}'.format(id=self.scope['user'].id)
+            self.group_name = self.group_name.format(id=self.scope['user'].id)
 
             async_to_sync(self.channel_layer.group_add)(
                 self.group_name,
@@ -161,4 +180,8 @@ class UserConsumer(BaseConsumer, *get_consumers('LOGIN_REQUIRED')):
             self.accept()
         else:
             raise DenyConnection('For `user` group types, your user must be authenticated')
-        
+    
+    @classmethod
+    def send_event(cls, event_name, user_id, **kwargs):
+        group_name = cls.group_name.format(id=user_id)
+        super().send_event(event_name, group_name, **kwargs)

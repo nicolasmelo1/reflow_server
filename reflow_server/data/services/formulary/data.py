@@ -26,7 +26,7 @@ class SectionData:
 
 
 class FormularyData:
-    def __init__(self, form_data_id):
+    def __init__(self, form_data_id=None):
         self.form_data_id = form_data_id
         self.sections = list()
 

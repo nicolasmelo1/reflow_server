@@ -1,6 +1,7 @@
-from reflow_server.formulary.services.data.sort import DataSort
-from reflow_server.formulary.services.data.search import DataSearch
-from reflow_server.formulary.models import FormValue, OptionAccessedBy, DynamicForm, Field, FieldOptions, FormAccessedBy
+from reflow_server.data.services.data.sort import DataSort
+from reflow_server.data.services.data.search import DataSearch
+from reflow_server.data.models import FormValue, DynamicForm
+from reflow_server.formulary.models import OptionAccessedBy, Field, FieldOptions, FormAccessedBy
 from reflow_server.authentication.models import UserExtended
 
 
@@ -73,6 +74,13 @@ class DataService(DataSort, DataSearch):
         return formatted_search
 
     def all_form_data_a_user_has_access_to(self):
+        """
+        Extremally slow function for retrieving all of the forms a user has access to, don't use it,
+        unless absolutely needed.
+
+        Returns:
+            list(int): list of DynamicForm ids that a user has access
+        """
         all_dynamic_form_ids_a_user_has_access_to = list()
         
         form_ids_a_user_has_access_to = FormAccessedBy.objects.filter(user=self.user_id).values_list('form_id', flat=True).distinct()
@@ -194,7 +202,6 @@ class DataService(DataSort, DataSearch):
                         field_option['field_id'], []
                     ) + [field_option['option']]
 
-
                 all_form_values = FormValue.objects.filter(
                     form__depends_on__in=self._data,
                     field__in=list(options_by_field.keys()),
@@ -207,6 +214,3 @@ class DataService(DataSort, DataSearch):
                     if field_id in options_by_field and value not in options_by_field[field_id]+[''] and field_id in field_options_by_field and value in field_options_by_field[field_id]:
                         forms_to_ignore.append(form_depends_on)
                 self._data = self._data.exclude(id__in=forms_to_ignore)
-
-
-    

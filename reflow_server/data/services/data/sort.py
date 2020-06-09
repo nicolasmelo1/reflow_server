@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.db.models import Case, When, Value, CharField, FloatField
 from django.db.models.functions import NullIf, Coalesce, Concat, Cast
-from reflow_server.formulary.models import FormValue
+
+from reflow_server.data.models import FormValue
 from reflow_server.authentication.models import UserExtended
 
 

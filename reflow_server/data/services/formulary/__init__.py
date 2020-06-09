@@ -1,32 +1,22 @@
-from reflow_server.formulary.models import Form, Field, FormValue, DynamicForm
+from django.db import transaction
+
+from reflow_server.authentication.models import UserExtended
 from reflow_server.notification.services.pre_notification import PreNotificationService
-from reflow_server.formulary.services.formulary.data import FormularyData
-from reflow_server.formulary.services.formulary.pre_save import PreSave
-from reflow_server.formulary.services.formulary.post_save import PostSave
+from reflow_server.formulary.models import Form, Field
+from reflow_server.data.models import FormValue, DynamicForm
+from reflow_server.data.services.formulary.data import FormularyData
+from reflow_server.data.services.formulary.pre_save import PreSave
+from reflow_server.data.services.formulary.post_save import PostSave
 
 
-class FormularyService(PreSave):
+class FormularyService(PreSave, PostSave):
     def __init__(self, user_id, company_id, form_name):
         self.user_id = user_id
         self.company_id = company_id
         self.form_name = form_name
-        self.form = Form.objects.filter(
-            form_name=self.form_name, 
-            group__company_id=self.company_id
-        ).first()
-        self.sections = Form.objects.filter(
-            depends_on__form_name= self.form_name, 
-            depends_on__group__company_id=self.company_id, 
-            enabled=True
-        )
-        self.fields = Field.objects.filter(
-            form__depends_on__form_name= self.form_name,
-            form__id__in=self.sections,
-            form__enabled=True,
-            enabled=True
-        )
+        self.post_save_process = list()
 
-    def add_formulary_data(self, form_data_id=None):
+    def add_formulary_data(self, form_data_id=None, duplicate=False):
         """
         This function is meant to be run inside a loop of insertion. it's important to 
         understand that this is required for running any other method inside of this service.
@@ -46,18 +36,20 @@ class FormularyService(PreSave):
         Args:
             form_data_id (int, optional): The id of the formulary, this is usually set if you are editing an
                                           instance, otherwise you can leave it as null (default as None)
-            instance (reflow_server.formulary.models.DynamicForm, optional): The instance of the formulary
-                                                                             if you are editing a formulary
-                                                                             (default as None)
+            duplicate_form_data_id (int, optional): If you are trying to duplicate a formulary set it to True 
+                                                    make sure and make sure `form_data_id` is defined (default as False).
         Returns:
             FormularyData: The object for you which you can insert sections and field_vales
         """
+        if duplicate:
+            self.duplicate_form_data_id = form_data_id
+            form_data_id = None
         self.formulary_data = FormularyData(form_data_id)
         return self.formulary_data
 
     @property
     def __check_formulary_data(self):
-        if not hasattr('formulary_data', self):
+        if not hasattr(self, 'formulary_data'):
             raise AssertionError('You should call `.add_formulary_data()` method before calling '
                                  'the method you are trying to call')
 
@@ -68,18 +60,60 @@ class FormularyService(PreSave):
 
         If your data is not valid you can call `.errors` to retrieve your error.
         """
-        self.validated = True
         self.__check_formulary_data
+
+        # define everything we are gonna use while validating and saving the data
+        self.user = UserExtended.objects.filter(id=self.user_id).first()
+        self.form = Form.objects.filter(
+            form_name=self.form_name, 
+            group__company_id=self.company_id
+        ).first()
+        self.sections = Form.objects.filter(
+            depends_on__form_name= self.form_name, 
+            depends_on__group__company_id=self.company_id, 
+            enabled=True
+        )
+        self.fields = Field.objects.filter(
+            form__depends_on__form_name= self.form_name,
+            form__id__in=self.sections,
+            form__enabled=True,
+            enabled=True
+        )
 
         self.formulary_data = self.clean_data(self.formulary_data)
+
+        self.validated = True
         return self.formulary_data_is_valid(self.formulary_data)        
 
-    def save(self):
+    @transaction.atomic
+    def save(self, files):
+        """
+        This method should be called after calling `.add_formulary_data()` and `.is_valid()`. This
+        method effectively saves the data present on FormularyData. While it saves the data from each field
+        it sends the saved instance to .add_saved_field_value_to_post_process(), to post process after the 
+        data has been saved. Since we add the saved_instance to post_process, after finishing saving the hole 
+        formulary data we call .post_save() to post process the instances (it's when we save the files to s3, when we
+        calculate formulas and when we create ids for `id` field_type).
+        After that the formulary is basically saved, then we call PreNotificationService to update the pre_notifications
+        of the company with the new data. And then we return the instance of the created or updated FORMULARY (not 
+        Sections or FormValue).
+
+        Args:
+            files (list(MultiParseObject)): A list with all of the files
+
+        Raises:
+            AssertionError: [description]
+
+        Returns:
+            [type]: [description]
+        """
         self.__check_formulary_data
-    
-        if not hasattr('validated', self):
+
+        if not hasattr(self, 'validated'):
             raise AssertionError('You should call `.is_valid()` method before trying to save the data.')
         
+        self.files = files
+
         formulary_instance, __ = DynamicForm.objects.update_or_create(
             id=self.formulary_data.form_data_id,
             defaults={
@@ -118,7 +152,7 @@ class FormularyService(PreSave):
                 )
                 self.add_saved_field_value_to_post_process(section_instance, form_value)
 
-        self.post_save() 
+        self.post_save(self.formulary_data) 
         # updates the pre_notifications
         PreNotificationService.update(self.company_id)
         return formulary_instance

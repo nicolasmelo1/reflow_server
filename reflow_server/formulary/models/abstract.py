@@ -46,7 +46,7 @@ class AbstractFieldStates(models.Model):
     THIS MODEL IS IMPORTANT AND CONTAINS SOME IMPORTANTE BUSINESS RULES
 
     So this abstract model is actually for saving the state of the field inside of the 
-    `formulary.models.FormValue` model and on `formulary.models.Field` model.
+    `data.models.FormValue` model and on `formulary.models.Field` model.
 
     This model contains the `FieldStates` string in its name because it is used to hold the State of 
     the field of the data that was saved.

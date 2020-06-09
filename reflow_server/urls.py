@@ -24,5 +24,6 @@ urlpatterns = [
     url(r'^notification/', include('reflow_server.notification.urls'), name='notification_app'),
     url(r'^kanban/', include('reflow_server.kanban.urls'), name='kanban_app'),
     url(r'^listing/', include('reflow_server.listing.urls'), name='listing_app'),
-    url(r'^formulary/', include('reflow_server.formulary.urls'), name='formulary_app')
+    url(r'^formulary/', include('reflow_server.formulary.urls'), name='formulary_app'),
+    url(r'^data/', include('reflow_server.data.urls'), name='data_app')
 ]

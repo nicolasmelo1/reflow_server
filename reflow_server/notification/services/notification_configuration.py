@@ -1,6 +1,7 @@
 from django.db import transaction
 
-from reflow_server.formulary.models import FormValue, Field
+from reflow_server.data.models import FormValue
+from reflow_server.formulary.models import Field
 from reflow_server.authentication.models import UserExtended
 from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable, \
     PreNotification

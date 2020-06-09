@@ -94,7 +94,7 @@ class PreNotification(models.Model):
     when = models.DateTimeField()
     has_sent = models.BooleanField(default=False)
     is_sending = models.BooleanField(default=False)
-    dynamic_form = models.ForeignKey('formulary.DynamicForm', models.CASCADE, db_index=True)
+    dynamic_form = models.ForeignKey('data.DynamicForm', models.CASCADE, db_index=True)
     user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
     notification_configuration = models.ForeignKey('notification.NotificationConfiguration', models.CASCADE, db_index=True)
     
@@ -115,7 +115,7 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     notification = models.CharField(max_length=500)
-    form = models.ForeignKey('formulary.DynamicForm', models.CASCADE, db_index=True)
+    form = models.ForeignKey('data.DynamicForm', models.CASCADE, db_index=True)
     user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True, blank=True, null=True)
     notification_configuration = models.ForeignKey('notification.NotificationConfiguration', models.SET_NULL, db_index=True, blank=True, null=True)
 

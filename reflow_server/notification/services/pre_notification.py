@@ -2,9 +2,9 @@ from django.conf import settings
 from django.db.models import Q, Func, F, Value, ExpressionWrapper, DateTimeField
 
 from reflow_server.authentication.models import UserExtended
-from reflow_server.formulary.models import FormValue
+from reflow_server.data.models import FormValue
 from reflow_server.notification.models import NotificationConfiguration, PreNotification
-from reflow_server.formulary.services.data import DataService
+from reflow_server.data.services import DataService
 
 from datetime import datetime, timedelta
 
