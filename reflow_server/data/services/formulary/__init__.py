@@ -9,7 +9,7 @@ from reflow_server.data.services.formulary.pre_save import PreSave
 from reflow_server.data.services.formulary.post_save import PostSave
 
 
-class FormularyService(PreSave, PostSave):
+class FormularyDataService(PreSave, PostSave):
     def __init__(self, user_id, company_id, form_name):
         self.user_id = user_id
         self.company_id = company_id

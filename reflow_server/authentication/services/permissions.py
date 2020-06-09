@@ -4,7 +4,8 @@ from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.notification.models import NotificationConfiguration
 from reflow_server.kanban.models import KanbanCard
 from reflow_server.billing.models import CurrentCompanyCharge
-from reflow_server.formulary.models import Field, FormAccessedBy, Form
+from reflow_server.formulary.models import Field, Form
+from reflow_server.formulary.services import FormularyService
 from reflow_server.data.models import DynamicForm, Attachments
 from reflow_server.data.services import DataService
 import functools
@@ -59,19 +60,19 @@ class PermissionService:
             return False
 
     def is_valid_field(self):
-        if self.field and FormAccessedBy.objects.filter(form_id=self.field.form.depends_on_id, user=self.user).exists():
+        if self.field and self.field.form.depends_on_id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to():
             return True
         else:
             return False
 
     def is_valid_form(self):
-        if FormAccessedBy.objects.filter(form=self.form, user=self.user).exists():
+        if self.form.id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to():
             return True
         else:
             return False
 
     def is_valid_section(self):
-        if self.section and FormAccessedBy.objects.filter(form_id=self.section.depends_on_id, user=self.user).exists():
+        if self.section and self.section.depends_on_id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to():
             return True
         else:
             return False

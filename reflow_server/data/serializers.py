@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from reflow_server.data.services import FormularyService
+from reflow_server.data.services import FormularyDataService
 from reflow_server.data.relations import SectionDataRelation
 from reflow_server.data.models import DynamicForm
 
@@ -12,7 +12,7 @@ class FormDataSerializer(serializers.ModelSerializer):
     def __init__(self, user_id, company_id, form_name, form_data_id=None, duplicate=False, **kwargs):
         self.form_data_id = form_data_id
         self.duplicate = False
-        self.formulary_service = FormularyService(user_id, company_id, form_name)
+        self.formulary_service = FormularyDataService(user_id, company_id, form_name)
         super(FormDataSerializer, self).__init__(**kwargs)
 
     def validate(self, data):

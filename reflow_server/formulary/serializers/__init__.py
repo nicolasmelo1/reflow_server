@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from reflow_server.core.relations import ValueField
 from reflow_server.formulary.relations import SectionRelation, FormRelation
-from reflow_server.formulary.models import Form, Group, FormAccessedBy
+from reflow_server.formulary.models import Form, Group
 from reflow_server.authentication.models import UserExtended
 from reflow_server.data.models import FormValue
 

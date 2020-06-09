@@ -1,7 +1,8 @@
 from reflow_server.data.services.data.sort import DataSort
 from reflow_server.data.services.data.search import DataSearch
 from reflow_server.data.models import FormValue, DynamicForm
-from reflow_server.formulary.models import OptionAccessedBy, Field, FieldOptions, FormAccessedBy
+from reflow_server.formulary.models import OptionAccessedBy, Field, FieldOptions
+from reflow_server.formulary.services import FormularyService
 from reflow_server.authentication.models import UserExtended
 
 
@@ -83,7 +84,7 @@ class DataService(DataSort, DataSearch):
         """
         all_dynamic_form_ids_a_user_has_access_to = list()
         
-        form_ids_a_user_has_access_to = FormAccessedBy.objects.filter(user=self.user_id).values_list('form_id', flat=True).distinct()
+        form_ids_a_user_has_access_to = FormularyService(self.user_id, self.company_id).formulary_ids_the_user_has_access_to()
         for form_id in form_ids_a_user_has_access_to:
             forms_data = self.get_user_form_data_ids_from_form_id(form_id)
             all_dynamic_form_ids_a_user_has_access_to = all_dynamic_form_ids_a_user_has_access_to + forms_data

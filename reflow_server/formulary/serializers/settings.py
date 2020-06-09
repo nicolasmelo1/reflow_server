@@ -3,6 +3,7 @@ from rest_framework import serializers
 from reflow_server.formulary.models import Group, Form, FormType
 from reflow_server.formulary.services import FormularyService, GroupService
 
+
 class FormularyListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         formulary_service = FormularyService(user_id=self.context['user_id'], company_id=self.context['company_id'])

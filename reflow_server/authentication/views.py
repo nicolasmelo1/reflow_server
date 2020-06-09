@@ -8,7 +8,7 @@ from rest_framework import status
 
 from reflow_server.core.utils.encrypt import Encrypt
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.formulary.models import FormAccessedBy
+from reflow_server.formulary.services import FormularyService
 from reflow_server.authentication.models import UserExtended
 from reflow_server.authentication.utils.jwt_auth import JWT
 from reflow_server.authentication.serializers import LoginSerializer, UserSerializer, ForgotPasswordSerializer, \
@@ -37,8 +37,9 @@ class LoginView(APIView):
                 login(request, request.user)
                 
                 # get the first form he has access to as the first page to redirect to.
-                first_form_the_user_has_access_to = FormAccessedBy.objects.filter(user_id=request.user.id).first()
-                form_name = first_form_the_user_has_access_to.form.form_name if first_form_the_user_has_access_to else ''
+                formulary_service = FormularyService(request.user.id, request.user.company.id)
+                first_form_the_user_has_access_to = formulary_service.formulary_names_the_user_has_access_to()
+                form_name = first_form_the_user_has_access_to[0] if first_form_the_user_has_access_to else ''
 
                 user_serializer = UserSerializer(instance=request.user)
 
