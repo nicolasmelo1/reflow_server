@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import config
 try:
     import psycopg2
 except ImportError:
@@ -20,24 +21,27 @@ except ImportError:
 
 ENV = os.environ.get('CONFIG', 'development')
 if ENV == 'development':
-    configuration = ''
+    configuration = config.DevelopmentConfig()
 elif ENV == 'server':
-    configuration = ''
+    configuration = config.ServerConfig()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Create logs directory
+if not os.path.exists("{}/logs/".format(BASE_DIR)):
+    os.makedirs("{}/logs/".format(BASE_DIR))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ')73j(^=psy(59mil-4%%o90705vfmd(tcu82$6n7ka*f410q!u'
+SECRET_KEY = configuration.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = configuration.DEBUG
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = configuration.ALLOWED_HOSTS
 
 
 # Application definition
@@ -65,6 +69,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -94,6 +99,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'reflow_server.wsgi.application'
+ASGI_APPLICATION = 'reflow_server.routing.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -104,16 +110,7 @@ WSGI_APPLICATION = 'reflow_server.wsgi.application'
 #        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 #    }
 #}
-DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'reflow',
-            'USER': 'postgres',
-            'PASSWORD': '',
-            'HOST': 'localhost',
-            'PORT': 5432
-        }
-    }
+DATABASES = configuration.DATABASES
 
 
 # Password validation
@@ -124,20 +121,7 @@ AUTHENTICATION_BACKENDS = (
     'reflow_server.authentication.backends.EmailBackend',
 )
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+AUTH_PASSWORD_VALIDATORS = []
 
 LOGGING = {
     'version': 1,
@@ -197,15 +181,17 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
-# Non Default django configutations (Channels, Rest Framework, etc.)
+
+# Non Default django configutations (Channels, Rest Framework, Cors Headers, etc.)
 # https://www.django-rest-framework.org/api-guide/settings/
 # https://channels.readthedocs.io/en/latest/tutorial/index.html
+# https://github.com/adamchainz/django-cors-headers
 
 # DJANGO CHANNELS CONFIGUTATION
-CHANNEL_LAYERS = "channels_redis.core.RedisChannelLayer"
-ASGI_APPLICATION = 'reflow_server.routing.application'
+CHANNEL_LAYERS = configuration.CHANNEL_LAYERS
 
 # REST FRAMEWORK CONFIGURATION 
 REST_FRAMEWORK = {
@@ -215,6 +201,14 @@ REST_FRAMEWORK = {
     ]
 }
 
+# CORS HEADERS CONFIGURATION
+CORS_EXPOSE_HEADERS=['content-disposition', 'Authorization', '*']
+CORS_ORIGIN_REGEX_WHITELIST = [
+    r"^\w+://\w+\.reflow\.com$",
+    r"^\w+://\w+\.reflow\.com\.br$",
+    r"^\w+://localhost:\d+$",
+    r"^\w+://127.0.0.1:\d+$",
+]
 
 # Reflow configurations, configurations specific for Reflow project
 
@@ -263,13 +257,28 @@ is multiplied by it, and every decimal is saved following the rule FLOATNUMBER *
 DEFAULT_BASE_NUMBER_FIELD_FORMAT = 100000000
 DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION = len(str(DEFAULT_BASE_NUMBER_FIELD_FORMAT))-1
 
+# AWS CONFIGURATION
+AWS_SECRET_ACCESS_KEY = configuration.AWS_SECRET_ACCESS_KEY
+AWS_ACCESS_KEY_ID = configuration.AWS_ACCESS_KEY_ID
+
 # S3 CONFIGURATION
 # check core.utils.bucket file
 S3_REGION_NAME = ''
 S3_FILE_ATTACHMENTS_PATH = ''
 S3_BUCKET = ''
 
+# AUTH BEARER CONFIGURATION (this is the app that we use to authenticate apps on reflow environment)
+# check reflow_server.core.decorators and reflow_server.core.services.external
+AUTH_BEARER_HOST = configuration.AUTH_BEARER_HOST
+AUTH_BEARER_USERNAME = configuration.AUTH_BEARER_USERNAME
+AUTH_BEARER_PASSWORD = configuration.AUTH_BEARER_PASSWORD
+
 # EXTERNAL APPS CONFIGURATION
-EXTERNAL_APPS={
-    'reflow_worker': ['http://localhost:8001']
-}
+EXTERNAL_APPS = configuration.APPS
+
+# VINDI CONFIG
+# check reflow_server.billing for explanation, we actually use vindi as our payment gateway on reflow
+# so this defines stuff for accessing it's api
+VINDI_PUBLIC_API_KEY = configuration.VINDI_PUBLIC_API_KEY
+VINDI_API_HOST = configuration.VINDI_API_HOST
+VINDI_PAYMENT_METHODS = configuration.VINDI_PAYMENT_METHODS

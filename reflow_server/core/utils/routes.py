@@ -1,3 +1,5 @@
+from django.urls import URLPattern, URLResolver
+
 # if you want the url names that can be accessed only by admins
 admin_only_url_names = list()
 
@@ -15,18 +17,17 @@ def __extract_url(extract_list, url, **kwargs):
     Returns:
         [django.urls.re_path, django.urls.url] -- The original url
     """
-
     if 'original_url' not in kwargs:
         original_url = url
     else:
         original_url = kwargs['original_url']
 
-    try:
+    if hasattr(url, 'name'):
         name = url.name
         extract_list.append(name)
-    except:
-        __extract_url(extract_list=extract_list, url=url.urlconf_name, original_url=original_url)
-
+    elif isinstance(url, URLResolver):
+       for url in url.urlconf_name:
+           __extract_url(extract_list, url=url, original_url=original_url)
     return original_url
 
 

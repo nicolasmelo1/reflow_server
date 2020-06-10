@@ -19,5 +19,5 @@ from reflow_server.core.utils.routes import register_admin_only_url
 
 urlpatterns = [
     re_path(r'^healthcheck/', HealthCheckView.as_view(), name='core_app_healthcheck'),
-    register_admin_only_url(re_path(r'^types/$', TypesView.as_view(), name='core_app_types')),
+    re_path(r'^types/$', TypesView.as_view(), name='core_app_types'),
 ]

@@ -38,7 +38,7 @@ class LoginView(APIView):
                 
                 # get the first form he has access to as the first page to redirect to.
                 formulary_service = FormularyService(request.user.id, request.user.company.id)
-                first_form_the_user_has_access_to = formulary_service.formulary_names_the_user_has_access_to()
+                first_form_the_user_has_access_to = formulary_service.formulary_names_the_user_has_access_to
                 form_name = first_form_the_user_has_access_to[0] if first_form_the_user_has_access_to else ''
 
                 user_serializer = UserSerializer(instance=request.user)

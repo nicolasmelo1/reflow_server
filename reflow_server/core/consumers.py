@@ -167,12 +167,12 @@ class UserConsumer(BaseConsumer, *get_consumers('LOGIN_REQUIRED')):
     })
     """
     group_name = 'user_{id}'
+
     def connect(self):
         if 'user' in self.scope and self.scope['user'].is_authenticated:
             # we create a custom group_name for each user, so when we send 
             # events we can send them to a specific user.
             self.group_name = self.group_name.format(id=self.scope['user'].id)
-
             async_to_sync(self.channel_layer.group_add)(
                 self.group_name,
                 self.channel_name

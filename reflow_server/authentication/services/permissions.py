@@ -10,6 +10,7 @@ from reflow_server.data.models import DynamicForm, Attachments
 from reflow_server.data.services import DataService
 import functools
 
+
 class PermissionService:
     def __init__(self, user_id, company_id, url_name=None, form_name=None, form_id=None, 
                  dynamic_form_id=None, section_id=None, field_id=None,
@@ -60,19 +61,19 @@ class PermissionService:
             return False
 
     def is_valid_field(self):
-        if self.field and self.field.form.depends_on_id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to():
+        if self.field and self.field.form.depends_on_id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to:
             return True
         else:
             return False
 
     def is_valid_form(self):
-        if self.form.id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to():
+        if self.form.id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to:
             return True
         else:
             return False
 
     def is_valid_section(self):
-        if self.section and self.section.depends_on_id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to():
+        if self.section and self.section.depends_on_id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to:
             return True
         else:
             return False

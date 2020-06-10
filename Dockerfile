@@ -1,4 +1,4 @@
-FROM pypy:3.6
+FROM pypy:3
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /code
 
 ADD requirements.txt /code/
-ADD scripts/development/init.shdocker-entrypoint.sh /usr/local/bin/
+ADD scripts/development/docker-entrypoint.sh /usr/local/bin/
 
 RUN pip install -r requirements.txt && chmod +x /usr/local/bin/docker-entrypoint.sh
 

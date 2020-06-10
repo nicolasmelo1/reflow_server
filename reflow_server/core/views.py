@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
@@ -6,6 +6,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from reflow_server.billing.models import ChargeFrequencyType, ChargeType, IndividualChargeValueType, InvoiceDateType, PaymentMethodType
+from reflow_server.authentication.models import CompanyType, ProfileType, VisualizationType
+from reflow_server.formula.models import FormulaType
+from reflow_server.formulary.models import SectionType, FieldType, FieldPeriodIntervalType, FieldNumberFormatType, \
+    FieldDateFormatType, ConditionalType
 
 @method_decorator(csrf_exempt, name='dispatch')
 class HealthCheckView(APIView):
@@ -29,7 +34,7 @@ class TypesView(APIView):
         in order for this hole application to work. They usually end with Type in the class model name and in the database
         name.
         """
-        """
+        
         charge_frequency_type = list(ChargeFrequencyType.objects.all().values())
         charge_type = list(ChargeType.objects.all().values())
         individual_charge_value_type = list(IndividualChargeValueType.objects.all().values())
@@ -40,13 +45,13 @@ class TypesView(APIView):
         field_number_format_type = list(FieldNumberFormatType.objects.all().values())
         field_period_interval_type = list(FieldPeriodIntervalType.objects.all().values())
         field_type = list(FieldType.objects.all().values())
-        form_type = list(FormType.objects.all().values())
-        company_type = list(CompanyType.objects.all().values())
+        section_type = list(SectionType.objects.all().values())
         data_type = list(VisualizationType.objects.all().values())
-        group_type = list(GroupType.objects.all().values())
-        profile_type = list(Profiles.objects.all().values())
-        """
-        """
+        company_type = list(CompanyType.objects.all().values())
+        profile_type = list(ProfileType.objects.all().values())
+           
+        return Response({
+           'status': 'ok',
            'data': {
                'billing': {
                     'charge_frequency_type': charge_frequency_type,
@@ -61,17 +66,14 @@ class TypesView(APIView):
                    'field_number_format_type': field_number_format_type,
                    'field_period_interval_type': field_period_interval_type,
                    'field_type': field_type,
-                   'form_type': form_type
+                   'form_type': section_type
                },
                'defaults': {
                    'profile_type': profile_type,
                    'company_type': company_type,
                    'data_type': data_type,
-                   'group_type': group_type,
+                   'group_type': company_type,
                }
            }
-           """
-        return Response({
-           'status': 'ok'
         })
 
