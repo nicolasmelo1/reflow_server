@@ -5,7 +5,7 @@ from reflow_server.core.decorators import permission_required, authorize_externa
 from reflow_server.formulary.views import GetFormularyView, GetGroupsView, UserFieldTypeOptionsView, \
     FormFieldTypeOptionsView
 from reflow_server.formulary.views.settings import GroupSettingsView, GroupEditSettingsView, FormularySettingsView, \
-    FormularySettingsEditView, SectionSettingsView, SectionSettingsEditView
+    FormularySettingsEditView, SectionSettingsView, SectionSettingsEditView, FieldSettingsView, FieldSettingsEditView
 
 settings_urlpatterns = [
     re_path(r'^groups/', include([
@@ -18,8 +18,12 @@ settings_urlpatterns = [
     ])),
     re_path(r'^sections/(?P<form_id>\d+)/', include([
         re_path(r'^$', permission_required(SectionSettingsView.as_view()), name='formulary_settings_sections'),
-        re_path(r'^(?P<section_id>\d+)/$', permission_required(SectionSettingsEditView.as_view()), name='formulary_settings_edit_forms') 
+        re_path(r'^(?P<section_id>\d+)/$', permission_required(SectionSettingsEditView.as_view()), name='formulary_settings_edit_sections') 
     ])),
+    re_path(r'^fields/(?P<form_id>\d+)/', include([
+        re_path(r'^$', permission_required(FieldSettingsView.as_view()), name='formulary_settings_fields'),
+        re_path(r'^(?P<field_id>\d+)/$', permission_required(FieldSettingsEditView.as_view()), name='formulary_settings_edit_fields')
+    ]))
 ]
 
 

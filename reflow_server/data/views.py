@@ -9,13 +9,33 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 
-from reflow_server.core.utils.storage import Bucket
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
+from reflow_server.core.utils.storage import Bucket
 from reflow_server.data.serializers import FormDataSerializer
 from reflow_server.data.models import DynamicForm, Attachments
+from reflow_server.data.services.data import DataService
+from reflow_server.formulary.models import Form
 
 import urllib
 import json
+
+
+class DataView(APIView):
+    def get(self, request, company_id, form):
+        form_id = Form.objects.filter(group__company_id=company_id, form_name=form).first().id
+        data_service = DataService(user_id=request.user.id, company_id=company_id)
+        params = data_service.extact_query_parameters_from_request(request.query_params)
+
+        # get correct data to pass as parameters
+        converted_search_data = data_service.convert_search_query_parameters(params['search']['field'], params['search']['value'], params['search']['exact'])
+        converted_sort_data = data_service.convert_sort_query_parameters(params['sort']['field'], params['sort']['value'])
+        form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data)
+        datas = DynamicForm.objects.filter(id__in=form_data_accessed_by_user).order_by('-updated_at')
+
+        
+        return Response({
+            'status': 'ok'
+        })
 
 
 @method_decorator(csrf_exempt, name='dispatch')

@@ -1,7 +1,10 @@
 from rest_framework import serializers
 
 from reflow_server.formulary.models import Group, Form, Field, FieldOptions, FieldType
-from reflow_server.formulary.services import FormularyService, GroupService, SectionService
+from reflow_server.formulary.services.formulary import FormularyService
+from reflow_server.formulary.services.group import GroupService
+from reflow_server.formulary.services.sections import SectionService
+from reflow_server.formulary.services.fields import FieldService
 
 
 class FieldOptionSerializer(serializers.ModelSerializer):
@@ -23,6 +26,14 @@ class FieldAsOptionSerializer(serializers.ModelSerializer):
 
 
 class FieldSerializer(serializers.ModelSerializer):
+    """
+    Serializer for editing fields and to be used when loading as the child of a section.
+
+    Context Args:
+        user_id (int): the user_id of who is editing the data
+        company_id (int): for what company you are editing the data
+        form_id (int): the form_id for which form does this field references to (it is the MAIN FORM not section_id).
+    """
     id = serializers.IntegerField(allow_null=True)
     field_option = FieldOptionSerializer(many=True)
     form_field_as_option = FieldAsOptionSerializer(allow_null=True)
@@ -41,6 +52,57 @@ class FieldSerializer(serializers.ModelSerializer):
             if field_type and field_type.type in ['option', 'multi_option'] and len(value) == 0:
                 raise serializers.ValidationError(detail={'detail': 'option field must have a option', 'reason': 'option_field_empty_option'})
         return value
+
+
+    def save(self):
+        if self.instance:
+            instance = Field()
+        else:
+            instance = self.instance
+
+        if (
+            self.validated_data.get('form_field_as_option', None) 
+            and self.validated_data['form_field_as_option'].get('id', None)
+            and self.validated_data['form_field_as_option'].get('form', None)
+            and self.validated_data['form_field_as_option']['form'].get('depends_on_id', None)
+        ):
+            form_field_as_option = Field.objects.filter(
+                id=self.validated_data['form_field_as_option']['id'],
+                form__depends_on_id=self.validated_data['form_field_as_option']['form']['depends_on_id'],
+                form__company_id=self.context['company_id']
+            ).first()
+        else:
+            form_field_as_option = None
+
+        formula_configuration = self.validated_data['formula_configuration'] if self.validated_data.get('formula_configuration', None) not in [None, ''] else None 
+
+        field_service = FieldService(
+            user_id=self.context['user_id'], 
+            company_id=self.context['company_id'], 
+            form_id=self.context['form_id']
+        )
+        instance = field_service.save_field(
+            instance, 
+            enabled=self.validated_data['enabled'],
+            label_name=self.validated_data['label_name'],
+            order=self.validated_data['order'],
+            is_unique=self.validated_data['is_unique'],
+            field_is_hidden=self.validated_data['field_is_hidden'],
+            label_is_hidden=self.validated_data['label_is_hidden'],
+            placeholder=self.validated_data.get('placeholder', None),
+            required=self.validated_data['required'],
+            section=self.validated_data['form'],
+            form_field_as_option=form_field_as_option,
+            formula_configuration=formula_configuration,
+            date_configuration_auto_create=self.validated_data['date_configuration_auto_create'],
+            date_configuration_auto_update=self.validated_data['date_configuration_auto_update'],
+            number_configuration_number_format_type=self.validated_data.get('number_configuration_number_format_type', None),
+            date_configuration_date_format_type=self.validated_data.get('date_configuration_date_format_type', None),
+            period_configuration_period_interval_type=self.validated_data.get('period_configuration_period_interval_type', None),
+            field_type=self.validated_data['type'],
+            field_options=[field_option['option'] for field_option in self.validated_data.get('field_option', list())]
+        )
+        return instance
 
     class Meta:
         model = Field

@@ -2,7 +2,7 @@ from reflow_server.data.services.data.sort import DataSort
 from reflow_server.data.services.data.search import DataSearch
 from reflow_server.data.models import FormValue, DynamicForm
 from reflow_server.formulary.models import OptionAccessedBy, Field, FieldOptions
-from reflow_server.formulary.services import FormularyService
+from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.authentication.models import UserExtended
 
 
@@ -11,6 +11,42 @@ class DataService(DataSort, DataSearch):
         self.user_id = user_id
         self.company_id = company_id
     
+    @classmethod
+    def extact_query_parameters_from_request(cls, query_params):
+        if 'fields' in query_params:
+            fields_query_param = query_params.getlist('fields', list())
+        else:
+            fields_query_param = query_params.getlist('fields[]', list())
+
+        if all([value in query_params for value in ['search_field', 'search_value', 'search_exact']]):
+            search_field_query_param = query_params.getlist('search_field', list())
+            search_value_query_param = query_params.getlist('search_value', list())
+            search_exact_query_param = query_params.getlist('search_exact', list())
+        else:
+            search_field_query_param = query_params.getlist('search_field[]', list())
+            search_value_query_param = query_params.getlist('search_value[]', list())
+            search_exact_query_param = query_params.getlist('search_exact[]', list())
+
+        if all([value in query_params for value in ['sort_field', 'sort_value']]):
+            sort_field_query_param = query_params.getlist('sort_field', list())
+            sort_value_query_param = query_params.getlist('sort_value', list())
+        else:
+            sort_field_query_param = query_params.getlist('sort_field[]', list())
+            sort_value_query_param = query_params.getlist('sort_value[]', list())
+
+        return {
+            'fields': fields_query_param,
+            'search': {
+                'exact': search_exact_query_param,
+                'value': search_value_query_param,
+                'field': search_field_query_param
+            },
+            'sort': {
+                'value': sort_value_query_param,
+                'field': sort_field_query_param
+            }
+        }
+
     @staticmethod
     def convert_sort_query_parameters(sort_field_names_list, sort_values_list):
         """

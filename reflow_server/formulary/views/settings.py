@@ -7,8 +7,8 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.formulary.serializers.settings import GroupSerializer, FormularySerializer, \
-    SectionSerializer
-from reflow_server.formulary.models import Group, Form
+    SectionSerializer, FieldSerializer
+from reflow_server.formulary.models import Group, Form, Field
 
 
 class GroupSettingsView(APIView):
@@ -130,6 +130,12 @@ class FormularySettingsEditView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SectionSettingsView(APIView):
+    """
+    This view is used for creating a new section instance of a formulary only
+
+    Methods:
+        .post() -- creates a new section instance
+    """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request, company_id, form_id):
@@ -153,6 +159,13 @@ class SectionSettingsView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SectionSettingsEditView(APIView):
+    """
+    Edit a section instance, this edition handles the update and the delete of a section
+
+    Methods:
+        .put() -- updates a section instance
+        .delete() -- deletes a section instance
+    """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def put(self, request, company_id, form_id, section_id):
@@ -190,3 +203,60 @@ class SectionSettingsEditView(APIView):
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class FieldSettingsView(APIView):
+    """
+    Creates a new field instance, only.
+
+    Methods:
+        .post() -- Creates a new Field instance
+    """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def post(self, request, company_id, form_id):
+        serializer = FieldSerializer(data=request.data, context={
+            'user_id': request.user.id,
+            'company_id': company_id,
+            'form_id': form_id
+        })
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'ok',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'ok',
+                'data': None
+            }, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class FieldSettingsEditView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def put(self, request, company_id, form_id, field_id):
+        instance = Field.objects.filter(
+            id=field_id, 
+            group__company_id=company_id, 
+            depends_on_id=form_id
+        ).first()
+        serializer = FieldSerializer(instance=instance, data=request.data, context={
+            'user_id': request.user.id,
+            'company_id': company_id,
+            'form_id': form_id
+        })
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'ok',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'ok',
+                'data': None
+            }, status=status.HTTP_200_OK)

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from reflow_server.data.services import FormularyDataService
-from reflow_server.data.relations import SectionDataRelation
+from reflow_server.data.relations import SectionDataRelation, FormularyValueRelation
 from reflow_server.data.models import DynamicForm
 
 
@@ -35,3 +35,10 @@ class FormDataSerializer(serializers.ModelSerializer):
         model = DynamicForm
         fields = ('id', 'depends_on_dynamic_form',)
 
+
+class DataSerializer(serializers.ModelSerializer):
+    dynamic_form_value = FormularyValueRelation(many=True)
+
+    class Meta:
+        model = DynamicForm
+        fields = ('id', 'user', 'dynamic_form_value')

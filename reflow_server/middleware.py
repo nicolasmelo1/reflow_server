@@ -1,8 +1,13 @@
 from django.contrib.auth.models import AnonymousUser
+from django.http import HttpResponse
+
 from channels.db import database_sync_to_async
+
 from reflow_server.authentication.models import UserExtended
 from reflow_server.core.utils import encrypt
+from reflow_server.core.utils.cors import Cors
 from reflow_server.authentication.utils.jwt_auth import JWT
+
 
 @database_sync_to_async
 def get_user(user_id):
@@ -10,6 +15,22 @@ def get_user(user_id):
         return UserExtended.objects.get(id=user_id)
     except UserExtended.DoesNotExist:
         return AnonymousUser()
+
+class CORSMiddleware:
+    """
+    With this we can control how cors works, i was actually using django cors and most of this
+    was inspired by this lib. But i saw the source code and thought everything was too simple and i could 
+    definetly do something like that by myself.
+    """
+ 
+    def __init__(self, get_response):
+        self.cors = Cors()
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        return self.cors.handle_cors(request, response)
 
 
 # HTTP Auth JWT middleware

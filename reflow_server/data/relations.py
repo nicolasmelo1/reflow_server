@@ -1,3 +1,5 @@
+from django.db.models import Case, When
+
 from rest_framework import serializers
 
 from reflow_server.core.relations import ValueField
@@ -36,3 +38,25 @@ class SectionDataRelation(serializers.ModelSerializer):
         model = DynamicForm
         list_serializer_class = SectionDataListSerializer
         fields = ('id', 'form_id', 'dynamic_form_value')
+
+
+class FilteredFormularyValueListSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        sections = list(DynamicForm.objects.filter(company_id=self.context['company'], depends_on=data.core_filters['form'].id).values_list('id', flat=True))
+        if 'fields' in self.context and self.context['fields']:
+            order = Case(*[When(field_id=value, then=pos) for pos, value in enumerate(self.context['fields'])])
+            data = FormValue.objects.filter(company_id=self.context['company'], form_id__in=sections, field_id__in=self.context['fields']).order_by(order)
+        else:
+            data = FormValue.objects.filter(company_id=self.context['company'], form_id__in=sections)
+        return super(FilteredFormularyValueListSerializer, self).to_representation(data)
+
+
+class FormularyValueRelation(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
+    field_name = serializers.CharField(source='field.name')
+    value = ValueField(source='*')
+
+    class Meta:
+        model = FormValue
+        list_serializer_class = FilteredFormularyValueListSerializer
+        fields = ('id', 'value', 'field_id', 'field_name')

@@ -10,7 +10,7 @@ from reflow_server.formulary.models import Field, Form
 class ListingHeaderFieldsRelation(serializers.ModelSerializer):
     class Meta:
         model = Field
-        fields = ('id', 'label_name', 'name', 'type', 'user_selected')
+        fields = ('id', 'label_name', 'name', 'type')
 
 
 class ExtractFormValueListSerializer(serializers.ListSerializer):
