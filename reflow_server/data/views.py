@@ -1,6 +1,6 @@
 from django.shortcuts import redirect
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Case, When
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
@@ -18,6 +18,7 @@ from reflow_server.formulary.models import Form
 
 import urllib
 import json
+import math
 
 
 class DataView(APIView):
@@ -43,7 +44,9 @@ class DataView(APIView):
             company_id=company_id,
             form_id=form_id
         )
-        instances = DynamicForm.objects.filter(id__in=form_data_accessed_by_user).order_by('-updated_at')[pagination_offset:pagination_limit]
+
+        order = Case(*[When(id=form_data_id, then=index) for index, form_data_id in enumerate(form_data_accessed_by_user)])
+        instances = DynamicForm.objects.filter(id__in=form_data_accessed_by_user).order_by(order)[pagination_offset:pagination_limit]
 
         serializer = DataSerializer(instance=instances, many=True, context={
             'fields': fields,
@@ -52,6 +55,10 @@ class DataView(APIView):
         
         return Response({
             'status': 'ok',
+            'pagination': {
+                'current': page,
+                'total': math.ceil(len(form_data_accessed_by_user) / 25)
+            },
             'data': serializer.data
         })
 
@@ -68,8 +75,7 @@ class FormularyDataView(APIView):
     parser_classes = [FormParser, MultiPartParser]
 
     def post(self, request, company_id, form):
-        data = request.data.pop('data')[0]
-        serializer = FormDataSerializer(user_id=request.user.id, company_id=company_id, form_name=form, data=json.loads(data))
+        serializer = FormDataSerializer(user_id=request.user.id, company_id=company_id, form_name=form, data=json.loads(request.data.get('data', '\{\}')))
         if serializer.is_valid():
             serializer.save(files=[])
             return Response({
@@ -114,18 +120,18 @@ class FormularyDataEditView(APIView):
         }, status=status.HTTP_200_OK)
 
     def post(self, request, company_id, form, dynamic_form_id):
-        duplicate = request.query_params.get('duplicate', None)
-        data = request.data.pop('data')[0]
+        duplicate = 'duplicate' in request.query_params
+        files = {key:request.data.getlist(key) for key in request.data.keys() if key != 'data'}
         serializer = FormDataSerializer(
             user_id=request.user.id, 
             company_id=company_id, 
             form_name=form,
             form_data_id=dynamic_form_id,
-            duplicate=duplicate != None,
-            data=json.loads(data)
+            duplicate=duplicate,
+            data=json.loads(request.data.get('data', '\{\}'))
         )
         if serializer.is_valid():
-            serializer.save(files=[])
+            serializer.save(files=files)
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)
@@ -144,7 +150,16 @@ class FormularyDataEditView(APIView):
 
 
 
-class DownloadFile(APIView):
+class DownloadFileView(APIView):
+    """
+    Redirects the user for a new generated and timed url so the user can download the file in his desktop or phone.
+    The file is protected in s3 so normal users cannot access it, when a user wants to download this view is responsible
+    for generating a new temporary url so he can download the file.
+
+    Methods:
+        .get() -- This is not a normal API view since it makes a redirection, be aware of that, it's better if you call this
+                  in a new tab for the user.
+    """
     def get(self, request, company_id, form, dynamic_form_id, field_id, file_name):
         depends_on_pk = DynamicForm.objects.filter(pk=dynamic_form_id).first().depends_on_id
         attachment = Attachments.objects.filter(Q(form__depends_on_id=dynamic_form_id) | Q(form_id=dynamic_form_id))\

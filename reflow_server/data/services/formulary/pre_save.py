@@ -1,5 +1,6 @@
 from django.conf import settings
 
+from reflow_server.data.services.formulary.data import FieldValueData
 from reflow_server.data.services.formulary.validators import Validator
 from reflow_server.data.models import FormValue
 
@@ -85,12 +86,14 @@ class PreSave(Validator):
 
                 for field in self.fields.filter(form_id=section.section_id):
                     if field.name not in self.field_values:
-                        cleaned_section.add_field_value(field.name, '')
+                        field_data = FieldValueData(None, field.name, '')
+                        cleaned_value = self.__dispatch_clean(formulary_data, field, field_data)
+                        cleaned_section.add_field_value(field.name, cleaned_value)
                     else:
                         for field_value_of_field in self.field_values[field.name]:
                             # clean the data
                             cleaned_value = self.__dispatch_clean(formulary_data, field, field_value_of_field)
-                            cleaned_section.add_field_value(field.name, cleaned_value)
+                            cleaned_section.add_field_value(field.name, cleaned_value, field_value_of_field.field_value_data_id)
         
         return cleaned_formulary_data
 
@@ -101,7 +104,10 @@ class PreSave(Validator):
         so you need to be aware of all the possible field_types in order to create another clean function
         """
         handler = getattr(self, '_clean_%s' % field.type.type, None)
-        if handler:
+         # bypass empty value for formulas
+        if field.formula_configuration:
+            value = '0'
+        elif handler:
             value = handler(formulary_data, field, field_data)
         else:
             value = field_data.value
@@ -143,7 +149,7 @@ class PreSave(Validator):
 
         Cleans id from `id` field_type, this just adds a value to the id, so it can pass the checks for empty string.
         """
-        value = field_data.value if 'value' in field_data and field_data.value not in [None, ''] and formulary_data.form_data_id else '0'
+        value = field_data.value if field_data.value not in [None, ''] and formulary_data.form_data_id else '0'
         return value
 
 

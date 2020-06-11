@@ -99,13 +99,14 @@ class FormularyDataService(PreSave, PostSave):
         Sections or FormValue).
 
         Args:
-            files (list(MultiParseObject)): A list with all of the files
+            files (dict(list(TemporaryUploadedFile)))): A dict containing keys with lists with TemporaryUploadedFiles 
+                                                        to upload to S3
 
         Raises:
-            AssertionError: [description]
+            AssertionError: You should call `.is_valid()` method before trying to save the data.' 
 
         Returns:
-            [type]: [description]
+            reflow_server.data.models.DynamicForm: The formulary instance, we don't retrieve sections nor values
         """
         self.__check_formulary_data
 
@@ -133,6 +134,8 @@ class FormularyDataService(PreSave, PostSave):
                     'depends_on': formulary_instance
                 }
             )
+            # updates the section data if the newly section instance id so when deleting we consider this new value
+            section.section_data_id = section_instance.id
 
             for field_value in section.get_field_values:
                 field = self.fields.filter(name=field_value.field_name).first()
@@ -150,6 +153,9 @@ class FormularyDataService(PreSave, PostSave):
                         'form': section_instance
                     }
                 )
+                # updates the field_value data if the newly field_value instance id so when deleting we consider this new value
+                field_value.field_value_data_id = form_value.id
+
                 self.add_saved_field_value_to_post_process(section_instance, form_value)
 
         self.post_save(self.formulary_data) 

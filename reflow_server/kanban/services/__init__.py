@@ -61,7 +61,7 @@ class KanbanService:
 
         dimension_orders = KanbanDimensionOrder.objects.filter(
             user_id=self.user_id,
-            dimension__form__depends_on__form_name=form_name
+            dimension__form__depends_on__form_name=self.form_name
         )
         dimension_orders.update(default=False)
         dimension_order_values = dimension_orders.filter(dimension=dimension).values_list('options', flat=True)

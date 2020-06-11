@@ -171,7 +171,7 @@ class SectionSettingsEditView(APIView):
     def put(self, request, company_id, form_id, section_id):
         instance = Form.objects.filter(
             id=section_id, 
-            group__company_id=company_id, 
+            depends_on__group__company_id=company_id, 
             depends_on_id=form_id
         ).first()
         serializer = SectionSerializer(instance=instance, data=request.data, context={
@@ -194,7 +194,7 @@ class SectionSettingsEditView(APIView):
     def delete(self, request, company_id, form_id, section_id):
         instance = Form.objects.filter(
             id=section_id, 
-            group__company_id=company_id, 
+            depends_on__group__company_id=company_id, 
             depends_on_id=form_id
         ).first()
         if instance:

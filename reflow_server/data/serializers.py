@@ -23,7 +23,7 @@ class FormDataSerializer(serializers.ModelSerializer):
 
     def __init__(self, user_id, company_id, form_name, form_data_id=None, duplicate=False, **kwargs):
         self.form_data_id = form_data_id
-        self.duplicate = False
+        self.duplicate = duplicate
         self.formulary_service = FormularyDataService(user_id, company_id, form_name)
         super(FormDataSerializer, self).__init__(**kwargs)
 
@@ -33,13 +33,12 @@ class FormDataSerializer(serializers.ModelSerializer):
             section_data = formulary_data.add_section_data(section_id=section['form_id'], section_data_id=section['id'])
             for field in section['dynamic_form_value']:
                 section_data.add_field_value(field['field']['name'], field['value'], field['id'])
-
         if self.formulary_service.is_valid():
             return data
         else:
             raise serializers.ValidationError(detail=self.formulary_service.errors)
         
-    def save(self, files):
+    def save(self, files={}):
         instance = self.formulary_service.save(files)
         return instance
     

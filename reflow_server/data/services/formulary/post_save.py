@@ -46,7 +46,7 @@ class PostSave:
 
             section_ids = [section.section_data_id for section in formulary_data.get_sections if section.section_data_id and section.section_data_id != '']
             form_value_ids = [field_value.field_value_data_id for field_value in formulary_data.get_field_values if field_value.field_value_data_id and field_value.field_value_data_id != '']
-            
+
             fields = Field.objects.filter(form__depends_on__form_name=self.form_name)
             # we do not delete the data of disabled fields
             disabled_fields = fields.filter(Q(enabled=False) | Q(form__enabled=False)).values('id', 'form_id')
@@ -56,6 +56,7 @@ class PostSave:
             ).exclude(
                 Q(id__in=form_value_ids) | Q(field_id__in=[disabled_field['id'] for disabled_field in disabled_fields])
             )
+
             dynamic_forms_to_delete = DynamicForm.objects.filter(
                 form__enabled=True, 
                 depends_on_id=formulary_data.form_data_id
@@ -115,7 +116,7 @@ class PostSave:
             dynamic_form_attachment_instance.form = process.form_value_instance.form
             dynamic_form_attachment_instance.save()
             
-            files = [file_data for file_data in self.files.getlist(process.form_value_instance.field.name)] if self.files else []
+            files = [file_data for file_data in getattr(self, 'files', {}).get(process.form_value_instance.field.name, [])]
             file_data = None
             for file in files:
                 if file.name == process.form_value_instance.value:

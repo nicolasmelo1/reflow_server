@@ -13,12 +13,16 @@ class SectionData:
         self.formulary_data_id = formulary_data_id
     
     def add_field_value(self, field_name, value, field_value_data_id=None):
-        # validates if self.instance is defined, than we can use the id recieved, otherwise use None
+        # validates if self.formulary_data_id is defined, if it is, it means we are duplicating the value
+        # so we ignore the field_value_data_id recievied and set it to None
         field_value_data_id = field_value_data_id if self.formulary_data_id else None
 
-        field_value_obj = FieldValueData(field_value_data_id, field_name, value)
-        self.field_values.append(field_value_obj)
-        return field_value_obj
+        # we only add values that are not empty strings or none
+        if value not in ['', None]:
+            field_value_obj = FieldValueData(field_value_data_id, field_name, value)
+            self.field_values.append(field_value_obj)
+            return field_value_obj
+        return None
 
     @property
     def get_field_values(self):
@@ -56,7 +60,7 @@ class FormularyData:
         Returns:
             list(FieldValueData): List of FieldValueData
         """
-        return [field_value for field_value in section.field_values for section in self.sections]
+        return [field_value for section in self.sections for field_value in section.field_values]
 
     @property
     def get_formatted_fields_data(self):

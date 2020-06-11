@@ -122,7 +122,7 @@ class Token(Structure):
             value = self.operations[value]
         
         if self.type == 'field':
-            from reflow_server.formulary.models import FormValue
+            from reflow_server.data.models import FormValue
 
             field_id = value.replace('{{', '').replace('}}', '')
             if self.dynamic_form_id:

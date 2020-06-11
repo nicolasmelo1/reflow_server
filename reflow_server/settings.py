@@ -264,9 +264,9 @@ AWS_ACCESS_KEY_ID = configuration.AWS_ACCESS_KEY_ID
 
 # S3 CONFIGURATION
 # check core.utils.bucket file
-S3_REGION_NAME = ''
-S3_FILE_ATTACHMENTS_PATH = ''
-S3_BUCKET = ''
+S3_REGION_NAME = configuration.S3_REGION_NAME
+S3_FILE_ATTACHMENTS_PATH = configuration.S3_FILE_ATTACHMENTS_PATH
+S3_BUCKET = configuration.S3_BUCKET
 
 # AUTH BEARER CONFIGURATION (this is the app that we use to authenticate apps on reflow environment)
 # check reflow_server.core.decorators and reflow_server.core.services.external

@@ -1,4 +1,5 @@
-from django.db.models import Sum
+from django.db.models import Sum, Q
+
 from reflow_server.core.utils import encrypt
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.notification.models import NotificationConfiguration
@@ -8,6 +9,7 @@ from reflow_server.formulary.models import Field, Form
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.data.models import DynamicForm, Attachments
 from reflow_server.data.services import DataService
+
 import functools
 
 
@@ -38,11 +40,14 @@ class PermissionService:
         
         if dynamic_form_id:
             # can maybe be a section so we have to treat it
-            self.dynamic_form = DynamicForm.objects.filter(id=dynamic_form_id, form__depends_on__group__company=self.company).first()
+            self.dynamic_form = DynamicForm.objects.filter(
+                Q(id=dynamic_form_id, form__group__company=self.company) | 
+                Q(id=dynamic_form_id, form__depends_on__group__company=self.company)
+            ).first()
 
-            # not a section
-            if self.dynamic_form.depends_on_id:
-                self.dynamic_form = DynamicForm.objects.filter(depends_on_id=self.dynamic_form.id, form__depends_on__group__company=self.company).first()
+            # if this conditional is set it is probably a section
+            if self.dynamic_form and self.dynamic_form.depends_on_id:
+                self.dynamic_form = DynamicForm.objects.filter(id=self.dynamic_form.depends_on_id, form__group__company=self.company).first()
 
         if kanban_card_id:
             self.kanban_card = KanbanCard.objects.filter(id=kanban_card_id, user=self.user).first()
