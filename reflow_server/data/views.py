@@ -11,7 +11,7 @@ from rest_framework.response import Response
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.core.utils.storage import Bucket
-from reflow_server.data.serializers import FormDataSerializer
+from reflow_server.data.serializers import FormDataSerializer, DataSerializer
 from reflow_server.data.models import DynamicForm, Attachments
 from reflow_server.data.services.data import DataService
 from reflow_server.formulary.models import Form
@@ -21,20 +21,38 @@ import json
 
 
 class DataView(APIView):
+    def __extact_fields_from_request_query_params(self, query_params):
+        if 'fields' in query_params:
+            fields_query_param = query_params.getlist('fields', list())
+        else:
+            fields_query_param = query_params.getlist('fields[]', list())
+        return fields_query_param
+
     def get(self, request, company_id, form):
+        items_per_page = 25
+        page = int(request.query_params.get('page', 1))
+        pagination_limit = items_per_page * page
+        pagination_offset = pagination_limit - items_per_page
+
+        fields = self.__extact_fields_from_request_query_params(request.query_params)
+
         form_id = Form.objects.filter(group__company_id=company_id, form_name=form).first().id
-        data_service = DataService(user_id=request.user.id, company_id=company_id)
-        params = data_service.extact_query_parameters_from_request(request.query_params)
+        form_data_accessed_by_user = DataService.get_user_form_data_ids_from_query_params(
+            query_params=request.query_params, 
+            user_id=request.user.id,
+            company_id=company_id,
+            form_id=form_id
+        )
+        instances = DynamicForm.objects.filter(id__in=form_data_accessed_by_user).order_by('-updated_at')[pagination_offset:pagination_limit]
 
-        # get correct data to pass as parameters
-        converted_search_data = data_service.convert_search_query_parameters(params['search']['field'], params['search']['value'], params['search']['exact'])
-        converted_sort_data = data_service.convert_sort_query_parameters(params['sort']['field'], params['sort']['value'])
-        form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data)
-        datas = DynamicForm.objects.filter(id__in=form_data_accessed_by_user).order_by('-updated_at')
-
+        serializer = DataSerializer(instance=instances, many=True, context={
+            'fields': fields,
+            'company_id': company_id
+        })
         
         return Response({
-            'status': 'ok'
+            'status': 'ok',
+            'data': serializer.data
         })
 
 

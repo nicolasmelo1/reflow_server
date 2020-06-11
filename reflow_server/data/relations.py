@@ -42,12 +42,22 @@ class SectionDataRelation(serializers.ModelSerializer):
 
 class FilteredFormularyValueListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        sections = list(DynamicForm.objects.filter(company_id=self.context['company'], depends_on=data.core_filters['form'].id).values_list('id', flat=True))
-        if 'fields' in self.context and self.context['fields']:
+        sections = list(DynamicForm.objects.filter(
+            company_id=self.context['company_id'], 
+            depends_on=data.core_filters['form'].id
+        ).values_list('id', flat=True))
+        if self.context.get('fields', None):
             order = Case(*[When(field_id=value, then=pos) for pos, value in enumerate(self.context['fields'])])
-            data = FormValue.objects.filter(company_id=self.context['company'], form_id__in=sections, field_id__in=self.context['fields']).order_by(order)
+            data = FormValue.objects.filter(
+                company_id=self.context['company_id'], 
+                form_id__in=sections, 
+                field_id__in=self.context['fields']
+            ).order_by(order)
         else:
-            data = FormValue.objects.filter(company_id=self.context['company'], form_id__in=sections)
+            data = FormValue.objects.filter(
+                company_id=self.context['company_id'], 
+                form_id__in=sections
+            )
         return super(FilteredFormularyValueListSerializer, self).to_representation(data)
 
 

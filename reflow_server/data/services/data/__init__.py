@@ -12,12 +12,17 @@ class DataService(DataSort, DataSearch):
         self.company_id = company_id
     
     @classmethod
-    def extact_query_parameters_from_request(cls, query_params):
-        if 'fields' in query_params:
-            fields_query_param = query_params.getlist('fields', list())
-        else:
-            fields_query_param = query_params.getlist('fields[]', list())
+    def get_user_form_data_ids_from_query_params(cls, query_params, user_id, company_id, form_id):
+        data_service = cls(user_id=user_id, company_id=company_id)
+        params = data_service.extract_query_parameters_from_request(query_params)
+        # get correct data to pass as parameters
+        converted_search_data = data_service.convert_search_query_parameters(params['search']['field'], params['search']['value'], params['search']['exact'])
+        converted_sort_data = data_service.convert_sort_query_parameters(params['sort']['field'], params['sort']['value'])
+        form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data)
+        return form_data_accessed_by_user
 
+    @staticmethod
+    def extract_query_parameters_from_request(query_params):
         if all([value in query_params for value in ['search_field', 'search_value', 'search_exact']]):
             search_field_query_param = query_params.getlist('search_field', list())
             search_value_query_param = query_params.getlist('search_value', list())
@@ -35,7 +40,6 @@ class DataService(DataSort, DataSearch):
             sort_value_query_param = query_params.getlist('sort_value[]', list())
 
         return {
-            'fields': fields_query_param,
             'search': {
                 'exact': search_exact_query_param,
                 'value': search_value_query_param,

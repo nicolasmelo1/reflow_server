@@ -6,6 +6,18 @@ from reflow_server.data.models import DynamicForm
 
 
 class FormDataSerializer(serializers.ModelSerializer):
+    """
+    Serializer used from loading and saving the data of a single and unique formulary data.
+    Diferently from DataSerializer, this serializer actually cares about the sections, so it formats
+    the data in a way it's easier to differentiate. From which section this data is from.
+
+    Args:
+        user_id (int): The id of the user who is updating or saving the data
+        company_id (int): the id from the company this data is from
+        form_name (int): From which formulary this formulary data is from, we just need the name here.
+        form_data_id (int, optional): Only if you are updating or duplicating an existing formulary. Defaults to None.
+        duplicate (bool, optional): Only needed if you are duplicating a formulary. Defaults to False.
+    """
     id = serializers.IntegerField(allow_null=True, required=False)
     depends_on_dynamic_form = SectionDataRelation(many=True)
 
@@ -37,6 +49,16 @@ class FormDataSerializer(serializers.ModelSerializer):
 
 
 class DataSerializer(serializers.ModelSerializer):
+    """
+    Serializer from retrieving the data for listing and kanban visualizations, and probably many more
+    visualizations to come. This serializer is often used just to read the data, but not saving.
+    This is because we format the data completly ignoring the sections and caring just about the values.
+
+    Context Args:
+        fields (optional, list(int)) -- list of field ids to use, this way this doesn't retrieve the data from
+                                       all of the fields, but only a small portion of them. Default as None.
+        company_id (int) -- We need this to retrieve the correct data when loading the formulary
+    """
     dynamic_form_value = FormularyValueRelation(many=True)
 
     class Meta:

@@ -8,6 +8,8 @@ from reflow_server.formulary.models import Field, Form
 
 
 class ListingHeaderFieldsRelation(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    
     class Meta:
         model = Field
         fields = ('id', 'label_name', 'name', 'type')
