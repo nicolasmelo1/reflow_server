@@ -36,7 +36,7 @@ class Theme(models.Model):
     """
     display_name = models.CharField(max_length=300)
     created_at = models.DateTimeField(auto_now_add=True)
-    company_type = models.ForeignKey('theme.GroupType', on_delete=models.CASCADE, related_name='theme_company_type', 
+    company_type = models.ForeignKey('theme.ThemeType', on_delete=models.CASCADE, related_name='theme_company_type', 
                                      db_index=True, null=True)
     user = models.ForeignKey('authentication.UserExtended', on_delete=models.CASCADE, related_name='theme_user', null=True)
     description = models.CharField(max_length=500, blank=True, default='')

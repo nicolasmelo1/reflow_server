@@ -21,7 +21,7 @@ class FormularyDataService(PreSave, PostSave):
         This function is meant to be run inside a loop of insertion. it's important to 
         understand that this is required for running any other method inside of this service.
         It saves the data of the formulary as objects so we can work with it without needding
-        to know anything outside of this serializer.
+        to know anything outside of this class.
 
         Okay, but how does it work: as you remember formularies are a conjunction of sections, and
         inside each sections there are the fields. That's exactly what we mimic here.
@@ -31,7 +31,7 @@ class FormularyDataService(PreSave, PostSave):
         the `.add_section_data()` method we return to you a SectionData object which exposes the
         `.add_field_value()` method to insert each field inside of the section. This way we can have
         a complete formulary being built as objects and work with it instead of working with serializers,
-        dicts or other non pythonic objects.
+        dicts or other non default python objects.
 
         Args:
             form_data_id (int, optional): The id of the formulary, this is usually set if you are editing an
@@ -86,7 +86,7 @@ class FormularyDataService(PreSave, PostSave):
         return self.formulary_data_is_valid(self.formulary_data)        
 
     @transaction.atomic
-    def save(self, files):
+    def save(self, files={}):
         """
         This method should be called after calling `.add_formulary_data()` and `.is_valid()`. This
         method effectively saves the data present on FormularyData. While it saves the data from each field

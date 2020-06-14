@@ -42,6 +42,9 @@ class DevelopmentConfig(Config):
         }
     }
 
+    LOCALSTACK_ENDPOINT = config_file['aws']['localstack']['endpoint']
+    LOCALSTACK_PORT = config_file['aws']['localstack']['port']
+
     AWS_SECRET_ACCESS_KEY = config_file['aws']['secret_key']
     AWS_ACCESS_KEY_ID = config_file['aws']['access_key']
 
@@ -105,6 +108,7 @@ class ServerConfig(Config):
 
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', None)
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', None)
+
 
     S3_REGION_NAME = os.environ.get('S3_REGION_NAME', None)
     S3_FILE_ATTACHMENTS_PATH = os.environ.get('S3_FILE_ATTACHMENTS_PATH', None)

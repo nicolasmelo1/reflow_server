@@ -56,9 +56,9 @@ class FieldSerializer(serializers.ModelSerializer):
 
     def save(self):
         if self.instance:
-            instance = Field()
-        else:
             instance = self.instance
+        else:
+            instance = self.Meta.model()
 
         if (
             self.validated_data.get('form_field_as_option', None) 
@@ -102,6 +102,7 @@ class FieldSerializer(serializers.ModelSerializer):
             field_type=self.validated_data['type'],
             field_options=[field_option['option'] for field_option in self.validated_data.get('field_option', list())]
         )
+        print(instance)
         return instance
 
     class Meta:
@@ -124,9 +125,9 @@ class SectionSerializer(serializers.ModelSerializer):
 
     def save(self):
         if self.instance:
-            instance = Form()
-        else:
             instance = self.instance
+        else:
+            instance = self.Meta.model()
 
         section_service = SectionService(
             user_id=self.context['user_id'], 
@@ -173,20 +174,15 @@ class FormularySerializer(serializers.ModelSerializer):
     depends_on_form = SectionSerializer(many=True, required=False, allow_null=True)
 
     def __init__(self, is_loading_sections=False, *args, **kwargs):
-        """[summary]
-
-        Args:
-            is_loading_sections (bool, optional): [description]. Defaults to False.
-        """
         super(FormularySerializer, self).__init__(*args, **kwargs)
         if not is_loading_sections:
             self.fields.pop('depends_on_form')
 
     def save(self):
         if self.instance:
-            instance = Form()
-        else:
             instance = self.instance
+        else:
+            instance = self.Meta.model()
 
         formulary_service = FormularyService(user_id=self.context['user_id'], company_id=self.context['company_id'])
         instance = formulary_service.save_formulary(

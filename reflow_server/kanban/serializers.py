@@ -5,6 +5,8 @@ from rest_framework import serializers
 from reflow_server.kanban.models import KanbanCard, KanbanCardField, KanbanDimensionOrder
 from reflow_server.kanban.services import KanbanService
 from reflow_server.kanban.relations import GetKanbanFieldsRelation, KanbanCardFieldRelation
+from reflow_server.data.models import DynamicForm, FormValue
+from reflow_server.data.services.formulary import FormularyDataService
 
 
 class GetKanbanSerializer(serializers.Serializer):
@@ -115,7 +117,41 @@ class KanbanDimensionOrderSerializer(serializers.ModelSerializer):
     This serializer is used to display dimensionOrders and also updating the order of each KanbanDimensionOrder
     """
     options = serializers.CharField()
+
     class Meta:
         model = KanbanDimensionOrder
         list_serializer_class = KanbanDimensionOrderListSerializer
         fields = ('options',)
+
+
+class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
+    """
+    Serializer used for when changing a dimension of a card
+    """
+    new_value = serializers.CharField()
+    form_value_id = serializers.IntegerField()
+
+    def __init__(self,user_id, company_id, form_name, **kwargs):
+        self.formulary_data_service = FormularyDataService(user_id=user_id, company_id=company_id, form_name=form_name)
+        super(ChangeKanbanCardBetweenDimensionsSerializer, self).__init__(**kwargs)
+    
+    def validate(self, data):
+        form_value_to_change = FormValue.objects.filter(id=data['form_value_id']).first()
+        sections = DynamicForm.objects.filter(depends_on_id=form_value_to_change.form.depends_on.id)
+        
+        formulary_data = self.formulary_data_service.add_formulary_data(form_value_to_change.form.depends_on.id)
+        for section in sections:
+            section_data = formulary_data.add_section_data(section_id=section.form.id, section_data_id=section.id)
+            section_field_values = FormValue.objects.filter(form_id=section.id)
+            for field_value in section_field_values:
+                value = data['new_value'] if field_value.id == form_value_to_change.id else field_value.value
+                section_data.add_field_value(field_value.field.name, value, field_value.id)
+        if self.formulary_data_service.is_valid():
+            return data
+        else:
+            raise serializers.ValidationError(detail=self.formulary_data_service.errors)
+        
+
+    def save(self):
+        instance = self.formulary_data_service.save()
+        return instance

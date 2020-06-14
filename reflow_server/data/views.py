@@ -11,6 +11,7 @@ from rest_framework.response import Response
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.core.utils.storage import Bucket
+from reflow_server.core.utils.pagination import Pagination
 from reflow_server.data.serializers import FormDataSerializer, DataSerializer
 from reflow_server.data.models import DynamicForm, Attachments
 from reflow_server.data.services.data import DataService
@@ -30,10 +31,9 @@ class DataView(APIView):
         return fields_query_param
 
     def get(self, request, company_id, form):
-        items_per_page = 25
-        page = int(request.query_params.get('page', 1))
-        pagination_limit = items_per_page * page
-        pagination_offset = pagination_limit - items_per_page
+        pagination = Pagination.handle_pagination(
+            current_page=int(request.query_params.get('page', 1)),
+        )        
 
         fields = self.__extact_fields_from_request_query_params(request.query_params)
 
@@ -44,10 +44,9 @@ class DataView(APIView):
             company_id=company_id,
             form_id=form_id
         )
-
+        
         order = Case(*[When(id=form_data_id, then=index) for index, form_data_id in enumerate(form_data_accessed_by_user)])
-        instances = DynamicForm.objects.filter(id__in=form_data_accessed_by_user).order_by(order)[pagination_offset:pagination_limit]
-
+        instances = DynamicForm.objects.filter(id__in=form_data_accessed_by_user).order_by(order)[pagination.offset:pagination.limit]
         serializer = DataSerializer(instance=instances, many=True, context={
             'fields': fields,
             'company_id': company_id
@@ -56,8 +55,8 @@ class DataView(APIView):
         return Response({
             'status': 'ok',
             'pagination': {
-                'current': page,
-                'total': math.ceil(len(form_data_accessed_by_user) / 25)
+                'current': pagination.current_page,
+                'total': pagination.get_total_number_of_pages(len(form_data_accessed_by_user))
             },
             'data': serializer.data
         })
@@ -75,9 +74,10 @@ class FormularyDataView(APIView):
     parser_classes = [FormParser, MultiPartParser]
 
     def post(self, request, company_id, form):
+        files = {key:request.data.getlist(key) for key in request.data.keys() if key != 'data'}
         serializer = FormDataSerializer(user_id=request.user.id, company_id=company_id, form_name=form, data=json.loads(request.data.get('data', '\{\}')))
         if serializer.is_valid():
-            serializer.save(files=[])
+            serializer.save(files=files)
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)

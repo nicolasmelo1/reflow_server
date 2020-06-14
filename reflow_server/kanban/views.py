@@ -7,7 +7,7 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.kanban.serializers import GetKanbanSerializer, KanbanCardsSerializer, KanbanDefaultsSerializer, \
-    KanbanDimensionOrderSerializer
+    KanbanDimensionOrderSerializer, ChangeKanbanCardBetweenDimensionsSerializer
 from reflow_server.kanban.services import KanbanService
 from reflow_server.kanban.models import KanbanCard, KanbanDimensionOrder
 
@@ -21,7 +21,7 @@ class GetKanbanView(APIView):
     Methods:
         .get() -- retrieve the initial data needed to load the kanban visualization
     """
-    def get(self, request, form, company_id):
+    def get(self, request, company_id, form):
         serializer = GetKanbanSerializer(user_id=request.user.id, company_id=company_id, form_name=form)
         return Response({
             'status': 'ok',
@@ -43,7 +43,7 @@ class KanbanCardsView(APIView):
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
-    def get(self, request, form, company_id):
+    def get(self, request, company_id, form):
         kanban_service = KanbanService(user_id=request.user.id, company_id=company_id, form_name=form)
         serializer = KanbanCardsSerializer(instance=kanban_service.get_kanban_cards, many=True)
         return Response({
@@ -51,7 +51,7 @@ class KanbanCardsView(APIView):
             'data': serializer.data
         }, status=status.HTTP_200_OK)
     
-    def post(self, request, form, company_id):
+    def post(self, request, company_id, form):
         serializer = KanbanCardsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user_id=request.user.id)
@@ -74,7 +74,7 @@ class KanbanCardsEditView(APIView):
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
-    def put(self, request, form, company_id, kanban_card_id):
+    def put(self, request, company_id, form, kanban_card_id):
         instance = KanbanCard.objects.filter(id=kanban_card_id).first()
         serializer = KanbanCardsSerializer(data=request.data, instance=instance)
         if serializer.is_valid():
@@ -86,7 +86,7 @@ class KanbanCardsEditView(APIView):
             'status': 'error'
         }, status=status.HTTP_502_BAD_GATEWAY)
     
-    def delete(self, request, form, company_id, kanban_card_id):
+    def delete(self, request, company_id, form, kanban_card_id):
         kanban_card = KanbanCard.objects.filter(id=kanban_card_id, user=request.user).first()
         if kanban_card:
             kanban_card.delete()
@@ -107,7 +107,7 @@ class KanbanSetDefaultsView(APIView):
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
-    def put(self, request, form, company_id):
+    def put(self, request, company_id, form):
         serializer = KanbanDefaultsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(request.user.id, company_id, form)
@@ -144,7 +144,7 @@ class KanbanDimensionOrderView(APIView):
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
-    def get(self, request, form, company_id, field_id):
+    def get(self, request, company_id, form, field_id):
         kanban_service = KanbanService(user_id=request.user.id, company_id=company_id, form_name=form)
         kanban_dimension_orders = kanban_service.get_create_or_update_kanban_dimension_order(field_id)
         serializer = KanbanDimensionOrderSerializer(kanban_dimension_orders, many=True)
@@ -153,7 +153,7 @@ class KanbanDimensionOrderView(APIView):
             'data': serializer.data
         }, status=status.HTTP_200_OK)
 
-    def put(self, request, form, company_id, field_id):
+    def put(self, request, company_id, form, field_id):
         instance = KanbanDimensionOrder.objects.filter(dimension_id=field_id, user_id=request.user.id)
         serializer = KanbanDimensionOrderSerializer(data=request.data, instance=instance, many=True)
         if serializer.is_valid():
@@ -164,3 +164,32 @@ class KanbanDimensionOrderView(APIView):
         return Response({
             'status': 'error'
         }, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ChangeKanbanCardBetweenDimensionsView(APIView):
+    """
+    This view is responsible to handle when the user changes the dimension of a card in the kanban. It's important to understand how this work.
+    If you go to the serializer of this view you will notice that this serializer actually calls the FormularySerilizer in the `formulary` app.
+    We use this to don't rewrite the code. So the code works this way:
+    - We get a data that tells us the form_value_id to change and the new value, we get the serializer, change the data in the serializer and saves it again.
+    if a error is fired we return this error to the user.
+    """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def put(self, request, form, company_id):
+        serializer = ChangeKanbanCardBetweenDimensionsSerializer(
+            user_id=request.user.id, 
+            form_name=form, 
+            company_id=company_id,
+            data=request.data
+        )
+        if serializer.is_valid():
+            return Response({
+                'status': 'ok'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'error',
+                'error': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)

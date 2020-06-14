@@ -5,7 +5,7 @@ from reflow_server.formulary.models import Field, FieldOptions, OptionAccessedBy
 
 
 class FieldService(Settings):
-    def __init__(self, user_id, form_id, section_id, company_id):
+    def __init__(self, user_id, company_id, form_id):
         self.user_id = user_id
         self.company_id = company_id
         self.form_id = form_id
@@ -73,3 +73,5 @@ class FieldService(Settings):
         # We don't access directly the id of the field option, only the values, we use this to delete or add a field Option
         elif FieldOptions.objects.filter(field=instance).exists():
             FieldOptions.objects.filter(field=instance).delete()
+
+        return instance

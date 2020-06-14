@@ -27,13 +27,13 @@ class Bucket:
         )
         s3 = self.__session.resource('s3', region_name=settings.S3_REGION_NAME, config=botocore.client.Config(signature_version='s3v4'))\
             if settings.ENV != 'development' else \
-            self.__session.resource(service_name='s3', endpoint_url='http://localstack:4572')
+            self.__session.resource(service_name='s3', endpoint_url='http://{}:{}'.format(settings.LOCALSTACK_ENDPOINT, settings.LOCALSTACK_PORT))
         self.bucket = s3.Bucket(bucket)
 
     def __get_client(self):
         return self.__session.client('s3', region_name=settings.S3_REGION_NAME, config=botocore.client.Config(signature_version='s3v4')) \
                 if settings.ENV != 'development' else \
-                boto3.client('s3', endpoint_url="http://localstack:4572", use_ssl=False, aws_access_key_id='foo', aws_secret_access_key='bar')
+                boto3.client('s3', endpoint_url='http://{}:{}'.format(settings.LOCALSTACK_ENDPOINT, settings.LOCALSTACK_PORT), use_ssl=False, aws_access_key_id='foo', aws_secret_access_key='bar')
 
     def get_temp_url(self, key):
         """
@@ -47,7 +47,7 @@ class Bucket:
             'Bucket': settings.S3_BUCKET,
             'Key': key
         }, ExpiresIn=30)
-        url = url if settings.ENV != 'development' else url.replace('localstack:', 'localhost:')
+        url = url if settings.ENV != 'development' else url.replace(settings.LOCALSTACK_ENDPOINT, 'localhost')
         return url
 
     def upload(self, file, key):

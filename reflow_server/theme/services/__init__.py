@@ -1,0 +1,2 @@
+class ThemeService:
+    pass

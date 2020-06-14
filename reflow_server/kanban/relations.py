@@ -6,6 +6,7 @@ from reflow_server.kanban.models import KanbanCardField
 
 class GetKanbanFieldsRelation(serializers.ModelSerializer):
     id = serializers.IntegerField()
+    
     class Meta:
         model = Field
         fields = ('id', 'name', 'label_name')

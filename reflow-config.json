@@ -41,7 +41,11 @@
     "secret_key": "bar",
     "s3_region_name": "",
     "s3_file_attachments_path": "file-attachments",
-    "s3_bucket": "reflow-crm"
+    "s3_bucket": "reflow-crm",
+    "localstack": {
+        "endpoint": "localstack",
+        "port": 4572 
+    }
   },
   "channels": {
     "backend": "channels_redis.core.RedisChannelLayer",

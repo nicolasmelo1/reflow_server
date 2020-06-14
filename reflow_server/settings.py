@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'reflow_server.notify',
     'reflow_server.kanban',
     'reflow_server.listing',
+    'reflow_server.theme',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -261,6 +262,11 @@ DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION = len(str(DEFAULT_BASE_NUMBER_FIELD_FORM
 # AWS CONFIGURATION
 AWS_SECRET_ACCESS_KEY = configuration.AWS_SECRET_ACCESS_KEY
 AWS_ACCESS_KEY_ID = configuration.AWS_ACCESS_KEY_ID
+
+# LOCALSTACK CONFIGURATION
+# only needed in development
+LOCALSTACK_ENDPOINT = getattr(configuration, 'LOCALSTACK_ENDPOINT', '')
+LOCALSTACK_PORT = getattr(configuration, 'LOCALSTACK_PORT', '')
 
 # S3 CONFIGURATION
 # check core.utils.bucket file

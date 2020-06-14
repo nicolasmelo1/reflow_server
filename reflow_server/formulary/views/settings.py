@@ -35,7 +35,11 @@ class GroupEditSettingsView(APIView):
             'user_id': request.user.id
         })
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            serializer = GroupSerializer(instance=instance, context={
+                'company_id': company_id,
+                'user_id': request.user.id
+            })
             return Response({
                 'status': 'ok',
                 'data': serializer.data
@@ -65,7 +69,11 @@ class FormularySettingsView(APIView):
             'company_id': company_id
         })
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            serializer = FormularySerializer(instance=instance, context={
+                'user_id': request.user.id,
+                'company_id': company_id
+            })
             return Response({
                 'status': 'ok',
                 'data': serializer.data
@@ -108,7 +116,11 @@ class FormularySettingsEditView(APIView):
             'company_id': company_id
         })
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            serializer = FormularySerializer(instance=instance, context={
+                'user_id': request.user.id,
+                'company_id': company_id
+            })
             return Response({
                 'status': 'ok',
                 'data': serializer.data
@@ -145,7 +157,12 @@ class SectionSettingsView(APIView):
             'form_id': form_id
         })
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            serializer = SectionSerializer(instance=instance, context={
+                'user_id': request.user.id,
+                'company_id': company_id,
+                'form_id': form_id
+            })
             return Response({
                 'status': 'ok',
                 'data': serializer.data
@@ -180,7 +197,12 @@ class SectionSettingsEditView(APIView):
             'form_id': form_id
         })
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            serializer = SectionSerializer(instance=instance, context={
+                'user_id': request.user.id,
+                'company_id': company_id,
+                'form_id': form_id
+            })
             return Response({
                 'status': 'ok',
                 'data': serializer.data
@@ -222,7 +244,12 @@ class FieldSettingsView(APIView):
             'form_id': form_id
         })
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            serializer = FieldSerializer(instance=instance, context={
+                'user_id': request.user.id,
+                'company_id': company_id,
+                'form_id': form_id
+            })
             return Response({
                 'status': 'ok',
                 'data': serializer.data
@@ -236,13 +263,20 @@ class FieldSettingsView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class FieldSettingsEditView(APIView):
+    """
+    Edits a single field instance.
+
+    Methods:
+        .put() -- Creates a field instance
+        .delete() -- Deletes a field instance
+    """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def put(self, request, company_id, form_id, field_id):
         instance = Field.objects.filter(
             id=field_id, 
-            group__company_id=company_id, 
-            depends_on_id=form_id
+            form__depends_on__group__company_id=company_id, 
+            form__depends_on_id=form_id
         ).first()
         serializer = FieldSerializer(instance=instance, data=request.data, context={
             'user_id': request.user.id,
@@ -250,7 +284,12 @@ class FieldSettingsEditView(APIView):
             'form_id': form_id
         })
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            serializer = FieldSerializer(instance=instance, context={
+                'user_id': request.user.id,
+                'company_id': company_id,
+                'form_id': form_id
+            })
             return Response({
                 'status': 'ok',
                 'data': serializer.data
@@ -260,3 +299,16 @@ class FieldSettingsEditView(APIView):
                 'status': 'ok',
                 'data': None
             }, status=status.HTTP_200_OK)
+
+    def delete(self, request, company_id, form_id, field_id):
+        instance = Field.objects.filter(
+            id=field_id, 
+            form__depends_on__group__company_id=company_id, 
+            form__depends_on_id=form_id
+        ).first()
+        if instance:
+            instance.delete()
+            
+        return Response({
+            'status': 'ok'
+        }, status=status.HTTP_200_OK)

@@ -85,15 +85,17 @@ class PreSave(Validator):
                 )
 
                 for field in self.fields.filter(form_id=section.section_id):
-                    if field.name not in self.field_values:
+                    field_values_of_this_field = section.get_field_values_by_field_name(field.name)
+                    # no values exists for this field on this section
+                    if len(field_values_of_this_field) == 0:
                         field_data = FieldValueData(None, field.name, '')
                         cleaned_value = self.__dispatch_clean(formulary_data, field, field_data)
                         cleaned_section.add_field_value(field.name, cleaned_value)
                     else:
-                        for field_value_of_field in self.field_values[field.name]:
+                        for field_value in field_values_of_this_field:
                             # clean the data
-                            cleaned_value = self.__dispatch_clean(formulary_data, field, field_value_of_field)
-                            cleaned_section.add_field_value(field.name, cleaned_value, field_value_of_field.field_value_data_id)
+                            cleaned_value = self.__dispatch_clean(formulary_data, field, field_value)
+                            cleaned_section.add_field_value(field.name, cleaned_value, field_value.field_value_data_id)
         
         return cleaned_formulary_data
 
