@@ -56,7 +56,7 @@ class BaseConsumer(WebsocketConsumer):
     You need first to register it in `settings.py` `CONSUMERS`:
     >>> CONSUMERS = {
         'LOGIN_REQUIRED': [
-            'reflow_crm.notifications.consumers.NotificationConsumer'
+            'reflow_server.notifications.consumers.NotificationConsumer'
         ]
     }
 
