@@ -59,10 +59,11 @@ class ExtractService:
         to_date = datetime.strptime(to_date, '%d/%m/%Y')
         form = Form.objects.filter(form_name=self.form_name, depends_on__isnull=True).first()
         user_listing_selected_fields_for_form = ListingSelectedFields.objects.filter(
+            is_selected=True,
             user_id=self.user_id, 
             field__form__depends_on__group__company_id=self.company_id, 
             field__form__depends_on__form_name=self.form_name
-        )
+        ).order_by('field__form__order', 'field__order')
 
         fields_ids = []
         for user_listing_selected_field_for_form in user_listing_selected_fields_for_form:

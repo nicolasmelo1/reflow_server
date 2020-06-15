@@ -7,9 +7,10 @@ from reflow_server.listing.models import ListingSelectedFields, ExtractFileData
 from reflow_server.listing.relations import ListingHeaderFieldsRelation, ExtractFormValueRelation, ExtractSectionRelation
 
 
-
-
 class ListingHeaderSerializer(serializers.ModelSerializer):
+    """
+    Serializer used for retrieving the headers of listing visualization.
+    """
     id = serializers.IntegerField(required=False, allow_null=True)
     field = ListingHeaderFieldsRelation()
 
@@ -26,7 +27,6 @@ class ListingHeaderSerializer(serializers.ModelSerializer):
         
     class Meta:
         model = ListingSelectedFields
-        #list_serializer_class = ListingHeaderListSerializer
         fields = ('id', 'field', 'is_selected')
 
 

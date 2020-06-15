@@ -1,7 +1,8 @@
 from django.conf import settings
 
 from reflow_server.core import externals
-from reflow_server.formulary.models import DynamicForm, Form
+from reflow_server.data.models import DynamicForm
+from reflow_server.formulary.models import Form
 from reflow_server.listing.serializers import ExtractFormDataSerializer, ExtractFormSerializer
 
 

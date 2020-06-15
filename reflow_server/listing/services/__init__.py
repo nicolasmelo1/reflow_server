@@ -68,4 +68,4 @@ class ListingService:
         )
 
         listing_selected_fields = self.__update_listing_selected_fields(listing_selected_fields)
-        return listing_selected_fields
+        return listing_selected_fields.order_by('field__form__order', 'field__order')
