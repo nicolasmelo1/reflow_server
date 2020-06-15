@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
@@ -29,7 +30,7 @@ class GroupEditSettingsView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def put(self, request, company_id, group_id):
-        instance = Group.objects.filter()
+        instance = Group.objects.filter(company_id=company_id).first()
         serializer = GroupSerializer(instance=instance, data=request.data, context={
             'company_id': company_id,
             'user_id': request.user.id
@@ -48,7 +49,7 @@ class GroupEditSettingsView(APIView):
             Response({
                 'status': 'ok',
                 'data': None
-            }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_502_BAD_GATEWAY)
 
     def delete(self, request, company_id, group_id):
         instance = Group.objects.filter(id=group_id, company_id=company_id).first()
@@ -82,7 +83,7 @@ class FormularySettingsView(APIView):
             return Response({
                 'status': 'ok',
                 'data': None
-            }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_502_BAD_GATEWAY)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -129,7 +130,7 @@ class FormularySettingsEditView(APIView):
         return Response({
             'status': 'ok',
             'data': None
-        }, status=status.HTTP_200_OK)
+        }, status=status.HTTP_502_BAD_GATEWAY)
 
     def delete(self, request, company_id, form_id):
         instance = Form.objects.filter(id=form_id, group__company_id=company_id, depends_on__isnull=True).first()
@@ -171,7 +172,7 @@ class SectionSettingsView(APIView):
             return Response({
                 'status': 'ok',
                 'data': None
-            }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_502_BAD_GATEWAY)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -211,7 +212,7 @@ class SectionSettingsEditView(APIView):
             return Response({
                 'status': 'ok',
                 'data': None
-            }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_502_BAD_GATEWAY)
 
     def delete(self, request, company_id, form_id, section_id):
         instance = Form.objects.filter(
@@ -258,7 +259,7 @@ class FieldSettingsView(APIView):
             return Response({
                 'status': 'ok',
                 'data': None
-            }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_502_BAD_GATEWAY)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -298,7 +299,7 @@ class FieldSettingsEditView(APIView):
             return Response({
                 'status': 'ok',
                 'data': None
-            }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_502_BAD_GATEWAY)
 
     def delete(self, request, company_id, form_id, field_id):
         instance = Field.objects.filter(
@@ -312,3 +313,18 @@ class FieldSettingsEditView(APIView):
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
+
+
+class FieldOptionsView(APIView):
+    def get(self, request, company_id, form_id):
+        instances = Field.objects.filter(
+                form__depends_on_id=form_id, form__depends_on__group__company_id=company_id
+            ).exclude(
+                Q(type__type='attachment') | Q(form__type__type__in=['multi-form'])
+            )
+        serializer = FieldSerializer(instance=instances, many=True)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        })
+

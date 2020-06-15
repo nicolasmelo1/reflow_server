@@ -119,17 +119,19 @@ class NotificationConfigurationFieldsSerializer(serializers.Serializer):
         self.notification_configuration_fields_service = NotificationConfigurationFieldsService(company_id, form_id)
 
         kwargs['data'] = {
-            'notification_fields': self.get_default_kanban_card_id,
-            'variable_fields': self.get_default_dimension_field_id
+            'notification_fields': self.get_notification_fields,
+            'variable_fields': self.get_variable_fields
         }
         super(NotificationConfigurationFieldsSerializer, self).__init__(**kwargs)
         self.is_valid()
 
+    @property
     def get_notification_fields(self):
         # this can be more verbose, but it's better to do this way, so our service don't need to know anything about the serializer
         # it just gives us the data that we need
         return NotificationConfigurationFieldsRelation(instance=self.notification_configuration_fields_service.get_notification_fields, many=True).data
 
+    @property
     def get_variable_fields(self):
         # this can be more verbose, but it's better to do this way, so our service don't need to know anything about the serializer
         return NotificationConfigurationFieldsRelation(instance=self.notification_configuration_fields_service.get_variable_fields, many=True).data

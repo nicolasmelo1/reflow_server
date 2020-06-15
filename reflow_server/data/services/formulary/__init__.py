@@ -78,7 +78,7 @@ class FormularyDataService(PreSave, PostSave):
             form__id__in=self.sections,
             form__enabled=True,
             enabled=True
-        )
+        ).order_by('form__order', 'order')
 
         self.formulary_data = self.clean_data(self.formulary_data)
 

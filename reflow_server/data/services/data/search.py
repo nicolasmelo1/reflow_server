@@ -64,7 +64,7 @@ class DataSearch:
 
     def _search_date(self, search_item, field_data, form_ids_to_filter):
         search_values = list()
-        split_search_value = search_item.vaue.split(' - ')
+        split_search_value = search_item.value.split(' - ')
         start_date = datetime.strptime(split_search_value[0], "%d/%m/%Y")
         end_date = datetime.strptime(split_search_value[1], "%d/%m/%Y")
         return list(
@@ -82,7 +82,7 @@ class DataSearch:
         real_search_values = list(
             FormValue.objects.filter(
                 company_id=self.company_id, 
-                field_id=field_data['form_field_as_option'],
+                field_id=field_data['form_field_as_option_id'],
                 **self.__search_exact(search_item)
             ).values_list('form', flat=True)
         )

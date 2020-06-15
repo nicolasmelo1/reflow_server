@@ -8,7 +8,7 @@ class GroupService(Settings):
         self.company_id = company_id
     
     def save_group(self, instance, name, enabled, order):
-        existing_groups = Group.objects.filter(company_id=self.context['company_id']).exclude(id=self.instance.id if self.instance else None)
+        existing_groups = Group.objects.filter(company_id=self.company_id).exclude(id=instance.id if instance else None)
 
         self.update_order(existing_groups, order)
         is_new = instance.id == None

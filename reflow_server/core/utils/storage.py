@@ -2,6 +2,7 @@ from django.conf import settings
 
 from urllib import parse
 from functools import wraps
+from boto3.s3.transfer import TransferConfig
 import boto3
 import botocore
 import logging
@@ -18,7 +19,7 @@ class Bucket:
         if not bucket:
             bucket = settings.S3_BUCKET
 
-        self.__config = boto3.s3.transfer.TransferConfig(multipart_threshold=1024 * 25, max_concurrency=10,
+        self.__config = TransferConfig(multipart_threshold=1024 * 25, max_concurrency=10,
                                                          multipart_chunksize=1024 * 25, use_threads=True)
 
         self.__session = boto3.Session(

@@ -59,7 +59,7 @@ class PreSave(Validator):
                 # if section is conditional and conditional field has not been inserted 
                 conditional_name_not_in_section = section.conditional_on_field.name not in self.field_values.keys()
                 # if the conditional is set but the value in the conditional doesn't match the value supplied
-                conditional_value_not_validated = section.conditional_value not in [field_value.value for field_value in self.field_values[section.conditional_on_field.name]]
+                conditional_value_not_validated = section.conditional_value not in [field_value.value for field_value in self.field_values.get(section.conditional_on_field.name, [])]
                 if conditional_name_not_in_section or conditional_value_not_validated:
                     section_ids_to_exclude.append(section.id)
         

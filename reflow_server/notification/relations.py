@@ -17,6 +17,8 @@ class NotificationConfigurationVariableRelation(serializers.ModelSerializer):
 
 
 class NotificationConfigurationFieldsRelation(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    
     class Meta:
         model = Field
         fields = ('label_name','name', 'id')
