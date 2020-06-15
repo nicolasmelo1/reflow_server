@@ -2,10 +2,12 @@ from django.db import transaction
 
 from reflow_server.formulary.models import Field, OptionAccessedBy
 from reflow_server.data.models import FormValue
+from reflow_server.kanban.services.kanban_card import KanbanCardService
 from reflow_server.kanban.models import KanbanCard, KanbanCardField, KanbanDimensionOrder
 from reflow_server.data.services import DataService
 
-class KanbanService:
+
+class KanbanService(KanbanCardService):
     def __init__(self, user_id, company_id, form_name):
         self.user_id = user_id
         self.company_id = company_id

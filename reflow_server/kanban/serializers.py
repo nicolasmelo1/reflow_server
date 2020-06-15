@@ -63,25 +63,18 @@ class KanbanCardsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(allow_null=True, required=False)
     kanban_card_fields = KanbanCardFieldRelation(many=True)
 
-    def save(self, user_id, **kwargs):
-        self.user_id = user_id
+    def save(self, user_id, company_id, form_name, **kwargs):
+        self.kanban_service = KanbanService(user_id, company_id, form_name)
         return super(KanbanCardsSerializer, self).save(**kwargs)
 
-    @transaction.atomic
     def create(self, validated_data):
-        instance = KanbanCard.objects.create(user_id=self.user_id)
-        # save kanban card fields
-        for field in validated_data.get('kanban_card_fields'):
-            KanbanCardField.objects.create(kanban_card=instance, field_id=field['field']['id'])
+        field_ids = [field['field']['id'] for field in validated_data.get('kanban_card_fields')]
+        instance = self.kanban_service.save_kanban_card(KanbanCard(), field_ids)
         return instance
 
-    @transaction.atomic
     def update(self, instance, validated_data):
-        # deletes all of the kanban fields
-        KanbanCardField.objects.filter(kanban_card=instance).delete()
-        # save kanban card fields
-        for field in validated_data.get('kanban_card_fields'):
-            KanbanCardField.objects.create(kanban_card=instance, field_id=field['field']['id'])
+        field_ids = [field['field']['id'] for field in validated_data.get('kanban_card_fields')]
+        instance = self.kanban_service.save_kanban_card(instance, field_ids)
         return instance
 
     class Meta:

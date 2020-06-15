@@ -69,9 +69,9 @@ class NotificationConfigurationSerializer(serializers.ModelSerializer):
         return data
 
     def validate(self, data):
-        self.notification_configuration_service = NotificationConfigurationService(instance=self.instance)
+        self.notification_configuration_service = NotificationConfigurationService()
         for variable in data['notification_configuration_variables']:
-            self.notification_configuration_service.add_notification_variable(variable['field']['id'], variable['field']['name'])
+            self.notification_configuration_service.add_notification_variable(variable['field']['id'])
         try:
             self.notification_configuration_service.validate_notification_configuration(data['text'])
         except:
@@ -79,7 +79,7 @@ class NotificationConfigurationSerializer(serializers.ModelSerializer):
         return data
 
     def save(self):
-        instance = self.notification_configuration_service.create_or_update(
+        instance = self.notification_configuration_service.save_notification_configuration(
             self.context['company_id'],
             self.validated_data['for_company'],
             self.validated_data['name'],
@@ -87,7 +87,8 @@ class NotificationConfigurationSerializer(serializers.ModelSerializer):
             self.validated_data['days_diff'],
             self.validated_data['form'],
             self.validated_data['field'],
-            self.context['user_id']
+            self.context['user_id'],
+            instance=self.instance if self.instance else None
         )
         return instance
 

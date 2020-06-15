@@ -1,7 +1,7 @@
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.authentication.models import UserExtended
 from reflow_server.formulary.services.utils import Settings
-from reflow_server.formulary.models import Field, FieldOptions, OptionAccessedBy
+from reflow_server.formulary.models import Form, Field, FieldOptions, OptionAccessedBy
 
 
 class FieldService(Settings):
@@ -32,7 +32,7 @@ class FieldService(Settings):
         instance.label_is_hidden = label_is_hidden
         instance.placeholder = placeholder
         instance.required = required
-        instance.form = section
+        instance.form_id = section.id if isinstance(section, Form) else section
         instance.form_field_as_option = form_field_as_option
         instance.formula_configuration = formula_configuration
         instance.date_configuration_auto_create = date_configuration_auto_create

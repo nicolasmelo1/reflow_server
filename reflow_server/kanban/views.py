@@ -54,7 +54,7 @@ class KanbanCardsView(APIView):
     def post(self, request, company_id, form):
         serializer = KanbanCardsSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user_id=request.user.id)
+            serializer.save(user_id=request.user.id, company_id=company_id, form_name=form)
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)
@@ -78,7 +78,7 @@ class KanbanCardsEditView(APIView):
         instance = KanbanCard.objects.filter(id=kanban_card_id).first()
         serializer = KanbanCardsSerializer(data=request.data, instance=instance)
         if serializer.is_valid():
-            serializer.save(user_id=request.user.id)
+            serializer.save(user_id=request.user.id, company_id=company_id, form_name=form)
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)

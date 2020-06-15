@@ -11,6 +11,7 @@ from reflow_server.authentication.models import CompanyType, ProfileType, Visual
 from reflow_server.formula.models import FormulaType
 from reflow_server.formulary.models import SectionType, FieldType, FieldPeriodIntervalType, FieldNumberFormatType, \
     FieldDateFormatType, ConditionalType
+from reflow_server.theme.models import ThemeType
 
 @method_decorator(csrf_exempt, name='dispatch')
 class HealthCheckView(APIView):
@@ -48,6 +49,7 @@ class TypesView(APIView):
         section_type = list(SectionType.objects.all().values())
         data_type = list(VisualizationType.objects.all().values())
         company_type = list(CompanyType.objects.all().values())
+        theme_type = list(ThemeType.objects.all().values())
         profile_type = list(ProfileType.objects.all().values())
            
         return Response({
@@ -72,7 +74,7 @@ class TypesView(APIView):
                    'profile_type': profile_type,
                    'company_type': company_type,
                    'data_type': data_type,
-                   'group_type': company_type,
+                   'group_type': theme_type,
                }
            }
         })

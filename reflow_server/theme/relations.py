@@ -18,6 +18,12 @@ class ThemeFieldRelation(serializers.ModelSerializer):
         exclude = ('created_at', 'updated_at')
 
 
+class ThemeSectionListSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        data = data.order_by('order')
+        return super(ThemeSectionListSerializer, self).to_representation(data)
+
+
 class ThemeSectionRelation(serializers.ModelSerializer):
     conditional_on_theme_field = serializers.CharField(source='conditional_on_theme_field.name', read_only=True)
     conditional_type_type = serializers.CharField(source='conditional_type.type', read_only=True)
@@ -26,6 +32,7 @@ class ThemeSectionRelation(serializers.ModelSerializer):
 
     class Meta:
         model = ThemeForm
+        list_serializer_class = ThemeSectionListSerializer
         fields = ('id',
                   'label_name',
                   'form_type',

@@ -6,7 +6,7 @@ from reflow_server.theme.relations import ThemeSectionRelation
 
 class ThemeFormularyListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        data = data.filter(depends_on__isnull=True).order_by('id')
+        data = data.filter(depends_on__isnull=True).order_by('order')
         return super(ThemeFormularyListSerializer, self).to_representation(data)
 
 

@@ -68,14 +68,24 @@ class DevelopmentConfig(Config):
             self.APPS[app] = config_file['apps'][app]
         
         case = 'error'
-        while case == 'error':
+        maximum_tries = 5
+        tries = 0
+
+        while case == 'error' and tries < maximum_tries:
             try:
-                s3 = boto3.client('s3', endpoint_url="http://localstack:4572",
-                                  use_ssl=False, aws_access_key_id='foo', aws_secret_access_key='bar')
+                s3 = boto3.client(
+                    's3', 
+                    endpoint_url="http://{}:{}".format(self.LOCALSTACK_ENDPOINT, self.LOCALSTACK_PORT),
+                    use_ssl=False, 
+                    aws_access_key_id=self.AWS_SECRET_ACCESS_KEY, 
+                    aws_secret_access_key=self.AWS_ACCESS_KEY_ID
+                )
                 s3.create_bucket(Bucket=self.S3_BUCKET)
                 case = 'success'
+                tries = maximum_tries
             except:
                 time.sleep(10)
+                tries += 1 
 
 
 class ServerConfig(Config):

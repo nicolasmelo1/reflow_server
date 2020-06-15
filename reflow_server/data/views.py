@@ -23,6 +23,14 @@ import math
 
 
 class DataView(APIView):
+    """
+    This view is used for retrieving data for visualization types like kanban or listing.
+    It's important to understand that this returns a list of items to this visualization types also the data
+    is formatted.
+
+    Methods:
+        .get() -- Retrieves a list of formularies data from a single form.
+    """
     def __extact_fields_from_request_query_params(self, query_params):
         if 'fields' in query_params:
             fields_query_param = query_params.getlist('fields', list())
@@ -102,12 +110,14 @@ class FormularyDataEditView(APIView):
     parser_classes = [FormParser, MultiPartParser]
 
     def get(self, request, company_id, form, dynamic_form_id):
-        instance = DynamicForm.objects.filter(
-            id=dynamic_form_id, 
-            form__group__company_id=company_id, 
-            depends_on__isnull=True
-        ).first()
-
+        instance = DynamicForm.objects.filter(id=dynamic_form_id).first()
+        if instance.depends_on_id:
+            instance = DynamicForm.objects.filter(
+                id=instance.depends_on_id, 
+                form__group__company_id=company_id, 
+                depends_on__isnull=True
+            ).first()
+            
         serializer = FormDataSerializer(
             instance=instance,
             user_id=request.user.id, 
