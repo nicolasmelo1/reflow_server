@@ -27,7 +27,7 @@ class FormFieldAsOptionRelation(serializers.ModelSerializer):
 
 class FilteredFieldsListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        data = data.filter(enabled=True)
+        data = data.filter(enabled=True).order_by('order')
         return super(FilteredFieldsListSerializer, self).to_representation(data)
 
 
@@ -43,7 +43,7 @@ class FormFieldRelation(serializers.ModelSerializer):
 
 class FilteredSectionListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        data = data.filter(enabled=True)
+        data = data.filter(enabled=True).order_by('order')
         return super(FilteredSectionListSerializer, self).to_representation(data)
 
 
