@@ -36,6 +36,8 @@ if not os.path.exists("{}/logs/".format(BASE_DIR)):
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+APP_NAME = os.path.basename(os.path.realpath(os.path.dirname(__file__)))
+
 SECRET_KEY = configuration.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
