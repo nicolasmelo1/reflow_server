@@ -22,10 +22,8 @@ class Settings:
                             .encode('ascii', 'ignore').decode('utf-8').translate(
                         str.maketrans('', '', string.punctuation))
                     )
-        if old_name and new_name in old_name:
-            return old_name
-        else:
-            return self.__check_if_name_exists(form_or_field, instance_id, new_name)
+       
+        return self.__check_if_name_exists(form_or_field, instance_id, new_name)
 
     def __check_if_name_exists(self, form_or_field, instance_id, name):
         name = replace_dumb_characters_from_str(

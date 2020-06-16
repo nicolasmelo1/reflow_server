@@ -51,7 +51,7 @@ class OnboardingService(CompanyService):
         user.save()
         
         # update billing information
-        company_billing = BillingService(company.id)
-        company_billing.update_company()
+        #company_billing = BillingService(company.id)
+        #company_billing.update_company()
 
         return user

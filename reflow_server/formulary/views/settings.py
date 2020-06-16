@@ -27,10 +27,17 @@ class GroupSettingsView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class GroupEditSettingsView(APIView):
+    """
+    This view is used for creating or editing groups.
+
+    Methods:
+        .put() -- edit an existing group
+        .delete() -- deletes an existing group
+    """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def put(self, request, company_id, group_id):
-        instance = Group.objects.filter(company_id=company_id).first()
+        instance = Group.objects.filter(company_id=company_id, id=group_id).first()
         serializer = GroupSerializer(instance=instance, data=request.data, context={
             'company_id': company_id,
             'user_id': request.user.id
