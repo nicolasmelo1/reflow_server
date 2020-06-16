@@ -129,7 +129,7 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
         super(ChangeKanbanCardBetweenDimensionsSerializer, self).__init__(**kwargs)
     
     def validate(self, data):
-        form_value_to_change = FormValue.objects.filter(id=data['form_value_id']).first()
+        form_value_to_change = FormValue.objects.filter(id=int(data['form_value_id'])).first()
         sections = DynamicForm.objects.filter(depends_on_id=form_value_to_change.form.depends_on.id)
         
         formulary_data = self.formulary_data_service.add_formulary_data(form_value_to_change.form.depends_on.id)
