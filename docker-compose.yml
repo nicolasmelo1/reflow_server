@@ -27,7 +27,7 @@ services:
   reflow_server:
     tty: true
     build: .
-    command: pypy3 manage.py runserver 0.0.0.0:8000
+    command: python manage.py runserver 0.0.0.0:8000
     environment:
       - CONFIG=development
     volumes:
