@@ -1,5 +1,9 @@
+from django.db import transaction
+
 from reflow_server.authentication.models import Company, UserExtended, ProfileType
 from reflow_server.authentication.services.company import CompanyService
+from reflow_server.billing.services import BillingService
+
 
 class OnboardingService(CompanyService):
     """
@@ -8,6 +12,7 @@ class OnboardingService(CompanyService):
     Available Methods:
     .onboard()
     """
+    @transaction.atomic
     def onboard(self, user_email, user_first_name, user_last_name, user_password, company_name=None, shared_by=None, partner=None):
         """
         Onboards a new user and creates a new company (aswell as a new user). Updates the billing info on the fly.
@@ -26,7 +31,7 @@ class OnboardingService(CompanyService):
         Returns:
             reflow_server.authentication.models.UserExtended -- returns the created user.
         """
-        if company_name: 
+        if company_name in [None, '']: 
             company_name = self._company_name_generator()
 
         if shared_by:
@@ -51,7 +56,7 @@ class OnboardingService(CompanyService):
         user.save()
         
         # update billing information
-        #company_billing = BillingService(company.id)
+        BillingService.create_on_onboarding(company.id, user.id)
         #company_billing.update_company()
 
         return user

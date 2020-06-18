@@ -96,6 +96,7 @@ class BaseConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         # Leave room group
+        print('Closing Group name: %s' % self.group_name)
         async_to_sync(self.channel_layer.group_discard)(
             self.group_name,
             self.channel_name

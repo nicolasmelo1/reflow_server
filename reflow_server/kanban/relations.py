@@ -9,7 +9,7 @@ class GetKanbanFieldsRelation(serializers.ModelSerializer):
     
     class Meta:
         model = Field
-        fields = ('id', 'name', 'label_name')
+        fields = ('id', 'name', 'label_name', 'type')
 
 
 class KanbanCardFieldRelation(serializers.ModelSerializer):
