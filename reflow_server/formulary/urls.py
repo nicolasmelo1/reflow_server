@@ -30,7 +30,7 @@ settings_urlpatterns = [
 
 
 urlpatterns = [
-    re_path(r'^(?P<company_id>\w+\.\w+)/', include([
+    re_path(r'^(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
         register_admin_only_url(re_path(r'^settings/', include(settings_urlpatterns))),
         re_path(r'^$', permission_required(GetGroupsView.as_view()), name='formulary_get_groups'),
         re_path(r'^(?P<form>\w+)/', include([

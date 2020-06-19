@@ -6,7 +6,7 @@ from reflow_server.theme.views import ThemeView, ThemeFormularyView, ThemeCompan
 
 
 urlpatterns = [
-    re_path(r'(?P<company_id>\w+\.\w+)/', include([
+    re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
         re_path(r'^(?P<theme_id>\d+)/', include([
             re_path(r'^$', permission_required(ThemeView.as_view()), name='theme_theme'),
             re_path(r'^(?P<theme_form_id>\d+)/$', permission_required(ThemeFormularyView.as_view()), name='theme_formulary'), 

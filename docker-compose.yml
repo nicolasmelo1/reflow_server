@@ -30,6 +30,7 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     environment:
       - CONFIG=development
+      - IS_DOCKER_COMPOSE=True
     volumes:
       - .:/code
     ports:

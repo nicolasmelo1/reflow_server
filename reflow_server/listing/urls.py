@@ -9,7 +9,7 @@ external_urlpatterns = [
 ]
 
 urlpatterns = [
-    re_path(r'(?P<company_id>\w+\.\w+)/', include([
+    re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
         re_path(r'^extract/$', permission_required(GetExtractDataView.as_view()), name='listing_get_extract_data'),
         re_path(r'^(?P<form>\w+)/', include([
              re_path(r'^$', permission_required(ListingHeaderView.as_view()), name='listing_get_header'),

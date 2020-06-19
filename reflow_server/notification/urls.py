@@ -20,7 +20,7 @@ settings_urlpatterns = [
 ]
 
 urlpatterns = [
-    re_path(r'(?P<company_id>\w+\.\w+)/', include([
+    re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
         re_path(r'^$', permission_required(NotificationsView.as_view()), name='notification_load_data'),
         re_path(r'^read/$', permission_required(UnreadAndReadNotificationView.as_view()), name='notification_read_or_unread'),
         re_path(r'^settings/', include(settings_urlpatterns)),
