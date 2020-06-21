@@ -11,6 +11,15 @@ from reflow_server.data.services.formulary.post_save import PostSave
 
 class FormularyDataService(PreSave, PostSave):
     def __init__(self, user_id, company_id, form_name):
+        """
+        This object handles the save and update of the data of a single form.
+
+        Since when saving we have to guarantee many operations, with this service we
+        can control more easily.
+
+        To use this class correctly, read `.add_formulary_data()` first so you can have a better
+        understading on how to use it.
+        """
         self.user_id = user_id
         self.company_id = company_id
         self.form_name = form_name
@@ -27,17 +36,17 @@ class FormularyDataService(PreSave, PostSave):
         inside each sections there are the fields. That's exactly what we mimic here.
 
         When you run this function we return to you a FormularyData object that exposes
-        `.add_section_data()` method, for you to add your sections. After you add your section using
-        the `.add_section_data()` method we return to you a SectionData object which exposes the
+        `.add_section_data()` method for you to add your sections. This object will contain an array
+        with all of your sections, but to add those you need to add each section using
+        the `.add_section_data()` method. If this method we return to you a SectionData object which exposes the
         `.add_field_value()` method to insert each field inside of the section. This way we can have
-        a complete formulary being built as objects and work with it instead of working with serializers,
-        dicts or other non default python objects.
+        a complete formulary being built as objects and work with it instead of working directly with serializers.
 
         Args:
             form_data_id (int, optional): The id of the formulary, this is usually set if you are editing an
                                           instance, otherwise you can leave it as null (default as None)
             duplicate_form_data_id (int, optional): If you are trying to duplicate a formulary set it to True 
-                                                    make sure and make sure `form_data_id` is defined (default as False).
+                                                    and make sure `form_data_id` is defined (default as False).
         Returns:
             FormularyData: The object for you which you can insert sections and field_vales
         """
@@ -153,7 +162,8 @@ class FormularyDataService(PreSave, PostSave):
                         'form': section_instance
                     }
                 )
-                # updates the field_value data if the newly field_value instance id so when deleting we consider this new value
+                # updates the field_value data with the newly field_value instance id so when deleting
+                # removed data can consider this new value (so we don't delete it)
                 field_value.field_value_data_id = form_value.id
 
                 self.add_saved_field_value_to_post_process(section_instance, form_value)

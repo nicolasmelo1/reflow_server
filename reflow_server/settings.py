@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'reflow_server.authentication',
     'reflow_server.billing',
     'reflow_server.core',
-    'reflow_server.dashboard',
+    #'reflow_server.analytics',
     'reflow_server.formula',
     'reflow_server.data',
     'reflow_server.formulary',
