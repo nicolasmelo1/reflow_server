@@ -1,14 +1,17 @@
 from django.conf import settings
 
+from reflow_server.formulary.models import Field, FieldDateFormatType, FieldNumberFormatType, \
+    FieldType
 from reflow_server.data.models import FormValue
 from reflow_server.authentication.models import UserExtended
 
 from datetime import datetime
 from math import ceil
+import decimal
 
 
 class RepresentationService:
-    def __init__(self, field_type, date_format_type, number_format_type, form_field_as_option, load_ids = False):
+    def __init__(self, field_type, date_format_type_id, number_format_type_id, form_field_as_option_id, load_ids = False):
         """
         Used for presenting data from this app to the user, use it everywhere you need to present the data 
         from the backend to the normal user. So use this in serializers, dashboard, totals and etc.
@@ -32,9 +35,9 @@ class RepresentationService:
             load_ids {bool} -- retrieves the ids instead of the value in fields_types like `user` or `form` (default: {False})
         """
         self.field_type = field_type
-        self.date_format_type = date_format_type
-        self.number_format_type = number_format_type
-        self.form_field_as_option = form_field_as_option
+        self.date_format_type = FieldDateFormatType.objects.filter(id=date_format_type_id).first()
+        self.number_format_type = FieldNumberFormatType.objects.filter(id=number_format_type_id).first()
+        self.form_field_as_option = Field.objects.filter(id=form_field_as_option_id).first()
         # sometimes i want to retrieve the id instead of the value
         self.load_ids = load_ids
 
@@ -94,7 +97,7 @@ class RepresentationService:
             base = self.number_format_type.base
             thousand_separator = self.number_format_type.thousand_separator if self.number_format_type.thousand_separator else ''
             formater = '{:.' + str(settings.DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION) + 'f}'
-            value = formater.format(float(value)*base/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)
+            value = formater.format((decimal.Decimal(str(value))*decimal.Decimal(str(base))/decimal.Decimal(str(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT))))
             value_and_decimal = value.split('.')
             if self.number_format_type.decimal_separator:
                 value_and_decimal[0] = thousand_separator.join([value_and_decimal[0][::-1][i*3:(i*3)+3][::-1] for i in range(ceil(len(value_and_decimal[0])/3))][::-1])

@@ -5,6 +5,8 @@ from reflow_server.formula.utils.settings import Structure
 
 import random
 import string
+import decimal
+
 
 class TokenContainer:
     def __init__(self):
@@ -134,5 +136,7 @@ class Token(Structure):
                 if value and not value.lstrip("-").isdigit():
                     value = r"'"+ value +r"'"
                 else: 
-                    value = str(int(value if value else 0)/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)
+                    value = str(
+                        decimal.Decimal(str(value if value else 0))/decimal.Decimal(str(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT))
+                    )
         return value

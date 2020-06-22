@@ -7,6 +7,7 @@ from reflow_server.kanban.services import KanbanService
 from reflow_server.kanban.relations import GetKanbanFieldsRelation, KanbanCardFieldRelation
 from reflow_server.data.models import DynamicForm, FormValue
 from reflow_server.data.services.formulary import FormularyDataService
+from reflow_server.data.services.representation import RepresentationService
 
 
 class GetKanbanSerializer(serializers.Serializer):
@@ -137,7 +138,15 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
             section_data = formulary_data.add_section_data(section_id=section.form.id, section_data_id=section.id)
             section_field_values = FormValue.objects.filter(form_id=section.id)
             for field_value in section_field_values:
-                value = data['new_value'] if field_value.id == form_value_to_change.id else field_value.value
+                representation_service = RepresentationService(
+                    field_value.field_type.type, 
+                    field_value.date_configuration_date_format_type.id if field_value.date_configuration_date_format_type else None, 
+                    field_value.number_configuration_number_format_type.id if field_value.number_configuration_number_format_type else None, 
+                    field_value.form_field_as_option.id if field_value.form_field_as_option else None, 
+                    True
+                )
+                value = representation_service.representation(field_value.value)
+                value = data['new_value'] if field_value.id == form_value_to_change.id else value
                 section_data.add_field_value(field_value.field.name, value, field_value.id)
         if self.formulary_data_service.is_valid():
             return data

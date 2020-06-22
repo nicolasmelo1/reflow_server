@@ -168,7 +168,7 @@ class PreSave(Validator):
         numbers it works as expected.
         """
         value = field_data.value
-
+        print(value)
         if value != '':
             precision = field.number_configuration_number_format_type.precision
             base = field.number_configuration_number_format_type.base
@@ -193,5 +193,5 @@ class PreSave(Validator):
             value = '{}{}'.format(negative_signal if negative_signal == '-' else '', re.sub(r'\D', '', value))
             value = 0 if value == '' else value
             value = str(int(value)*int(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT/(precision*base)))
-
+        print(value)
         return value
