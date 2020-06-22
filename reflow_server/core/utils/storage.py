@@ -43,7 +43,6 @@ class Bucket:
         :return a termporary url
         """
         bucket = self.__get_client()
-        print(settings.S3_BUCKET)
         url = bucket.generate_presigned_url('get_object', Params={
             'Bucket': settings.S3_BUCKET,
             'Key': key

@@ -116,7 +116,6 @@ class PostSave:
             dynamic_form_attachment_instance.form = process.form_value_instance.form
             dynamic_form_attachment_instance.save()
             
-            print(getattr(self, 'files', {}))
             files = [file_data for file_data in getattr(self, 'files', {}).get(process.form_value_instance.field.name, [])]
             file_data = None
             for file in files:

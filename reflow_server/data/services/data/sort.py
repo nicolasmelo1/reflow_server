@@ -45,7 +45,6 @@ class DataSort:
                 handler = getattr(self, '_sort_%s' % field_data['type'], None)
                 if handler:
                     orderded_values_and_form_ids = handler(filter_up_or_down, field_data)
-                    print(orderded_values_and_form_ids)
                 else:
                     orderded_values_and_form_ids = FormValue.objects.filter(
                             company_id=self.company_id, 

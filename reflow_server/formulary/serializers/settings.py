@@ -102,7 +102,6 @@ class FieldSerializer(serializers.ModelSerializer):
             field_type=self.validated_data['type'],
             field_options=[field_option['option'] for field_option in self.validated_data.get('field_option', list())]
         )
-        print(instance)
         return instance
 
     class Meta:
