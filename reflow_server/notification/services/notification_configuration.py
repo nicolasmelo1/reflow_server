@@ -98,8 +98,6 @@ class NotificationConfigurationService:
         NotificationConfiguration variable model.
         """
         NotificationConfigurationVariable.objects.filter(notification_configuration=instance).delete()
-        print('BREAKPOINT')
-        print(self.__variables)
         NotificationConfigurationVariable.objects.bulk_create([
             NotificationConfigurationVariable(
                 field_id=notification_configuration_variable_id,
