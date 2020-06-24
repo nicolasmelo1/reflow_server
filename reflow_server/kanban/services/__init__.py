@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 
 from reflow_server.formulary.models import Field, OptionAccessedBy
 from reflow_server.data.models import FormValue
@@ -47,11 +48,13 @@ class KanbanService(KanbanCardService):
                 field_option__field=dimension
             ).values_list('field_option__option', flat=True)
         else:
-            data_service = DataService(self.user.id, self.company.id)
+            data_service = DataService(self.user_id, self.company_id)
             form_data_ids = data_service.get_user_form_data_ids_from_form_id(dimension.form.depends_on.id)
             options = FormValue.objects.filter(
                 form__depends_on__in=form_data_ids, 
                 field=dimension
+            ).exclude(
+                Q(value='') | Q(value__isnull=True)
             ).values_list('value', flat=True).distinct()
 
             options = [int(option) for option in options]

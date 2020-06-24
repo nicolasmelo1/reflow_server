@@ -24,8 +24,12 @@ class KanbanCardService:
         if instance:
             KanbanCardField.objects.filter(kanban_card=instance).delete()
 
-        instance.user_id = self.user_id
-        instance = instance.save()
+        instance, __ = KanbanCard.objects.update_or_create(
+            id=instance.id if instance else None,
+            defaults={
+                'user_id': self.user_id
+            }
+        )
 
         for field_id in field_ids:
             KanbanCardField.objects.create(kanban_card=instance, field_id=field_id)
