@@ -53,10 +53,10 @@ class CompanyService:
         Returns
             str -- A valid and unique endpoint for a company
         """
-        companies = Company.objects.filter(endpoint=endpoint)
+        company = Company.objects.filter(endpoint=endpoint).first()
         count = random.randint(1,100001)
-        while companies:
+        while company:
             endpoint = endpoint + '{}{}'.format(endpoint, count)
             count = random.randint(1,100001)
-            companies = Company.objects.filter(endpoint=endpoint)
+            company = Company.objects.filter(endpoint=endpoint).first()
         return endpoint
