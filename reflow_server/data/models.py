@@ -57,7 +57,7 @@ class FormValue(AbstractFieldStates):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, blank=True, null=True, related_name='field_value')
-    value = models.TextField(db_index=True, blank=True, null=True)
+    value = models.TextField(blank=True, null=True)
     form = models.ForeignKey('data.DynamicForm', models.CASCADE, db_index=True, blank=True, null=True,
                              related_name='dynamic_form_value')
     company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True, blank=True, null=True, related_name='company_value')

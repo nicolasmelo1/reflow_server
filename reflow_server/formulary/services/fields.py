@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.authentication.models import UserExtended
 from reflow_server.formulary.services.utils import Settings
@@ -9,7 +11,8 @@ class FieldService(Settings):
         self.user_id = user_id
         self.company_id = company_id
         self.form_id = form_id
-
+    
+    @transaction.atomic
     def save_field(self, instance, enabled, label_name, order, is_unique, field_is_hidden, 
                    label_is_hidden, placeholder, required, section, form_field_as_option, 
                    formula_configuration, date_configuration_auto_create, date_configuration_auto_update,

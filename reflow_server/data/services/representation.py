@@ -1,7 +1,5 @@
 from django.conf import settings
 
-from reflow_server.formulary.models import Field, FieldDateFormatType, FieldNumberFormatType, \
-    FieldType
 from reflow_server.data.models import FormValue
 from reflow_server.authentication.models import UserExtended
 
@@ -11,7 +9,7 @@ import decimal
 
 
 class RepresentationService:
-    def __init__(self, field_type, date_format_type_id, number_format_type_id, form_field_as_option_id, load_ids = False):
+    def __init__(self, field_type, date_format_type, number_format_type, form_field_as_option, load_ids = False):
         """
         Used for presenting data from this app to the user, use it everywhere you need to present the data 
         from the backend to the normal user. So use this in serializers, dashboard, totals and etc.
@@ -35,9 +33,9 @@ class RepresentationService:
             load_ids {bool} -- retrieves the ids instead of the value in fields_types like `user` or `form` (default: {False})
         """
         self.field_type = field_type
-        self.date_format_type = FieldDateFormatType.objects.filter(id=date_format_type_id).first()
-        self.number_format_type = FieldNumberFormatType.objects.filter(id=number_format_type_id).first()
-        self.form_field_as_option = Field.objects.filter(id=form_field_as_option_id).first()
+        self.date_format_type = date_format_type
+        self.number_format_type = number_format_type
+        self.form_field_as_option = form_field_as_option
         # sometimes i want to retrieve the id instead of the value
         self.load_ids = load_ids
 

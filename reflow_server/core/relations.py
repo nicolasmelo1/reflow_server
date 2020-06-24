@@ -52,9 +52,9 @@ class ValueField(serializers.Field):
 
             representation = RepresentationService(
                 obj.field_type.type, 
-                obj.date_configuration_date_format_type.id if obj.date_configuration_date_format_type else None, 
-                obj.number_configuration_number_format_type.id if obj.number_configuration_number_format_type else None, 
-                obj.form_field_as_option.id if obj.form_field_as_option else None, 
+                obj.date_configuration_date_format_type, 
+                obj.number_configuration_number_format_type, 
+                obj.form_field_as_option, 
                 self.load_ids
             )
             return representation.representation(obj.value)

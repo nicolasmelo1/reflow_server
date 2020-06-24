@@ -41,6 +41,7 @@ class DataView(APIView):
     def get(self, request, company_id, form):
         pagination = Pagination.handle_pagination(
             current_page=int(request.query_params.get('page', 1)),
+            items_per_page=15
         )        
 
         fields = self.__extact_fields_from_request_query_params(request.query_params)

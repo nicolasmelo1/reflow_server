@@ -109,15 +109,16 @@ class AggregationService:
         aggregation_result_data = method_handler(aggregation_data.aggregated)
 
         if field_number_format_type_id:
+            number_format_type = FieldNumberFormatType.objects.filter(id=field_number_format_type_id).first()
             # i probably don't need to do this, but i'm doing this to increase readability of the code
             # and also maintainability
             number_field_type = FieldType.objects.filter(type='number').first()
             for key, value in aggregation_result_data.items():
                 key_representation = RepresentationService(
                     key_field.type,
-                    key_field.date_configuration_date_format_type.id if key_field.date_configuration_date_format_type else None,
-                    key_field.number_configuration_number_format_type.id if key_field.number_configuration_number_format_type else None,
-                    key_field.form_field_as_option.id if key_field.form_field_as_option else None
+                    key_field.date_configuration_date_format_type,
+                    key_field.number_configuration_number_format_type,
+                    key_field.form_field_as_option
                 )
                 value_representation = RepresentationService(
                     number_field_type.type,

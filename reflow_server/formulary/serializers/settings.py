@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from rest_framework import serializers
 
 from reflow_server.formulary.models import Group, Form, Field, FieldOptions, FieldType
@@ -53,7 +55,7 @@ class FieldSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(detail={'detail': 'option field must have a option', 'reason': 'option_field_empty_option'})
         return value
 
-
+    @transaction.atomic
     def save(self):
         if self.instance:
             instance = self.instance

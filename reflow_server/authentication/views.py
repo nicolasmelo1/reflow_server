@@ -32,7 +32,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             request.user = serializer.save()
-            if request.user.is_authenticated:
+            if request.user and request.user.is_authenticated:
                 # we also login on session, so the user can see the admin or other pages.
                 login(request, request.user)
                 
