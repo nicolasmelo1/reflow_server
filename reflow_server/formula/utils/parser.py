@@ -106,7 +106,7 @@ class Parser(Structure):
         python_evaluated = ''.join(complete_expression)
 
         # we put the calculation in a queue so it runs in a separate thread from our
-        # main service, and it prevents from overkilling our cpu
+        # main service, and it prevents from overkilling our cpu with something like 101000000101010**192391238129038190238123
         result = multiprocessing.Queue()
         process = multiprocessing.Process(target=self.__to_python, args=(python_evaluated, result))
         process.start()

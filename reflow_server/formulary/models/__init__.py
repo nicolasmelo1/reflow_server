@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldStates, AbstractFieldOptions
 
+
 class SectionType(models.Model):
     """
     This model is a `type` so it contains required data used for this program to work. This holds each type of the form
