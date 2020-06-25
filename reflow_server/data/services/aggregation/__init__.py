@@ -43,7 +43,7 @@ class AggregationService:
         except ValueError as ve:
             return 0
 
-    def aggregate(self, method, field_id_key, field_id_value, field_number_format_type_id=None):
+    def aggregate(self, method, field_id_key, field_id_value, formated=False):
         """
         Usually aggregation can be represented something like this
         >>> {
@@ -57,18 +57,34 @@ class AggregationService:
         In this case field_id_key is each key in our dict and the field_id_value is the
         field_id to aggregate by each key.
 
-        By default it doesn't care about formatting so all of the numbers returned by 
-        default are on the default BASE defined by DEFAULT_BASE_NUMBER_FIELD_FORMAT, 
-        to override this you must set field_number_format_type_id parameter so we convert 
-        the numbers to their representations, we do this so we can also use the aggregation 
-        internally if needed.
+        By default this function doesn't care about formatting so all of the numbers returned by 
+        default are on the default BASE defined by DEFAULT_BASE_NUMBER_FIELD_FORMAT.
+        For keys on the other hand they are not formatted also so dates will follow the default
+        date formating. 
+        To override both the default BASE and the default Keys you must set `formated` parameter 
+        to True so we convert each key to their following representations and divide each value by 
+        DEFAULT_BASE_NUMBER_FIELD_FORMAT.
         
         Args:
+            method (str): Use this to define the method to aggregate
             field_id_key (int): The key to aggregate
             field_id_value (int): The field_id to use the value.
-            field_number_format_type_id (int): the id of a reflow_server.formulary.FieldNumberFormatType
-                                               so we can format the results, if this is none we don't format
-                                               the results, nor keys and nor values.
+            formated (bool, optional): if you want the key formatted set this to True
+                                       so we can format the results, if this is none we don't format
+                                       the values, nor keys. Defaults to False.
+
+        Raises:
+            KeyError: If the `method` does not exist it will throw an error.
+
+        Returns:
+            dict: Usually aggregation can be represented something like this and this is what we return
+            >>> {
+                '12/08/20': 100,
+                '13/08/20': 200,
+                '14/08/20': 400,
+                '15/08/20': 50,
+                '16/08/20': 200,
+            }
         """
         method_handler = getattr(self, '_aggregate_%s' % method, None)
         if not method_handler:
@@ -108,11 +124,7 @@ class AggregationService:
 
         aggregation_result_data = method_handler(aggregation_data.aggregated)
 
-        if field_number_format_type_id:
-            number_format_type = FieldNumberFormatType.objects.filter(id=field_number_format_type_id).first()
-            # i probably don't need to do this, but i'm doing this to increase readability of the code
-            # and also maintainability
-            number_field_type = FieldType.objects.filter(type='number').first()
+        if formated:
             for key, value in aggregation_result_data.items():
                 key_representation = RepresentationService(
                     key_field.type,
@@ -120,22 +132,22 @@ class AggregationService:
                     key_field.number_configuration_number_format_type,
                     key_field.form_field_as_option
                 )
-                value_representation = RepresentationService(
-                    number_field_type.type,
-                    None,
-                    field_number_format_type_id,
-                    None
-                )
-                aggregation_result_data[key_representation.representation(key)] = value_representation.representation(str(value))
+                aggregation_result_data[key_representation.representation(key)] = value/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
         return aggregation_result_data
 
     def _aggregate_sum(self, formated_data):
+        """
+        Sum aggregation type
+        """
         for key, value in formated_data.items():
             result = self.__sum_list(value)
             formated_data[key] = int(result)
         return formated_data
         
     def _aggregate_avg(self, formated_data):
+        """
+        Average aggregation type so total of items by quantity of items.
+        """
         for key, value in formated_data.items():
             result = self.__sum_list(value)
             if len(value) > 0:
@@ -144,6 +156,11 @@ class AggregationService:
         return formated_data
 
     def _aggregate_percent(self, formated_data):
+        """
+        Percent aggregation is simple it is each total of items by total.
+        This means we first sum the total from all of the keys and divide each key
+        by the total.
+        """
         total = 0
         # gets the total from each array, giving the full total
         for value in formated_data.values():
@@ -164,6 +181,9 @@ class AggregationService:
         return formated_data
 
     def _aggregate_max(self, formated_data):
+        """
+        Retrieves the maximum value of the aggregation
+        """
         for key, values in formated_data.items():
             max_value = max([self.__convert_to_int(value) for value in values]) if values else 0
             formated_data[key] = max_value
