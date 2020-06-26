@@ -8,6 +8,7 @@ from reflow_server.formulary.views.settings import GroupSettingsView, GroupEditS
     FormularySettingsEditView, SectionSettingsView, SectionSettingsEditView, FieldSettingsView, FieldSettingsEditView, \
     FieldOptionsView
 
+
 settings_urlpatterns = [
     re_path(r'(?P<form_id>\d+)/field_options/$', permission_required(FieldOptionsView.as_view()), name='formulary_field_options'),
     re_path(r'^groups/', include([
