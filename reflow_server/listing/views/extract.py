@@ -68,6 +68,8 @@ class GetExtractDataView(APIView):
     def get(self, request, company_id):
         download = request.GET.get('download', None)
         file = ExtractFileData.objects.filter(company_id=company_id, user=request.user).first()
+        print('FILE_BREAKPOINT')
+        print(file)
         if file and not download:
             return Response({
                 'status': 'ok'
