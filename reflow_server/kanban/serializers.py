@@ -140,9 +140,9 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
             for field_value in section_field_values:
                 representation_service = RepresentationService(
                     field_value.field_type.type, 
-                    field_value.date_configuration_date_format_type.id if field_value.date_configuration_date_format_type else None, 
-                    field_value.number_configuration_number_format_type.id if field_value.number_configuration_number_format_type else None, 
-                    field_value.form_field_as_option.id if field_value.form_field_as_option else None, 
+                    field_value.date_configuration_date_format_type, 
+                    field_value.number_configuration_number_format_type, 
+                    field_value.form_field_as_option, 
                     True
                 )
                 value = representation_service.representation(field_value.value)

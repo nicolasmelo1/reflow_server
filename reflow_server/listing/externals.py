@@ -12,7 +12,8 @@ class ExtractDataWorkerExternal(externals.External):
     def build_extraction_data(self, file_format, company_id, user_id, form_id, field_ids, dynamic_form_ids):
         dynamic_forms = DynamicForm.objects.filter(id__in=dynamic_form_ids)
         form = Form.objects.filter(id=form_id).first()
-
+        print(dynamic_forms)
+        print(len(dynamic_form_ids))
         url = '/utils/extraction/{company_id}/{user_id}/{form_name}/'.format(
             company_id=company_id,
             user_id=user_id, 
