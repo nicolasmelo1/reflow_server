@@ -27,8 +27,6 @@ class ExtractFileExternalView(View):
     """
     def post(self, request, company_id, user_id, form_name):
         data = json.loads(request.body.decode('utf-8'))
-        print('RECIEVE_EXTRACTION_DATA')
-        print(data)
         serializer = ExtractFileSerializer(data=data, user_id=user_id, company_id=company_id, form_name=form_name)
         if serializer.is_valid():
             serializer.save()
