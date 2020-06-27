@@ -57,7 +57,11 @@ class ExtractService:
                 
         from_date = datetime.strptime(from_date, '%d/%m/%Y')
         to_date = datetime.strptime(to_date, '%d/%m/%Y')
-        form = Form.objects.filter(form_name=self.form_name, depends_on__isnull=True).first()
+        form = Form.objects.filter(
+            form_name=self.form_name,
+            group__company_id=self.company_id,
+            depends_on__isnull=True
+        ).first()
         user_listing_selected_fields_for_form = ListingSelectedFields.objects.filter(
             is_selected=True,
             user_id=self.user_id, 
