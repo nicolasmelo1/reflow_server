@@ -51,8 +51,9 @@ class PreSave(Validator):
         from our database. (check `reflow_server.formulary.models.abstract.AbstractForm`)
         """
         self.field_values = formulary_data.get_formatted_fields_data
-
+        section_ids_in_data = [section.section_id for section in formulary_data.get_sections]
         section_ids_to_exclude = []
+        
         for section in self.sections:
             conditional_section_is_defined = section.conditional_on_field != None
             if conditional_section_is_defined:
@@ -62,7 +63,11 @@ class PreSave(Validator):
                 conditional_value_not_validated = section.conditional_value not in [field_value.value for field_value in self.field_values.get(section.conditional_on_field.name, [])]
                 if conditional_name_not_in_section or conditional_value_not_validated:
                     section_ids_to_exclude.append(section.id)
-        
+            # if section is a multi-section but it is not in the array of the data, we don't consider it
+            # this way we can bypass required fields of multi-sections when they are not defined
+            if section.type.type == 'multi-form' and str(section.id) not in section_ids_in_data:
+                section_ids_to_exclude.append(section.id)
+
         self.sections = self.sections.exclude(id__in=section_ids_to_exclude)
         self.fields = self.fields.filter(form__id__in=self.sections)
         return None

@@ -39,9 +39,12 @@ class ExtractDataBuilderView(APIView):
     def post(self, request, company_id, form):
         serializer = ExtractDataSerializer(data=request.data, user_id=request.user.id, company_id=company_id, form_name=form)
         if serializer.is_valid():
-            serializer.save()
+            file_id = serializer.save()
             return Response({
-                'status': 'ok'
+                'status': 'ok',
+                'data': {
+                    'file_id': file_id
+                }
             }, status=status.HTTP_200_OK)
         return Response({
             'status': 'error'
@@ -65,9 +68,9 @@ class GetExtractDataView(APIView):
         .get() -- Usually returns a JSON saying if your data is ready to be downloaded or not. If it is you
                   need to add the `download` query parameter to your request to download the file
     """
-    def get(self, request, company_id):
+    def get(self, request, company_id, file_id):
         download = request.GET.get('download', None)
-        file = ExtractFileData.objects.filter(company_id=company_id, user=request.user).first()
+        file = ExtractFileData.objects.filter(file_id=file_id, company_id=company_id, user=request.user).first()
         if file and not download:
             return Response({
                 'status': 'ok'

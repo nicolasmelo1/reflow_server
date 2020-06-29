@@ -71,10 +71,10 @@ class ExtractDataSerializer(serializers.Serializer):
     
     def save(self):
         data = self.validated_data
-        self.extract_service.extract(data['format'], data['from_date'], data['to_date'], 
-                                     data.get('sort_value', []), data.get('sort_field', []),
-                                     data.get('search_value', []), data.get('search_field', []), 
-                                     data.get('search_exact', []))
+        return self.extract_service.extract(data['format'], data['from_date'], data['to_date'], 
+                                            data.get('sort_value', []), data.get('sort_field', []),
+                                            data.get('search_value', []), data.get('search_field', []), 
+                                            data.get('search_exact', []))
 
 
 class ExtractFormDataSerializer(serializers.ModelSerializer):
@@ -102,6 +102,7 @@ class ExtractFormSerializer(serializers.ModelSerializer):
 
 
 class ExtractFileSerializer(serializers.Serializer):
+    file_id = serializers.CharField()
     file = serializers.CharField()
     file_format = serializers.CharField()
 
@@ -117,6 +118,7 @@ class ExtractFileSerializer(serializers.Serializer):
             user_id=self.user_id, 
             company_id=self.company_id,
             form=Form.objects.filter(form_name=self.form_name).first(),
+            file_id=validated_data['file_id'],
             file=validated_data['file'],
             file_format=validated_data['file_format']
         )

@@ -127,6 +127,9 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH_PASSWORD_VALIDATORS = []
 
+# we were getting this error https://stackoverflow.com/questions/41408359/requestdatatoobig-request-body-exceeded-settings-data-upload-max-memory-size
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

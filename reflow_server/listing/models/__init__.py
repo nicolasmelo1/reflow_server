@@ -1,5 +1,8 @@
 from django.db import models
+
 from reflow_server.listing.models.abstract import AbstractListingTotalForField
+
+import uuid
 
 
 class ListingSelectedFields(models.Model):
@@ -33,6 +36,7 @@ class ExtractFileData(models.Model):
     """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    file_id = models.UUIDField(default=uuid.uuid4)
     file = models.TextField()
     file_format = models.CharField(max_length=10, default='csv')
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, db_index=True)

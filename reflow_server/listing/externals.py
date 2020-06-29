@@ -9,7 +9,7 @@ from reflow_server.listing.serializers import ExtractFormDataSerializer, Extract
 class ExtractDataWorkerExternal(externals.External):
     host = settings.EXTERNAL_APPS['reflow_worker'][0]
 
-    def build_extraction_data(self, file_format, company_id, user_id, form_id, field_ids, dynamic_form_ids):
+    def build_extraction_data(self, file_id, file_format, company_id, user_id, form_id, field_ids, dynamic_form_ids):
         dynamic_forms = DynamicForm.objects.filter(id__in=dynamic_form_ids)
         form = Form.objects.filter(id=form_id).first()
         url = '/utils/extraction/{company_id}/{user_id}/{form_name}/'.format(
@@ -23,8 +23,8 @@ class ExtractDataWorkerExternal(externals.External):
             'company_id': company_id, 
             'fields': field_ids
         })
-        
         return self.post(url, data={
+            'file_id': file_id,
             'params': {
                 'fields': field_ids
             },

@@ -10,7 +10,7 @@ external_urlpatterns = [
 
 urlpatterns = [
     re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
-        re_path(r'^extract/$', permission_required(GetExtractDataView.as_view()), name='listing_get_extract_data'),
+        re_path(r'^extract/(?P<file_id>[\w-]+)/$', permission_required(GetExtractDataView.as_view()), name='listing_get_extract_data'),
         re_path(r'^(?P<form>\w+)/', include([
              re_path(r'^$', permission_required(ListingHeaderView.as_view()), name='listing_get_header'),
              re_path(r'^extract/$', permission_required(ExtractDataBuilderView.as_view()), name='listing_build_extract_data'),    

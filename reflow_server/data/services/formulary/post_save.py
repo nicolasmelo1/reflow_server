@@ -84,7 +84,7 @@ class PostSave:
             formula = FormulaService(
                 process.form_value_instance.field.formula_configuration, 
                 precision=process.form_value_instance.field.number_configuration_number_format_type.precision,
-                dynamic_form_id=process.section_instance.id
+                dynamic_form_id=process.section_instance.depends_on.id
             )
             value = formula.value
             process.form_value_instance.value = value
