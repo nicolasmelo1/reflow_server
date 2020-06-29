@@ -1,9 +1,10 @@
 from reflow_server.core.utils.asynchronous import RunAsyncFunction
-from reflow_server.listing.models import ListingSelectedFields
+from reflow_server.listing.models import ListingSelectedFields, ExtractFileData
 from reflow_server.formulary.models import Form
 from reflow_server.data.services import DataService
 
 from datetime import datetime
+import uuid
 
 
 class ExtractService:
@@ -37,7 +38,8 @@ class ExtractService:
             return False
         return True
 
-    def __start_extraction(self, user_id, company_id, form_id, file_format, from_date, to_date, 
+    def __start_extraction(self, file_id, user_id, company_id, form_id, 
+                           file_format, from_date, to_date, 
                            fields_ids, sort_value=[], sort_field=[], 
                            search_value=[], search_field=[], search_exact=[]):
 
@@ -45,16 +47,19 @@ class ExtractService:
         # get correct data to pass as parameters
         converted_search_data = data_service.convert_search_query_parameters(search_field, search_value, search_exact)
         converted_sort_data = data_service.convert_sort_query_parameters(sort_field, sort_value)
+
         form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data, from_date, to_date)
-        
         # call external service
         from reflow_server.listing.externals import ExtractDataWorkerExternal
-        ExtractDataWorkerExternal().build_extraction_data(file_format, company_id, user_id, form_id, fields_ids, form_data_accessed_by_user)
+        ExtractDataWorkerExternal().build_extraction_data(file_id, file_format, company_id, user_id, form_id, fields_ids, form_data_accessed_by_user)
 
     def extract(self, file_format, from_date, to_date, 
                 sort_value=[], sort_field=[], 
                 search_value=[], search_field=[], search_exact=[]):
-                
+        file_id = uuid.uuid4()
+        while ExtractFileData.objects.filter(file_id=file_id).exists():
+            file_id = uuid.uuid4()
+        file_id = str(file_id)
         from_date = datetime.strptime(from_date, '%d/%m/%Y')
         to_date = datetime.strptime(to_date, '%d/%m/%Y')
         form = Form.objects.filter(
@@ -74,7 +79,8 @@ class ExtractService:
             fields_ids.append(str(user_listing_selected_field_for_form.field.id))
               
         async_task = RunAsyncFunction(self.__start_extraction)
-        async_task.delay(user_id=self.user_id, company_id=self.company_id, form_id=form.id, 
+        async_task.delay(file_id=file_id, user_id=self.user_id, company_id=self.company_id, form_id=form.id, 
                          file_format=file_format, from_date=from_date, to_date=to_date, fields_ids=fields_ids,
                          sort_value=sort_value, sort_field=sort_field, 
                          search_value=search_value, search_field=search_field, search_exact=search_exact)
+        return file_id
