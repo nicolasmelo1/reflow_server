@@ -15,7 +15,6 @@ class PushService:
         self.title_variables = title_variables
         self.body_variables = body_variables
         self.tokens = list(PushNotification.objects.filter(user_id=user_id).values('token', 'push_notification_tag_type__name'))
-        self.variables = variables
 
     @staticmethod
     def add_variable(variable_name, variable_value):
@@ -36,4 +35,4 @@ class PushService:
         """
         from reflow_server.notify.externals import PusherExternal
 
-        PusherExternal().send_mail(template_name, pushs)
+        PusherExternal().send_push(template_name, pushs)
