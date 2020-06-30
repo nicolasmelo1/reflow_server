@@ -83,7 +83,6 @@ class NotificationService:
         ).exclude(
             id__in=user_read_notifications
         )
-        print(new_notifications)
         UserNotification.objects.bulk_create([UserNotification(notification=new_notification, user_id=user_id, is_new=True, has_read=False) for new_notification in new_notifications])
         return UserNotification.objects.filter(user_id=user_id, is_new=True).count()
 

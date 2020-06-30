@@ -115,8 +115,7 @@ class Token(Structure):
             if self.is_first_tokenization:
                 max_precision = settings.DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION
                 value = str(round(float(value.replace('_', '').replace(',','.')), max_precision))
-            print('TOKEN_NUMBER_VALUE')
-            print(value)
+                
         if self.type == 'string':
             if not self.is_first_tokenization:
                 value = r"'" + value + r"'"
@@ -139,8 +138,5 @@ class Token(Structure):
                     value = str(
                         decimal.Decimal(str(value if value else 0))/decimal.Decimal(str(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT))
                     )
-            print('TOKEN_FIELD_VALUE')
-            print(value)
-        print('TOKEN_VALUE')
-        print(value)
+
         return value

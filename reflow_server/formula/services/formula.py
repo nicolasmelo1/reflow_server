@@ -24,10 +24,10 @@ class FormulaService:
                                             and from the results of a parser. (default: False)
         """
         self.precision = kwargs.get('precision', None)
-        #try:
-        self.__parser = Parser(expression, *args, **kwargs)
-        #except FormulaException as fe:
-        #    pass
+        try:
+            self.__parser = Parser(expression, *args, **kwargs)
+        except FormulaException as fe:
+            pass
 
     @property
     def value(self):
@@ -42,23 +42,18 @@ class FormulaService:
         the result, even if an exception was thrown (like Excel sheets). We use #Error for attribute errors
         and #N/A for all the other possible errors. Like when the CPU is bombarded with bound heavy calculations.
         """
-        #try:
-        result = self.__parser.parse()
-        print('FORMULA_RESULT')
-        print(result)
-        if type(result) in [int, float]:
-            max_precision = settings.DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION if not self.precision else len(str(self.precision))-1
-            splitted_value = str(round(result,max_precision)).split('.')
-            length_of_value_decimals = len(splitted_value[1]) if len(splitted_value) > 1 else 0
-            num_of_zeroes = settings.DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION - length_of_value_decimals
-            zeroes = '0'*num_of_zeroes
-            print('FORMAT_WITH_PRECISION')
-            print(int((''.join(splitted_value)+zeroes)))
-            return int((''.join(splitted_value)+zeroes))
-        else:
-            return result
-            
-        #except AttributeError as ae:
-        #    return '#ERROR'
-        #except Exception as e:
-        #    return '#N/A'
+        try:
+            result = self.__parser.parse()
+            if type(result) in [int, float]:
+                max_precision = settings.DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION if not self.precision else len(str(self.precision))-1
+                splitted_value = str(round(result,max_precision)).split('.')
+                length_of_value_decimals = len(splitted_value[1]) if len(splitted_value) > 1 else 0
+                num_of_zeroes = settings.DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION - length_of_value_decimals
+                zeroes = '0'*num_of_zeroes
+                return int((''.join(splitted_value)+zeroes))
+            else:
+                return result   
+        except AttributeError as ae:
+            return '#ERROR'
+        except Exception as e:
+            return '#N/A'
