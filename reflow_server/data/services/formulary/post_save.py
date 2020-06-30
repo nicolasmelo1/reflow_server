@@ -21,12 +21,12 @@ class PostSave:
         Cleans certains types of data after it has been saved, it's important to notice it calls `process_fieldtype` function
         so you need to be aware of all the possible field_types in order to create another process function for the correct field_type
         """
-        # we need to remove delete first because of the formulas, on the front-end when we change the value of a field
+        # we need to remove deleted first because of the formulas, on the front-end when we change the value of a field
         # we are actually creating a new FormValue instance. This means that for a short amount of time there will be 2
-        # FormValues,one is the newly created instance, the other is the old instance to remove, with this we actually prevent
-        # field_id duplicated when saving.
+        # FormValues,one is the newly created instance, the other is the old instance to remove, this two instances can cause some
+        # weird behaviour and bugs when calculating formulas
         self.__remove_deleted(formulary_data)
-        
+
         for process in self.post_save_process:
             value = process.form_value_instance.value
             handler = getattr(self, '_post_process_%s' % process.form_value_instance.field.type.type, None)
