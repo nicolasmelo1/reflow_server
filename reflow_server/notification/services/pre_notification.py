@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.db.models import Q, Func, F, Value, ExpressionWrapper, DateTimeField
+from django.db.models.functions import Now
+from django.db.models import Q, Func, F, Value, ExpressionWrapper, DateTimeField, Case, When
 
 from reflow_server.authentication.models import UserExtended
 from reflow_server.data.models import FormValue
@@ -132,13 +133,34 @@ class PreNotificationService:
         user = UserExtended.objects.filter(id=user_id).first()
         
         if notification_configuration.field.type.type in ['date']:
-            # it is important to notice that on the second annotate we convert the value to the same date as the server
-            # so when we filter, we already got the server time so no need to add or subtract timedelta
-            form_values = FormValue.objects.filter(form__depends_on_id__in=user_accessed_forms, field=notification_configuration.field, field_type__type='date')\
-                                           .annotate(value_as_date=Func(F('value'), Value(settings.DEFAULT_PSQL_DATE_FIELD_FORMAT), function='to_timestamp'))\
-                                           .annotate(value_as_date=ExpressionWrapper(F('value_as_date') + timedelta(days=int(notification_configuration.days_diff)) - timedelta(hours=user.timezone), output_field=DateTimeField()))\
-                                           .filter(value_as_date__gte=datetime.now())\
-                                           .values_list('value_as_date','form__depends_on_id')
+            # it is important to notice that on the annotate we convert the value to the same date as the server
+            # so when we filter, we already got the server time so no need to add or subtract timedelta.
+            # The annotate is not straight forward actually, but we NEED a CASE WHEN clause to convert the dates
+            # since when we filter the values converting we might face some errors because the filter actually get all the values
+            # while filtering it means WHERE field_type = 'date' AND to_timestamp('value') = CURRENT_TIMESTAMP does not work, 
+            # because the data is not yet filtered with only field_type='date' while doing the second filter, that's why 
+            # we need a case when, this way all of the values that are not of type 'date' become NULL, so we can perform the second 
+            # filter without errors.
+            form_values = FormValue.objects.filter(
+                form__depends_on_id__in=user_accessed_forms, field=notification_configuration.field, field_type__type='date'
+            ).annotate(
+                value_as_date=Case(
+                    When(
+                        field_type__type='date', 
+                        then=ExpressionWrapper(
+                            Func(
+                                F('value'),
+                                Value(settings.DEFAULT_PSQL_DATE_FIELD_FORMAT), 
+                                function='to_timestamp'
+                            ) + timedelta(days=int(notification_configuration.days_diff)) - timedelta(hours=user.timezone),
+                            output_field=DateTimeField()
+                        )
+                    ),
+                    default=None
+                )                                           
+            ).filter(
+                value_as_date__gte=Now()
+            ).values_list('value_as_date','form__depends_on_id')
             for  when, form_id in form_values:
                 # force to just exist ONE pre_notification for this condition
                 PreNotification.objects.filter(has_sent=False, user_id=user_id, dynamic_form_id=form_id, notification_configuration=notification_configuration).delete()

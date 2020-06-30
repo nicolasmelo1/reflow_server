@@ -114,6 +114,8 @@ class Parser(Structure):
         if process.is_alive():
             process.terminate()
         result = result.get(timeout=settings.FORMULA_MAXIMUM_EVAL_TIME/2)
+        print('EVAL_RESULT')
+        print(result)
         return result
 
     def __append_token(self, value):
