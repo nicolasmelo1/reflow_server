@@ -13,7 +13,6 @@ class MailSerializer(serializers.Serializer):
         self.is_valid()
 
 
-
 class PushSerializer(serializers.Serializer):
     template = serializers.CharField()
     recipients = PushRelation(many=True)
