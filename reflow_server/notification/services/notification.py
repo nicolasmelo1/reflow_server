@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 
 from reflow_server.notification.models import NotificationConfiguration, UserNotification, Notification, PreNotification
 from reflow_server.notify.services import NotifyService
@@ -62,7 +63,7 @@ class NotificationService:
         return created_notifications
 
     @staticmethod
-    def get_user_new_notifications_number(user_id):
+    def get_user_new_notifications_number(user_id, company_id):
         """
         Get new notifications number of user_id, so like if the user A has 20 new notifications (undread)
         it retrieve the number 20 for the user A. (notifications with is_new=True)
@@ -76,7 +77,13 @@ class NotificationService:
         user_read_notifications = UserNotification.objects.filter(
             user_id=user_id
         ).values_list('notification_id', flat=True)
-        new_notifications = Notification.objects.filter(user_id=user_id, user__isnull=True).exclude(id__in=user_read_notifications)
+        new_notifications = Notification.objects.filter(
+            Q(user_id=user_id) | 
+            Q(user__isnull=True, notification_configuration__for_company=True, form__company_id=company_id)
+        ).exclude(
+            id__in=user_read_notifications
+        )
+        print(new_notifications)
         UserNotification.objects.bulk_create([UserNotification(notification=new_notification, user_id=user_id, is_new=True, has_read=False) for new_notification in new_notifications])
         return UserNotification.objects.filter(user_id=user_id, is_new=True).count()
 
