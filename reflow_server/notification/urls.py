@@ -6,7 +6,7 @@ from reflow_server.notification.views import NotificationConfigurationView, Noti
 
 
 external_urlpatterns = [
-    re_path(r'^$', authorize_external_response(NotificationConfigurationExternalView.as_view()), name='notification_external_notification'),
+    re_path(r'^build_notification/$', authorize_external_response(NotificationConfigurationExternalView.as_view()), name='notification_external_notification'),
     re_path(r'^pre_notification/', include([
         re_path(r'^$', authorize_external_response(VerifyPreNotificationExternalView.as_view()), name='notification_external_verify_pre_notification'),
         re_path(r'^(?P<company_id>\d+)/$', authorize_external_response(PreNotificationExternalView.as_view()), name='notification_external_pre_notification')
@@ -20,10 +20,10 @@ settings_urlpatterns = [
 ]
 
 urlpatterns = [
+    re_path(r'^external/', include(external_urlpatterns)),
     re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
         re_path(r'^$', permission_required(NotificationsView.as_view()), name='notification_load_data'),
         re_path(r'^read/$', permission_required(UnreadAndReadNotificationView.as_view()), name='notification_read_or_unread'),
         re_path(r'^settings/', include(settings_urlpatterns)),
     ])),
-    re_path(r'^external/', include(external_urlpatterns)),
 ]
