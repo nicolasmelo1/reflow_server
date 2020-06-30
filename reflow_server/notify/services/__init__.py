@@ -20,7 +20,7 @@ class NotifyService:
         
         # send email
         MailService.send_mail(
-            settings.EMAIL_ADD_NEW_USER, 
+            settings.FROM_EMAIL, 
             template_name, 
             [MailService("Veja aqui suas ultimas notificações!", recipient,
                 [
