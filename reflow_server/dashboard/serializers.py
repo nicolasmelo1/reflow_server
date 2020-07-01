@@ -19,9 +19,30 @@ class DashboardDataSerializer(serializers.Serializer):
 
 class DashboardChartConfigurationSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False, allow_null=True)
-    
+
+    def save(self, company_id, form_id, user_id):
+        instance, __ = DashboardChartConfiguration.objects.update_or_create(
+            id=self.instance.id if self.instance else None,
+            defaults={
+                'name': self.validated_data['name'],
+                'for_company': self.validated_data['for_company'],
+                'value_field': self.validated_data['value_field'],
+                'label_field': self.validated_data['label_field'],
+                'number_format_type': self.validated_data['number_format_type'],
+                'chart_type': self.validated_data['chart_type'],
+                'aggregation_type': self.validated_data['aggregation_type'],
+                'company_id': company_id,
+                'form_id': form_id,
+                'user_id': user_id
+            }
+        )
+        return instance
+
     class Meta:
         model = DashboardChartConfiguration
+        # adds custom messages, the default error messages are not that useful, we want the error message to be more "dumb"
+        # so the user interface can parse better https://stackoverflow.com/a/26975268/13158385
+        extra_kwargs = { field : {'error_messages': {'null': 'blank', 'blank': 'blank'}} for field in ('id', 'name', 'for_company', 'value_field', 'label_field', 'number_format_type', 'chart_type', 'aggregation_type') }
         fields = ('id', 'name', 'for_company', 'value_field', 'label_field', 'number_format_type', 'chart_type', 'aggregation_type')
 
 
