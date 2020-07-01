@@ -55,7 +55,7 @@ class UnreadAndReadNotificationView(APIView):
     def get(self, request, company_id):
         return Response({
             'status': 'ok',
-            'data': NotificationService.get_user_new_notifications_number(request.user.id)
+            'data': NotificationService.get_user_new_notifications_number(request.user.id, company_id)
         }, status=status.HTTP_200_OK)
 
     def post(self, request, company_id):

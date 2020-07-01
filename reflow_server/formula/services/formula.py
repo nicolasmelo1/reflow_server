@@ -52,7 +52,7 @@ class FormulaService:
                 zeroes = '0'*num_of_zeroes
                 return int((''.join(splitted_value)+zeroes))
             else:
-                return result
+                return result   
         except AttributeError as ae:
             return '#ERROR'
         except Exception as e:
