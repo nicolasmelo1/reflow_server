@@ -169,6 +169,12 @@ class FormularyDataService(PreSave, PostSave):
                 self.add_saved_field_value_to_post_process(section_instance, form_value)
 
         self.post_save(self.formulary_data) 
+
+        # sends events to all of the users of the company that this formulary was updated (or created)
+        from reflow_server.data.events import DataEvents
+        DataEvents.send_updated_formulary(self.company_id, formulary_instance.id, self.form.id, self.user_id)
+
         # updates the pre_notifications
         PreNotificationService.update(self.company_id)
+
         return formulary_instance
