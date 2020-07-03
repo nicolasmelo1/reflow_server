@@ -170,7 +170,7 @@ class AggregationService:
             for key, value in formated_data.items():
                 result = self.__sum_list(value)
                 result = int(result)/int(total)
-                formated_data[key] = int(result*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)
+                formated_data[key] = int(result*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT*100)
             return formated_data
         else:
             return formated_data

@@ -7,7 +7,7 @@ from reflow_server.formulary.models import Field
 class DashboardChartSerializer(serializers.ModelSerializer):
     class Meta:
         model = DashboardChartConfiguration
-        fields = ('id', 'name', 'chart_type')
+        fields = ('id', 'name', 'number_format_type', 'chart_type')
 
 
 class DashboardDataSerializer(serializers.Serializer):
