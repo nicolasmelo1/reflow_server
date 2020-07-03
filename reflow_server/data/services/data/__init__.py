@@ -5,6 +5,8 @@ from reflow_server.formulary.models import OptionAccessedBy, Field, FieldOptions
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.authentication.models import UserExtended
 
+from datetime import timedelta
+
 
 class DataService(DataSort, DataSearch):
     def __init__(self, user_id, company_id):
@@ -177,7 +179,7 @@ class DataService(DataSort, DataSearch):
         if from_date and to_date:
             self._data = DynamicForm.objects.filter(
                 company_id=self.company_id, 
-                updated_at__range=[from_date, to_date],
+                updated_at__range=[from_date, to_date + timedelta(days=1)],
                 form_id=form_id
             ).order_by('-updated_at')
 

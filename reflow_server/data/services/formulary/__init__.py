@@ -8,6 +8,8 @@ from reflow_server.data.services.formulary.data import FormularyData
 from reflow_server.data.services.formulary.pre_save import PreSave
 from reflow_server.data.services.formulary.post_save import PostSave
 
+from datetime import datetime
+
 
 class FormularyDataService(PreSave, PostSave):
     def __init__(self, user_id, company_id, form_name):
@@ -127,6 +129,7 @@ class FormularyDataService(PreSave, PostSave):
         formulary_instance, __ = DynamicForm.objects.update_or_create(
             id=self.formulary_data.form_data_id,
             defaults={
+                'updated_at': datetime.now(),
                 'form': self.form,
                 'user_id': self.user_id,
                 'company_id': self.company_id
