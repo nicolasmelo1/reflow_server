@@ -33,5 +33,6 @@ class DashboardChartConfiguration(models.Model):
                              related_name='dashboard_chart_configuration_users')
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, db_index=True,
                                 related_name='dashboard_chart_configuration_companies')
+    #order = models.IntegerField(default=1)
     class Meta:
         db_table = 'dashboard_chart_configuration'

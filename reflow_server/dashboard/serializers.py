@@ -4,6 +4,12 @@ from reflow_server.dashboard.models import DashboardChartConfiguration
 from reflow_server.formulary.models import Field
 
 
+class DashboardChartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DashboardChartConfiguration
+        fields = ('id', 'chart_type')
+
+
 class DashboardDataSerializer(serializers.Serializer):
     labels = serializers.ListField(allow_empty=True)
     values = serializers.ListField(allow_empty=True)
@@ -18,6 +24,10 @@ class DashboardDataSerializer(serializers.Serializer):
 
 
 class DashboardChartConfigurationSerializer(serializers.ModelSerializer):
+    """
+    This is a serializer for updating, creating and retrieving DashboardChartConfiguration
+    This is only used when configuring a new chart in the dashboard.
+    """
     id = serializers.IntegerField(required=False, allow_null=True)
 
     def save(self, company_id, form_id, user_id):
