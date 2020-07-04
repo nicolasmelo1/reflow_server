@@ -10,7 +10,7 @@ class DataEvents:
     This class is used for sending real time events for the client about this service
     """
     @staticmethod 
-    def send_updated_formulary(company_id, dynamic_form_id, form_id, updated_user_id):
+    def send_updated_formulary(company_id, dynamic_form_id, form_name, form_id, updated_user_id):
         """
         This event sends to all of the clients of a company that a formulary have been updated
 
@@ -31,6 +31,7 @@ class DataEvents:
                     'data': {
                         'dynamic_form_id': dynamic_form_id,
                         'form_id': form_id,
+                        'form_name': form_name,
                         'user_id': updated_user_id,
                         'company_id': company_id
                     }
