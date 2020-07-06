@@ -10,6 +10,8 @@ services:
     image: postgres
     volumes:
       - ./scripts/development/init.sh:/docker-entrypoint-initdb.d/init.sh
+    environment: 
+      - POSTGRES_HOST_AUTH_METHOD=trust
     ports:
       - "5432:5432"
   localstack:
