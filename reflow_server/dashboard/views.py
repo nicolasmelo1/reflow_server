@@ -35,8 +35,8 @@ class DashboardDataView(APIView):
 class DashboardChartsView(APIView):
     def get(self, request, company_id, form):
         instances = DashboardChartConfiguration.objects.filter(
-            Q(user_id=request.user.id, company_id=company_id) | 
-            Q(company_id=company_id, for_company=True)
+            Q(user_id=request.user.id, form__form_name=form, company_id=company_id) | 
+            Q(company_id=company_id, form__form_name=form, for_company=True)
         )
         serializer = DashboardChartSerializer(instance=instances, many=True)
 
@@ -59,7 +59,7 @@ class DashboardChartConfigurationView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id, form):
-        instances = DashboardChartConfiguration.objects.filter(user_id=request.user.id, company_id=company_id)
+        instances = DashboardChartConfiguration.objects.filter(user_id=request.user.id, form__form_name=form, company_id=company_id)
         serializer = DashboardChartConfigurationSerializer(instance=instances, many=True)
         return Response({
             'status': 'ok',
@@ -97,7 +97,7 @@ class DashboardChartConfigurationEditView(APIView):
 
     def put(self, request, company_id, form, dashboard_configuration_id):
         form_id = Form.objects.filter(form_name=form, company_id=company_id).values_list('id', flat=True).first()
-        instance = DashboardChartConfiguration.objects.filter(user_id=request.user.id, company_id=company_id, id=dashboard_configuration_id).first()
+        instance = DashboardChartConfiguration.objects.filter(user_id=request.user.id, form__form_name=form, company_id=company_id, id=dashboard_configuration_id).first()
         serializer = DashboardChartConfigurationSerializer(instance=instance, data=request.data)
         if serializer.is_valid():
             instance = serializer.save(company_id, form_id, request.user.id)
@@ -113,7 +113,7 @@ class DashboardChartConfigurationEditView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, company_id, form, dashboard_configuration_id):
-        instance = DashboardChartConfiguration.objects.filter(user_id=request.user.id, company_id=company_id, id=dashboard_configuration_id)
+        instance = DashboardChartConfiguration.objects.filter(user_id=request.user.id, form__form_name=form, company_id=company_id, id=dashboard_configuration_id)
         if instance:
             instance.delete()
         return Response({
