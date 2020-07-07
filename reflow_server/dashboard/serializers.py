@@ -62,4 +62,4 @@ class DashboardFieldsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Field
-        fields = ('id', 'name', 'field_type', 'label_name')
+        fields = ('id', 'name', 'type', 'field_type', 'label_name')

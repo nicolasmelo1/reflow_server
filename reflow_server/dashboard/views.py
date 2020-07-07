@@ -33,6 +33,14 @@ class DashboardDataView(APIView):
 
 
 class DashboardChartsView(APIView):
+    """
+    View responsible for retrieving all of the dashboards to load when not updating
+    the charts. So this view actually retrieves the charts for the user to load the data.
+
+    Methods:
+        .get() -- retrive the charts to load for the specific user and the specific form 
+                  for the specific company
+    """
     def get(self, request, company_id, form):
         instances = DashboardChartConfiguration.objects.filter(
             Q(user_id=request.user.id, form__form_name=form, company_id=company_id) | 
