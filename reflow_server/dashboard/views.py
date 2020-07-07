@@ -19,7 +19,12 @@ class DashboardDataView(APIView):
         form_id = Form.objects.filter(form_name=form, company_id=company_id).values_list('id', flat=True).first()
         instance = DashboardChartConfiguration.objects.filter(id=dashboard_configuration_id, company_id=company_id).first()
 
-        aggregation_service = AggregationService(user_id=request.user.id, company_id=company_id, form_id=form_id)
+        aggregation_service = AggregationService(
+            user_id=request.user.id, 
+            company_id=company_id, 
+            form_id=form_id, 
+            query_params=request.query_params
+        )
         dashboard_data = aggregation_service.aggregate(
             method=instance.aggregation_type.name, 
             field_id_key=instance.label_field.id, 

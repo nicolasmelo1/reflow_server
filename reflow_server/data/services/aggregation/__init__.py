@@ -17,17 +17,14 @@ class AggregationService:
     Why we use numpy with reduce can be explained here:
     https://stackoverflow.com/a/23982749/13158385
     """
-    def __init__(self, user_id, company_id, form_id, search_keys=[], sort_keys=[], from_date=None, to_date=None):
-        self.dynamic_form_ids_to_aggregate = DataService(
-            user_id=user_id, 
-            company_id=company_id
-        ).get_user_form_data_ids_from_form_id(
-            form_id, 
-            search_keys=search_keys, 
-            sort_keys=sort_keys, 
-            from_date=from_date, 
-            to_date=to_date
+    def __init__(self, user_id, company_id, form_id, query_params={}, search_keys=[], sort_keys=[], from_date=None, to_date=None):
+        self.dynamic_form_ids_to_aggregate = DataService.get_user_form_data_ids_from_query_params(
+            query_params=query_params, 
+            user_id=user_id,
+            company_id=company_id,
+            form_id=form_id
         )
+
         self.order = Case(*[When(id=form_data_id, then=index) for index, form_data_id in enumerate(self.dynamic_form_ids_to_aggregate)])
     
     def __sum_list(self, values):
@@ -132,6 +129,7 @@ class AggregationService:
                     key_field.number_configuration_number_format_type,
                     key_field.form_field_as_option
                 )
+                value = value if type(value) in [int, float] else 0
                 aggregation_result_data[key_representation.representation(key)] = value/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
         return aggregation_result_data
 
