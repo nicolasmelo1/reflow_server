@@ -10,9 +10,6 @@ class AggregationData:
         return self.data_dict[form_data_id]
     
     def add_value(self, value, form_data_id):
-        if not self.data_dict:
-            raise AssertionError('You need to set the keys using `.add_key()` first.')
-
         if form_data_id in self.data_dict:
             # we don't count values that are empty or none
             if value in [None, '']:

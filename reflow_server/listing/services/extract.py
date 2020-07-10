@@ -31,19 +31,15 @@ class ExtractService:
             if any(len(lst) != len(search_field) for lst in [search_value, search_exact]):
                 return False
 
-        try:
-            datetime.strptime(from_date, '%d/%m/%Y')
-            datetime.strptime(to_date, '%d/%m/%Y')
-        except ValueError as ve:
-            return False
-        return True
-
     def __start_extraction(self, file_id, user_id, company_id, form_id, 
                            file_format, from_date, to_date, 
                            fields_ids, sort_value=[], sort_field=[], 
                            search_value=[], search_field=[], search_exact=[]):
 
         data_service = DataService(user_id, company_id)
+
+        to_date = DataService.validate_and_extract_date_from_string(to_date)
+        from_date = DataService.validate_and_extract_date_from_string(from_date)
         # get correct data to pass as parameters
         converted_search_data = data_service.convert_search_query_parameters(search_field, search_value, search_exact)
         converted_sort_data = data_service.convert_sort_query_parameters(sort_field, sort_value)
@@ -60,8 +56,6 @@ class ExtractService:
         while ExtractFileData.objects.filter(file_id=file_id).exists():
             file_id = uuid.uuid4()
         file_id = str(file_id)
-        from_date = datetime.strptime(from_date, '%d/%m/%Y')
-        to_date = datetime.strptime(to_date, '%d/%m/%Y')
         form = Form.objects.filter(
             form_name=self.form_name,
             group__company_id=self.company_id,

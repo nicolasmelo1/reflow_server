@@ -13,6 +13,8 @@ from reflow_server.dashboard.serializers import DashboardDataSerializer, \
 from reflow_server.dashboard.models import DashboardChartConfiguration
 from reflow_server.formulary.models import Field, Form
 
+from datetime import datetime
+
 
 class DashboardDataView(APIView):
     def get(self, request, company_id, form, dashboard_configuration_id):

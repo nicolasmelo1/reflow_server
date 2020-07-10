@@ -15,7 +15,7 @@ class FieldValueListSerializer(serializers.ListSerializer):
 class FieldValueRelation(serializers.ModelSerializer):
     id = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     field_name = serializers.CharField(source='field.name')
-    value = ValueField(source='*', allow_blank=True, load_ids=True, max_length=2000)
+    value = ValueField(source='*', allow_blank=True, load_ids=True, max_length=2000, use_state=False)
 
     class Meta:
         model = FormValue
