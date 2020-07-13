@@ -72,7 +72,7 @@ class PermissionService:
             return False
 
     def is_valid_form(self):
-        if self.form.id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to:
+        if self.form and self.form.id in FormularyService(self.user.id, self.company.id).formulary_ids_the_user_has_access_to:
             return True
         else:
             return False
