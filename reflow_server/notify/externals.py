@@ -9,7 +9,7 @@ class MailerExternal(externals.External):
 
     def send_mail(self, from_mail, template_name, mails):
         serializer = MailSerializer(data={
-            'from_mail': from_mail,
+            'from_email': from_mail,
             'template': template_name,
             'recipients': [{
                 'subject': mail.subject,
@@ -26,7 +26,7 @@ class PusherExternal(externals.External):
     def send_push(self, template_name, pushs):
         serializer = PushSerializer(data={
             'template': template_name,
-            'tokens': [{
+            'recipients': [{
                 'tokens': [{
                     'token': token['token'].replace('"', '\\"'),
                     'type': token['push_notification_tag_type__name']

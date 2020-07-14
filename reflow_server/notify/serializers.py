@@ -4,7 +4,7 @@ from reflow_server.notify.relations import MailRelation, PushRelation
 
 
 class MailSerializer(serializers.Serializer):
-    from_mail = serializers.CharField()
+    from_email = serializers.CharField()
     template = serializers.CharField()
     recipients = MailRelation(many=True)
 
