@@ -17,6 +17,18 @@ from datetime import datetime
 
 
 class DashboardDataView(APIView):
+    """
+    This view is responsible for effectively serving the data of a particular dashboard_id.
+    When you send the dashboard_id to this view this automatically gets the data of this dashboard
+    for you.
+
+    This means that usually you can't access the aggregated data directly by any API but instead, 
+    need to have configurated a new chart in order to get the aggregated data.
+
+    Method:
+        .get() -- Returns the aggregated data with `labels` being a list and `values` being a list 
+                  also, both lists needs to have the same size.
+    """
     def get(self, request, company_id, form, dashboard_configuration_id):
         form_id = Form.objects.filter(form_name=form, company_id=company_id).values_list('id', flat=True).first()
         instance = DashboardChartConfiguration.objects.filter(id=dashboard_configuration_id, company_id=company_id).first()

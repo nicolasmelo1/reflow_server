@@ -20,8 +20,9 @@ class BillingService:
     def get_total_data(self):
         """
         Returns a TotalData object, this object is a handy object for retriving totals in many possible ways.
-        You can retrieve the totals in the most simple way, but this object also can retrieve totals from each individual charge name, discounts, coupon discounts
-        and so on. That's why it's preferrable to retrieve an object in this case instead of a simple value.
+        You can retrieve the totals in the most simple way, but this object also can retrieve totals from each 
+        individual charge name, discounts, coupon discounts and so on. That's why it's preferrable to retrieve 
+        an object in this case instead of a simple value.
 
         Returns:
             reflow_server.billing.services.data.TotalData: Object with handy functions.
@@ -42,6 +43,10 @@ class BillingService:
         ).order_by('-quantity').first()
 
     def push_updates(self):
+        """
+        Sends the updates made here in our billing service to our Payment Gateway, so the Payment
+        Gateway can work with new data.
+        """
         if self.company.is_paying_company:
             pass
 

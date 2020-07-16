@@ -11,6 +11,10 @@ class DashboardChartSerializer(serializers.ModelSerializer):
 
 
 class DashboardDataSerializer(serializers.Serializer):
+    """
+    This serializer is used for retriving the aggregated data to the user. It uses the data
+    recieved from the AggregationService from the `data` app.
+    """
     labels = serializers.ListField(allow_empty=True)
     values = serializers.ListField(allow_empty=True)
 
