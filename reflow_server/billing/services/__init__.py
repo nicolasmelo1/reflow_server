@@ -149,7 +149,6 @@ class BillingService:
 
         return self.__create(charge_value_names, push_updates=push_updates)
 
-
     @classmethod
     @transaction.atomic
     def create_on_onboarding(cls, company_id, user_id):
