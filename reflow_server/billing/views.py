@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.billing.services import BillingService
+from reflow_server.billing.services import VindiService
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -15,3 +15,15 @@ class VindiWebhookView(APIView):
 
     def post(self, request):
         pass
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class GetTotalView(APIView): 
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def get(self, request):
+        vindi_service = VindiService(1)
+        vindi_service.update()
+        return Response({
+            'status': 'ok'
+        })

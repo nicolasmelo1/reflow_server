@@ -1,14 +1,14 @@
 from django.conf import settings
 
 from reflow_server.core import externals
-from reflow_server.billing.serializers import VindiClientSerializer, VindiSubscriptionSerializer, \
-    VindiProductSerializer
+from reflow_server.billing.serializers.vindi import VindiClientSerializer, VindiSubscriptionSerializer, \
+    VindiProductSerializer, VindiPaymentProfileSerializer, VindiPlanSerializer
 
 
 class VindiExternal(externals.External):
     host = settings.VINDI_API_HOST
     secure = False
-    basic_auth = ('knbtmIJp7smiSzQdThuAquX80aHCGDV9VO2L6_mYOuU', '')
+    basic_auth = (settings.VINDI_PRIVATE_API_KEY, '')
 
     def create_client(self, address_street, address_number, 
                       address_zip_code, address_neighborhood, 
@@ -21,9 +21,9 @@ class VindiExternal(externals.External):
             address_country, company_name, company_email, 
             company_registry_code, emails
         )
-        self.post('/customers', serializer.data)
+        return self.post('/customers', serializer.data)
     
-    def update_client(self, address_street, address_number, 
+    def update_client(self, vindi_client_id, address_street, address_number, 
                       address_zip_code, address_neighborhood, 
                       address_city, address_state, address_country, 
                       company_name, company_email, company_registry_code,
@@ -35,21 +35,21 @@ class VindiExternal(externals.External):
             company_registry_code, emails
         )
 
-        self.put('/customers', serializer.data)
+        return self.put('/customers/{}'.format(vindi_client_id), serializer.data)
 
     def create_product(self, product_name, product_description, price):
         serializer = VindiProductSerializer(
             product_name, product_description, price
         )
 
-        self.post('/products', serializer.data)
+        return self.post('/products', serializer.data)
 
-    def update_product(self, product_name, product_description, price):
+    def update_product(self, vindi_product_id, product_name, product_description, price):
         serializer = VindiProductSerializer(
             product_name, product_description, price
         )
 
-        self.put('/products', serializer.data)
+        return self.put('/products/{}'.format(vindi_product_id), serializer.data)
 
     def create_subscription(self, vindi_plan_id, vindi_client_id, vindi_product_id, 
                             payment_method_type, invoice_date_type, price):
@@ -58,17 +58,35 @@ class VindiExternal(externals.External):
             payment_method_type, invoice_date_type, price
         )
 
-        self.post('/subscriptions', serializer.data)
+        return self.post('/subscriptions', serializer.data)
 
-    def update_subscription(self, vindi_plan_id, vindi_client_id, vindi_product_id, 
-                            payment_method_type, invoice_date_type, price):
+    def update_subscription(self, vindi_subscription_id, vindi_plan_id, vindi_client_id, 
+                            vindi_product_id, payment_method_type, invoice_date_type, price):
         serializer = VindiSubscriptionSerializer(
             vindi_plan_id, vindi_client_id, vindi_product_id, 
             payment_method_type, invoice_date_type, price
         )
 
-        self.put('/subscriptions', serializer.data)
+        return self.put('/subscriptions/{}'.format(vindi_subscription_id), serializer.data)
 
-    
+    def create_payment_profile(self, gateway_token, vindi_client_id, payment_method_type):
+        serializer = VindiPaymentProfileSerializer(
+            gateway_token, vindi_client_id, payment_method_type
+        )
 
+        return self.post('/payment_profiles', serializer.data)
+
+    def create_plan(self, plan_name, invoice_date_type):
+        serializer = VindiPlanSerializer(
+            plan_name, invoice_date_type
+        )
+        
+        return self.post('/plans', serializer.data)
+
+    def update_plan(self, vindi_plan_id, plan_name, invoice_date_type):
+        serializer = VindiPlanSerializer(
+            plan_name, invoice_date_type
+        )
+        
+        return self.put('/plans/{}'.format(vindi_plan_id), serializer.data)
     

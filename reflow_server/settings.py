@@ -292,6 +292,7 @@ EXTERNAL_APPS = configuration.APPS
 # VINDI CONFIG
 # check reflow_server.billing for explanation, we actually use vindi as our payment gateway on reflow
 # so this defines stuff for accessing it's api
+VINDI_PRIVATE_API_KEY = configuration.VINDI_PRIVATE_API_KEY
 VINDI_PUBLIC_API_KEY = configuration.VINDI_PUBLIC_API_KEY
 VINDI_API_HOST = configuration.VINDI_API_HOST
 VINDI_PAYMENT_METHODS = configuration.VINDI_PAYMENT_METHODS

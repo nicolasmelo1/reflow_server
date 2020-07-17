@@ -3,6 +3,7 @@ from django.db import transaction
 from reflow_server.authentication.models import Company
 from reflow_server.billing.models import ChargeType, IndividualChargeValueType, DiscountByIndividualValue, \
     CurrentCompanyCharge
+from reflow_server.billing.services.vindi import VindiService
 from reflow_server.billing.services.data import TotalData
 
     
@@ -48,7 +49,8 @@ class BillingService:
         Gateway can work with new data.
         """
         if self.company.is_paying_company:
-            pass
+            vindi_service = VindiService(self.company.id)
+            vindi_service.update()
 
     @transaction.atomic
     def update(self, charge_value_name, user_id=None, quantity=None, push_updates=True):

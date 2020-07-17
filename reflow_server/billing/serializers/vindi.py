@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from reflow_server.billing.relations import VindiClientAddressRelation, VindiClientMetadataRelation, \
-    VindiSubscriptionProductItemRelation, VindiPricingSchemaRelation
+from reflow_server.billing.relations.vindi import VindiPricingSchemaRelation, VindiClientAddressRelation, \
+    VindiClientMetadataRelation, VindiSubscriptionProductItemRelation
 
 
 class VindiClientSerializer(serializers.Serializer):
@@ -82,3 +82,38 @@ class VindiProductSerializer(serializers.Serializer):
 
         super(VindiProductSerializer, self).__init__(**kwargs)
         self.is_valid()
+
+
+class VindiPaymentProfileSerializer(serializers.Serializer):
+    gateway_token = serializers.CharField()
+    customer_id = serializers.IntegerField()
+    payment_method_type = serializers.CharField()
+
+    def __init__(self, gateway_token, vindi_client_id, payment_method_type, *args, **kwargs):
+        kwargs['data'] = {
+            'gateway_token': gateway_token,
+            'customer_id': vindi_client_id,
+            'payment_method_code': payment_method_type
+        }
+
+        super(VindiPaymentProfileSerializer, self).__init__(**kwargs)
+        self.is_valid()
+
+
+class VindiPlanSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    interval = serializers.CharField(default='months')
+    interval_count = serializers.IntegerField(default=1)
+    billing_trigger_type = serializers.CharField(default='day_of_month')
+    billing_trigger_day = serializers.IntegerField()
+    billing_cycles = serializers.NullBooleanField(default=None)
+    
+    def __init__(self, plan_name, invoice_date_type, *args, **kwargs):
+        kwargs['data'] = {
+            'name': plan_name,
+            'billing_trigger_day': invoice_date_type
+        }
+
+        super(VindiPlanSerializer, self).__init__(**kwargs)
+        self.is_valid()
+
