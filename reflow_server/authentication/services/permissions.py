@@ -101,7 +101,7 @@ class PermissionService:
         return self.kanban_card != None
 
     def is_valid_admin_only_path(self):
-        '''validates if the user is trying to access an admin only path'''
+        """validates if the user is trying to access an admin only path"""
         from reflow_server.core.utils.routes import admin_only_url_names
 
         if self.url_name in admin_only_url_names:
@@ -148,30 +148,3 @@ class PermissionService:
                 return False
         
         return True
-    '''
-    def is_valid_file(self, url_name, request_files):
-        """validates the billing"""
-        # TODO: move to billing
-
-        from reflow_server.core.utils.routes import attachment_url_names
-
-        if url_name in attachment_url_names:
-            company_aggregated_file_sizes = Attachments.objects.filter(form__user__company=self.company).aggregate(Sum('file_size')).get('file_size__sum', 0)
-            current_gb_permission_for_company = CurrentCompanyCharge.objects.filter(individual_charge_value_type__name='per_gb', company=self.company).values_list('quantity', flat=True).first()
-
-            new_files_size = functools.reduce(
-                lambda x, y: x + y, [
-                    file_data.size for key in request_files.keys() for file_data in request_files.getlist(key)
-                ], 0
-            ) * 0.000000001
-            company_aggregated_file_sizes = company_aggregated_file_sizes if company_aggregated_file_sizes else 0
-            company_aggregated_file_sizes = company_aggregated_file_sizes * 0.000000001
-            all_file_sizes = new_files_size + company_aggregated_file_sizes
-
-            if all_file_sizes < current_gb_permission_for_company:
-                return True
-            else:
-                return False
-        else:
-            return True
-    '''

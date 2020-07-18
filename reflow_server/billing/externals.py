@@ -75,6 +75,18 @@ class VindiExternal(externals.External):
         )
 
         return self.post('/payment_profiles', serializer.data)
+    
+    def delete_payment_profile(self, vindi_payment_profile_id):
+        return self.delete('/payment_profiles/{}'.format(vindi_payment_profile_id))
+
+    def get_payment_profile(self, vindi_payment_profile_id):
+        response = self.get('/payment_profiles/{}'.format(vindi_payment_profile_id)).json()
+        credit_card_info = {
+            'card_number_last_four': response.get('payment_profile', {}).get('card_number_last_four', ''),
+            'card_expiration': response.get('payment_profile', {}).get('card_expiration', ''),
+            'credit_card_code': response.get('payment_profile', {}).get('payment_company', {}).get('code', '')
+        }
+        return credit_card_info
 
     def create_plan(self, plan_name, invoice_date_type):
         serializer = VindiPlanSerializer(

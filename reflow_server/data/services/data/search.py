@@ -1,6 +1,8 @@
 from reflow_server.data.models import FormValue
 from reflow_server.authentication.models import UserExtended
-from datetime import datetime
+
+from datetime import datetime, timedelta
+
 
 class SearchItem:
     def __init__(self, field_name, value, exact):
@@ -15,6 +17,7 @@ class SearchItem:
             [(field_name, (field_value, search_exact))] = search.items()
             search_objects.append(SearchItem(field_name, field_value, search_exact))
         return search_objects
+
 
 class DataSearch:
     def __search_exact(self, search_item):
@@ -66,7 +69,7 @@ class DataSearch:
         search_values = list()
         split_search_value = search_item.value.split(' - ')
         start_date = datetime.strptime(split_search_value[0], "%d/%m/%Y")
-        end_date = datetime.strptime(split_search_value[1], "%d/%m/%Y")
+        end_date = datetime.strptime(split_search_value[1], "%d/%m/%Y") + timedelta(days=1)
         return list(
                 FormValue.objects.filter(
                     company_id=self.company_id, 
@@ -95,6 +98,7 @@ class DataSearch:
                 value__in=real_search_values
             ).values_list('form__depends_on__id', flat=True)
         )
+        
     def _search_user(self, search_value, field_data, form_ids_to_filter):
         first_name = search_value.split(' ')[0]
         last_name = search_value.split(' ')[1] if len(search_value.split(' ')) > 1 else None

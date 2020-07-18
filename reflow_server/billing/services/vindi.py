@@ -40,7 +40,7 @@ class VindiService:
         with this solution circular imports might occur because we use the VindiService in BillingService, 
         so we need to import the BillingService inside this method.
 
-        Important, it automatically caches the total value so it doesn't need to get and calculate the total everytime. 
+        Important: it automatically caches the total value so it doesn't need to get and calculate the total everytime. 
         Always calculating can lead to inconsistencies, with this we calculate just once and use this for all the values.
         """
         if hasattr(self, '_cache_total'):
@@ -158,7 +158,7 @@ class VindiService:
 
         status_code = response.status_code if response else None
         self.vindi_plan_id = response.json().get('plan', {}).get('id', self.vindi_plan_id) if response else self.vindi_plan_id
-        return (status_code, self.vindi_product_id)
+        return (status_code, self.vindi_plan_id)
 
     def __create_payment_profile(self, gateway_token):
         """
@@ -203,7 +203,7 @@ class VindiService:
         https://vindi.github.io/api-docs/dist/#/subscriptions
     
         Returns:
-        tuple: Tuple containing the `status_code` as first argument and the created `vindi_payment_profile_id`.
+            tuple: Tuple containing the `status_code` as first argument and the created `vindi_payment_profile_id`.
         """
         response = None
 
@@ -223,8 +223,58 @@ class VindiService:
         self.vindi_signature_id = response.json().get('subscription', {}).get('id', self.vindi_signature_id) if response else self.vindi_signature_id
         return (status_code, self.vindi_signature_id)
 
+    def get_credit_card_info(self):
+        """
+        Gets the credit card information from the payment_profile_id of the company.
+
+        Returns:
+            dict: returns a dict containing all of the credit card info with the following keys:
+                  - `card_number_last_four`: last four digits of the credit card
+                  - `card_expiration`: the expiration date of the credit card.
+                  - `credit_card_code`: this is a string representing from which credit card company is this 
+                    credit card from
+        """
+        if self.vindi_payment_profile_id:
+            return self.vindi_external.get_payment_profile(self.vindi_payment_profile_id)
+        else:
+            return None
+            
+    def delete_payment_profile(self):
+        """
+        As the name suggests, deletes the payment profile from vindi. This is usually used when the user wants to delete his credit card.
+
+        Returns:
+            bool: returns True or False wheather the delete action was successful or not.
+        """
+        if self.vindi_payment_profile_id in [None, '']:
+            return True
+        else:
+            if self.vindi_external.delete_payment_profile(self.vindi_payment_profile_id).status_code == 200:
+                self.company.vindi_payment_profile_id = None
+                self.company.save()
+                return True
+            else:
+                return False
+
     @transaction.atomic
-    def update(self, gateway_token=None):
+    def create_or_update(self, gateway_token=None):
+        """
+        This method is responsible for create or updating a client in Vindi. As you see down below we actually create a pipeline of insertion.
+        As mentioned in Vindi docs, everything should follow this exact order.
+
+        1 - Create or update the client
+        2 - Create or update the product
+        3 - Create or update the plan
+        4 - Create the payment_profile (only creates we never update)
+        5 - Create or update the subscription
+
+        Args:
+            gateway_token (str, optional): This is handled by vindi, this token is an unique id that holds the creditcard data. This is handled
+                                 entirely by Vindi but we need it to save the credit card in the database. Defaults to None.
+
+        Returns:
+            bool: Returns True if everything went smoothly and fine, and False if any request faced a problem.
+        """
         pipeline = [
             self.__create_or_update_client(),   
             self.__create_or_update_product(),
@@ -239,7 +289,7 @@ class VindiService:
             self.company.vindi_plan_id = self.vindi_plan_id
             self.company.vindi_client_id = self.vindi_client_id
             self.company.vindi_product_id = self.vindi_product_id
-            self.company.vindi_payment_profile_id = self.vindi_payment_profile_id
+            self.company.vindi_payment_profile_id = str(self.vindi_payment_profile_id)
             self.company.vindi_signature_id = self.vindi_signature_id
             self.company.save()
             return True

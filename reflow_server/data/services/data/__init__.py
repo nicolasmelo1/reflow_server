@@ -22,6 +22,21 @@ class DataService(DataSort, DataSearch):
 
     @classmethod
     def get_user_form_data_ids_from_query_params(cls, query_params, user_id, company_id, form_id):
+        """
+        This is a handy function to extract the data_ids from the query_params you might recieve from the request.
+        With this function you get all of the dynamic_form_ids accessed by the user for a particular form based on
+        the query params you recieve in your request. This way we can mantain a common query param pattern on
+        `get` and `delete` requests
+
+        Args:
+            query_params (django.Request.query_params): the query params of the request.
+            user_id (int): For which user you want to extract the data.
+            company_id (int): for which company of the user you are extracting the data
+            form_id (int): for which form/page are you extracting the data
+
+        Returns:
+            list(int) -- Returns a list of all of the dynamic_form_ids that the user has access to from a single form_id.
+        """
         data_service = cls(user_id=user_id, company_id=company_id)
         params = data_service.extract_query_parameters_from_request(query_params)
 
@@ -188,9 +203,6 @@ class DataService(DataSort, DataSearch):
         }
 
         if from_date and to_date:
-            print('BREAKPOINT')
-            print(from_date)
-            print(to_date)
             self._data = DynamicForm.objects.filter(
                 company_id=self.company_id, 
                 updated_at__range=[from_date, to_date + timedelta(days=1)],
