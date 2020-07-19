@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.db.models import Sum
+from django.utils import timezone
 
 from reflow_server.billing.models import CurrentCompanyCharge
 from reflow_server.authentication.models import Company
@@ -42,6 +44,12 @@ class BillingPermissionService:
         else:
             return True
     
+    def is_valid_free_trial(self):
+        if not self.company.is_paying_company and self.company.created_at < timezone.now() - timedelta(days=settings.FREE_TRIAL_DAYS):
+            return False
+        else:
+            return True
+
     def is_valid(self):
         # we only validate the billing if the company is not a supercompany, if the company IS a supercompany we pass all 
         # of the billing validation.

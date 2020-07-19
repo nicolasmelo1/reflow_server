@@ -289,6 +289,9 @@ AUTH_BEARER_PASSWORD = configuration.AUTH_BEARER_PASSWORD
 # EXTERNAL APPS CONFIGURATION
 EXTERNAL_APPS = configuration.APPS
 
+# BILLING CONFIGURATION
+FREE_TRIAL_DAYS = 30
+
 # VINDI CONFIG
 # check reflow_server.billing for explanation, we actually use vindi as our payment gateway on reflow
 # so this defines stuff for accessing it's api
