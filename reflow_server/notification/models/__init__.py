@@ -55,7 +55,7 @@ class NotificationConfigurationVariable(models.Model):
     """
     notification_configuration = models.ForeignKey('notification.NotificationConfiguration', models.CASCADE, db_index=True, related_name='notification_configuration_variables')
     field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True)
-    order = models.IntegerField(default=1)
+    order = models.BigIntegerField(default=1)
     
     class Meta:
         db_table = 'notification_configuration_variable'

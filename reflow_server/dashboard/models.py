@@ -3,16 +3,20 @@ from django.db import models
 
 class AggregationType(models.Model):
     name = models.CharField(max_length=250)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'aggregation_type'
+        ordering = ('order',)
 
 
 class ChartType(models.Model):
     name = models.CharField(max_length=250)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'chart_type'
+        ordering = ('order',)
 
 
 class DashboardChartConfiguration(models.Model):
@@ -33,6 +37,6 @@ class DashboardChartConfiguration(models.Model):
                              related_name='dashboard_chart_configuration_users')
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, db_index=True,
                                 related_name='dashboard_chart_configuration_companies')
-    #order = models.IntegerField(default=1)
+    #order = models.BigIntegerField(default=1)
     class Meta:
         db_table = 'dashboard_chart_configuration'

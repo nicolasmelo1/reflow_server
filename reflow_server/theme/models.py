@@ -13,10 +13,11 @@ class ThemeType(models.Model):
     """
     name = models.CharField(max_length=200)
     label_name = models.CharField(max_length=200, null=True, blank=True)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'group_type'
-        ordering = ('id',)
+        ordering = ('order',)
 
 
 class Theme(models.Model):
@@ -166,7 +167,7 @@ class ThemeNotificationConfigurationVariable(models.Model):
     """
     field = models.ForeignKey('theme.ThemeField', models.CASCADE, db_index=True)
     notification_configuration = models.ForeignKey('theme.ThemeNotificationConfiguration', models.CASCADE, db_index=True)
-    order = models.IntegerField(default=1)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'theme_notification_configuration_variable'

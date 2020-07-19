@@ -2,9 +2,11 @@ from django.db import models
 
 class PushNotificationTagType(models.Model):
     name = models.CharField(max_length=100)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
-        db_table='push_notification_tag_type'
+        db_table = 'push_notification_tag_type'
+        ordering = ('order',)
 
 
 class PushNotification(models.Model):

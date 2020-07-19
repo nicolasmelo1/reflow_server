@@ -5,9 +5,11 @@ from django.contrib.auth.models import AbstractUser
 class VisualizationType(models.Model):
     name = models.CharField(max_length=250)
     label_name = models.CharField(max_length=200)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'data_type'
+        ordering = ('order',)
 
 
 class CompanyType(models.Model):
@@ -18,10 +20,11 @@ class CompanyType(models.Model):
     """
     name = models.CharField(max_length=200)
     label_name = models.CharField(max_length=200, null=True, blank=True)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'company_type'
-        ordering = ('id',)
+        ordering = ('order',)
 
 
 class ProfileType(models.Model):
@@ -38,10 +41,11 @@ class ProfileType(models.Model):
     name = models.CharField(max_length=200)
     label_name = models.CharField(max_length=200, null=True, blank=True)
     can_edit = models.BooleanField(default=False)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'profiles'
-
+        ordering = ('order',)
 
 class Company(models.Model):
     """
