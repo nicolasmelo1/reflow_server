@@ -30,7 +30,7 @@ class PaymentSerializer(serializers.ModelSerializer):
     neighborhood = serializers.CharField(allow_null=True, allow_blank=True, required=False)
     country = serializers.CharField(allow_null=True, allow_blank=True, required=False)
     city = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    payment_data = serializers.SerializerMethodField()
+    payment_data = serializers.SerializerMethodField(required=False)
 
     def get_payment_data(self, obj):
         vindi_service = VindiService(company_id=obj.id)
@@ -39,4 +39,4 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = ('gateway_token', 'company_invoice_emails', 'payment_method_type_id', 'invoice_date_type_id', 'cnpj', 'address', 'zip_code', 'street',
-                  'state', 'number', 'neighborhood', 'country', 'city') 
+                  'state', 'number', 'neighborhood', 'country', 'city', 'payment_data') 

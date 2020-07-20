@@ -12,7 +12,7 @@ from reflow_server.billing.services import VindiService
 from reflow_server.billing.models import CurrentCompanyCharge
 from reflow_server.billing.serializers import CurrentCompanyChargeSerializer, PaymentSerializer
 
-
+    
 @method_decorator(csrf_exempt, name='dispatch')
 class CurrentCompanyChargeView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
