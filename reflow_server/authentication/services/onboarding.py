@@ -39,6 +39,7 @@ class OnboardingService(CompanyService):
 
         company = Company.objects.create(
             name=company_name,
+            is_active=True,
             endpoint=self._create_company_endpoint(company_name),
             shared_by=shared_by,
             partner=partner
