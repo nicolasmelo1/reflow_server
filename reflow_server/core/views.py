@@ -37,7 +37,7 @@ class TypesView(APIView):
         in order for this hole application to work. They usually end with Type in the class model name and in the database
         name.
         """
-        
+       
         charge_frequency_type = list(ChargeFrequencyType.objects.all().values())
         charge_type = list(ChargeType.objects.all().values())
         individual_charge_value_type = list(IndividualChargeValueType.objects.all().values())
@@ -55,7 +55,7 @@ class TypesView(APIView):
         profile_type = list(ProfileType.objects.all().values())
         aggregation_type = list(AggregationType.objects.all().values())
         chart_type = list(ChartType.objects.all().values())
-        
+
         return Response({
            'status': 'ok',
            'data': {

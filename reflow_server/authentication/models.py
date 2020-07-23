@@ -47,6 +47,27 @@ class ProfileType(models.Model):
         db_table = 'profiles'
         ordering = ('order',)
 
+
+class AddressHelper(models.Model):
+    """
+    This model is a `helper` so it contains data used that is used but is not required. Usually this
+    type of model offers an ammount of data but doesn't relate directly to any table in the database 
+    (They are not used as ForeignKeys).
+    It defines the address options for the user so we will have all of the cities from every state from 
+    every country we support.
+    """
+    country_code = models.CharField(max_length=50)
+    country_name = models.CharField(max_length=200)
+    state = models.CharField(max_length=400)
+    state_code = models.CharField(max_length=100)
+    city = models.CharField(max_length=400)
+    order = models.BigIntegerField(default=1)
+
+    class Meta:
+        db_table = 'address_helper'
+        ordering = ('order',)
+
+
 class Company(models.Model):
     """
     This is the company, the company as the name suggest is the company of a user, right now a user can have only one

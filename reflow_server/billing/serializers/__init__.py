@@ -1,9 +1,15 @@
 from rest_framework import serializers
 
-from reflow_server.authentication.models import Company
+from reflow_server.authentication.models import Company, AddressHelper
 from reflow_server.billing.services import VindiService
 from reflow_server.billing.models import CurrentCompanyCharge
 from reflow_server.billing.relations import CompanyInvoiceMailsRelation
+
+
+class AddressOptionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AddressHelper
+        fields = ('state', 'state_code', 'city')
 
 
 class CurrentCompanyChargeSerializer(serializers.ModelSerializer):

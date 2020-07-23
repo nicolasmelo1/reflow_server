@@ -7,12 +7,23 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.authentication.models import Company
+from reflow_server.authentication.models import Company, AddressHelper
 from reflow_server.billing.services import VindiService
 from reflow_server.billing.models import CurrentCompanyCharge
-from reflow_server.billing.serializers import CurrentCompanyChargeSerializer, PaymentSerializer
+from reflow_server.billing.serializers import CurrentCompanyChargeSerializer, PaymentSerializer, \
+    AddressOptionsSerializer
 
-    
+
+class AddressOptionsView(APIView):
+    def get(self, request, company_id):
+        instance = AddressHelper.objects.all()
+        serializer = AddressOptionsSerializer(instance=instance, many=True)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class CurrentCompanyChargeView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
