@@ -85,3 +85,21 @@ class ChangePasswordSerializer(serializers.Serializer):
     
     def save(self):
         self.password_service.change_password(self.validated_data['password'])
+
+
+class CompanySettingsSerializer(serializers.ModelSerializer):
+    cnpj = serializers.CharField(allow_null=True)
+    aditional_details = serializers.CharField(allow_null=True, required=False)
+    address = serializers.CharField(allow_null=True, required=False)
+    zip_code = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    street = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    state = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    number = serializers.IntegerField(allow_null=True, required=False)
+    neighborhood = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    country = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    city = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+
+    class Meta:
+        model = Company
+        fields = ('aditional_details', 'cnpj', 'address', 'zip_code', 'street',
+                  'state', 'number', 'neighborhood', 'country', 'city') 

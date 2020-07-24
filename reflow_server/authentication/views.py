@@ -9,10 +9,10 @@ from rest_framework import status
 from reflow_server.core.utils.encrypt import Encrypt
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.formulary.services.formulary import FormularyService
-from reflow_server.authentication.models import UserExtended
+from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.authentication.utils.jwt_auth import JWT
 from reflow_server.authentication.serializers import LoginSerializer, UserSerializer, ForgotPasswordSerializer, \
-    OnboardingSerializer, ChangePasswordSerializer
+    OnboardingSerializer, ChangePasswordSerializer, CompanySettingsSerializer
 
 from datetime import datetime, timedelta
 
@@ -184,3 +184,28 @@ class ChangePasswordView(APIView):
                 'status': 'error',
                 'reason': 'invalid_temp_password'
             }, status=status.HTTP_403_FORBIDDEN)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CompanySettingsView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def get(self, request, company_id):
+        instance = Company.objects.filter(id=company_id).first()
+        serializer = CompanySettingsSerializer(instance=instance)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def put(self, request, company_id):
+        instance = Company.objects.filter(id=company_id).first()
+        serializer = CompanySettingsSerializer(instance=instance, data=request.data)
+        if serializer.is_valid():
+            return Response({
+                'status': 'ok'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'error'
+            }, status=status.HTTP_502_BAD_GATEWAY)

@@ -25,20 +25,7 @@ class AddressOptionsView(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class CurrentCompanyChargeView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
-
-    def get(self, request, company_id):
-        instances = CurrentCompanyCharge.objects.filter(company_id=company_id)
-        serializer = CurrentCompanyChargeSerializer(instance=instances, many=True)
-        return Response({
-            'status': 'ok',
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class PaymentView(APIView):
+class BillingSettingsView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id):
@@ -56,21 +43,3 @@ class VindiWebhookExternalView(APIView):
 
     def post(self, request):
         pass
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class GetTotalView(APIView): 
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    parser_classes = [FormParser, MultiPartParser]
-
-    def get(self, request, company_id):
-        #vindi_service = VindiService(1)
-        #vindi_service.update()
-        return Response({
-            'status': 'ok'
-        })
-
-    def post(self, request, company_id):
-        return Response({
-            'status': 'ok'
-        })

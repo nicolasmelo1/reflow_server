@@ -4,9 +4,8 @@ from django.conf import settings
 from reflow_server.core.utils.routes import register_admin_only_url
 
 from reflow_server.core.decorators import permission_required
-from reflow_server.billing.views import CurrentCompanyChargeView, PaymentView, \
-    VindiWebhookExternalView, GetTotalView, AddressOptionsView
-
+from reflow_server.billing.views import BillingSettingsView, \
+    VindiWebhookExternalView, AddressOptionsView
 
 
 vindi_urlpatterns = [
@@ -18,9 +17,8 @@ external_urlpatterns = [
 ]
 
 settings_urlpatterns = [
-    re_path(r'^$', permission_required(CurrentCompanyChargeView.as_view()), name='billing_charge_view'),
-    re_path(r'^address_options/$', permission_required(AddressOptionsView.as_view()), name='billing_address_options'),
-    re_path(r'^payment/$', permission_required(PaymentView.as_view()), name='billing_payment_view')
+    re_path(r'^$', permission_required(BillingSettingsView.as_view()), name='billing_settings_view'),
+    re_path(r'^address_options/$', permission_required(AddressOptionsView.as_view()), name='billing_address_options')
 ]
 
 urlpatterns = [

@@ -88,6 +88,7 @@ class Company(models.Model):
     state = models.CharField(max_length=280, default=None, null=True)
     city = models.CharField(max_length=280, default=None, null=True)
     cnpj = models.CharField(max_length=280, default=None, null=True)
+    additional_details = models.CharField(max_length=280, default=None, null=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True, db_index=True)
