@@ -84,7 +84,8 @@ class VindiExternal(externals.External):
         credit_card_info = {
             'card_number_last_four': response.get('payment_profile', {}).get('card_number_last_four', ''),
             'card_expiration': response.get('payment_profile', {}).get('card_expiration', ''),
-            'credit_card_code': response.get('payment_profile', {}).get('payment_company', {}).get('code', '')
+            'credit_card_code': response.get('payment_profile', {}).get('payment_company', {}).get('code', ''),
+            'payment_company_name': response.get('payment_profile', {}).get('payment_company', {}).get('name', '')
         }
         return credit_card_info
 

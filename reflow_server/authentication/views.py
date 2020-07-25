@@ -202,6 +202,7 @@ class CompanySettingsView(APIView):
         instance = Company.objects.filter(id=company_id).first()
         serializer = CompanySettingsSerializer(instance=instance, data=request.data)
         if serializer.is_valid():
+            serializer.save()
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)

@@ -233,6 +233,7 @@ class VindiService:
                   - `card_expiration`: the expiration date of the credit card.
                   - `credit_card_code`: this is a string representing from which credit card company is this 
                     credit card from
+                  - `payment_company_name`: The company of the credit card.
         """
         if self.vindi_payment_profile_id:
             return self.vindi_external.get_payment_profile(self.vindi_payment_profile_id)
