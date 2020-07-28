@@ -17,13 +17,15 @@ class VindiService:
         Args:
             company_id (int): The id of the company you want to handle in vindi gateway
         """
-        from reflow_server.billing.externals import VindiExternal
-        from reflow_server.billing.services import BillingService
+        self.company = Company.objects.filter(id=company_id).first()
 
-        self.billing_service = BillingService(company_id)
+        from reflow_server.billing.externals import VindiExternal
+        from reflow_server.billing.services.charge import ChargeService
+    
+
+        self.billing_service = ChargeService(self.company)
         self.vindi_external = VindiExternal()
 
-        self.company = Company.objects.filter(id=company_id).first()
         self.vindi_plan_id = self.company.vindi_plan_id
         self.vindi_client_id = self.company.vindi_client_id
         self.vindi_product_id = self.company.vindi_product_id
@@ -170,7 +172,7 @@ class VindiService:
 
         Args:
             gateway_token (str): This is handled by vindi, this token is an unique id that holds the creditcard data. This is handled
-                                 entirely by Vindi but we need it to save the credit card in the database.
+                                 entirely by Vindi.
 
         Returns:
             tuple: Tuple containing the `status_code` as first argument and the created `vindi_payment_profile_id`.

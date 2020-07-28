@@ -89,33 +89,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class CompanySettingsSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
-    cnpj = serializers.CharField(allow_null=True, required=False)
-    additional_details = serializers.CharField(allow_null=True, required=False)
-    address = serializers.CharField(allow_null=True, required=False)
-    zip_code = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    street = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    state = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    number = serializers.IntegerField(allow_null=True, required=False)
-    neighborhood = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    country = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-    city = serializers.CharField(allow_null=True, allow_blank=True, required=False)
-
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', '')
-        instance.cnpj = validated_data.get('cnpj', None)
-        instance.additional_details = validated_data.get('additional_details', None)
-        instance.address = validated_data.get('address', None)
-        instance.zip_code = validated_data.get('zip_code', None)
-        instance.street = validated_data.get('street', None)
-        instance.state = validated_data.get('state', None)
-        instance.number = validated_data.get('number', None)
-        instance.neighborhood = validated_data.get('neighborhood', None)
-        instance.country = validated_data.get('country', None)
-        instance.city = validated_data.get('city', None)
-        instance.save()
-        return instance
 
     class Meta:
         model = Company
-        fields = ('name', 'additional_details', 'cnpj', 'address', 'zip_code', 'street',
-                  'state', 'number', 'neighborhood', 'country', 'city') 
+        fields = ('name',) 

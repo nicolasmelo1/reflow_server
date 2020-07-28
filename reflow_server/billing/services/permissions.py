@@ -11,6 +11,11 @@ import functools
 
 class BillingPermissionService:
     def __init__(self, company_id, url_name=None, files=None):
+        """
+        This service is responsible for handling the billing permissions, so when the user
+        uploads a new file, does he have the space available for it? He creates a new Dashboard, can he?
+        And so on.
+        """
         self.company = Company.objects.filter(id=company_id).first()
 
         if url_name:
