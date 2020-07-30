@@ -43,7 +43,9 @@ class TotalsView(APIView):
             ]
             total_data = charge_service.get_total_data_from_custom_charge_quantity(current_company_charges)
             data = [{'name': key, 'total': value} for key, value in total_data.total_by_charge_name.items()]
+            print(data)
             serializer = TotalsSerializer(data=data, many=True)
+            print(serializer.initial_data)
             return Response({
                 'status': 'ok',
                 'data': serializer.initial_data
