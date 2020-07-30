@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import transaction
 
+from rest_framework import status
+
 from reflow_server.authentication.models import Company
 from reflow_server.billing.models import CompanyInvoiceMails
 
@@ -73,18 +75,19 @@ class VindiService:
         """
         emails = CompanyInvoiceMails.objects.filter(company=self.company)
         response = None
-
+        print(self.company.state)
+        
         if emails:
             if self.vindi_client_id:
                 response = self.vindi_external.update_client(
                     self.vindi_client_id, self.company.street, self.company.number, 
                     self.company.zip_code, self.company.neighborhood, 
-                    self.company.city, self.company.state, self.company.country, 
+                    self.company.city, 'SP', self.company.country, 
                     self.company.name, emails[0].email, self.company.cnpj,
                     [email.email for email in emails[1:]]
                 )
             else: 
-                response = self.vindi_external.create_client    (
+                response = self.vindi_external.create_client(
                     self.company.street, self.company.number, 
                     self.company.zip_code, self.company.neighborhood, 
                     self.company.city, self.company.state, self.company.country, 
@@ -285,9 +288,8 @@ class VindiService:
             self.__create_payment_profile(gateway_token),
             self.__create_or_update_subscription()
         ]
-        
-        if any([response[0] != 200 for response in pipeline]):
-            return False
+        if any([response[0] not in [status.HTTP_200_OK, status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED] for response in pipeline]):
+            raise ConnectionError('We could not connect to Vindi servers.')
         else:
             self.company.vindi_plan_id = self.vindi_plan_id
             self.company.vindi_client_id = self.vindi_client_id

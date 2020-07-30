@@ -7,17 +7,22 @@ from reflow_server.billing.services.vindi import VindiService
 
     
 class BillingService:
-    """
-    Helper for change company charges without much difficulty inside the code.
-    Also it is used to check permissions by billing
-
-    it recieves a company_id to instantiate the class and make the changes accordingly
-    """
     def __init__(self, company_id):
+        """
+        Service for change company charges without much difficulty inside the code. This is also responsible
+        for creating a simple interface with billing without the need to import other billing services like 'ChargeService' or 'PaymentService' 
+        directly.
+
+        Args:
+            company_id (int): Gets the company info from the database so we can make changes to it
+        """
         self.company = Company.objects.filter(id=company_id).first()
         self.charge_service = ChargeService(self.company)
         self.payment_service = PaymentService(self.company)
     
+    def remove_credit_card(self):
+        return VindiService(self.company.id).delete_payment_profile()
+
     def remove_user(self, user_id, push_updates=True):
         """
         Removes a user from the billing.

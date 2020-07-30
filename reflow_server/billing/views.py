@@ -11,7 +11,7 @@ from reflow_server.authentication.models import Company, AddressHelper
 from reflow_server.billing.services.data import CompanyChargeData
 from reflow_server.billing.services import VindiService, BillingService, ChargeService
 from reflow_server.billing.serializers import CurrentCompanyChargeSerializer, PaymentSerializer, \
-    AddressOptionsSerializer
+    AddressOptionsSerializer, TotalsSerializer
 
 
 class AddressOptionsView(APIView):
@@ -42,9 +42,11 @@ class TotalsView(APIView):
                 for current_company_charge in serializer.initial_data
             ]
             total_data = charge_service.get_total_data_from_custom_charge_quantity(current_company_charges)
-            print(total_data.total_by_charge_name)
+            data = [{'name': key, 'total': value} for key, value in total_data.total_by_charge_name.items()]
+            serializer = TotalsSerializer(data=data, many=True)
             return Response({
-                'status': 'ok'
+                'status': 'ok',
+                'data': serializer.initial_data
             }, status=status.HTTP_200_OK)
         else:
             print(serializer.errors)
@@ -69,13 +71,22 @@ class BillingSettingsView(APIView):
         instance = Company.objects.filter(id=company_id).first()
         serializer = PaymentSerializer(instance=instance, data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            try:
+                serializer.save()
+            except ConnectionError as ce:
+                return Response({
+                    'status': 'error',
+                    'error': {
+                        'reason': 'payment_gateway_error'
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)
         else:
             return Response({
-                'status': 'error'
+                'status': 'error',
+                'error': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
     
 
