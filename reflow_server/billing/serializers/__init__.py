@@ -35,7 +35,7 @@ class PaymentSerializer(serializers.ModelSerializer):
     invoice_date_type_id = serializers.IntegerField(error_messages = { 'null': 'blank', 'blank': 'blank' })
     credit_card_data = serializers.SerializerMethodField(required=False)
     current_company_charges = CurrentCompanyChargeSerializer(many=True, error_messages = { 'null': 'blank', 'blank': 'blank' })
-    cnpj = serializers.CharField(error_messages = { 'null': 'blank', 'blank': 'blank' })
+    cnpj = serializers.CharField(error_messages={ 'null': 'blank', 'blank': 'blank' })
     zip_code = serializers.CharField(error_messages = { 'null': 'blank', 'blank': 'blank' })
     additional_details = serializers.CharField(allow_null=True, required=False)
     zip_code = serializers.CharField(
@@ -56,6 +56,8 @@ class PaymentSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if not (validate_cnpj(data['cnpj']) or validate_cpf(data['cnpj'])):
             raise serializers.ValidationError(detail={'detail': 'cnpj', 'reason': 'invalid_registry_code'})
+        if len(data['company_invoice_emails']) > 3:
+            raise serializers.ValidationError(detail={'detail': 'company_invoice_emails', 'reason': 'cannot_be_bigger_than_three'})
         return data
 
     def update(self, instance, validated_data):

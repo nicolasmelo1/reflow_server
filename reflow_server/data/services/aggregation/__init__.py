@@ -35,6 +35,18 @@ class AggregationService:
         return result
 
     def __convert_to_int(self, value):
+        """
+        This is necessary to convert a certain value to int in a Try and Except fashion,
+        we need this because sometimes we can throw an error while converting to int, especially
+        in a reduce function. So this function recieves a value, and tries to convert to int
+        if an error is thrown it returns as 0 instead.
+
+        Args:
+            value (any): the value to convert
+
+        Returns:
+            int: the integer converted.
+        """
         try:
             return int(value)
         except ValueError as ve:
@@ -63,9 +75,10 @@ class AggregationService:
         DEFAULT_BASE_NUMBER_FIELD_FORMAT.
         
         Args:
-            method (str): Use this to define the method to aggregate
+            method (str): Use this to define the method to aggregate, check the methods with
+                          `_aggregate_` keyword on this class for the possible options.
             field_id_key (int): The key to aggregate
-            field_id_value (int): The field_id to use the value.
+            field_id_value (int): The field_id to use for the value.
             formated (bool, optional): if you want the key formatted set this to True
                                        so we can format the results, if this is none we don't format
                                        the values, nor keys. Defaults to False.
@@ -74,7 +87,8 @@ class AggregationService:
             KeyError: If the `method` does not exist it will throw an error.
 
         Returns:
-            dict: Usually aggregation can be represented something like this and this is what we return
+            dict: Usually aggregation can be represented as something like this and this is what
+                  we return
             >>> {
                 '12/08/20': 100,
                 '13/08/20': 200,
@@ -118,9 +132,7 @@ class AggregationService:
 
         for value_value, value_form_data_id in value_values:
             aggregation_data.add_value(value=value_value, form_data_id=value_form_data_id)
-
         aggregation_result_data = method_handler(aggregation_data.aggregated)
-
         if formated:
             for key, value in aggregation_result_data.items():
                 key_representation = RepresentationService(
@@ -131,11 +143,12 @@ class AggregationService:
                 )
                 value = value if type(value) in [int, float] else 0
                 aggregation_result_data[key_representation.representation(key)] = value/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
+
         return aggregation_result_data
 
     def _aggregate_sum(self, formated_data):
         """
-        Sum aggregation type
+        Aggregates the data by sum.
         """
         for key, value in formated_data.items():
             result = self.__sum_list(value)
@@ -155,7 +168,7 @@ class AggregationService:
 
     def _aggregate_percent(self, formated_data):
         """
-        Percent aggregation is simple it is each total of items by total.
+        Percent aggregation is simple, it is each total of items by total.
         This means we first sum the total from all of the keys and divide each key
         by the total.
         """
@@ -175,7 +188,7 @@ class AggregationService:
 
     def _aggregate_count(self, formated_data):
         for key, value in formated_data.items():
-            formated_data[key] = decimal.Decimal(len(value)*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)
+            formated_data[key] = int(decimal.Decimal(len(value)*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT))
         return formated_data
 
     def _aggregate_max(self, formated_data):
@@ -188,6 +201,9 @@ class AggregationService:
         return formated_data
 
     def _aggregate_min(self, formated_data):
+        """
+        Retrieves the minimum value of the aggregation
+        """
         for key, values in formated_data.items():
             max_value = min([self.__convert_to_int(value) for value in values]) if values else 0
             formated_data[key] = max_value

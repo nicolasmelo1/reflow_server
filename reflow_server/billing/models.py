@@ -83,6 +83,7 @@ class IndividualChargeValueType(models.Model):
     charge_type = models.ForeignKey('billing.ChargeType', on_delete=models.CASCADE)
     charge_frequency_type = models.ForeignKey('billing.ChargeFrequencyType', on_delete=models.CASCADE)
     name = models.CharField(max_length=250)
+    charge_group_name = models.CharField(max_length=250, blank=True, default='')
     value = models.DecimalField(max_digits=10, decimal_places=2)
     default_quantity = models.IntegerField(null=True, blank=True)
     order = models.BigIntegerField(default=1)

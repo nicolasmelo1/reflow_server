@@ -13,7 +13,7 @@ class OnboardingService(CompanyService):
     .onboard()
     """
     @transaction.atomic
-    def onboard(self, user_email, user_first_name, user_last_name, user_password, company_name=None, shared_by=None, partner=None):
+    def onboard(self, user_email, user_first_name, user_last_name, user_password, user_phone, company_name=None, shared_by=None, partner=None):
         """
         Onboards a new user and creates a new company (aswell as a new user). Updates the billing info on the fly.
 
@@ -22,6 +22,7 @@ class OnboardingService(CompanyService):
             user_first_name {str} -- The first name of the user
             user_last_name {str} -- the last name of the user you want to onboard
             user_password {str} -- The new password of the user
+            user_phone {str} -- The phone number of the user
 
         Keyword Arguments:
             company_name {str} -- the company name, if it has one (default: {None})
@@ -51,6 +52,7 @@ class OnboardingService(CompanyService):
             first_name=user_first_name,
             last_name=user_last_name,
             company=company,
+            phone=user_phone,
             profile=ProfileType.objects.get(name='admin')
         )
         user.set_password(user_password)

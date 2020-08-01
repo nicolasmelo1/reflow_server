@@ -40,9 +40,10 @@ class FormularyDataService(PreSave, PostSave):
         When you run this function we return to you a FormularyData object that exposes
         `.add_section_data()` method for you to add your sections. This object will contain an array
         with all of your sections, but to add those you need to add each section using
-        the `.add_section_data()` method. If this method we return to you a SectionData object which exposes the
-        `.add_field_value()` method to insert each field inside of the section. This way we can have
-        a complete formulary being built as objects and work with it instead of working directly with serializers.
+        the `.add_section_data()` method. The `.add_section_data()` method will return to you a 
+        SectionData object which exposes the `.add_field_value()` method to insert each field inside 
+        of the section. This way we can have a complete formulary being built as objects and work 
+        with it instead of working directly with serializers.
 
         Args:
             form_data_id (int, optional): The id of the formulary, this is usually set if you are editing an
