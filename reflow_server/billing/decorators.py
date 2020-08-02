@@ -10,9 +10,9 @@ from functools import wraps
 import json
 
 def validate_billing(function):
-    def get_json_data_from_request_body(body):
+    def get_json_data_from_request(request):
         try:
-            return json.loads(body.decode('utf-8'))
+            return json.loads(request.body.decode('utf-8'))
         except:
             return {}
 
@@ -26,7 +26,8 @@ def validate_billing(function):
         dashboard_configuration_id = kwargs.get('dashboard_configuration_id', None)
         url_name = resolve(request.path_info).url_name
         files = request.FILES
-        for_company = get_json_data_from_request_body(request.body).get('for_company', None)
+        for_company = get_json_data_from_request(request).get('for_company', None)
+        
         billing_permission_service = BillingPermissionService(company_id=company_id, user_id=user_id, for_company=for_company,  
                                                               request_method=request.method, form_name=form,
                                                               dashboard_configuration_id=dashboard_configuration_id, 

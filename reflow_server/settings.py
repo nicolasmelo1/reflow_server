@@ -156,6 +156,9 @@ LOGGING = {
         }
     },
     'loggers': {
+        'asyncio': {
+            'level': 'WARNING',
+        },
         '': {
             'level': 'DEBUG',
             'handlers': ['console', 'file']
