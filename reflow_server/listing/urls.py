@@ -1,7 +1,7 @@
 from django.conf.urls import re_path, include
 from django.conf import settings
 
-from reflow_server.core.decorators import permission_required, authorize_external_response
+from reflow_server.core.decorators import validate_billing, authorize_external_response
 from reflow_server.listing.views import ListingHeaderView, GetExtractDataView, ExtractDataBuilderView, ExtractFileExternalView
 
 external_urlpatterns = [
@@ -10,10 +10,10 @@ external_urlpatterns = [
 
 urlpatterns = [
     re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
-        re_path(r'^extract/(?P<file_id>[\w-]+)/$', permission_required(GetExtractDataView.as_view()), name='listing_get_extract_data'),
+        re_path(r'^extract/(?P<file_id>[\w-]+)/$', validate_billing(GetExtractDataView.as_view()), name='listing_get_extract_data'),
         re_path(r'^(?P<form>\w+)/', include([
-             re_path(r'^$', permission_required(ListingHeaderView.as_view()), name='listing_get_header'),
-             re_path(r'^extract/$', permission_required(ExtractDataBuilderView.as_view()), name='listing_build_extract_data'),    
+             re_path(r'^$', validate_billing(ListingHeaderView.as_view()), name='listing_get_header'),
+             re_path(r'^extract/$', validate_billing(ExtractDataBuilderView.as_view()), name='listing_build_extract_data'),    
         ])),
     ])),
     re_path(r'^external/', include(external_urlpatterns))

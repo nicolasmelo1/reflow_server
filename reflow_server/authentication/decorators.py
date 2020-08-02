@@ -79,14 +79,16 @@ def permission_required(function):
             )
             if not permission_service.is_valid():
                 return JsonResponse({
-                    'status': 'error'
+                    'status': 'error',
+                    'reason': 'not_permitted'
                 }, status=status.HTTP_404_NOT_FOUND)
             else:
                 # automatically decrypts the company_id pk for your views
                 kwargs['company_id'] = Encrypt.decrypt_pk(company_id)
         else:
             return JsonResponse({
-                'status': 'error'
+                'status': 'error',
+                'reason': 'not_permitted'
             }, status=status.HTTP_404_NOT_FOUND)
 
         return function(request, *args, **kwargs)
