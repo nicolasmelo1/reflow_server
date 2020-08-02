@@ -17,6 +17,8 @@ class FormulaType(models.Model):
     """
     name = models.CharField(max_length=50)
     label_name = models.CharField(max_length=100)
-    
+    order = models.BigIntegerField(default=1)
+
     class Meta:
         db_table = 'formula_type'
+        ordering = ('order',)

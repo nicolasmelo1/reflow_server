@@ -51,6 +51,7 @@ class OnboardingSerializer(serializers.Serializer):
     shared_by = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     partner = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     company_name = serializers.CharField(required=False, allow_blank=True)
+    user_phone = serializers.CharField(required=True)
     user_first_name = serializers.CharField(required=True)
     user_last_name = serializers.CharField(required=True)
     user_email = serializers.CharField(required=True)
@@ -63,6 +64,7 @@ class OnboardingSerializer(serializers.Serializer):
             self.validated_data['user_first_name'], 
             self.validated_data['user_last_name'],
             self.validated_data['user_password'],
+            self.validated_data['user_phone'],
             self.validated_data.get('company_name', None),
             self.validated_data.get('shared_by', None),
             self.validated_data.get('partner', None)
@@ -85,3 +87,11 @@ class ChangePasswordSerializer(serializers.Serializer):
     
     def save(self):
         self.password_service.change_password(self.validated_data['password'])
+
+
+class CompanySettingsSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+
+    class Meta:
+        model = Company
+        fields = ('name',) 

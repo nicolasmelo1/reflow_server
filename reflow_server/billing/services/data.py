@@ -7,6 +7,13 @@ import numpy
 import functools
 
 
+class CompanyChargeData:
+    def __init__(self, individual_value_charge_name , quantity, user_id=None):
+        self.charge_name = individual_value_charge_name
+        self.quantity = quantity
+        self.user_id = user_id
+        
+
 class IndividualCompanyChargeData:
     def __init__(self, individual_value_charge_name, individual_value_charge, quantity, individual_discount=1.0):
         """

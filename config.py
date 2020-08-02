@@ -7,7 +7,7 @@ import time
 config_file = json.loads(open('reflow-config.json').read())
 
 class Config:
-    EXTERNAL_APPS = ['reflow_worker', 'reflow_front', 'reflow_billing']
+    EXTERNAL_APPS = ['reflow_worker', 'reflow_front']
 
 
 class DevelopmentConfig(Config):
@@ -21,6 +21,7 @@ class DevelopmentConfig(Config):
     AUTH_BEARER_USERNAME = config_file['auth_bearer']['username']
     AUTH_BEARER_PASSWORD = config_file['auth_bearer']['password']
 
+    VINDI_PRIVATE_API_KEY =  config_file['vindi']['private_api_key']
     VINDI_PUBLIC_API_KEY =  config_file['vindi']['public_api_key']
     VINDI_API_HOST = config_file['vindi']['host']
     VINDI_PAYMENT_METHODS = config_file['vindi']['payment_methods']
@@ -97,6 +98,7 @@ class ServerConfig(Config):
     AUTH_BEARER_USERNAME = os.environ.get('AUTH_BEARER_USERNAME', '')
     AUTH_BEARER_PASSWORD = os.environ.get('AUTH_BEARER_PASSWORD', '')
 
+    VINDI_PRIVATE_API_KEY = os.environ.get('VINDI_PRIVATE_API_KEY', '')
     VINDI_PUBLIC_API_KEY = os.environ.get('VINDI_PUBLIC_API_KEY', '')
     VINDI_API_HOST = os.environ.get('VINDI_API_HOST', '')
     VINDI_PAYMENT_METHODS = dict()

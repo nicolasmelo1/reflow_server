@@ -11,7 +11,7 @@ class ExternalService:
         between reflow apps.
 
         Obviously, we only need this on production environment, on development environment the apps
-        communicate freely.
+        can communicate freely.
 
         Arguments:
             request {django.Request} -- The request recieved in a view.
@@ -36,9 +36,9 @@ class ExternalService:
     def authorize_request():
         """
         This function is used to authorize the request from internal applications of reflow,
-        we have a `billing` app, a `worker` app and others. So for this we use an external app called `auth-bearer`
+        we have a `worker` app and can have many others. So for this we use an external app called `auth-bearer`
         that handles all of the authentication between aplications. With this handy function we can create
-        a authorization header for this application for when it tries to connect with other classes.
+        a authorization header for this application for when it tries to connect with other apps.
         """
         if settings.ENV == 'server':
             response = requests.post(settings.AUTH_BEARER_HOST+'/auth/', json={

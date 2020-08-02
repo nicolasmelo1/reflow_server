@@ -13,7 +13,6 @@
     "port": 587
   },
   "apps": {
-    "reflow_billing": ["http://host.docker.internal:5001"],
     "reflow_worker": ["http://host.docker.internal:8001"],
     "reflow_front": ["http://localhost:3000", "http://host.docker.internal:3000"]
   },
@@ -25,6 +24,7 @@
   "vindi": {
     "host": "https://sandbox-app.vindi.com.br/api/v1",
     "public_api_key": "uNZqO8kJbVRIRSiBEsbyWRGtpTGLd432AxXHYltw_Ow",
+    "private_api_key": "knbtmIJp7smiSzQdThuAquX80aHCGDV9VO2L6_mYOuU",
     "payment_methods": {
         "invoice": "cash"
     }

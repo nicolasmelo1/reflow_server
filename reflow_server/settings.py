@@ -223,7 +223,8 @@ CORS_ORIGIN_REGEX_WHITELIST = [
 # check core.consumers file
 CONSUMERS = {
     'LOGIN_REQUIRED': [
-        'reflow_server.notification.consumers.NotificationReadConsumer'
+        'reflow_server.notification.consumers.NotificationReadConsumer',
+        'reflow_server.data.consumers.DataConsumer'
     ]
 }
 
@@ -288,9 +289,13 @@ AUTH_BEARER_PASSWORD = configuration.AUTH_BEARER_PASSWORD
 # EXTERNAL APPS CONFIGURATION
 EXTERNAL_APPS = configuration.APPS
 
+# BILLING CONFIGURATION
+FREE_TRIAL_DAYS = 30
+
 # VINDI CONFIG
 # check reflow_server.billing for explanation, we actually use vindi as our payment gateway on reflow
 # so this defines stuff for accessing it's api
+VINDI_PRIVATE_API_KEY = configuration.VINDI_PRIVATE_API_KEY
 VINDI_PUBLIC_API_KEY = configuration.VINDI_PUBLIC_API_KEY
 VINDI_API_HOST = configuration.VINDI_API_HOST
 VINDI_PAYMENT_METHODS = configuration.VINDI_PAYMENT_METHODS

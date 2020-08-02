@@ -5,9 +5,11 @@ from django.contrib.auth.models import AbstractUser
 class VisualizationType(models.Model):
     name = models.CharField(max_length=250)
     label_name = models.CharField(max_length=200)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'data_type'
+        ordering = ('order',)
 
 
 class CompanyType(models.Model):
@@ -18,10 +20,11 @@ class CompanyType(models.Model):
     """
     name = models.CharField(max_length=200)
     label_name = models.CharField(max_length=200, null=True, blank=True)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'company_type'
-        ordering = ('id',)
+        ordering = ('order',)
 
 
 class ProfileType(models.Model):
@@ -38,9 +41,31 @@ class ProfileType(models.Model):
     name = models.CharField(max_length=200)
     label_name = models.CharField(max_length=200, null=True, blank=True)
     can_edit = models.BooleanField(default=False)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'profiles'
+        ordering = ('order',)
+
+
+class AddressHelper(models.Model):
+    """
+    This model is a `helper` so it contains data used that is used but is not required. Usually this
+    type of model offers an ammount of data but doesn't relate directly to any table in the database 
+    (They are not used as ForeignKeys).
+    It defines the address options for the user so we will have all of the cities from every state from 
+    every country we support.
+    """
+    country_code = models.CharField(max_length=50)
+    country_name = models.CharField(max_length=200)
+    state = models.CharField(max_length=400)
+    state_code = models.CharField(max_length=100)
+    city = models.CharField(max_length=400)
+    order = models.BigIntegerField(default=1)
+
+    class Meta:
+        db_table = 'address_helper'
+        ordering = ('order',)
 
 
 class Company(models.Model):
@@ -63,6 +88,7 @@ class Company(models.Model):
     state = models.CharField(max_length=280, default=None, null=True)
     city = models.CharField(max_length=280, default=None, null=True)
     cnpj = models.CharField(max_length=280, default=None, null=True)
+    additional_details = models.CharField(max_length=280, default=None, null=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True, db_index=True)

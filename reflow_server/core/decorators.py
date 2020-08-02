@@ -3,6 +3,7 @@ from django.http import JsonResponse
 
 from reflow_server.core.services.external import ExternalService
 from reflow_server.authentication.decorators import jwt_required, permission_required
+from reflow_server.billing.decorators import validate_billing
 
 from functools import wraps
 import requests
@@ -10,9 +11,12 @@ import requests
 
 def authorize_external_response(function):
     """
-    Some urls needs to be protected because sometimes we want to send data from many users or about users between apps.
-    For these urls we protect them with this decorator. This decorator is responsible for validating if the request has an HTTP_AUTHORIZATION
-    bearer disposed by the AUTH_BEARER app. If the JWT is invalid or non existent we respond that this request is invalid.
+    Some urls needs to be protected because sometimes we want to send data from many users or about a 
+    single user between internal apps.
+    For those cases we protect the urls with this decorator. This decorator is responsible for validating 
+    if the request has an HTTP_AUTHORIZATION header disposed by the AUTH_BEARER app. 
+    We then use this header and checks in the AUTH_BEARER app. If this JWT is invalid or non existent 
+    we respond that this request is invalid.
 
     It's important to notice that this is extremely important only when the app is on server environment, 
     so staging and production; for development no such thing is necessary.

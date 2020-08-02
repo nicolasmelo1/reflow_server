@@ -5,22 +5,48 @@ from reflow_server.formulary.models import OptionAccessedBy, Field, FieldOptions
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.authentication.models import UserExtended
 
-from datetime import timedelta
-
+from datetime import datetime, timedelta
 
 class DataService(DataSort, DataSearch):
     def __init__(self, user_id, company_id):
         self.user_id = user_id
         self.company_id = company_id
     
+    @staticmethod
+    def validate_and_extract_date_from_string(date):
+        try:
+            return datetime.strptime(date, '%d/%m/%Y')
+        except ValueError as ve:
+            return None
+        return None
+
     @classmethod
     def get_user_form_data_ids_from_query_params(cls, query_params, user_id, company_id, form_id):
+        """
+        This is a handy function to extract the data_ids from the query_params you might recieve from the request.
+        With this function you get all of the dynamic_form_ids accessed by the user for a particular form based on
+        the query params you recieve in your request. This way we can mantain a common query param pattern on
+        `get` and `delete` requests
+
+        Args:
+            query_params (django.Request.query_params): the query params of the request.
+            user_id (int): For which user you want to extract the data.
+            company_id (int): for which company of the user you are extracting the data
+            form_id (int): for which form/page are you extracting the data
+
+        Returns:
+            list(int) -- Returns a list of all of the dynamic_form_ids that the user has access to from a single form_id.
+        """
         data_service = cls(user_id=user_id, company_id=company_id)
         params = data_service.extract_query_parameters_from_request(query_params)
-        # get correct data to pass as parameters
+
+        from_date = DataService.validate_and_extract_date_from_string(query_params.get('from_date', ''))
+        to_date = DataService.validate_and_extract_date_from_string(query_params.get('to_date', ''))
+        
+        # get the correct data to pass as parameters
         converted_search_data = data_service.convert_search_query_parameters(params['search']['field'], params['search']['value'], params['search']['exact'])
         converted_sort_data = data_service.convert_sort_query_parameters(params['sort']['field'], params['sort']['value'])
-        form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data)
+        form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data, from_date=from_date, to_date=to_date)
         return form_data_accessed_by_user
 
     @staticmethod

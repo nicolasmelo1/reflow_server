@@ -40,9 +40,10 @@ class FormularyDataService(PreSave, PostSave):
         When you run this function we return to you a FormularyData object that exposes
         `.add_section_data()` method for you to add your sections. This object will contain an array
         with all of your sections, but to add those you need to add each section using
-        the `.add_section_data()` method. If this method we return to you a SectionData object which exposes the
-        `.add_field_value()` method to insert each field inside of the section. This way we can have
-        a complete formulary being built as objects and work with it instead of working directly with serializers.
+        the `.add_section_data()` method. The `.add_section_data()` method will return to you a 
+        SectionData object which exposes the `.add_field_value()` method to insert each field inside 
+        of the section. This way we can have a complete formulary being built as objects and work 
+        with it instead of working directly with serializers.
 
         Args:
             form_data_id (int, optional): The id of the formulary, this is usually set if you are editing an
@@ -172,6 +173,12 @@ class FormularyDataService(PreSave, PostSave):
                 self.add_saved_field_value_to_post_process(section_instance, form_value)
 
         self.post_save(self.formulary_data) 
+
+        # sends events to all of the users of the company that this formulary was updated (or created)
+        from reflow_server.data.events import DataEvents
+        DataEvents.send_updated_formulary(self.company_id, formulary_instance.id, self.form.form_name, self.form.id, self.user_id)
+
         # updates the pre_notifications
         PreNotificationService.update(self.company_id)
+
         return formulary_instance

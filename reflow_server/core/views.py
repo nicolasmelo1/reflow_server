@@ -11,7 +11,9 @@ from reflow_server.authentication.models import CompanyType, ProfileType, Visual
 from reflow_server.formula.models import FormulaType
 from reflow_server.formulary.models import SectionType, FieldType, FieldPeriodIntervalType, FieldNumberFormatType, \
     FieldDateFormatType, ConditionalType
+from reflow_server.dashboard.models import AggregationType, ChartType
 from reflow_server.theme.models import ThemeType
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class HealthCheckView(APIView):
@@ -35,7 +37,7 @@ class TypesView(APIView):
         in order for this hole application to work. They usually end with Type in the class model name and in the database
         name.
         """
-        
+       
         charge_frequency_type = list(ChargeFrequencyType.objects.all().values())
         charge_type = list(ChargeType.objects.all().values())
         individual_charge_value_type = list(IndividualChargeValueType.objects.all().values())
@@ -51,7 +53,9 @@ class TypesView(APIView):
         company_type = list(CompanyType.objects.all().values())
         theme_type = list(ThemeType.objects.all().values())
         profile_type = list(ProfileType.objects.all().values())
-           
+        aggregation_type = list(AggregationType.objects.all().values())
+        chart_type = list(ChartType.objects.all().values())
+
         return Response({
            'status': 'ok',
            'data': {
@@ -71,11 +75,12 @@ class TypesView(APIView):
                    'form_type': section_type
                },
                'defaults': {
+                   'chart_type': chart_type,
+                   'aggregation_type': aggregation_type,
                    'profile_type': profile_type,
                    'company_type': company_type,
                    'data_type': data_type,
                    'group_type': theme_type,
                }
            }
-        })
-
+        }, status=status.HTTP_200_OK)

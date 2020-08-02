@@ -1,114 +1,42 @@
 from django.db import transaction
 
 from reflow_server.authentication.models import Company
-from reflow_server.billing.models import ChargeType, IndividualChargeValueType, DiscountByIndividualValue, \
-    CurrentCompanyCharge
-from reflow_server.billing.services.data import TotalData
+from reflow_server.billing.services.charge import ChargeService
+from reflow_server.billing.services.payment import PaymentService
+from reflow_server.billing.services.vindi import VindiService
 
     
 class BillingService:
-    """
-    Helper for change company charges without much difficulty inside the code.
-    Also it is used to check permissions by billing
-
-    it recieves a company_id to instantiate the class and make the changes accordingly
-    """
     def __init__(self, company_id):
-        self.company = Company.objects.filter(id=company_id).first()
-
-    @property
-    def get_total_data(self):
         """
-        Returns a TotalData object, this object is a handy object for retriving totals in many possible ways.
-        You can retrieve the totals in the most simple way, but this object also can retrieve totals from each individual charge name, discounts, coupon discounts
-        and so on. That's why it's preferrable to retrieve an object in this case instead of a simple value.
-
-        Returns:
-            reflow_server.billing.services.data.TotalData: Object with handy functions.
-        """
-        total_data = TotalData(company_id=self.company.id)
-        for current_company_charge in CurrentCompanyCharge.objects.filter(company=self.company):
-            value = current_company_charge.individual_charge_value_type.value
-            discount_percentage = current_company_charge.discount_by_individual_value.value if current_company_charge.discount_by_individual_value else 1
-            quantity = current_company_charge.quantity
-            total_data.add_value(current_company_charge.individual_charge_value_type.name, value, quantity, discount_percentage)
-
-        return total_data
-
-    def __get_discount(self, individual_charge_value_type_id, quantity):
-        return DiscountByIndividualValue.objects.filter(
-            individual_charge_value_type_id=individual_charge_value_type_id, 
-            quantity__lte=quantity
-        ).order_by('-quantity').first()
-
-    def push_updates(self):
-        if self.company.is_paying_company:
-            pass
-
-    @transaction.atomic
-    def update(self, charge_value_name, user_id=None, quantity=None, push_updates=True):
-        """
-        This updates or creates a specific reflow_server.billing.models.CurrentCompanyCharge in our database. This model
-        is responsible for holding the current state of our payment, it's how much we must charge right now on this exact moment even if we are not 
-        charging the company right now.
+        Service for change company charges without much difficulty inside the code. This is also responsible
+        for creating a simple interface with billing without the need to import other billing services like 'ChargeService' or 'PaymentService' 
+        directly.
 
         Args:
-            charge_value_name (str): You always update a unique and specific IndividualChargeValueType name. 
-                                     You can check the possible options in our database.
-            user_id (int, optional): If you are updating the charge of a specific user you must set the user_id, refer to ChargeType. Defaults to None.
-            quantity (int, optional): The quantity of the items that you are trying to update, it's like putting fruits in a basket. Defaults to None.
-            push_updates (bool, optional): Set to False if you don't want to push the updates to our Payment Gateway. Defaults to True.
+            company_id (int): Gets the company info from the database so we can make changes to it
+        """
+        self.company = Company.objects.filter(id=company_id).first()
+        self.charge_service = ChargeService(self.company)
+        self.payment_service = PaymentService(self.company)
+    
+    def remove_credit_card(self):
+        return VindiService(self.company.id).delete_payment_profile()
 
-        Raises:
-            AssertionError: If you are trying to update a `user` ChargeType but you do not send a `user_id` parameter
-            KeyError: raised when passing a wrong `charge_value_name` parameter, raises the possible options.
+    def remove_user(self, user_id, push_updates=True):
+        """
+        Removes a user from the billing.
+
+        Args:
+            user_id (int): the id of the user to remove
+            push_updates (bool, optional): Set to False if you don't want to push the updates to our Payment Gateway. 
+                                           Defaults to True.
 
         Returns:
-            reflow_server.billing.models.CurrentCompanyCharge: The added or updated CurrentCompanyCharge.
+            bool: True or False wheather the removal of the user was successful or not.
         """
-        charge_type = ChargeType.objects.filter(name='user' if user_id else 'company').first()
-        individual_charge_value_type = IndividualChargeValueType.objects.filter(name=charge_value_name, charge_type=charge_type).first()
-        
-        if not individual_charge_value_type:
-            if IndividualChargeValueType.objects.filter(name=charge_value_name, charge_type__name='user').exists():
-                raise AssertionError('`user_id` parameter is obligatory for the `{}` charge value name'.format(charge_value_name))
-            else:
-                raise KeyError(
-                    'Your `charge_value_name` parameter must be one of the following options: {}'.format(
-                        ', '.join(list(IndividualChargeValueType.objects.all().values_list('name', flat=True)))
-                    )
-                )
-        
-        # if quantity is not defined we use the quantity of the default quantity defined in IndividualChargeValueType
-        if not quantity:
-            quantity = individual_charge_value_type.default_quantity
-
-        discount = self.__get_discount(individual_charge_value_type.id, quantity)
-        
-        charge_instance, __ = CurrentCompanyCharge.objects.update_or_create(
-            individual_charge_value_type=individual_charge_value_type, 
-            company=self.company, 
-            user_id=user_id,
-            defaults={
-                'discount_by_individual_value': discount,
-                'quantity': quantity
-        })
-
-        if push_updates:
-            self.push_updates()
-        return charge_instance
-
-    def remove_user(self, user_id):
-        CurrentCompanyCharge.objects.filter(company=self.company, user_id=user_id).delete()
-        return True
-
-    def __create(self, charge_value_names, push_updates, user_id=None):
-        updated = list()
-        for charge_value_name in charge_value_names:
-            updated.append(
-                self.update(charge_value_name, user_id=user_id, push_updates=push_updates)
-            )
-        return updated
+        charge_value_name = 'per_user'
+        return self.charge_service.remove(charge_value_name, user_id, push_updates)
 
     @transaction.atomic
     def create_user(self, user_id, push_updates=True):
@@ -125,7 +53,7 @@ class BillingService:
         """
         charge_value_names = ['per_user']
 
-        return self.__create(charge_value_names, user_id=user_id, push_updates=push_updates)
+        return self.charge_service.create(charge_value_names, user_id=user_id, push_updates=push_updates)
 
     @transaction.atomic
     def create_company(self, push_updates=True):
@@ -142,16 +70,71 @@ class BillingService:
         """
         charge_value_names = ['per_gb']
 
-        return self.__create(charge_value_names, push_updates=push_updates)
+        return self.charge_service.create(charge_value_names, push_updates=push_updates)
 
+    @classmethod
+    @transaction.atomic
+    def update_billing(cls, company_id, payment_method_type_id, invoice_date_type_id, emails, 
+                       current_company_charges, cnpj, zip_code, street, state, 
+                       number, neighborhood, country, city, additional_details=None, gateway_token=None):
+        """
+        Updates billing, so this is a factory method that automatically updates the payment data and also the charge data and pushes it
+        to the payment gateway.
 
+        Args:
+            company_id (int): The id of the company to update
+            payment_method_type_id (int): the reflow_server.billing.models.PaymentMethodType id to use on this particular company, 
+                                          is it credit_card or invoice?
+            invoice_date_type_id (int): the id of a single reflow_server.billing.models.InvoiceDateType model, in other words, when the
+                                        company will be billed.
+            emails (list(str)): The list of emails to be used to send the invoice to
+            current_company_charges (list(reflow_server.billing.services.data.CompanyChargeData)): Notice that this is a list of a specific object
+                                                                                                   so if you are trying to use this method from a serializer
+                                                                                                   you need to convert the serializer first.
+            cnpj (str): The CNPJ of the company, just numbers as string
+            zip_code (str): The zip_code of the company address, just numbers as string
+            street (str): The street of where the company is located. Just validate if the city is defined in reflow_server.authentication.models.AddressHelper
+                          table.
+            state (str): The state of the city where the company is located. Vindi requires us that we follow ISO 3166-2, this should be defined already 
+                            in reflow_server.authentication.models.AdressHelper model so you don't need to worry
+            number (int): The number of the house or of the building where this company is located. This is from the address of the company
+            neighborhood (str): The neighborhood of where the street where this company is located.
+            country (str): The country where this company is located, as state, is MUST follow ISO 3166-2, luckly, it is already defined in
+                           reflow_server.authentication.models.AddressHelper.
+            city (str): Thye city where this company is located
+            additional_details (str, optional): Additional details about the address, could be particular building in a condo, or something else. 
+                                                Defaults to None.
+            gateway_token (str, optional): This is a gateway token handled entirely by Vindi. Defaults to None.
+        Returns:
+            bool: Return True that the billing information was updated.
+        """
+
+        # automatically sets the country to 'BR' if the country is None, we use this now but might change
+        # when internationalizing the platform
+        country = country if country else 'BR'
+
+        billing_service = cls(company_id)
+        for current_company_charge in current_company_charges:
+            billing_service.charge_service.update_or_create(
+                current_company_charge.charge_name, 
+                current_company_charge.user_id, 
+                current_company_charge.quantity, 
+                push_updates=False
+            )
+        billing_service.payment_service.update_address_and_company_info(
+            cnpj, zip_code, street, state, number, neighborhood, country, 
+            city, additional_details, push_updates=False
+        )
+        billing_service.payment_service.update_payment(payment_method_type_id, invoice_date_type_id, emails, gateway_token=gateway_token, push_updates=True)
+        return True
+        
     @classmethod
     @transaction.atomic
     def create_on_onboarding(cls, company_id, user_id):
         billing_service = cls(company_id)
         billing_service.create_company(push_updates=False)
         billing_service.create_user(user_id=user_id, push_updates=False)
-        billing_service.push_updates()
+        billing_service.charge_service.push_updates()
         return True
     
 

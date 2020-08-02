@@ -16,9 +16,11 @@ class ChargeType(models.Model):
     n dashboards in total inside of this company.
     """
     name = models.CharField(max_length=250)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'charge_type'
+        ordering = ('order',)
 
 
 class ChargeFrequencyType(models.Model):
@@ -28,9 +30,11 @@ class ChargeFrequencyType(models.Model):
     and etc.
     """
     name = models.CharField(max_length=250)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'charge_frequency_type'
+        ordering = ('order',)
 
 
 class InvoiceDateType(models.Model):
@@ -45,9 +49,11 @@ class InvoiceDateType(models.Model):
     be charged on each month or year.
     """
     date = models.IntegerField()
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'invoice_date_type'
+        ordering = ('order',)
 
 
 class PaymentMethodType(models.Model):
@@ -56,9 +62,11 @@ class PaymentMethodType(models.Model):
     it's the payment method. Could be `credit_card`, could be `debit_card`, could be `boleto` and etc.
     """
     name = models.CharField(max_length=250)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'payment_method_type'
+        ordering = ('order',)
 
 
 class IndividualChargeValueType(models.Model):
@@ -75,11 +83,14 @@ class IndividualChargeValueType(models.Model):
     charge_type = models.ForeignKey('billing.ChargeType', on_delete=models.CASCADE)
     charge_frequency_type = models.ForeignKey('billing.ChargeFrequencyType', on_delete=models.CASCADE)
     name = models.CharField(max_length=250)
+    charge_group_name = models.CharField(max_length=250, blank=True, default='')
     value = models.DecimalField(max_digits=10, decimal_places=2)
     default_quantity = models.IntegerField(null=True, blank=True)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'individual_charge_value_type'
+        ordering = ('order',)
 
 
 # Billing tables

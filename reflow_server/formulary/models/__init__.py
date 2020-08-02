@@ -28,10 +28,12 @@ class SectionType(models.Model):
     """
     type = models.CharField(max_length=150, db_index=True)
     label_name = models.CharField(max_length=250, null=True, blank=True)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'form_type'
         app_label = 'formulary'
+        ordering = ('order',)
 
 
 class FieldPeriodIntervalType(models.Model):
@@ -47,10 +49,12 @@ class FieldPeriodIntervalType(models.Model):
     type = models.CharField(max_length=200, db_index=True)
     label_name = models.CharField(max_length=250)
     in_seconds = models.BigIntegerField()
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'field_period_interval_type'
         app_label = 'formulary'
+        ordering = ('order',)
 
 
 class FieldNumberFormatType(models.Model):
@@ -152,9 +156,11 @@ class ConditionalType(models.Model):
     """
     type = models.CharField(max_length=150, db_index=True)
     label_name = models.CharField(max_length=250, null=True, blank=True)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'conditional_type'
+        ordering = ('order',)
         app_label = 'formulary'
 
 
@@ -173,10 +179,12 @@ class FieldType(models.Model):
     """
     type = models.CharField(max_length=200, db_index=True)
     label_name = models.CharField(max_length=250, null=True, blank=True)
+    order = models.BigIntegerField(default=1)
 
     class Meta:
         db_table = 'field_type'
         app_label = 'formulary'
+        ordering = ('order',)
 
 #############
 #           #
