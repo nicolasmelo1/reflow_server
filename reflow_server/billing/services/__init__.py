@@ -35,8 +35,9 @@ class BillingService:
         Returns:
             bool: True or False wheather the removal of the user was successful or not.
         """
-        charge_value_name = 'per_user'
-        return self.charge_service.remove(charge_value_name, user_id, push_updates)
+        for charge_name in ['per_user', 'per_chart_company', 'per_chart_user']:
+            self.charge_service.remove(charge_name, user_id, push_updates)
+        return True
 
     @transaction.atomic
     def create_user(self, user_id, push_updates=True):
@@ -51,7 +52,7 @@ class BillingService:
             list(reflow_server.billing.models.CurrentCompanyCharge): This data is a list of the instances of the newly created CurrentCompanyCharge.
                                                                      each item on the list represents each row inserted on the database.
         """
-        charge_value_names = ['per_user']
+        charge_value_names = ['per_user', 'per_chart_company', 'per_chart_user']
 
         return self.charge_service.create(charge_value_names, user_id=user_id, push_updates=push_updates)
 
@@ -136,5 +137,4 @@ class BillingService:
         billing_service.create_user(user_id=user_id, push_updates=False)
         billing_service.charge_service.push_updates()
         return True
-    
-
+        
