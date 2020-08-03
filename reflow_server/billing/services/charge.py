@@ -94,7 +94,7 @@ class ChargeService:
             )
         return created
 
-    def get_total_data_from_custom_charge_quantity(self, individual_charge_value_types):
+    def get_total_data_from_custom_charge_quantity(self, current_company_charges):
         """
         Gets the totals based on a custom value that is not saved in our database. We usually need and use this so the user can have 
         a feedback while changing the quantity values while updating the billing information.
@@ -106,7 +106,7 @@ class ChargeService:
             reflow_server.billing.services.data.TotalData: Totals object with handy functions.
         """
         total_data = TotalData(company_id=self.company.id)
-        for company_charge in individual_charge_value_types:
+        for company_charge in current_company_charges:
             individual_charge_value = IndividualChargeValueType.objects.filter(name=company_charge.charge_name).first()
             if individual_charge_value:
                 discount = self.__get_discount(individual_charge_value.id, company_charge.quantity)

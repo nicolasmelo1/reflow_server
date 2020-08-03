@@ -19,17 +19,22 @@ class ExtractService:
         if sort_value or sort_field:
             # if there is not both
             if not sort_value and sort_field:
+                print('sort_value and sort_field')
                 return False
             if len(sort_value) != len(sort_field):
+                print('len(sort_value) != len(sort_field)')
                 return False
 
         if search_value or search_field or search_exact:
             # if there is not all
             if not search_value and search_field and search_exact:
+                print('not search_value and search_field and search_exact')
                 return False
             # if any of the 3 does not have equal lengths
             if any(len(lst) != len(search_field) for lst in [search_value, search_exact]):
+                print('any(len(lst) != len(search_field) for lst in [search_value, search_exact])')
                 return False
+        return True
 
     def __start_extraction(self, file_id, user_id, company_id, form_id, 
                            file_format, from_date, to_date, 
