@@ -149,7 +149,8 @@ class ChargeService:
         """
         return DiscountByIndividualValue.objects.filter(
             individual_charge_value_type_id=individual_charge_value_type_id, 
-            quantity__lte=quantity
+            quantity__lte=quantity,
+            static=False
         ).order_by('-quantity').first()
 
     @transaction.atomic

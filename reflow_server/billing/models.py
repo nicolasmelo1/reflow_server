@@ -100,9 +100,13 @@ class DiscountByIndividualValue(models.Model):
     If the user selects 10 Gbs of storage space he recieves 15% discount (so the `value` on this example must be 0.85 because
     we are subtracting 15% of the original value). Then if he selects 20 Gbs of storage space the discount is now 25%, you
     get it.
+
+    Static are discounts that we can give for a lifetime for the user. We do NEVER consider them when calculating the discount
+    for a particular quantity, they must be set directly.
     """
     individual_charge_value_type = models.ForeignKey('billing.IndividualChargeValueType', on_delete=models.CASCADE)
     quantity = models.IntegerField()
+    static = models.BooleanField(default=False)
     value = models.DecimalField(max_digits=10, decimal_places=2)
     name = models.CharField(max_length=250)
 
