@@ -1,5 +1,7 @@
 from django.db import transaction
+from django.db.models import Q
 
+from reflow_server.authentication.models import UserExtended
 from reflow_server.billing.models import CurrentCompanyCharge, DiscountByIndividualValue, \
     IndividualChargeValueType, ChargeType
 from reflow_server.billing.services.data import TotalData
@@ -31,6 +33,15 @@ class ChargeService:
             vindi_service = VindiService(self.company.id)
             vindi_service.create_or_update()
     
+    def remove_charge_values_from_removed_users(self):
+        """
+        Removes all of the CurrentCompanyCharges that are bound to a removed user. Obviously, doesn't consider the ones that are for the
+        company, so with user_id set to None
+        """
+        company_users = UserExtended.objects.filter(company_id=self.company.id, is_active=True)
+        CurrentCompanyCharge.objects.filter(company_id=self.company.id).exclude(Q(user_id__isnull=True) | Q(user_id__in=company_users)).delete()
+        return True
+
     def remove(self, charge_value_name, user_id=None, push_updates=True):
         """
         Removes a charge from the company based on the charge_value_name of this charge, this way you can remove users, storage capacity and other 

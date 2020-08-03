@@ -100,7 +100,7 @@ class BillingPermissionService:
         return True
 
     def is_valid_free_trial(self):
-        if not self.company.is_paying_company and self.company.created_at < timezone.now() - timedelta(days=settings.FREE_TRIAL_DAYS):
+        if not self.company.is_supercompany and not self.company.is_paying_company and self.company.created_at < timezone.now() - timedelta(days=settings.FREE_TRIAL_DAYS):
             return False
         else:
             return True

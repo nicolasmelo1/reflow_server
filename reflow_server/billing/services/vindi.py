@@ -75,7 +75,6 @@ class VindiService:
         """
         emails = CompanyInvoiceMails.objects.filter(company=self.company)
         response = None
-        print(self.company.state)
         
         if emails:
             if self.vindi_client_id:

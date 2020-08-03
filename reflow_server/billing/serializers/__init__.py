@@ -3,9 +3,10 @@ from rest_framework import serializers
 from reflow_server.authentication.models import Company, AddressHelper
 from reflow_server.billing.services.data import CompanyChargeData
 from reflow_server.billing.services import VindiService, BillingService
-from reflow_server.billing.models import CurrentCompanyCharge
+from reflow_server.billing.models import CurrentCompanyCharge, IndividualChargeValueType
 from reflow_server.billing.relations import CompanyInvoiceMailsRelation
 from reflow_server.billing.utils import validate_cnpj, validate_cpf
+
 
 class AddressOptionsSerializer(serializers.ModelSerializer):
     class Meta:
