@@ -316,9 +316,9 @@ class VindiService:
                     company.is_active = True
                     company.save()
             elif event == 'bill_paid':
-                customer_id = data.get('customer', {}).get('id', None)
-                print(customer_id)
-                subscription_id = data.get('subscription', {}).get('id', None)
-                print(subscription_id)
-                customer_id = data.get('subscription', {}).get('customer', {}).get('id', None)
-                print(customer_id)
+                from reflow_server.billing.services.charge import ChargeService
+
+                vindi_customer_id = data.get('customer', {}).get('id', None)
+                total_value = data.get('amount', 0)
+                attempt_count = data.get('charges', [{}])[0].get('attempt_count', 0)
+                ChargeService.add_new_company_charge(vindi_customer_id, total_value, attempt_count)

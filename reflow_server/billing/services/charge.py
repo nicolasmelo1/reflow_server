@@ -226,3 +226,11 @@ class ChargeService:
         if push_updates:
             self.push_updates()
         return charge_instance
+
+    @staticmethod
+    def add_new_company_charge(vindi_customer_id, total_value, attempt_count):
+        print('add_new_company_charge')
+        print(vindi_customer_id)
+        print(total_value)
+        print(attempt_count)
+    

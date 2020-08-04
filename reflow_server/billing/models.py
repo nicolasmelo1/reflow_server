@@ -201,9 +201,7 @@ class CompanyCharge(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     total_value = models.DecimalField(max_digits=10, decimal_places=2)
-    due_date = models.DateTimeField()
     attempt_count = models.IntegerField(default=0)
-    charge_date = models.DateTimeField(auto_now_add=True)
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, related_name='company_charges')
 
     class Meta:
