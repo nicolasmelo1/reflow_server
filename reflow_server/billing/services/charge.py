@@ -1,11 +1,13 @@
 from django.db import transaction
 from django.db.models import Q
 
-from reflow_server.authentication.models import UserExtended
+from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.billing.models import CurrentCompanyCharge, DiscountByIndividualValueQuantity, \
-    IndividualChargeValueType, ChargeType, DiscountByIndividualNameForCompany
+    IndividualChargeValueType, ChargeType, DiscountByIndividualNameForCompany, CompanyCharge
 from reflow_server.billing.services.data import TotalData
 from reflow_server.billing.services.vindi import VindiService
+
+from datetime import datetime, timedelta
 
 
 class ChargeService:
@@ -229,8 +231,17 @@ class ChargeService:
 
     @staticmethod
     def add_new_company_charge(vindi_customer_id, total_value, attempt_count):
-        print('add_new_company_charge')
-        print(vindi_customer_id)
-        print(total_value)
-        print(attempt_count)
+        company = Company.objects.filter(vindi_client_id=vindi_customer_id).first()
+        if company:
+            today_end = datetime.now()
+            today_start = today_end - timedelta(minutes=1)
+            company_charges_updated_in_the_last_minute = CompanyCharge.objects.filter(
+                company=company, created_at__lte=today_end, created_at__gte=today_start
+            )
+            if not company_charges_updated_in_the_last_minute:
+                CompanyCharge.objects.create(
+                    company=company,
+                    total_value=total_value,
+                    attempt_count=attempt_count
+                )
     

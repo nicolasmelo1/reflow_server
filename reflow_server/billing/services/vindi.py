@@ -4,7 +4,7 @@ from django.db import transaction
 from rest_framework import status
 
 from reflow_server.authentication.models import Company
-from reflow_server.billing.models import CompanyInvoiceMails, CompanyCharge
+from reflow_server.billing.models import CompanyInvoiceMails
 
 
 class VindiService:
