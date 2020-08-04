@@ -315,12 +315,12 @@ class VindiService:
             data = data[settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event]]
             if event == 'subscription_canceled':
                 company = Company.objects.filter(vindi_signature_id=data.get('id', -1)).first()
-                if company:
+                if company and not company.is_supercompany:
                     company.is_active = False
                     company.save()
             elif event == 'subscription_reactivated':
                 company = Company.objects.filter(vindi_signature_id=data.get('id', -1)).first()
-                if company:
+                if company and not company.is_supercompany:
                     company.is_active = True
                     company.save()
             elif event == 'bill_paid':
