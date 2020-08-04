@@ -299,9 +299,15 @@ class VindiService:
     
     @staticmethod
     def handle_webhook(data):
-        print('VINDI_WEBHOOK')
+        """
+        This is responsible for handling Vindi webhook requests. You just need to send the data recieved and this function takes 
+        care of the rest.
+
+        Args:
+            data (dict): The json of the event so we can parse it here. Since it can change many times 
+                         we parse it here in the service and not in the view.
+        """
         event = data.get('event', {}).get('type', '')
-        print(event)
         data = data.get('event', {}).get('data', {})
         if event in list(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS.keys()) and data.get(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event], None):
             data = data[settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event]]

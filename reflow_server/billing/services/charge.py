@@ -231,6 +231,19 @@ class ChargeService:
 
     @staticmethod
     def add_new_company_charge(vindi_customer_id, total_value, attempt_count):
+        """
+        This static function is responsible for saving to our database that the user has made a payment for a invoice.
+        This is nice for us so we can keep track of all of the payments made by the user in our platform, we can easily spot frauds
+        and other stuff with it.
+
+        We also prevent updates in less than a minute, so two requests being fired at the same time doesn't save twice.
+
+        Args:
+            vindi_customer_id (int): the vindi_customer_id so we can filter the company in Company model. So this way we know what user 
+                                     is making a new payment.
+            total_value (float): The amout the user has paid
+            attempt_count (int): how many attempts we needed to bill the user.
+        """
         company = Company.objects.filter(vindi_client_id=vindi_customer_id).first()
         if company:
             today_end = datetime.now()
@@ -244,4 +257,4 @@ class ChargeService:
                     total_value=total_value,
                     attempt_count=attempt_count
                 )
-    
+        return True
