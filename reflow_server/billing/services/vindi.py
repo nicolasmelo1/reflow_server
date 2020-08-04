@@ -323,5 +323,5 @@ class VindiService:
                 print(customer_id)
                 subscription_id = data.get('subscription', {}).get('id', None)
                 print(subscription_id)
-                customer_id = data.get('subscription', {}).data.get('customer', {}).get('id', None)
+                customer_id = data.get('subscription', {}).get('customer', {}).get('id', None)
                 print(customer_id)
