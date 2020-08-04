@@ -94,7 +94,7 @@ class IndividualChargeValueType(models.Model):
 
 
 # Billing tables
-class DiscountByIndividualValue(models.Model):
+class DiscountByIndividualValueQuantity(models.Model):
     """
     This model holds the discounts for each individual charge we make based on quantity. For example on storage space.
     If the user selects 10 Gbs of storage space he recieves 15% discount (so the `value` on this example must be 0.85 because
@@ -106,17 +106,33 @@ class DiscountByIndividualValue(models.Model):
     """
     individual_charge_value_type = models.ForeignKey('billing.IndividualChargeValueType', on_delete=models.CASCADE)
     quantity = models.IntegerField()
-    static = models.BooleanField(default=False)
     value = models.DecimalField(max_digits=10, decimal_places=2)
     name = models.CharField(max_length=250)
 
     class Meta:
-        db_table = 'discount_by_individual_value'
+        db_table = 'discount_by_individual_value_quantity'
+
+
+class DiscountByIndividualNameForCompany(models.Model):
+    """
+    This model is responsible for holding the discounts for each billing.IndividualChargeValueType but the difference here
+    is that they are not based on quantity like `reflow_server.billing.models.DiscountByIndividualValueQuantity` but for each company
+    directly. 
+
+    The above automatically checks if a company has a discount for a specific `reflow_server.billing.models.IndividualChargeValueType`.
+    """
+    individual_charge_value_type = models.ForeignKey('billing.IndividualChargeValueType', on_delete=models.CASCADE)
+    value = models.DecimalField(max_digits=10, decimal_places=2)
+    name = models.CharField(max_length=250)
+    company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'discount_by_individual_name_for_company'
 
 
 class DiscountCoupon(models.Model):
     """
-    The model `reflow_server.billing.models.DiscountByIndividualValue` are discounts we define internally as a company,
+    The model `reflow_server.billing.models.DiscountByIndividualValueQuantity` are discounts we define internally as a company,
     Discount coupon is coupons we can give to the user so he can have a certain discount on his invoice.
 
     Discount Coupons are usually not for the lifetime, we need a start_date and an end_date. Sometimes they can be permanent,
@@ -170,7 +186,7 @@ class CurrentCompanyCharge(models.Model):
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, related_name='current_company_charges')
     user = models.ForeignKey('authentication.UserExtended', on_delete=models.CASCADE, null=True, blank=True)
     individual_charge_value_type = models.ForeignKey('billing.IndividualChargeValueType', on_delete=models.CASCADE)
-    discount_by_individual_value = models.ForeignKey('billing.DiscountByIndividualValue', on_delete=models.CASCADE, null=True, blank=True)
+    discount_by_individual_value = models.ForeignKey('billing.DiscountByIndividualValueQuantity', on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.IntegerField()
 
     class Meta:

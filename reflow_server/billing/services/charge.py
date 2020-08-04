@@ -2,8 +2,8 @@ from django.db import transaction
 from django.db.models import Q
 
 from reflow_server.authentication.models import UserExtended
-from reflow_server.billing.models import CurrentCompanyCharge, DiscountByIndividualValue, \
-    IndividualChargeValueType, ChargeType
+from reflow_server.billing.models import CurrentCompanyCharge, DiscountByIndividualValueQuantity, \
+    IndividualChargeValueType, ChargeType, DiscountByIndividualNameForCompany
 from reflow_server.billing.services.data import TotalData
 from reflow_server.billing.services.vindi import VindiService
 
@@ -109,9 +109,14 @@ class ChargeService:
         for company_charge in current_company_charges:
             individual_charge_value = IndividualChargeValueType.objects.filter(name=company_charge.charge_name).first()
             if individual_charge_value:
-                discount = self.__get_discount(individual_charge_value.id, company_charge.quantity)
+                discount_from_quantity = self.__get_discount_for_quantity(individual_charge_value.id, company_charge.quantity)
+                discount_from_quantity = discount_from_quantity.value if discount_from_quantity else 1
+                discount_by_individual_charge_type_for_company = self.__get_discount_for_company_from_a_individual_charge_value_type(individual_charge_value.id)
+                discount_by_individual_charge_type_for_company = discount_by_individual_charge_type_for_company.value \
+                    if discount_by_individual_charge_type_for_company else 1
+
+                discount_percentage = discount_from_quantity * discount_by_individual_charge_type_for_company
                 value = individual_charge_value.value
-                discount_percentage = discount.value if discount else 1
                 quantity = company_charge.quantity
                 total_data.add_value(company_charge.charge_name, value, quantity, discount_percentage)
         return total_data
@@ -129,14 +134,31 @@ class ChargeService:
         """
         total_data = TotalData(company_id=self.company.id)
         for current_company_charge in CurrentCompanyCharge.objects.filter(company=self.company):
+            discount_by_individual_charge_type_for_company = self.__get_discount_for_company_from_a_individual_charge_value_type(
+                current_company_charge.individual_charge_value_type.id
+            )
+            discount_percentage_by_quantity = current_company_charge.discount_by_individual_value.value if current_company_charge.discount_by_individual_value else 1
+            discount_by_individual_charge_type_for_company = discount_by_individual_charge_type_for_company.value \
+                if discount_by_individual_charge_type_for_company else 1
+
+            discount_percentage = discount_percentage_by_quantity * discount_by_individual_charge_type_for_company
             value = current_company_charge.individual_charge_value_type.value
-            discount_percentage = current_company_charge.discount_by_individual_value.value if current_company_charge.discount_by_individual_value else 1
             quantity = current_company_charge.quantity
             total_data.add_value(current_company_charge.individual_charge_value_type.name, value, quantity, discount_percentage)
 
         return total_data
+    
+    def __get_discount_for_company_from_a_individual_charge_value_type(self, individual_charge_value_type_id):
+        """
+        Sometimes we can give discounts for a spcefic company for a especifically funcionality on the plataform. The quantity one 
+        always works for every client on the platform. With this one we can set special discounts for companies and each funcionality.
+        """
+        return DiscountByIndividualNameForCompany.objects.filter(
+            company=self.company, 
+            individual_charge_value_type_id=individual_charge_value_type_id
+        ).first()
 
-    def __get_discount(self, individual_charge_value_type_id, quantity):
+    def __get_discount_for_quantity(self, individual_charge_value_type_id, quantity):
         """
         Gets the discount for a particular individual_charge_value_type and based on a specific quantity.
 
@@ -145,12 +167,11 @@ class ChargeService:
             quantity (int): the quantity of this particular individual charge
 
         Returns:
-            reflow_server.billing.models.DiscountByIndividualValue: The discount object to consider.
+            reflow_server.billing.models.DiscountByIndividualValueQuantity: The discount object to consider.
         """
-        return DiscountByIndividualValue.objects.filter(
+        return DiscountByIndividualValueQuantity.objects.filter(
             individual_charge_value_type_id=individual_charge_value_type_id, 
-            quantity__lte=quantity,
-            static=False
+            quantity__lte=quantity
         ).order_by('-quantity').first()
 
     @transaction.atomic
@@ -191,7 +212,7 @@ class ChargeService:
         if not quantity:
             quantity = individual_charge_value_type.default_quantity
 
-        discount = self.__get_discount(individual_charge_value_type.id, quantity)
+        discount = self.__get_discount_for_quantity(individual_charge_value_type.id, quantity)
         
         charge_instance, __ = CurrentCompanyCharge.objects.update_or_create(
             individual_charge_value_type=individual_charge_value_type, 

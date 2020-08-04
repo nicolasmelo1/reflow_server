@@ -55,7 +55,8 @@ class TotalData:
 
     def add_value(self, individual_value_charge_name, individual_value_charge, quantity, individual_discount=1):
         """
-        Do not use this method anyware outside billing services
+        This method is for adding data and generate a TotalData object with handy functions you can use for totals. Since TotalData
+        is basically a dict that you can handle. Using this function you are inserting data
         """
         existing_values = self.individual_value_charges_by_name.get(individual_value_charge_name, list())
         existing_values = existing_values + [IndividualCompanyChargeData(individual_value_charge_name, individual_value_charge, quantity, individual_discount)]
@@ -72,7 +73,7 @@ class TotalData:
             float: a float with the total of discounts
         """
         discounts_aggregate_result = self.discount_coupons.aggregate(total_coupons_discount=Sum('discount_coupon__value')).get('total_coupons_discount', 0)
-        return discounts_aggregate_result if discounts_aggregate_result else 0
+        return float(discounts_aggregate_result) if discounts_aggregate_result else 0
 
     @property
     def total_by_charge_name(self):

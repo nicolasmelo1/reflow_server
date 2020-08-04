@@ -25,8 +25,9 @@ class DevelopmentConfig(Config):
     VINDI_PUBLIC_API_KEY =  config_file['vindi']['public_api_key']
     VINDI_API_HOST = config_file['vindi']['host']
     VINDI_PAYMENT_METHODS = config_file['vindi']['payment_methods']
-    EMAIL_ADD_NEW_USER = config_file['email']['emails']['add_new_user']['email']
+    VINDI_WEBHOOK_SECRET_KEY = config_file['vindi']['webhook_secret_key']
 
+    EMAIL_ADD_NEW_USER = config_file['email']['emails']['add_new_user']['email']
 
     DATABASES = {
         'default': {
@@ -102,6 +103,7 @@ class ServerConfig(Config):
     VINDI_PUBLIC_API_KEY = os.environ.get('VINDI_PUBLIC_API_KEY', '')
     VINDI_API_HOST = os.environ.get('VINDI_API_HOST', '')
     VINDI_PAYMENT_METHODS = dict()
+    VINDI_WEBHOOK_SECRET_KEY = os.environ.get('VINDI_WEBHOOK_SECRET_KEY', '')
 
     EMAIL_ADD_NEW_USER = os.environ.get('EMAIL_ADD_NEW_USER', None)
 

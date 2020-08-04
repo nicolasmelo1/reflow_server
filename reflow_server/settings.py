@@ -301,6 +301,12 @@ FREE_TRIAL_DAYS = 30
 VINDI_PRIVATE_API_KEY = configuration.VINDI_PRIVATE_API_KEY
 VINDI_PUBLIC_API_KEY = configuration.VINDI_PUBLIC_API_KEY
 VINDI_API_HOST = configuration.VINDI_API_HOST
+# this one is special, we use it to convert the reflow_server.billing.models.PaymentMethodType to the ones that are
+# accepted by vindi. If in our side it is called 'boleto' but vindi accepts only `invoice` we change `boleto` PaymentMethodType.name
+# to `invoice`. To use it with environment variables you must set each of them like: 
+# VINDI_PAYMENT_METHODS_<the name of the PaymentMethodType> = <The string that vindi accepts>
 VINDI_PAYMENT_METHODS = configuration.VINDI_PAYMENT_METHODS
+VINDI_WEBHOOK_SECRET_KEY = configuration.VINDI_WEBHOOK_SECRET_KEY
+VINDI_ACCEPTED_WEBHOOK_EVENTS = ['bill_paid', 'subscription_canceled', 'subscription_reactivated']
 
 FROM_EMAIL = configuration.EMAIL_ADD_NEW_USER

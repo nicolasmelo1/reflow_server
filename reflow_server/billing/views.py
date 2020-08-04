@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
@@ -42,8 +43,12 @@ class TotalsView(APIView):
                 for current_company_charge in serializer.initial_data
             ]
             total_data = charge_service.get_total_data_from_custom_charge_quantity(current_company_charges)
-            data = [{'name': key, 'total': value} for key, value in total_data.total_by_charge_name.items()]
-            serializer = TotalsSerializer(data=data, many=True)
+            data = {
+                'total': total_data.total,
+                'discounts': total_data.total_coupons_discounts,
+                'total_by_name': [{'name': key, 'total': value} for key, value in total_data.total_by_charge_name.items()]
+            }
+            serializer = TotalsSerializer(data=data)
             return Response({
                 'status': 'ok',
                 'data': serializer.initial_data
@@ -106,4 +111,14 @@ class VindiWebhookExternalView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):
-        pass
+        token = request.query_params.get('secret', '')
+        if settings.VINDI_WEBHOOK_SECRET_KEY == secret:
+            import json
+            data = json.loads(request.body.decode('utf-8'))
+            print('VINDI_WEBHOOK')
+            print(data)
+            print(request.data)
+
+        return Response({
+            'status': 'ok'
+        }, status=status.HTTP_200_OK)

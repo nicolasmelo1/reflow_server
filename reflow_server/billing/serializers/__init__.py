@@ -4,7 +4,7 @@ from reflow_server.authentication.models import Company, AddressHelper
 from reflow_server.billing.services.data import CompanyChargeData
 from reflow_server.billing.services import VindiService, BillingService
 from reflow_server.billing.models import CurrentCompanyCharge, IndividualChargeValueType
-from reflow_server.billing.relations import CompanyInvoiceMailsRelation
+from reflow_server.billing.relations import CompanyInvoiceMailsRelation, TotalsByNameRelation
 from reflow_server.billing.utils import validate_cnpj, validate_cpf
 
 
@@ -25,8 +25,9 @@ class CurrentCompanyChargeSerializer(serializers.ModelSerializer):
 
 
 class TotalsSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    total = serializers.CharField()
+    total = serializers.FloatField()
+    discounts = serializers.FloatField()
+    total_by_name = TotalsByNameRelation(many=True)
 
 
 class PaymentSerializer(serializers.ModelSerializer):

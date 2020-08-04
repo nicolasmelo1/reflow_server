@@ -23,7 +23,6 @@ class VindiService:
 
         from reflow_server.billing.externals import VindiExternal
         from reflow_server.billing.services.charge import ChargeService
-    
 
         self.billing_service = ChargeService(self.company)
         self.vindi_external = VindiExternal()
@@ -34,6 +33,8 @@ class VindiService:
         self.vindi_payment_profile_id = self.company.vindi_payment_profile_id
         self.vindi_signature_id = self.company.vindi_signature_id
 
+    def handle_webhook(self, data):
+        pass
     @property
     def __total(self):
         """
@@ -94,7 +95,7 @@ class VindiService:
                     [email.email for email in emails[1:]]
                 )
 
-        status_code = response.status_code if response else None
+        status_code = response.status_code if response and response.status_code else None
         self.vindi_client_id = response.json().get('customer', {}).get('id', self.vindi_client_id) if response else self.vindi_client_id
         return (status_code, self.vindi_client_id)
 
@@ -119,16 +120,16 @@ class VindiService:
             response = self.vindi_external.update_product(
                 self.vindi_product_id,
                 'Valor total da {}'.format(self.company.name),
-                'product_of_company_{}'.format(self.company.id),
+                'product_of_company_{}'.format(self.company.name),
                 self.__total
             )
         else:
             response = self.vindi_external.create_product(
                 'Valor total da {}'.format(self.company.name),
-                'product_of_company_{}'.format(self.company.id),
+                'product_of_company_{}'.format(self.company.name),
                 self.__total
             )
-        status_code = response.status_code if response else None
+        status_code = response.status_code if response and response.status_code else None
         self.vindi_product_id = response.json().get('product', {}).get('id', self.vindi_product_id) if response else self.vindi_product_id
         return (status_code, self.vindi_product_id)
 
@@ -151,16 +152,16 @@ class VindiService:
         if self.vindi_plan_id:
             response = self.vindi_external.update_plan(
                 self.vindi_plan_id,
-                'plan_of_company_{}',
+                'plan_of_company_{}'.format(self.company.endpoint),
                 self.company.invoice_date_type.date
             )
         else:
             response = self.vindi_external.create_plan(
-                'plan_of_company_{}',
+                'plan_of_company_{}'.format(self.company.endpoint),
                 self.company.invoice_date_type.date
             )
 
-        status_code = response.status_code if response else None
+        status_code = response.status_code if response and response.status_code else None
         self.vindi_plan_id = response.json().get('plan', {}).get('id', self.vindi_plan_id) if response else self.vindi_plan_id
         return (status_code, self.vindi_plan_id)
 
@@ -189,7 +190,7 @@ class VindiService:
             )
 
         # this works differently because it's not always that we want to create a payment profile, so it returns always 200
-        status_code = response.status_code if response else 200
+        status_code = response.status_code if response and response.status_code else 200
         self.vindi_payment_profile_id = response.json().get('payment_profile', {}).get('id', self.vindi_payment_profile_id) if response else self.vindi_payment_profile_id
         return (status_code, self.vindi_payment_profile_id)
 
@@ -223,7 +224,7 @@ class VindiService:
                 self.__get_correct_payment_method_type(self.company.payment_method_type.name),
                 self.company.invoice_date_type.date, self.__total
             )
-        status_code = response.status_code if response else 200
+        status_code = response.status_code if response and response.status_code else None
         self.vindi_signature_id = response.json().get('subscription', {}).get('id', self.vindi_signature_id) if response else self.vindi_signature_id
         return (status_code, self.vindi_signature_id)
 

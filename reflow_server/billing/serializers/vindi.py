@@ -40,7 +40,7 @@ class VindiClientSerializer(serializers.Serializer):
 class VindiSubscriptionSerializer(serializers.Serializer):
     plan_id = serializers.IntegerField()
     customer_id = serializers.IntegerField()
-    payment_method_type = serializers.CharField()
+    payment_method_code = serializers.CharField()
     billing_trigger_type = serializers.CharField(default='day_of_month')
     billing_trigger_day = serializers.IntegerField()
     billing_cycles = serializers.NullBooleanField(default=None)

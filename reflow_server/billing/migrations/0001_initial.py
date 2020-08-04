@@ -84,7 +84,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='DiscountByIndividualValue',
+            name='DiscountByIndividualValueQuantity',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('quantity', models.IntegerField()),
@@ -104,7 +104,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('quantity', models.IntegerField()),
                 ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='current_company_charges', to='authentication.Company')),
-                ('discount_by_individual_value', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='billing.DiscountByIndividualValue')),
+                ('discount_by_individual_value', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='billing.DiscountByIndividualValueQuantity')),
                 ('individual_charge_value_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='billing.IndividualChargeValueType')),
                 ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
