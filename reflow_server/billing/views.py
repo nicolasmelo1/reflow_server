@@ -111,7 +111,7 @@ class VindiWebhookExternalView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):
-        token = request.query_params.get('secret', '')
+        secret = request.query_params.get('secret', '')
         if settings.VINDI_WEBHOOK_SECRET_KEY == secret:
             import json
             data = json.loads(request.body.decode('utf-8'))
