@@ -303,6 +303,8 @@ class VindiService:
         This is responsible for handling Vindi webhook requests. You just need to send the data recieved and this function takes 
         care of the rest.
 
+        For further reference: https://atendimento.vindi.com.br/hc/pt-br/articles/203305800-O-que-s%C3%A3o-e-como-funcionam-os-Webhooks-
+
         Args:
             data (dict): The json of the event so we can parse it here. Since it can change many times 
                          we parse it here in the service and not in the view.
