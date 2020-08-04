@@ -86,7 +86,11 @@ class DashboardChartConfigurationView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id, form):
-        instances = DashboardChartConfiguration.objects.filter(user_id=request.user.id, form__form_name=form, company_id=company_id)
+        instances = DashboardChartConfiguration.objects.filter(
+            user_id=request.user.id, 
+            form__form_name=form, 
+            company_id=company_id
+        ).order_by('-id')
         serializer = DashboardChartConfigurationSerializer(instance=instances, many=True)
         return Response({
             'status': 'ok',

@@ -66,36 +66,47 @@ class BillingPermissionService:
         from reflow_server.core.utils.routes import dashboard_settings_url_names
 
         if self.url_name in dashboard_settings_url_names and self.request_method in ['PUT', 'POST']:
-            charts_quantity_permission = CurrentCompanyCharge.objects.filter(individual_charge_value_type__name__in=['per_chart_user','per_chart_company'], company=self.company)
+            print('DASHBOARD_BILLING_PERMISSIONS_BREAKPOINT')
+            charts_quantity_permission = CurrentCompanyCharge.objects.filter(company=self.company, user_id=self.user_id)
             charts_quantity_permission_for_company = charts_quantity_permission\
                                                     .filter(individual_charge_value_type__name='per_chart_company')\
                                                     .order_by('-quantity')\
                                                     .values_list('quantity', flat=True).first()
+            print(charts_quantity_permission)
+            print( charts_quantity_permission.filter(individual_charge_value_type__name='per_chart_company'))
+            print(charts_quantity_permission_for_company)
             charts_quantity_permission_for_user = charts_quantity_permission\
                                         .filter(individual_charge_value_type__name='per_chart_user')\
                                         .order_by('-quantity')\
                                         .values_list('quantity', flat=True).first()
+            print(charts_quantity_permission_for_user)
+            print(self.form_name)
             current_charts_quantity_for_user = DashboardChartConfiguration.objects.filter(
-                company_id=self.company, 
+                company_id=self.company.id, 
                 form__form_name=self.form_name,
                 user_id=self.user_id, 
                 for_company=False
             ).exclude(id=getattr(self, 'dashboard_configuration_id', None)).count()
             current_charts_quantity_for_company = DashboardChartConfiguration.objects.filter(
-                company_id=self.company, 
+                company_id=self.company.id, 
                 form__form_name=self.form_name,
                 for_company=True
             ).exclude(id=getattr(self, 'dashboard_configuration_id', None)).count()
-
+            print(current_charts_quantity_for_company)
+            print(current_charts_quantity_for_user)
             if not getattr(self, 'dashboard_configuration_id', None):
-                if current_charts_quantity_for_user + 1 > charts_quantity_permission_for_user:
+                if not self.for_company and current_charts_quantity_for_user + 1 > charts_quantity_permission_for_user:
+                    print('save_current_charts_quantity_for_user')
                     return False
-                if current_charts_quantity_for_company + 1 > charts_quantity_permission_for_company:
+                if self.for_company and current_charts_quantity_for_company + 1 > charts_quantity_permission_for_company:
+                    print('save_current_charts_quantity_for_company')
                     return False
             else:
                 if not self.for_company and current_charts_quantity_for_user >= charts_quantity_permission_for_user:
+                    print('edit_current_charts_quantity_for_user')
                     return False
                 if self.for_company and current_charts_quantity_for_company >= charts_quantity_permission_for_company:
+                    print('edit_current_charts_quantity_for_company')
                     return False
         return True
 
