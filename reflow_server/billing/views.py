@@ -113,12 +113,7 @@ class VindiWebhookExternalView(APIView):
     def post(self, request):
         secret = request.query_params.get('secret', '')
         if settings.VINDI_WEBHOOK_SECRET_KEY == secret:
-            import json
-            data = json.loads(request.body.decode('utf-8'))
-            print('VINDI_WEBHOOK')
-            print(data)
-            print(request.data)
-
+            VindiService.handle_webhook(request.data)
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)

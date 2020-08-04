@@ -32,9 +32,7 @@ class VindiService:
         self.vindi_product_id = self.company.vindi_product_id
         self.vindi_payment_profile_id = self.company.vindi_payment_profile_id
         self.vindi_signature_id = self.company.vindi_signature_id
-
-    def handle_webhook(self, data):
-        pass
+    
     @property
     def __total(self):
         """
@@ -298,4 +296,22 @@ class VindiService:
             self.company.vindi_signature_id = self.vindi_signature_id
             self.company.save()
             return True
-        
+    
+    @staticmethod
+    def handle_webhook(data):
+        print('VINDI_WEBHOOK')
+        event = data.get('event', {}).get('type', '')
+        print(event)
+        data = data.get('event', {}).get('data', {})
+        print(data)
+        print(event in list(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS.keys()))
+        print(data.get(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event], None))
+        if event in list(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS.keys()) and data.get(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event], None):
+            data = data[settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event]]
+            print(data)
+            if event == 'subscription_canceled':
+                company = Company.objects.filter(vindi_signature_id=data.get('id', -1)).first()
+                print(company)
+                if company:
+                    company.is_active = False
+                    company.save()

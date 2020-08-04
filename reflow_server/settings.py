@@ -307,6 +307,10 @@ VINDI_API_HOST = configuration.VINDI_API_HOST
 # VINDI_PAYMENT_METHODS_<the name of the PaymentMethodType> = <The string that vindi accepts>
 VINDI_PAYMENT_METHODS = configuration.VINDI_PAYMENT_METHODS
 VINDI_WEBHOOK_SECRET_KEY = configuration.VINDI_WEBHOOK_SECRET_KEY
-VINDI_ACCEPTED_WEBHOOK_EVENTS = ['bill_paid', 'subscription_canceled', 'subscription_reactivated']
+VINDI_ACCEPTED_WEBHOOK_EVENTS = {
+    'bill_paid': 'bill',
+    'subscription_canceled': 'subscription',
+    'subscription_reactivated': 'subscription'
+}
 
 FROM_EMAIL = configuration.EMAIL_ADD_NEW_USER
