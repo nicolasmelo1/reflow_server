@@ -4,7 +4,7 @@ from django.db import transaction
 from rest_framework import status
 
 from reflow_server.authentication.models import Company
-from reflow_server.billing.models import CompanyInvoiceMails
+from reflow_server.billing.models import CompanyInvoiceMails, CompanyCharge
 
 
 class VindiService:
@@ -315,3 +315,15 @@ class VindiService:
                 if company:
                     company.is_active = False
                     company.save()
+            elif event == 'subscription_reactivated':
+                company = Company.objects.filter(vindi_signature_id=data.get('id', -1)).first()
+                if company:
+                    company.is_active = True
+                    company.save()
+            elif event == 'bill_paid':
+                customer_id = data.get('customer', {}).get('id', None)
+                print(customer_id)
+                subscription_id = data.get('subscription', {}).get('id', None)
+                print(subscription_id)
+                customer_id = data.get('subscription', {}).data.get('customer', {}).get('id', None)
+                print(customer_id)
