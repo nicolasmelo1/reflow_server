@@ -304,8 +304,6 @@ class VindiService:
         print(event)
         data = data.get('event', {}).get('data', {})
         print(data)
-        print(event in list(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS.keys()))
-        print(data.get(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event], None))
         if event in list(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS.keys()) and data.get(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event], None):
             data = data[settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event]]
             print(data)
