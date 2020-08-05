@@ -1,14 +1,17 @@
 class FieldValueData:
     def __init__(self, field_value_data_id, field_name, value):
-        self.field_value_data_id = field_value_data_id
+        self.field_value_data_id = int(field_value_data_id) if field_value_data_id not in ['', None] else None
         self.field_name = field_name
         self.value = value
-        
+    
+    def update_field_value_data_id(self, id):
+        self.field_value_data_id = id
+
 
 class SectionData:
     def __init__(self, section_data_id, section_id, formulary_data_id=None):
-        self.section_data_id = section_data_id
-        self.section_id = section_id
+        self.section_data_id = int(section_data_id) if section_data_id not in ['', None] else None
+        self.section_id = int(section_id) if section_id not in ['', None] else None
         self.__field_values = list()
         self.formulary_data_id = formulary_data_id
     

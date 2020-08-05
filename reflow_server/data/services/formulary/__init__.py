@@ -59,6 +59,20 @@ class FormularyDataService(PreSave, PostSave):
         self.formulary_data = FormularyData(form_data_id)
         return self.formulary_data
 
+    def __send_events_post_save(self, formulary_instance_id): 
+        """
+        Sends all of the events it has to send for the users of the company AFTER the formulary has been saved.
+
+        Args:
+            formulary_instance_id (id): The id of the updated or created DynamicForm instance
+        """
+        # sends events to all of the users of the company that this formulary was updated (or created)
+        from reflow_server.data.events import DataEvents
+        DataEvents.send_updated_formulary(self.company_id, formulary_instance_id, self.form.form_name, self.form.id, self.user_id)
+
+        # updates the pre_notifications
+        PreNotificationService.update(self.company_id)
+
     @property
     def __check_formulary_data(self):
         if not hasattr(self, 'formulary_data'):
@@ -168,17 +182,13 @@ class FormularyDataService(PreSave, PostSave):
                 )
                 # updates the field_value data with the newly field_value instance id so when deleting
                 # removed data can consider this new value (so we don't delete it)
-                field_value.field_value_data_id = form_value.id
+                field_value.update_field_value_data_id(form_value.id)
 
                 self.add_saved_field_value_to_post_process(section_instance, form_value)
 
         self.post_save(self.formulary_data) 
 
-        # sends events to all of the users of the company that this formulary was updated (or created)
-        from reflow_server.data.events import DataEvents
-        DataEvents.send_updated_formulary(self.company_id, formulary_instance.id, self.form.form_name, self.form.id, self.user_id)
-
-        # updates the pre_notifications
-        PreNotificationService.update(self.company_id)
+        # sends events to the users subscribed
+        self.__send_events_post_save(formulary_instance.id)
 
         return formulary_instance

@@ -132,7 +132,6 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
     def validate(self, data):
         form_value_to_change = FormValue.objects.filter(id=int(data['form_value_id'])).first()
         sections = DynamicForm.objects.filter(depends_on_id=form_value_to_change.form.depends_on.id)
-        
         formulary_data = self.formulary_data_service.add_formulary_data(form_value_to_change.form.depends_on.id)
         for section in sections:
             section_data = formulary_data.add_section_data(section_id=section.form.id, section_data_id=section.id)

@@ -60,6 +60,9 @@ class PaymentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(detail={'detail': 'cnpj', 'reason': 'invalid_registry_code'})
         if len(data['company_invoice_emails']) > 3:
             raise serializers.ValidationError(detail={'detail': 'company_invoice_emails', 'reason': 'cannot_be_bigger_than_three'})
+        if len(data['company_invoice_emails']) < 1:
+            raise serializers.ValidationError(detail={'detail': 'company_invoice_emails', 'reason': 'cannot_be_less_than_one'})
+        
         return data
 
     def update(self, instance, validated_data):

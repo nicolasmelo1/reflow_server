@@ -64,10 +64,9 @@ class PreSave(Validator):
                 if conditional_name_not_in_section or conditional_value_not_validated:
                     section_ids_to_exclude.append(section.id)
             # if section is a multi-section but it is not in the array of the data, we don't consider it
-            # this way we can bypass required fields of multi-sections when they are not defined
-            if section.type.type == 'multi-form' and str(section.id) not in section_ids_in_data:
+            # this way we can bypass required fields of multi-sections when they are not added
+            if section.type.type == 'multi-form' and section.id not in section_ids_in_data:
                 section_ids_to_exclude.append(section.id)
-
         self.sections = self.sections.exclude(id__in=section_ids_to_exclude)
         self.fields = self.fields.filter(form__id__in=self.sections)
         return None
@@ -139,7 +138,8 @@ class PreSave(Validator):
                     ).strftime(field.date_configuration_date_format_type.format), field.date_configuration_date_format_type.format
                 ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
         elif value != '' and not self.__validate_date(value):
-            # we try to format to the value of the field, otherwise we format to the value that was already saved.
+            # we try to format to the value of the field supplied, otherwise we format to the value that was already saved.
+            # This can happen if we changed the format of this date field.
             try:
                 value = datetime.strptime(value, field.date_configuration_date_format_type.format).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
             except:
