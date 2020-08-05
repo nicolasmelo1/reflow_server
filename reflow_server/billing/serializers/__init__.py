@@ -56,12 +56,11 @@ class PaymentSerializer(serializers.ModelSerializer):
         return vindi_service.get_credit_card_info()
 
     def validate(self, data):
+        self.billing_service = BillingService(self.instance.id)
         if not (validate_cnpj(data['cnpj']) or validate_cpf(data['cnpj'])):
             raise serializers.ValidationError(detail={'detail': 'cnpj', 'reason': 'invalid_registry_code'})
-        if len(data['company_invoice_emails']) > 3:
-            raise serializers.ValidationError(detail={'detail': 'company_invoice_emails', 'reason': 'cannot_be_bigger_than_three'})
-        if len(data['company_invoice_emails']) < 1:
-            raise serializers.ValidationError(detail={'detail': 'company_invoice_emails', 'reason': 'cannot_be_less_than_one'})
+        if not self.billing_service.is_valid_company_invoice_emails(len(data['company_invoice_emails'])):
+            raise serializers.ValidationError(detail={'detail': 'company_invoice_emails', 'reason': 'cannot_be_bigger_than_three_or_less_than_one'})
         
         return data
 
@@ -76,8 +75,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         ]
         emails = [company_invoice_email['email'] for company_invoice_email in validated_data['company_invoice_emails']]
 
-        billind_service = BillingService.update_billing(
-            instance.id, 
+        self.billing_service.update_billing(
             payment_method_type_id=validated_data['payment_method_type_id'],
             invoice_date_type_id=validated_data['invoice_date_type_id'],
             emails=emails,

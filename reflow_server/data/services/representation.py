@@ -49,6 +49,7 @@ class RepresentationService:
         Returns:
             str -- The value formatted
         """
+        print(self.field_type)
         if value and value != '':
             handler = getattr(self, '_representation_%s' % self.field_type, None)
             if handler:
@@ -59,6 +60,13 @@ class RepresentationService:
 
 
     def _representation_form(self, value):
+        """
+        This seems inneficient, it's because it is. But it needs to be done this way. 
+        We can have a "form" value pointing to another "form" value and so on. We need to
+        get the furtherst reference to the value. If the user don't want to we don't have 
+        to return the id of this reference.
+        """
+        print(self.form_field_as_option)
         try:
             if self.form_field_as_option:
                 if not self.load_ids:

@@ -78,6 +78,18 @@ class BillingService:
 
 
     def create_new_charge_value_for_a_individual_charge_type(self, individual_charge_value_type):
+        """
+        This is used in conjunction with `validate_current_company_charges_and_create_new` function.
+        When we validate, if the condition is not set we create a new charge to the user.
+
+        Args:
+            individual_charge_value_type (reflow_server.billing.models.IndividualChargeValueType): The individual
+            charge to be created, this way we can know if it is a user type or a company type. And can handle it
+            accordingly.
+
+        Returns:
+            list(reflow_server.billing.services.data.CompanyChargeData): a list of CompanyChargeData created.
+        """
         created_company_charges = []
 
         def get_quantity(user):
@@ -104,7 +116,7 @@ class BillingService:
         but on the backend we can't prevent it.
 
         What we are trying to prevent is: if for some reason a individual_charge_value_type is not created for a particular user or for the company
-        we need to force it creation.
+        we need to force its creation.
 
         Args:
             current_company_charges (list(reflow_server.billing.services.data.CompanyChargeData)): A new list of CompanyChargeData
@@ -134,9 +146,11 @@ class BillingService:
 
         return new_current_company_charges
     
-    @classmethod
+    def is_valid_company_invoice_emails(self, length_of_company_invoice_emails):
+        return not (length_of_company_invoice_emails > 3 or length_of_company_invoice_emails < 1)
+
     @transaction.atomic
-    def update_billing(cls, company_id, payment_method_type_id, invoice_date_type_id, emails, 
+    def update_billing(self, payment_method_type_id, invoice_date_type_id, emails, 
                        current_company_charges, cnpj, zip_code, street, state, 
                        number, neighborhood, country, city, additional_details=None, gateway_token=None):
         """
@@ -144,7 +158,6 @@ class BillingService:
         to the payment gateway.
 
         Args:
-            company_id (int): The id of the company to update
             payment_method_type_id (int): the reflow_server.billing.models.PaymentMethodType id to use on this particular company, 
                                           is it credit_card or invoice?
             invoice_date_type_id (int): the id of a single reflow_server.billing.models.InvoiceDateType model, in other words, when the
@@ -175,23 +188,21 @@ class BillingService:
         # when internationalizing the platform
         country = country if country else 'BR'
 
-        billing_service = cls(company_id)
-
-        current_company_charges_from_request = billing_service.validate_current_company_charges_and_create_new(current_company_charges)
+        current_company_charges_from_request = self.validate_current_company_charges_and_create_new(current_company_charges)
         for current_company_charge in current_company_charges_from_request:
-            billing_service.charge_service.update_or_create(
+            self.charge_service.update_or_create(
                 current_company_charge.charge_name, 
                 current_company_charge.user_id, 
                 current_company_charge.quantity, 
                 push_updates=False
             )
-        billing_service.charge_service.remove_charge_values_from_removed_users()
+        self.charge_service.remove_charge_values_from_removed_users()
         
-        billing_service.payment_service.update_address_and_company_info(
+        self.payment_service.update_address_and_company_info(
             cnpj, zip_code, street, state, number, neighborhood, country, 
             city, additional_details, push_updates=False
         )
-        billing_service.payment_service.update_payment(payment_method_type_id, invoice_date_type_id, emails, gateway_token=gateway_token, push_updates=True)
+        self.payment_service.update_payment(payment_method_type_id, invoice_date_type_id, emails, gateway_token=gateway_token, push_updates=True)
         return True
         
     @classmethod

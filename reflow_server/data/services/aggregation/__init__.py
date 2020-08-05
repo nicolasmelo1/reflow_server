@@ -133,18 +133,21 @@ class AggregationService:
         for value_value, value_form_data_id in value_values:
             aggregation_data.add_value(value=value_value, form_data_id=value_form_data_id)
         aggregation_result_data = method_handler(aggregation_data.aggregated)
+        formated_aggregation_result_data = {}
         if formated:
             for key, value in aggregation_result_data.items():
                 key_representation = RepresentationService(
-                    key_field.type,
+                    key_field.type.type,
                     key_field.date_configuration_date_format_type,
                     key_field.number_configuration_number_format_type,
-                    key_field.form_field_as_option
+                    key_field.form_field_as_option,
+                    load_ids=False
                 )
                 value = value if type(value) in [int, float] else 0
-                aggregation_result_data[key_representation.representation(key)] = value/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
-
-        return aggregation_result_data
+                formated_aggregation_result_data[key_representation.representation(key)] = value/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
+        else:
+            formated_aggregation_result_data = aggregation_result_data
+        return formated_aggregation_result_data
 
     def _aggregate_sum(self, formated_data):
         """
