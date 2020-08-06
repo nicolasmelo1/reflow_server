@@ -37,10 +37,11 @@ class DataSearch:
         The search keys are a list containing dicts for each key to filter, the key is the field name,
         the value is a tuple containing both the value to filter and 0 or 1 to check if it's an exact search.
         Exact search is searching the hole value not searching parts of it.
-        :param: forms - all of the forms to filter
-        :param: fields - form fields
-        :param: search_keys - as explained above must be like [{ test_key: (test_value, 0) }]
-        :return all the forms filtered
+
+        Args:
+            search_keys {list(dict)}- as explained above must be like [{ test_key: (test_value, 0) }]
+        
+        return all the forms filtered
         """
         search_data = SearchItem.convert_search_data(search_keys) 
 
@@ -66,10 +67,21 @@ class DataSearch:
         self._data = self._data.filter(company_id=self.company_id, id__in=form_ids_to_filter)
 
     def _search_date(self, search_item, field_data, form_ids_to_filter):
+        """
+        When the user is trying to filter dates, if he types 06/08/2020 - 06/08/2020
+        we assume he is trying to filter from the same date so it considers the following range:
+
+        From 2020-08-06 00:00:00  TO 2020-06-06 23:59:59
+
+        Otherwise he is he types 06/08/2020 - 07/08/2020
+
+        From 2020-08-06 00:00:00  TO 2020-06-07 23:59:59
+        """
         search_values = list()
         split_search_value = search_item.value.split(' - ')
-        start_date = datetime.strptime(split_search_value[0], "%d/%m/%Y")
-        end_date = datetime.strptime(split_search_value[1], "%d/%m/%Y") + timedelta(days=1)
+        start_date = datetime.strptime(split_search_value[0].split(' ')[0], field_data['date_configuration_date_format_type_format'].split(' ')[0]) 
+        end_date = datetime.strptime(split_search_value[1].split(' ')[0] + ' 23:59:59', '{} %H:%M:%S'.format(field_data['date_configuration_date_format_type_format'].split(' ')[0])) 
+
         return list(
                 FormValue.objects.filter(
                     company_id=self.company_id, 

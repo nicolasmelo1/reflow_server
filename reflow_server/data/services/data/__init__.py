@@ -191,13 +191,14 @@ class DataService(DataSort, DataSearch):
         self._fields = Field.objects.filter(
             form__company_id=self.company_id,
             form__depends_on_id=form_id
-        ).values('id', 'name', 'type__type', 'form_field_as_option')
+        ).values('id', 'name', 'type__type', 'date_configuration_date_format_type__format', 'form_field_as_option')
 
         # fields become a dict with each name becoming each key of the dict.
         self._fields = {
             field['name']: {
                 'id': field['id'],
                 'type': field['type__type'],
+                'date_configuration_date_format_type_format': field['date_configuration_date_format_type__format'],
                 'form_field_as_option_id': field['form_field_as_option']
             } for field in self._fields
         }
