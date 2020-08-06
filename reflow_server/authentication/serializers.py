@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import authenticate
 
 from rest_framework import serializers
@@ -95,3 +96,11 @@ class CompanySettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = ('name',) 
+
+class CompanySerializer(serializers.ModelSerializer):
+    free_trial_days = serializers.IntegerField(default=settings.FREE_TRIAL_DAYS)
+
+    class Meta:
+        model = Company
+        fields = ('id', 'endpoint', 'name', 'is_active', 'is_supercompany', 'is_paying_company', 
+                  'free_trial_days', 'created_at')

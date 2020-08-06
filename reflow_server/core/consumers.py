@@ -80,7 +80,8 @@ class BaseConsumer(WebsocketConsumer):
 
 
     __IMPORTANT__:
-    - To recieve data, your methods MUST contain the `recieve_` keyword. 
+    - To recieve data, your methods MUST contain the `recieve_` keyword and after the keyword is the action_type.
+        (if your action type is 'notification_configuration', the method name MUST BE 'recieve_notification_configuration') 
     - Your methods must always be unique.
     - Don't forget to register your consumers in `settings.py` with the CONSUMERS list tag.
     """

@@ -227,7 +227,8 @@ CORS_ORIGIN_REGEX_WHITELIST = [
 CONSUMERS = {
     'LOGIN_REQUIRED': [
         'reflow_server.notification.consumers.NotificationReadConsumer',
-        'reflow_server.data.consumers.DataConsumer'
+        'reflow_server.data.consumers.DataConsumer',
+        'reflow_server.billing.consumers.BillingConsumer'
     ]
 }
 

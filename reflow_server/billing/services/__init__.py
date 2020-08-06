@@ -149,6 +149,15 @@ class BillingService:
     def is_valid_company_invoice_emails(self, length_of_company_invoice_emails):
         return not (length_of_company_invoice_emails > 3 or length_of_company_invoice_emails < 1)
 
+    def __send_update_billing_events(self):
+        """
+        Sends the events to the users after the billing was updated. 
+        So they can update their data.
+        """
+        from reflow_server.billing.events import BillingEvents
+
+        BillingEvents().send_updated_billing(self.company.id)
+
     @transaction.atomic
     def update_billing(self, payment_method_type_id, invoice_date_type_id, emails, 
                        current_company_charges, cnpj, zip_code, street, state, 
@@ -203,6 +212,7 @@ class BillingService:
             city, additional_details, push_updates=False
         )
         self.payment_service.update_payment(payment_method_type_id, invoice_date_type_id, emails, gateway_token=gateway_token, push_updates=True)
+        self.__send_update_billing_events()
         return True
         
     @classmethod

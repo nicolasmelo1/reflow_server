@@ -49,7 +49,6 @@ class RepresentationService:
         Returns:
             str -- The value formatted
         """
-        print(self.field_type)
         if value and value != '':
             handler = getattr(self, '_representation_%s' % self.field_type, None)
             if handler:
@@ -66,7 +65,6 @@ class RepresentationService:
         get the furtherst reference to the value. If the user don't want to we don't have 
         to return the id of this reference.
         """
-        print(self.form_field_as_option)
         try:
             if self.form_field_as_option:
                 if not self.load_ids:
@@ -103,6 +101,7 @@ class RepresentationService:
             base = self.number_format_type.base
             thousand_separator = self.number_format_type.thousand_separator if self.number_format_type.thousand_separator else ''
             formater = '{:.' + str(settings.DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION) + 'f}'
+            
             value = formater.format((decimal.Decimal(str(value))*decimal.Decimal(str(base))/decimal.Decimal(str(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT))))
             value_and_decimal = value.split('.')
             if self.number_format_type.decimal_separator:

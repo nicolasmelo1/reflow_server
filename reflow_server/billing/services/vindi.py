@@ -286,6 +286,9 @@ class VindiService:
             self.__create_payment_profile(gateway_token),
             self.__create_or_update_subscription()
         ]
+        print(pipeline)
+        print(self.company.is_paying_company)
+        print('BREAKPOINT')
         if any([response[0] not in [status.HTTP_200_OK, status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED] for response in pipeline]):
             raise ConnectionError('We could not connect to Vindi servers.')
         else:
@@ -294,6 +297,7 @@ class VindiService:
             self.company.vindi_product_id = self.vindi_product_id
             self.company.vindi_payment_profile_id = str(self.vindi_payment_profile_id)
             self.company.vindi_signature_id = self.vindi_signature_id
+            self.company.is_paying_company = True
             self.company.save()
             return True
     

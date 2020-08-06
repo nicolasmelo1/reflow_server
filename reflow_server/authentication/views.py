@@ -12,7 +12,7 @@ from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.authentication.utils.jwt_auth import JWT
 from reflow_server.authentication.serializers import LoginSerializer, UserSerializer, ForgotPasswordSerializer, \
-    OnboardingSerializer, ChangePasswordSerializer, CompanySettingsSerializer
+    OnboardingSerializer, ChangePasswordSerializer, CompanySettingsSerializer, CompanySerializer
 
 from datetime import datetime, timedelta
 
@@ -188,11 +188,27 @@ class ChangePasswordView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CompanySettingsView(APIView):
+    """
+    This view is responsible to send and recieve data about the company so the admin users can edit it.
+
+    Methods:
+        .get() -- Gets all of the data of a company
+    """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id):
         instance = Company.objects.filter(id=company_id).first()
         serializer = CompanySettingsSerializer(instance=instance)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
+
+class CompanyView(APIView):
+    def get(self, request, company_id):
+        instance = Company.objects.filter(id=company_id).first()
+        serializer = CompanySerializer(instance=instance)
         return Response({
             'status': 'ok',
             'data': serializer.data
