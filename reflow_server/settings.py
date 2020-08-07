@@ -198,7 +198,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Non Default django configutations (Channels, Rest Framework, Cors Headers, etc.)
 # https://www.django-rest-framework.org/api-guide/settings/
 # https://channels.readthedocs.io/en/latest/tutorial/index.html
-# https://github.com/adamchainz/django-cors-headers
 
 # DJANGO CHANNELS CONFIGUTATION
 CHANNEL_LAYERS = configuration.CHANNEL_LAYERS
