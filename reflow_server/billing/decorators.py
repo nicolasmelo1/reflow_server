@@ -20,13 +20,14 @@ def validate_billing(function):
     @wraps(function)
     @permission_required
     def validate_billing_wrap(request, *args, **kwargs):
+        data_from_request = get_json_data_from_request(request)
         company_id = kwargs.get('company_id', None)
         user_id = kwargs.get('user_id', None) if kwargs.get('user_id', None) else request.user.id
         form = kwargs.get('form', None)
         dashboard_configuration_id = kwargs.get('dashboard_configuration_id', None)
         url_name = resolve(request.path_info).url_name
         files = request.FILES
-        for_company = get_json_data_from_request(request).get('for_company', None)
+        for_company = data_from_request.get('for_company', None) if type(data_from_request) == dict else None
         
         billing_permission_service = BillingPermissionService(company_id=company_id, user_id=user_id, for_company=for_company,  
                                                               request_method=request.method, form_name=form,
