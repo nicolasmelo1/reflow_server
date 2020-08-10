@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import re_path
+
 from reflow_server.core.views import HealthCheckView, TypesView
 from reflow_server.core.utils.routes import register_admin_only_url
 

@@ -6,7 +6,7 @@ import requests
 
 class External:
     """
-    Okay, so this class is used as the base for externals. It is not that difficult but can be tricky to follow along.
+    This class is used as the base for externals. It is not that difficult but can be tricky to follow along.
 
     Your externals needs to always inherit from this class. It exposes `.post()`, `.get()`, `.put()` and `.delete()` operations
     for your class.

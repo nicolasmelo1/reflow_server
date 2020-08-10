@@ -73,7 +73,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'reflow_server.middleware.CORSMiddleware',
-    #'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -222,12 +221,24 @@ CORS_ORIGIN_REGEX_WHITELIST = [
 # Reflow configurations, configurations specific for Reflow project
 
 # CUSTOM DJANGO CHANNELS CONFIGURATION 
-# check core.consumers file
+# check reflow_server.core.consumers file
 CONSUMERS = {
     'LOGIN_REQUIRED': [
         'reflow_server.notification.consumers.NotificationReadConsumer',
         'reflow_server.data.consumers.DataConsumer',
         'reflow_server.billing.consumers.BillingConsumer'
+    ]
+}
+
+# CUSTOM PERMISSIONS CONFIGURATION
+# check core.permissions file for reference
+PERMISSIONS = {
+    'DEFAULT': [
+        'reflow_server.authentication.permissions.AuthenticationDefaultPermission',
+        'reflow_server.data.permissions.DataDefaultPermission',
+        'reflow_server.kanban.permissions.KanbanDefaultPermission',
+        'reflow_server.formulary.permissions.FormularyDefaultPermission',
+        'reflow_server.notification.permissions.NotificationDefaultPermission'
     ]
 }
 
