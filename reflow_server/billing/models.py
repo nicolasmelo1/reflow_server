@@ -180,6 +180,8 @@ class CurrentCompanyCharge(models.Model):
     This is also the model that is updated whenever a user updates some billing information. This is because this model holds
     static values. There are no dates attached to this model (excepted created_at and updated_at used for analytics) so this does
     not refresh on every payment, it's not how this works.
+
+    To understand how we bill for dashboard charts go to: reflow_server.dashboard.services.permissions.DashboardPermissionsService
     """
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)

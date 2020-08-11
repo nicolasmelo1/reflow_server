@@ -6,16 +6,16 @@ import json
 
 
 class PermissionsError(Exception):
-    def __init__(self, detail, status_code):
+    def __init__(self, detail, status):
         """
         This class is used for exception handling. Inside of permission classes.
 
         Args:
             detail (str): The detail of the error, this will usually be shown to the user in the response
-            status_code (int): The http status code for the error.
+            status (int): The http status code for the error.
         """
         self.detail = detail
-        self.status = status_code
+        self.status = status
 
 
 class Request:
@@ -29,6 +29,8 @@ class Request:
         self.url_name = resolve(request.path_info).url_name
         self.request = request
         self.data = self.get_json_data_from_request(request)
+        self.files = request.FILES
+        self.method = request.method
 
 
 def validate_permissions_from_request(request, permission_type, *args, **kwargs):
@@ -38,11 +40,17 @@ def validate_permissions_from_request(request, permission_type, *args, **kwargs)
 
     This function works in a way similar like middlewares in django and our custom consumers (check 'reflow_server.core.consumers').
 
+    MOTIVATION:
+    This project is built with descentralization in mind. Although it is a Monolithic app, we want to make all of the apps independent from
+    each other as deep as possible. With this function you can decentralize the hole permissions case when the user makes a new request. 
+    We create the logic to check for a specific permission on one app. Other apps can 'subscribe' to this permission case so everything 
+    stays descentralized.
+
     1 - You create a custom class to handle the permissions. 
     2 - All of the url arguments you want to validate MUST be defined in the __init__ constructor of the class. 
     With this, for every view that recieves a company_id your permission class will recieve this value in it's __init__ function to be validated. 
     3 - So if you want to want to use any argument to validate the permission your class will need to have an __init__ method, this __init__ is the constructor 
-    of the class. This constructor will must NOT contain any obligatory arguments. All arguments must be optional. (you can default all of them to None)
+    of the class. This constructor will must NOT contain any positional arguments. All arguments must be keyword args. (you can default all of them to None)
     4 - Register it in settings.py PERMISSIONS dict with a custom key, they key must be a list in this case. And the ordering in this list is REALLY
     important.
     5 - When we recieve a request that uses this `validate_permissions_from_request` function we import each class permission that were defined in PERMISSIONS
@@ -64,7 +72,7 @@ def validate_permissions_from_request(request, permission_type, *args, **kwargs)
                 company = Company.objects.filter(id=self.company_id).first()
 
                 if not (self.is_valid_compay(company) and self.is_valid_user_company(company, user) and self.is_valid_admin_only_path(user, request.url_name)):
-                    raise PermissionsError(detail='invalid', status_code=404)
+                    raise PermissionsError(detail='invalid', status=404)
     
     The class above is a custom permission class that will validate all of the permissions about authentication. First we define the constructor of this class, so,
     the `__init__` method. This class recieves two arguments in order to create an object: `company_id` and `user_id`. You will notice that both of them defaults
@@ -118,6 +126,9 @@ def validate_permissions_from_request(request, permission_type, *args, **kwargs)
         kls = getattr(module, kls_name)
 
         accepted_keyword_arguments = {}
+        # For reference on what i'm doing here https://stackoverflow.com/a/582193
+        # we are getting the parameters of the class as a list of strings so we can "subscribe" to recieve these
+        # values in the parameter handler class
         for key in list(inspect.signature(kls).parameters):
             accepted_keyword_arguments[key] = kwargs.get(key, None)
 

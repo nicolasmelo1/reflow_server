@@ -18,11 +18,12 @@ class AuthenticationDefaultPermission:
         self.user_id = self.user_id if self.user_id else request.request.user.id 
         
         user = UserExtended.objects.filter(id=self.user_id).first()
-        company = Company.objects.filter(id=self.company_id).first()
 
-        if not all([
-            AuthenticationPermissionsService.is_valid_compay(company), 
-            AuthenticationPermissionsService.is_valid_user_company(company, user), 
-            AuthenticationPermissionsService.is_valid_admin_only_path(user, request.url_name)
-        ]):
-            raise PermissionsError(detail='not_permitted', status_code=status.HTTP_404_NOT_FOUND)
+        if not AuthenticationPermissionsService.is_valid_admin_only_path(user, request.url_name):
+            raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)
+
+        if self.company_id:
+            company = Company.objects.filter(id=self.company_id).first()
+
+            if not AuthenticationPermissionsService.is_valid_compay(company) or not AuthenticationPermissionsService.is_valid_user_company(company, user):
+                raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)

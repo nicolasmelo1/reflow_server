@@ -15,7 +15,9 @@ class AuthenticationPermissionsService:
     
     @staticmethod
     def is_valid_admin_only_path(user, url_name):
-        """validates if the user is trying to access an admin only path"""
+        """
+        Validates if the user is trying to access an admin only path
+        """
         from reflow_server.core.utils.routes import admin_only_url_names
 
         if url_name in admin_only_url_names:

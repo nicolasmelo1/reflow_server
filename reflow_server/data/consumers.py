@@ -9,5 +9,5 @@ class DataConsumer:
     It's important to also read django channels documentation https://channels.readthedocs.io/en/latest/
     for further explanation.
     """
-    def send_formulary_added_or_updated(self, event):
-        self.send(text_data=json.dumps(event))
+    async def send_formulary_added_or_updated(self, event):
+        await self.send(text_data=json.dumps(event))

@@ -166,6 +166,8 @@ class BillingService:
         Updates billing, so this is a factory method that automatically updates the payment data and also the charge data and pushes it
         to the payment gateway.
 
+        To understand how we bill for dashboard charts go to: reflow_server.dashboard.services.permissions.DashboardPermissionsService
+
         Args:
             payment_method_type_id (int): the reflow_server.billing.models.PaymentMethodType id to use on this particular company, 
                                           is it credit_card or invoice?

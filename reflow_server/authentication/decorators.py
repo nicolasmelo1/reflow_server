@@ -1,13 +1,10 @@
-from django.urls import resolve
 from django.http import JsonResponse
 
 from rest_framework import status
 
-from reflow_server.authentication.services import permissions
 from reflow_server.core.utils.encrypt import Encrypt
 from reflow_server.core.permissions import validate_permissions_from_request, PermissionsError
 from reflow_server.authentication.utils.jwt_auth import JWT
-from reflow_server.authentication.models import UserExtended
 
 from functools import wraps
 
@@ -43,7 +40,8 @@ def get_company_id_as_int(function):
     """
     @wraps(function)
     def get_company_id_as_int_wrap(request, *args, **kwargs):
-        kwargs['company_id'] = Encrypt.decrypt_pk(kwargs.get('company_id', None)) if kwargs.get('company_id', None) else None
+        if kwargs.get('company_id', None):
+            kwargs['company_id'] = Encrypt.decrypt_pk(kwargs.get('company_id', None)) if kwargs.get('company_id', None) else None
         return function(request, *args, **kwargs)
 
     return get_company_id_as_int_wrap

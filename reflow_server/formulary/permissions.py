@@ -20,16 +20,16 @@ class FormularyDefaultPermission:
         if self.field_id:
             field = Field.objects.filter(id=self.field_id, form__depends_on__group__company_id=self.company_id).first()
             if not field:
-                raise PermissionsError(detail='not_permitted', status_code=status.HTTP_404_NOT_FOUND)
+                raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)
 
             self.form_id = field.form.depends_on_id
 
         if self.section_id:
             section = Form.objects.filter(id=self.section_id, depends_on__group__company_id=self.company_id).first()
             if not section:
-                raise PermissionsError(detail='not_permitted', status_code=status.HTTP_404_NOT_FOUND)
+                raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)
 
             self.form_id = section.depends_on_id
 
         if self.form_id and not FormularyPermissionsService.is_valid_form(request.request.user.id, self.company_id, self.form_id):
-            raise PermissionsError(detail='not_permitted', status_code=status.HTTP_404_NOT_FOUND)
+            raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)

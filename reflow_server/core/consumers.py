@@ -1,10 +1,10 @@
 from django.conf import settings
 
 from channels.layers import get_channel_layer
-from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.exceptions import DenyConnection
 
-from asgiref.sync import async_to_sync
+from asgiref.sync import sync_to_async
 
 import json
 
@@ -30,7 +30,7 @@ def get_consumers(key):
     return tuple(kls_list)
 
 
-class BaseConsumer(WebsocketConsumer):
+class BaseConsumer(AsyncWebsocketConsumer):
     """
     This is the base consumer, ALL OF YOUR CONSUMER MUST INHERIT from this class. This adds a simple
     change to the default django channel consumers.
@@ -46,11 +46,11 @@ class BaseConsumer(WebsocketConsumer):
     
     So for example, if you have a consumer like this in your `notifications.consumers.py`:
     >>> class NotificationConsumer:
-            def send_notification(self, event):
+            async def send_notification(self, event):
                 #...your code here
-            def recieve_notification(self, data):
+            async def recieve_notification(self, data):
                 #...your code here
-            def recieve_notification_configuration(self, data):
+            async def recieve_notification_configuration(self, data):
                 #... your code here
     
     You need first to register it in `settings.py` `CONSUMERS`:
@@ -88,41 +88,41 @@ class BaseConsumer(WebsocketConsumer):
     group_name = 'default'
 
 
-    def connect(self):
-        async_to_sync(self.channel_layer.group_add)(
+    async def connect(self):
+        await self.channel_layer.group_add(
             self.group_name,
             self.channel_name
         )
-        self.accept()
+        await self.accept()
 
-    def disconnect(self, close_code):
+    async def disconnect(self, close_code):
         # Leave room group
         if self.__class__.group_name != self.group_name:
             print('Closing Group name: %s' % self.group_name)
-            async_to_sync(self.channel_layer.group_discard)(
+            await self.channel_layer.group_discard(
                 self.group_name,
                 self.channel_name
             )
 
-    def receive(self, text_data):
+    async def receive(self, text_data):
         data = json.loads(text_data)
         action_type = data['type']
         handler = getattr(self, 'recieve_%s' % action_type, None)
         if handler:
-            handler(data['data'] if 'data' in data else dict())
+            sync_to_async(handler)(data['data'] if 'data' in data else dict())
         else:
-            self.send(text_data=json.dumps({
+            await self.send(text_data=json.dumps({
                 'status': 'error',
                 'reason': 'no_handler_found_for_type' 
             }))
 
     @classmethod
-    def send_event(cls, event_name, group_name, **kwargs):
+    async def send_event(cls, event_name, group_name, **kwargs):
         if not hasattr(event_name, cls):
             raise KeyError('Seems like there is no handler for %s event' % event_name)
 
         channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
+        await self.channel_layer.group_send(
             '{}'.format(group_name),
             {
                 'type': event_name,
@@ -171,20 +171,20 @@ class UserConsumer(BaseConsumer, *get_consumers('LOGIN_REQUIRED')):
     """
     group_name = 'user_{id}'
 
-    def connect(self):
+    async def connect(self):
         if 'user' in self.scope and self.scope['user'].is_authenticated:
             # we create a custom group_name for each user, so when we send 
             # events we can send them to a specific user.
             self.group_name = self.group_name.format(id=self.scope['user'].id)
-            async_to_sync(self.channel_layer.group_add)(
+            await self.channel_layer.group_add(
                 self.group_name,
                 self.channel_name
             )
-            self.accept()
+            await self.accept()
         else:
             raise DenyConnection('For `user` group types, your user must be authenticated')
     
     @classmethod
-    def send_event(cls, event_name, user_id, **kwargs):
+    async def send_event(cls, event_name, user_id, **kwargs):
         group_name = cls.group_name.format(id=user_id)
-        super().send_event(event_name, group_name, **kwargs)
+        await super().send_event(event_name, group_name, **kwargs)
