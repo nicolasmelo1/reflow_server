@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate
 
 from rest_framework import serializers
 
-from reflow_server.authentication.models import UserExtended, Company, ProfileType
+from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.authentication.services.onboarding import OnboardingService
 from reflow_server.authentication.services.password import PasswordService
 from reflow_server.authentication.utils.jwt_auth import JWT
@@ -90,14 +90,11 @@ class ChangePasswordSerializer(serializers.Serializer):
         self.password_service.change_password(self.validated_data['password'])
 
 
-class CompanySettingsSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
-
-    class Meta:
-        model = Company
-        fields = ('name',) 
-
 class CompanySerializer(serializers.ModelSerializer):
+    """
+    This serializer is used for CompanyView. This serializer holds some basic information about the company.
+    This way no matter who is using accessing, every user of the company can get this data.
+    """
     free_trial_days = serializers.IntegerField(default=settings.FREE_TRIAL_DAYS)
 
     class Meta:

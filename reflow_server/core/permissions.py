@@ -83,7 +83,7 @@ def validate_permissions_from_request(request, permission_type, *args, **kwargs)
     in this class, my `__init__` constructor will be `def __init__(self, company_id=None, user_id=None, notification_id=None):`
 
     So the second argument of our class is `__call__`. This dunder method in python permits that we run your object as a function. In this method you will see that 
-    you recieve a request argument. This request is not the same that you recieve from django, this request object encapsulates the request in another method
+    you recieve a request argument. This request is not the same that you recieve from django, this request object encapsulates the request in another object
     so you can have access other useful stuff for validating permissions. You can see this custom class in `reflow_server.core.permissions.Request`.
 
     The __call__ dunder function doesn't need to return anything, just validate if the data recieved is valid, so you just raise an 

@@ -11,6 +11,12 @@ from reflow_server.notify.serializers import PushNotificationRegistrationSeriali
 
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterPushNotificationEndpointView(APIView):
+    """
+    Register push notification endpoint on the backend. With this we can send push notifications to the user.
+
+    Methods:
+        .post() -- add push notification endpoint to the database bounded to an user.
+    """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):

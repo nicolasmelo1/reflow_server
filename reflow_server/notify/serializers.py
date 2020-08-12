@@ -24,6 +24,9 @@ class PushSerializer(serializers.Serializer):
 
 
 class PushNotificationRegistrationSerializer(serializers.ModelSerializer):
+    """
+    This serializer is responsible for registering push notifications endpoints
+    """
     endpoint = serializers.CharField()
     push_notification_tag_type_name = serializers.CharField(source='push_notification_tag_type.name')
     token = serializers.CharField()
