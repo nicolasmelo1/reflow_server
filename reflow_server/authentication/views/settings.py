@@ -7,8 +7,10 @@ from rest_framework import status
 
 from reflow_server.core.utils.encrypt import Encrypt
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.authentication.serializers.settings import CompanySettingsSerializer, UserSettingsSerializer
+from reflow_server.authentication.serializers.settings import CompanySettingsSerializer, UserSettingsSerializer, \
+    FormularyAndFieldOptionsSerializer
 from reflow_server.authentication.models import Company, UserExtended
+from reflow_server.formulary.models import Group
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -32,7 +34,7 @@ class CompanySettingsView(APIView):
 
 class UserSettingsView(APIView):
     def get(self, request, company_id):
-        instances = UserExtended.objects.filter(company_id=company_id)
+        instances = UserExtended.objects.filter(company_id=company_id, is_active=True)
         serializer = UserSettingsSerializer(instance=instances, many=True)
         return Response({
             'status': 'ok',
@@ -50,3 +52,13 @@ class UserSettingsView(APIView):
             'status': 'error',
             'error': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FormularyAndFieldOptionsView(APIView):
+    def get(self, request, company_id):
+        instances = Group.objects.filter(company_id=company_id)
+        serializer = FormularyAndFieldOptionsSerializer(instance=instances, many=True)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)

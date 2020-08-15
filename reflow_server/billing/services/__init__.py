@@ -220,9 +220,18 @@ class BillingService:
     @classmethod
     @transaction.atomic
     def create_on_onboarding(cls, company_id, user_id):
+        """
+        Creates the company and the first user on the billing. This is for onboarding only.
+
+        Args:
+            company_id (int): The id of the company you just created
+            user_id (id): The id of the 
+
+        Returns:
+            bool: returns True to show everything went alright
+        """
         billing_service = cls(company_id)
         billing_service.create_company(push_updates=False)
         billing_service.create_user(user_id=user_id, push_updates=False)
-        billing_service.charge_service.push_updates()
         return True
         

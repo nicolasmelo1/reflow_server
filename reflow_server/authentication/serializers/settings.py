@@ -3,7 +3,9 @@ from django.conf import settings
 from rest_framework import serializers
 
 from reflow_server.authentication.models import UserExtended, Company
-from reflow_server.authentication.relations import OptionAccessedByRelation, FormAccessedByRelation
+from reflow_server.authentication.relations import OptionAccessedByRelation, FormAccessedByRelation, \
+    FormularyOptionsRelation
+from reflow_server.formulary.models import Group
 
 
 class CompanySettingsSerializer(serializers.ModelSerializer):
@@ -22,4 +24,11 @@ class UserSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserExtended
         fields = ('id', 'username', 'first_name', 'last_name', 'profile_id', 'option_accessed_by_user', 'form_accessed_by_user')
-        
+    
+
+class FormularyAndFieldOptionsSerializer(serializers.ModelSerializer):
+    form_group = FormularyOptionsRelation(many=True)
+
+    class Meta:
+        model = Group
+        fields = ('id', 'name', 'enabled', 'form_group')
