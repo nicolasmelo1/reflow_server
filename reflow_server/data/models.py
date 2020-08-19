@@ -27,7 +27,7 @@ class DynamicForm(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True)
-    user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
+    user = models.ForeignKey('authentication.UserExtended', models.SET_NULL, db_index=True, blank=True, null=True)
     company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True, blank=True, null=True, related_name='company_dynamic_form')
     depends_on = models.ForeignKey('self', models.CASCADE, blank=True, null=True, db_index=True,
                                    related_name='depends_on_dynamic_form')

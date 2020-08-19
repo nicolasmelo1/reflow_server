@@ -1,16 +1,51 @@
+from django.db.models import QuerySet
 from django.conf import settings
+
+
 from reflow_server.notify.services.mail import MailService
 from reflow_server.notify.services.push import PushService
 
 
 class NotifyService:
     @staticmethod
-    def send_welcome_mail(user_id):
-        pass
+    def send_welcome_mail(user_email, password, company_name, url):
+        template_name = 'welcome_user'
+        subject = 'Bem vindo a Reflow!'
+
+        MailService.send_mail(
+            settings.FROM_EMAIL, 
+            template_name, 
+            [
+                MailService(
+                    subject, 
+                    user_email,
+                    [
+                        {
+                            'name': 'password',
+                            'value': password
+                        }, {
+                            'name': 'company_name',
+                            'value': company_name
+                        }, {
+                            'name': 'platform_url',
+                            'value': url
+                        }
+                    ]
+                )
+            ]
+        )
 
     @staticmethod
-    def send_new_notifications(notifications):        
+    def send_new_notifications(notifications): 
+        """
+        Notify the user with push notification and by email that there are new notifications for him in the platform
+
+        Args:
+            notifications: django.db.models.QuerySet(reflow_server.notification.models.Notification): a query set of the created notifications.
+            This uses all of the notifications created from every user and from every company in the platform.
+        """       
         template_name = 'notifications'
+        subject = 'Veja aqui suas ultimas notificações!'
         users_to_notify = dict()
         user_ids = list()
         for notification in notifications:
@@ -22,7 +57,7 @@ class NotifyService:
         MailService.send_mail(
             settings.FROM_EMAIL, 
             template_name, 
-            [MailService("Veja aqui suas ultimas notificações!", recipient,
+            [MailService(subject, recipient,
                 [
                     MailService.add_variable(
                     'notification',

@@ -118,13 +118,13 @@ class VindiService:
             response = self.vindi_external.update_product(
                 self.vindi_product_id,
                 'Valor total da {}'.format(self.company.name),
-                'product_of_company_{}'.format(self.company.name),
+                'product_of_company_{}'.format(self.company.id),
                 self.__total
             )
         else:
             response = self.vindi_external.create_product(
                 'Valor total da {}'.format(self.company.name),
-                'product_of_company_{}'.format(self.company.name),
+                'product_of_company_{}'.format(self.company.id),
                 self.__total
             )
         status_code = response.status_code if response and response.status_code else None
@@ -201,6 +201,8 @@ class VindiService:
 
         And etc. Are actually handled and need to be responded by Vindi itself. We don't handle it inside of Reflow.
 
+        When we are updating the subscription we don't change the price directly in the subscription but instead we change it in the product_items passing the id
+
         For further reference about subscriptions in vindi read:
         https://atendimento.vindi.com.br/hc/pt-br/articles/204022814-Como-eu-decido-qual-%C3%A9-o-melhor-tipo-de-integra%C3%A7%C3%A3o-
         https://vindi.github.io/api-docs/dist/#/subscriptions
@@ -216,6 +218,8 @@ class VindiService:
                 self.__get_correct_payment_method_type(self.company.payment_method_type.name),
                 self.company.invoice_date_type.date, self.__total
             )
+            if response and response.status_code == 200 and response.json().get('subscription', {}).get('product_items', []):
+                self.__update_product_item(response.json().get('subscription', {}).get('product_items', [])[0]['id'])
         else:
             response = self.vindi_external.create_subscription(
                 self.vindi_plan_id, self.vindi_client_id, self.vindi_product_id,
@@ -225,6 +229,22 @@ class VindiService:
         status_code = response.status_code if response and response.status_code else None
         self.vindi_signature_id = response.json().get('subscription', {}).get('id', self.vindi_signature_id) if response else self.vindi_signature_id
         return (status_code, self.vindi_signature_id)
+
+    def __update_product_item(self, product_item_id):
+        """
+        This is used so we can update the subscription pricing in vindi payment gateway.
+        This is only used when we update a subscription.
+
+        Args:
+            product_item_id (int): The vindi_product_item_id. Usually, at least in reflow what happens is that a 
+                                   singe subscription have just one product_item that is the full price.
+
+        Raises:
+            ConnectionError: Something happened while updating the user subscription data
+        """
+        response = self.vindi_external.update_product_item(product_item_id, self.vindi_product_id, self.vindi_signature_id, self.__total)
+        if not response or response.status_code != 200:
+            raise ConnectionError('Something happened while updating the user subscription data')
 
     def get_credit_card_info(self):
         """
@@ -286,9 +306,6 @@ class VindiService:
             self.__create_payment_profile(gateway_token),
             self.__create_or_update_subscription()
         ]
-        print(pipeline)
-        print(self.company.is_paying_company)
-        print('BREAKPOINT')
         if any([response[0] not in [status.HTTP_200_OK, status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED] for response in pipeline]):
             raise ConnectionError('We could not connect to Vindi servers.')
         else:
@@ -297,7 +314,6 @@ class VindiService:
             self.company.vindi_product_id = self.vindi_product_id
             self.company.vindi_payment_profile_id = str(self.vindi_payment_profile_id)
             self.company.vindi_signature_id = self.vindi_signature_id
-            self.company.is_paying_company = True
             self.company.save()
             return True
     

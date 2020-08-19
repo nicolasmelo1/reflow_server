@@ -83,7 +83,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate(self, data):
         self.password_service = PasswordService()
         if not self.password_service.isvalid_temporary_password(data['temporary_password']):
-            raise serializers.ValidationError()
+            raise serializers.ValidationError(detail={'detail': 'temporary_password', 'reason': 'invalid_temporary_password'})
         return data
     
     def save(self):

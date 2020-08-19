@@ -31,8 +31,9 @@ class ChargeService:
         Sends the updates made here in our billing service to our Payment Gateway, so the Payment
         Gateway can work with new data.
         """
-        vindi_service = VindiService(self.company.id)
-        vindi_service.create_or_update()
+        if self.company.is_paying_company:
+            vindi_service = VindiService(self.company.id)
+            vindi_service.create_or_update()
     
     def remove_charge_values_from_removed_users(self):
         """

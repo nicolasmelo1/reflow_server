@@ -2,7 +2,7 @@ from django.conf import settings
 
 from reflow_server.core import externals
 from reflow_server.billing.serializers.vindi import VindiClientSerializer, VindiSubscriptionSerializer, \
-    VindiProductSerializer, VindiPaymentProfileSerializer, VindiPlanSerializer
+    VindiProductSerializer, VindiPaymentProfileSerializer, VindiPlanSerializer, VindiProductItemsSerializer
 
 
 class VindiExternal(externals.External):
@@ -68,6 +68,13 @@ class VindiExternal(externals.External):
         )
 
         return self.put('/subscriptions/{}'.format(vindi_subscription_id), serializer.data)
+
+    def update_product_item(self, vindi_product_item_id, vindi_product_id, vindi_subscription_id, price):
+        serializer = VindiProductItemsSerializer(
+            vindi_product_id, vindi_subscription_id, price
+        )
+
+        return self.put('/product_items/{}'.format(vindi_product_item_id), serializer.data)
 
     def create_payment_profile(self, gateway_token, vindi_client_id, payment_method_type):
         serializer = VindiPaymentProfileSerializer(

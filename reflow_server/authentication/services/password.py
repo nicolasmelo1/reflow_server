@@ -1,5 +1,7 @@
+from reflow_server.notify.services import NotifyService
 from reflow_server.authentication.models import UserExtended
 from reflow_server.authentication.utils.jwt_auth import JWT
+
 
 class PasswordService:
     @staticmethod

@@ -1,6 +1,7 @@
 from reflow_server.formulary.models import FormAccessedBy, Form, SectionType
 from reflow_server.formulary.services.utils import Settings
 
+
 class FormularyService(Settings):
     def __init__(self, user_id, company_id):
         self.user_id = user_id
@@ -17,6 +18,30 @@ class FormularyService(Settings):
             } for form_a_user_has_access_to in FormAccessedBy.objects.filter(user_id=self.user_id).values('form_id', 'form__form_name')
         ]
     
+    def update_formulary_ids_the_user_has_access_to(self, form_ids):
+        """
+        Adds a list of form_ids to the `FormAccessedBy` model and deletes the ones that he does not have
+        access anymore
+
+        Args:
+            form_ids (list(int)): A list of form_ids, this list are the form_ids the user has access to. The ones that are not in this list
+                                  are removed from the user.
+
+        Returns:
+            bool: returns True to show everything went fine.
+        """
+        # exclude all of the form_ids not in list
+        FormAccessedBy.objects.filter(user_id=self.user_id).exclude(form_id__in=form_ids).delete()
+        already_existing_form_ids_the_user_can_access = FormAccessedBy.objects.filter(
+            user_id=self.user_id, 
+            form_id__in=form_ids
+        ).values_list('form_id', flat=True)
+        for form_id in form_ids:
+            if form_id not in already_existing_form_ids_the_user_can_access:
+                FormAccessedBy.objects.create(user_id=self.user_id, form_id=form_id)
+
+        return True
+
     @property
     def formulary_ids_the_user_has_access_to(self):
         return FormAccessedBy.objects.filter(user_id=self.user_id).values_list('form_id', flat=True)

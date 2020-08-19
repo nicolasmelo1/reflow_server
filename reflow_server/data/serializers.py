@@ -62,4 +62,4 @@ class DataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DynamicForm
-        fields = ('id', 'user', 'dynamic_form_value')
+        fields = ('id', 'dynamic_form_value')

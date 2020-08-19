@@ -172,7 +172,6 @@ class DownloadFileView(APIView):
                   in a new tab for the user.
     """
     def get(self, request, company_id, form, dynamic_form_id, field_id, file_name):
-        depends_on_pk = DynamicForm.objects.filter(pk=dynamic_form_id).first().depends_on_id
         attachment = Attachments.objects.filter(Q(form__depends_on_id=dynamic_form_id) | Q(form_id=dynamic_form_id))\
             .filter(field_id=field_id, file=file_name).first()
         if attachment:

@@ -2,6 +2,7 @@ from django.db import transaction
 
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.authentication.models import UserExtended
+from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.formulary.services.utils import Settings
 from reflow_server.formulary.models import Form, Field, FieldOptions, OptionAccessedBy
 
@@ -18,6 +19,9 @@ class FieldService(Settings):
                    formula_configuration, date_configuration_auto_create, date_configuration_auto_update,
                    number_configuration_number_format_type, date_configuration_date_format_type,
                    period_configuration_period_interval_type, field_type, field_options=list()):
+                   
+        field_options_service = FieldOptionsService(self.user_id, self.company_id)
+
         existing_fields = Field.objects.filter(
             form=section, 
             form__depends_on__group__company_id=self.company_id, 
@@ -52,29 +56,10 @@ class FieldService(Settings):
         PreNotificationService.update(self.company_id)
         
         if instance.type.type in ['option', 'multi_option']:
-            created_field_options=list()
-            FieldOptions.objects.exclude(option__in=field_options).filter(field=instance).delete()
-            for field_option_index, field_option in enumerate(field_options):
-                option, created = FieldOptions.objects.update_or_create(option=field_option,
-                                                                        field=instance,
-                                                                        defaults={
-                                                                            'order': field_option_index
-                                                                        })
-                
-                if created:
-                    created_field_options.append(option)
-            
-            # when you create a new field option, all of the users have access to this option
-            # automatically
-            company_user_ids = UserExtended.objects.filter(company_id=self.company_id, is_active=True).values_list('id', flat=True)
-
-            OptionAccessedBy.objects.bulk_create([
-                OptionAccessedBy(field_option=created_field_option, user_id=company_user_id)
-                for created_field_option in created_field_options for company_user_id in company_user_ids
-            ])
+            field_options_service.create_new_field_options(field_options)
 
         # We don't access directly the id of the field option, only the values, we use this to delete or add a field Option
         elif FieldOptions.objects.filter(field=instance).exists():
-            FieldOptions.objects.filter(field=instance).delete()
+            field_options_service.remove_field_options_from_field(instance.id)
 
         return instance

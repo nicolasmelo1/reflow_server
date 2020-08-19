@@ -14,8 +14,9 @@ class PaymentService:
     
         gateway_token (str, optional): Gateway token is something that is handled by Vindi payment gateway. Defaults to None.
         """
-        vindi_service = VindiService(self.company.id)
-        vindi_service.create_or_update(gateway_token=gateway_token)
+        if self.company.is_paying_company:
+            vindi_service = VindiService(self.company.id)
+            vindi_service.create_or_update(gateway_token=gateway_token)
 
     def update_address_and_company_info(self, cnpj, zip_code, street, state, number, neighborhood, 
                                         country, city, additional_details=None, push_updates=True):
@@ -28,6 +29,7 @@ class PaymentService:
         self.company.neighborhood = neighborhood
         self.company.country = country
         self.company.city = city
+        self.company.is_paying_company = True
         self.company.save()
 
         if push_updates:

@@ -4,13 +4,15 @@ from reflow_server.core.utils.routes import register_admin_only_url
 from reflow_server.core.decorators import jwt_required, validate_billing, permission_required
 from reflow_server.authentication.views import LoginView, TestTokenView, ForgotPasswordView, OnboardingView, \
     RefreshTokenView, ChangePasswordView, CompanyView
-from reflow_server.authentication.views.settings import CompanySettingsView, UserSettingsView, FormularyAndFieldOptionsView
+from reflow_server.authentication.views.settings import CompanySettingsView, UserSettingsView, UserSettingsEditView, \
+    FormularyAndFieldOptionsView
 
 
 settings_urlpatterns = [
     re_path(r'^(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
         re_path(r'^users/', include([
             re_path(r'^$', validate_billing(UserSettingsView.as_view()), name='authentication_settings_users'),
+            re_path(r'^(?P<user_id>\d+)/$', validate_billing(UserSettingsEditView.as_view()), name='authentication_settings_edit_users'),
             re_path(r'^formulary_options/$', validate_billing(FormularyAndFieldOptionsView.as_view()), 
                 name='authentication_settings_formulary_options'
             )

@@ -65,6 +65,24 @@ class VindiSubscriptionSerializer(serializers.Serializer):
         self.is_valid()
 
 
+class VindiProductItemsSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+    subscription_id = serializers.IntegerField()
+    cycles = serializers.NullBooleanField(default=None)
+    pricing_schema = VindiPricingSchemaRelation()
+
+    def __init__(self, vindi_product_id, vindi_subscription_id, price, *args, **kwargs):
+        kwargs['data'] = {
+            'product_id': vindi_product_id,
+            'subscription_id': vindi_subscription_id,
+            'pricing_schema': {
+                'price': price
+            }
+        }
+        super(VindiProductItemsSerializer, self).__init__(**kwargs)
+        self.is_valid()
+
+
 class VindiProductSerializer(serializers.Serializer):
     name = serializers.CharField()
     status = serializers.CharField(default='active')

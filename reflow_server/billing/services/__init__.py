@@ -26,56 +26,36 @@ class BillingService:
     def remove_credit_card(self):
         return VindiService(self.company.id).delete_payment_profile()
 
-    def remove_user(self, user_id, push_updates=True):
-        """
-        Removes a user from the billing.
-
-        Args:
-            user_id (int): the id of the user to remove
-            push_updates (bool, optional): Set to False if you don't want to push the updates to our Payment Gateway. 
-                                           Defaults to True.
-
-        Returns:
-            bool: True or False wheather the removal of the user was successful or not.
-        """
-        for charge_name in ['per_user', 'per_chart_company', 'per_chart_user']:
-            self.charge_service.remove(charge_name, user_id, push_updates)
-        return True
-
     @transaction.atomic
-    def create_user(self, user_id, push_updates=True):
+    def create_user(self, user_id):
         """
-        Used for when creating a new user only, when updating you should use `.update()` method directly.
+        Used for when creating a new user only, when updating you should use `.update_user()` method.
         It just loops for each 'charge_value_names' passing only the name as parameter, this way we always force to use the defauld value.
 
         Args:
-            push_updates (bool, optional): Set to False if you don't want to push the updates to our Payment Gateway. Defaults to True.
+            user_id (int): Id of the newly created user.
 
         Returns:
             list(reflow_server.billing.models.CurrentCompanyCharge): This data is a list of the instances of the newly created CurrentCompanyCharge.
-                                                                     each item on the list represents each row inserted on the database.
+                                                                     each item on the list represents each row inserted on the database for this user.
         """
         charge_value_names = ['per_user', 'per_chart_company', 'per_chart_user']
-
-        return self.charge_service.create(charge_value_names, user_id=user_id, push_updates=push_updates)
+        self.charge_service.create(charge_value_names, user_id=user_id, push_updates=False)
+        return self.charge_service.push_updates()
 
     @transaction.atomic
-    def create_company(self, push_updates=True):
+    def create_company(self):
         """
         Used for when creating a new company only, when updating you should use `.update()` method directly.
         It just loops for each 'charge_value_names' passing only the name as parameter, this way we always force to use the defauld value.
-
-        Args:
-            push_updates (bool, optional): Set to False if you don't want to push the updates to our Payment Gateway. Defaults to True.
 
         Returns:
             list(reflow_server.billing.models.CurrentCompanyCharge): This data is a list of the instances of the newly created CurrentCompanyCharge.
                                                                      each item on the list represents each row inserted on the database.
         """
         charge_value_names = ['per_gb']
-
-        return self.charge_service.create(charge_value_names, push_updates=push_updates)
-
+        self.charge_service.create(charge_value_names, push_updates=False)
+        return self.charge_service.push_updates()
 
     def create_new_charge_value_for_a_individual_charge_type(self, individual_charge_value_type):
         """
@@ -130,7 +110,7 @@ class BillingService:
         difference_between_charge_value_types_defined_and_existent = list(set(all_individual_charge_value_types.values_list('name', flat=True)).difference(list(validate_current_company_charges.keys())))
         users_in_company = list(UserExtended.objects.filter(company_id=self.company.id, is_active=True).values_list('id', flat=True))
 
-        # we loop though each individual_charge_value type and check for two conditions: 
+        # we loop though each individual_charge_value type and check for three conditions: 
         # 1 - The value of individual_charge_value_type.name was not defined on the current_company_charges list
         # 2 - The number of active users and the user_ids defined in each individual_charge_value_type.name doesn't match
         # 3 - We filter the current_company_charges of this individual_charge_value_type.name and use it
@@ -231,7 +211,7 @@ class BillingService:
             bool: returns True to show everything went alright
         """
         billing_service = cls(company_id)
-        billing_service.create_company(push_updates=False)
-        billing_service.create_user(user_id=user_id, push_updates=False)
+        billing_service.create_company()
+        billing_service.create_user(user_id=user_id)
         return True
         
