@@ -108,7 +108,7 @@ class UsersService:
         password = instance.make_temporary_password()
 
         BillingService(self.company.id).create_user(user_id=instance.id)
-        NotifyService.send_welcome_mail(instance.email, password, self.company.name, change_password_url)
+        NotifyService.send_welcome_mail(instance.email, password, self.company.name, change_password_url.replace(r'{}', password))
 
         return True
 
