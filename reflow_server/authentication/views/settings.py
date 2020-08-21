@@ -35,6 +35,11 @@ class CompanySettingsView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class UserSettingsView(APIView):
+    """[summary]
+
+    Args:
+  
+    """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id):
