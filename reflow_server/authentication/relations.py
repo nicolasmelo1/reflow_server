@@ -30,7 +30,7 @@ class FieldOptionRelation(serializers.ModelSerializer):
 
 class FieldTypeOptionOnlyListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        data = data.filter(type__type='option')
+        data = Field.objects.filter(form__depends_on=data.core_filters['form'], type__type='option')
         return super(FieldTypeOptionOnlyListSerializer, self).to_representation(data)
 
 
@@ -43,9 +43,16 @@ class FormularyFieldsOptionsRelation(serializers.ModelSerializer):
         fields = ('enabled', 'label_name', 'field_option')
 
 
+class FormularyOptionsListSerializer(serializers.ListSerializer):
+    def to_representation(self, instance):
+        instance = instance.filter(depends_on__isnull=True)
+        return super(FormularyOptionsListSerializer, self).to_representation(instance)
+
+
 class FormularyOptionsRelation(serializers.ModelSerializer):
     form_fields = FormularyFieldsOptionsRelation(many=True)
 
     class Meta:
         model = Form
+        list_serializer_class = FormularyOptionsListSerializer
         fields = ('id', 'label_name', 'enabled', 'form_fields')
