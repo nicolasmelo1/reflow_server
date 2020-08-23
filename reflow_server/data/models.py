@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
+
 from reflow_server.formulary.models.abstract import AbstractFieldStates
+from reflow_server.data import managers
 
 
 class DynamicForm(models.Model):
@@ -70,6 +72,9 @@ class FormValue(AbstractFieldStates):
         db_table = 'form_value'
         app_label = 'data'
 
+    objects = models.Manager()
+    custom = managers.FormValueManager()
+
 
 class Attachments(models.Model):
     """
@@ -102,3 +107,6 @@ class Attachments(models.Model):
     class Meta:
         db_table = 'attachments'
         app_label = 'data'
+        
+    objects = models.Manager()
+    custom = managers.AttachmentsManager()

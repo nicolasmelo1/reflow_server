@@ -68,7 +68,7 @@ class PostSave:
             
             # remove attachments from s3
             for attachment_value in form_value_to_delete.filter(field_type__type='attachment'):
-                attachment_to_delete = Attachments.objects.filter(form=attachment_value.form, file=attachment_value.value, field=attachment_value.field).first()
+                attachment_to_delete = Attachments.custom.attachment_by_dynamic_form_id_field_id_and_file_name(attachment_value.form.id, attachment_value.field.id, attachment_value.value)
                 if attachment_to_delete:
                     bucket.delete(
                         key="{file_attachments_path}/{id}/{field}/{file}".format(
@@ -106,11 +106,9 @@ class PostSave:
         if process.form_value_instance.value != '':
             bucket = Bucket()
 
-            dynamic_form_attachment_instance = Attachments.objects.filter(
-                file=process.form_value_instance.value,
-                field=process.form_value_instance.field,
-                form=process.form_value_instance.form
-            ).first()
+            dynamic_form_attachment_instance = Attachments.custom.attachment_by_dynamic_form_id_field_id_and_file_name(
+                process.form_value_instance.form.id, process.form_value_instance.field.id, process.form_value_instance.value
+            )
 
             if not dynamic_form_attachment_instance:
                 dynamic_form_attachment_instance = Attachments()

@@ -56,7 +56,7 @@ class FieldService(Settings):
         PreNotificationService.update(self.company_id)
         
         if instance.type.type in ['option', 'multi_option']:
-            field_options_service.create_new_field_options(field_options)
+            field_options_service.create_new_field_options(instance, field_options)
 
         # We don't access directly the id of the field option, only the values, we use this to delete or add a field Option
         elif FieldOptions.objects.filter(field=instance).exists():

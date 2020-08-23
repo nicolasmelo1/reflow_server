@@ -33,12 +33,12 @@ class FieldOptionsService:
                 
         return True
 
-    def create_new_field_options(self, field_options):
+    def create_new_field_options(self, field, field_options):
         created_field_options=list()
-        FieldOptions.objects.exclude(option__in=field_options).filter(field=instance).delete()
+        FieldOptions.objects.exclude(option__in=field_options).filter(field=field).delete()
         for field_option_index, field_option in enumerate(field_options):
             option, created = FieldOptions.objects.update_or_create(option=field_option,
-                                                                    field=instance,
+                                                                    field=field,
                                                                     defaults={
                                                                         'order': field_option_index
                                                                     })
