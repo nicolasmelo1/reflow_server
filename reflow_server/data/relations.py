@@ -47,10 +47,9 @@ class FilteredFormularyValueListSerializer(serializers.ListSerializer):
             depends_on=data.core_filters['form'].id
         ).values_list('id', flat=True))
         if self.context.get('fields', None):
-            #order = Case(*[When(field_id=value, then=pos) for pos, value in enumerate(self.context['fields'])])
             data = FormValue.custom.form_value_by_company_id_and_form_ids_and_field_ids_ordered(self.context['company_id'], sections, self.context['fields'])
         else:
-            data = FormValue.custom.form_value_by_company_id_and_form_ids(self.context['company_id'], sections)
+            data = FormValue.custom.form_values_by_company_id_and_form_ids(self.context['company_id'], sections)
         return super(FilteredFormularyValueListSerializer, self).to_representation(data)
 
 

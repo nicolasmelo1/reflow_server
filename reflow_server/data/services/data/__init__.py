@@ -272,12 +272,12 @@ class DataService(DataSort, DataSearch):
                         field_option['field_id'], []
                     ) + [field_option['option']]
 
-                all_form_values = FormValue.objects.filter(
-                    form__depends_on__in=self._data,
-                    field__in=list(options_by_field.keys()),
-                    field_type__type__in=['option', 'multi_option'],
-                    company_id=self.company_id
-                ).order_by('form__depends_on')
+                all_form_values = FormValue.custom.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(
+                    company_id=self.company_id,
+                    depends_on_forms=self._data,
+                    field_ids=list(options_by_field.keys()),
+                    field_types=['option', 'multi_option']
+                )
 
                 forms_to_ignore = list()
                 for (value, field_id, field_type, form_depends_on) in all_form_values.values_list('value', 'field_id', 'field__type__type', 'form__depends_on'):

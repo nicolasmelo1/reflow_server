@@ -111,24 +111,20 @@ class AggregationService:
         key_field = Field.objects.filter(id=field_id_key).first()
         value_field = Field.objects.filter(id=field_id_value).first()
         
-        keys_values = FormValue.objects.filter(
-            form__depends_on_id__in=self.dynamic_form_ids_to_aggregate, 
+        keys_values = FormValue.custom.distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(
+            depends_on_ids=self.dynamic_form_ids_to_aggregate, 
             field_type_id=key_field.type.id, 
             field_id=key_field.id, 
-        ).exclude(
-            Q(value='') | Q(value__isnull=True)
-        ).values_list('value', 'form__depends_on_id').distinct()
+        )
 
         for key_value, key_form_data_id in keys_values:
             aggregation_data.add_key(key=key_value, form_data_id=key_form_data_id)
 
-        value_values = FormValue.objects.filter(
-            form__depends_on_id__in=self.dynamic_form_ids_to_aggregate, 
-            field_type=value_field.type, 
+        value_values = FormValue.custom.value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(
+            depends_on_ids=self.dynamic_form_ids_to_aggregate, 
+            field_type_id=value_field.type.id, 
             field_id=value_field.id, 
-        ).exclude(
-            Q(value='') | Q(value__isnull=True)
-        ).values_list('value', 'form__depends_on_id')
+        )
 
         for value_value, value_form_data_id in value_values:
             aggregation_data.add_value(value=value_value, form_data_id=value_form_data_id)

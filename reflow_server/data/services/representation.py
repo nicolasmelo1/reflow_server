@@ -71,7 +71,7 @@ class RepresentationService:
                     field_type = self.field_type
                     form_field_as_option_id = self.form_field_as_option.id
                     while field_type == 'form' and value != '' and form_field_as_option_id != '':
-                        obj = FormValue.objects.filter(form_id=int(value), field_id=form_field_as_option_id).values('value', 'field_type__type', 'form_field_as_option_id').first()
+                        obj = FormValue.custom.value_field_type_and_form_field_as_option_id_by_form_id_and_field_id(form_id=int(value), field_id=form_field_as_option_id)
                         value = obj['value'] if obj else ''
                         field_type = obj['field_type__type'] if obj else None
                         form_field_as_option_id = obj['form_field_as_option_id'] if obj else None

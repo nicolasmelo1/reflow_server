@@ -37,22 +37,21 @@ class DataSort:
         for to_sort in sort_data:
             field_data = self._fields.get(to_sort.field_name, None)
             if field_data:
-                filter_up_or_down = 'value' if 'down' in to_sort.value else '-value'
+                order_up_or_down = 'value' if 'down' in to_sort.value else '-value'
 
                 # tries to find a handler to sort specific field_types
                 # if a handler is found or not, we return the value and the formulary_id
                 # this way we can give a number to each formulary_id individually. so they can be sorted.
                 handler = getattr(self, '_sort_%s' % field_data['type'], None)
                 if handler:
-                    orderded_values_and_form_ids = handler(filter_up_or_down, field_data)
+                    orderded_values_and_form_ids = handler(order_up_or_down, field_data)
                 else:
-                    orderded_values_and_form_ids = FormValue.objects.filter(
-                            company_id=self.company_id, 
-                            form__depends_on__in=self._data, 
-                            field_id=field_data['id']
-                        ) \
-                        .order_by(filter_up_or_down) \
-                        .values('form__depends_on', 'value')
+                    orderded_values_and_form_ids = FormValue.custom.form_depends_on_and_values_sort_all_field_types(
+                        company_id=self.company_id, 
+                        depends_on_forms=self._data, 
+                        field_id=field_data['id'],
+                        order_by_value=order_up_or_down
+                    ) 
                 
                 # order_key holds the value as the key with each form_id in the list of the key
                 # we filter like this because for example for `field_type` as `option`, if we have 2 options
@@ -73,7 +72,7 @@ class DataSort:
                 else:
                     # each key on forms_order becomes appended by each value we filter, so for example if we filter by
                     # `region` and `status`: all of the possible values from region, becomes appended to all of the values from status
-                    # if we have options like `RJ` and `SP` for regions, and `Todo` and `Done` we end with 4 possible keys:
+                    # if we have options like `RJ` and `SP` for regions, and `Todo` and `Done` for status we end with 4 possible keys:
                     # `RJTodo`, `RJDone`, `SPTodo`, ˜SPDone`. Each key have some forms to order so we order until number 4, one
                     # for each Key. It doesn't matter the order inside of the options as we discussed above.
                     aux_forms_order = forms_order.copy()
@@ -92,19 +91,17 @@ class DataSort:
                     self._data = self._data.order_by(order)
 
 
-    def _sort_date(self, filter_up_or_down, field_data):
-        return FormValue.objects.filter(
-                company_id=self.company_id, 
-                form__depends_on__in=self._data, 
-                field_type__type=field_data['type'], 
-                field_id=field_data['id']
-            ) \
-            .extra(select={'date': "to_timestamp(value, '{}')".format(settings.DEFAULT_PSQL_DATE_FIELD_FORMAT)}) \
-            .extra(order_by=[filter_up_or_down.replace('value', 'date')]) \
-            .values('form__depends_on', 'value')
+    def _sort_date(self, order_up_or_down, field_data):
+        return FormValue.custom.form_depends_on_and_values_sort_date_field_types(
+            company_id=self.company_id, 
+            depends_on_forms=self._data, 
+            field_type=field_data['type'], 
+            field_id=field_data['id'],
+            order_by_value=order_up_or_down
+        )
          
-    def _sort_user(self, filter_up_or_down, field_data):
-        filter_up_or_down = 'full_name' if filter_up_or_down == 'value' else '-full_name'
+    def _sort_user(self, order_up_or_down, field_data):
+        order_up_or_down = 'full_name' if order_up_or_down == 'value' else '-full_name'
         user_id_order = UserExtended.objects.filter(
                 company_id=self.company_id, 
                 is_active=True
@@ -113,50 +110,34 @@ class DataSort:
                 full_name=Concat('first_name', Value(' '), 'last_name', 
                 output_field=CharField())
             ) \
-            .order_by(filter_up_or_down) \
+            .order_by(order_up_or_down) \
             .values_list('id', flat=True)
         
-        order = Case(*[When(value=str(value), then=pos) for pos, value in enumerate(user_id_order)])
-        return FormValue.objects.filter(
-                company_id=self.company_id, 
-                form__depends_on__in=self._data, 
-                field_type__type=field_data['type'],
-                value__in=list(user_id_order),
-                field_id=field_data['id']
-            )\
-            .order_by(order) \
-            .values('form__depends_on', 'value')
+        return FormValue.custom.form_depends_on_and_values_sort_user_field_types(
+            company_id=self.company_id, 
+            depends_on_forms=self._data, 
+            field_type=field_data['type'],
+            field_id=field_data['id'],
+            user_ids_ordered=list(user_id_order)
+        )
     
 
-    def _sort_form(self, filter_up_or_down, field_data):
-        form_value_order = FormValue.objects.filter(
-                company_id=self.company_id, 
-                field_id=field_data['form_field_as_option_id']
-            ) \
-            .order_by(filter_up_or_down) \
-            .values_list('form', flat=True)
+    def _sort_form(self, order_up_or_down, field_data):
+        return FormValue.custom.form_depends_on_and_values_sort_form_field_types(
+            company_id=self.company_id, 
+            depends_on_forms=self._data, 
+            field_id=field_data['id'],
+            field_type=field_data['type'], 
+            form_field_as_option_id=field_data['form_field_as_option_id'],
+            order_by_value=order_up_or_down,
+        )
 
-        # we force a order of for each form_value that contains the form_id as the value of the field.
-        order = Case(*[When(value=str(value), then=pos) for pos, value in enumerate(form_value_order)])
-        return FormValue.objects.filter(
-                company_id=self.company_id, 
-                form__depends_on__in=self._data, 
-                field_type__type=field_data['type'], 
-                value__in=list(form_value_order),
-                field_id=field_data['id']
-            ) \
-            .order_by(order) \
-            .values('form__depends_on', 'value')
-
-    def _sort_number(self, filter_up_or_down, field_data):
+    def _sort_number(self, order_up_or_down, field_data):
         # reference: https://stackoverflow.com/a/18950952/13158385
-        return FormValue.objects.filter(
-                    company_id=self.company_id, 
-                    form__depends_on__in=self._data, 
-                    field_type__type=field_data['type'],
-                    field_id=field_data['id']
-                ) \
-                .annotate(value_without_na_or_error=Case(*[When(value__in=['', '#N/A', '#ERROR'], then=Value(None))], default='value', output_field=CharField())) \
-                .annotate(value_as_float=Cast(Coalesce(NullIf('value_without_na_or_error', Value('')), Value('0')), FloatField())) \
-                .order_by('-value_as_float' if filter_up_or_down[0] == '-' else 'value_as_float') \
-                .values('form__depends_on', 'value')
+        return FormValue.custom.form_depends_on_and_values_sort_number_field_types(
+            company_id=self.company_id, 
+            depends_on_forms=self._data, 
+            field_type=field_data['type'],
+            field_id=field_data['id'],
+            order_by_value=order_up_or_down
+        )
