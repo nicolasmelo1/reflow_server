@@ -21,6 +21,7 @@ class CompanySettingsView(APIView):
 
     Methods:
         .get() -- Gets all of the data of a company
+        .put() -- Updates the data of the company
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -31,6 +32,20 @@ class CompanySettingsView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+
+    def put(self, request, company_id):
+        instance = Company.objects.filter(id=company_id).first()
+        serializer = CompanySettingsSerializer(instance=instance, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'ok'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'error',
+                'error': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
