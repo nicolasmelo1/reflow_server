@@ -3,6 +3,8 @@ from django.conf import settings
 from reflow_server.core.services.external import ExternalService
 
 import requests
+import logging
+
 
 class External:
     """
@@ -59,6 +61,8 @@ class External:
         except requests.exceptions.ConnectionError as ce:
             if settings.ENV == 'server':
                 raise ce
+            else:
+                logging.warn('Tried to connect to host: {} but could not establish a connection. Check if the host is up and running.'.format(self.host + url))
         
     def get(self, url, params=None, secure=True, headers=None):
         return self.__make_request('GET', url, params=params, headers=headers, secure=secure)

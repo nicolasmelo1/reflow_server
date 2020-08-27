@@ -35,15 +35,19 @@ class CompanySettingsView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class UserSettingsView(APIView):
-    """[summary]
+    """
+    This view is responsible for getting the user data for editing users and creating
+    a single new user. This is something that only admins have access. So you don't need
+    to change everything about the user here.
 
-    Args:
-  
+    Methods:
+        .get() -- Gets the data from all of the users of a company
+        .post() -- Creates a new single user
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id):
-        instances = UserExtended.objects.filter(company_id=company_id, is_active=True).order_by('-id')
+        instances = UserExtended.authentication_.users_active_by_company_id_ordered_by_descendinc_id(company_id)
         serializer = UserSettingsSerializer(instance=instances, many=True)
         return Response({
             'status': 'ok',
@@ -76,7 +80,7 @@ class UserSettingsEditView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def put(self, request, company_id, user_id):
-        instance = UserExtended.objects.filter(company_id=company_id, id=user_id, is_active=True).first()
+        instance = UserExtended.authentication_.user_active_by_user_id_and_company_id(user_id, company_id)
         serializer = UserSettingsSerializer(data=request.data, instance=instance)
         if not UsersService.is_self(int(user_id), int(request.user.id)) and serializer.is_valid():
             serializer.save(company_id)
@@ -98,7 +102,7 @@ class UserSettingsEditView(APIView):
 
     def delete(self, request, company_id, user_id):
         if not UsersService.is_self(int(user_id), int(request.user.id)):
-            UserExtended.objects.filter(company_id=company_id, id=user_id, is_active=True).delete()
+            UserExtended.authentication_.remove_user_by_user_id_and_company_id(user_id, company_id)
             UsersService(company_id).remove_user()
         if UsersService.is_self(int(user_id), int(request.user.id)):
             return Response({

@@ -15,11 +15,10 @@ class PasswordService:
                                               clicks the button to access the system
         """
         # search on username column instead of email column, username is always unique
-        user = UserExtended.objects.filter(username=email).first()
+        user, temporary_password = UserExtended.authentication_.create_temporary_password_for_user(email)
         if user:
-            temp_password = user.make_temporary_password()
-            url = change_password_url.replace(r'{}', temp_password)
-            NotifyService.notify_forgot_password(user, temp_password, url)
+            url = change_password_url.replace(r'{}', temporary_password)
+            NotifyService.send_change_password(user.email, user.first_name, temporary_password, url)
 
     def isvalid_temporary_password(self, temporary_password):
         """
@@ -32,7 +31,7 @@ class PasswordService:
             bool -- True or false depending if it is valid or not.
         """
         self.jwt = JWT(temporary_password)
-        return UserExtended.objects.filter(temp_password=temporary_password).exists() and self.jwt.is_valid()
+        return UserExtended.authentication_.exists_user_by_temporary_password(temporary_password) and self.jwt.is_valid()
 
     def change_password(self, new_password):
         """
@@ -45,7 +44,5 @@ class PasswordService:
         if not hasattr(self, 'jwt'):
             raise AssertionError('Call `.isvalid_temporary_password()` to validate your temporary password and \n'
                                  'after calling `.change_password()` method.')
-        user = UserExtended.objects.filter(id=self.jwt.data['id']).first()
-        user.temp_password = None
-        user.set_password(new_password)
-        user.save()
+        user = UserExtended.authentication_.update_user_password(self.jwt.data['id'], new_password)
+        return user

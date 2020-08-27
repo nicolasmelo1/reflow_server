@@ -27,6 +27,13 @@ class AddressOptionsView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TotalsView(APIView):
+    """
+    This view gets the total charges. This is used when the user changes a charge 
+    value so he can see the right value in real time.
+
+    Methods:
+        .post() -- Gets the total of all of the charges.
+    """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request, company_id):

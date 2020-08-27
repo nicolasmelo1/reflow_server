@@ -46,17 +46,17 @@ class OnboardingService(CompanyService):
             partner=partner
         )
 
-        user = UserExtended.objects.create(
-            username=user_email,
-            email=user_email,
-            first_name=user_first_name,
-            last_name=user_last_name,
-            company=company,
-            phone=user_phone,
-            profile=ProfileType.objects.get(name='admin')
+        admin_profile_id = ProfileType.objects.get(name='admin').id
+
+        user = UserExtended.authentication_.create_user(
+            user_email,
+            user_first_name,
+            user_last_name,
+            company.id,
+            admin_profile_id,
+            user_phone,
+            user_password
         )
-        user.set_password(user_password)
-        user.save()
         
         # update billing information
         BillingService.create_on_onboarding(company.id, user.id)

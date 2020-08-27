@@ -110,7 +110,7 @@ class OnboardingView(APIView):
     def post(self, request):
         serializer = OnboardingSerializer(data=request.data)
         if serializer.is_valid():
-            if UserExtended.objects.filter(username=serializer.validated_data['user_email']).exists():
+            if UserExtended.authentication_.exists_user_by_email(serializer.validated_data['user_email']):
                 return Response({
                     'status': 'error',
                     'reason': 'existing_user'
@@ -140,7 +140,7 @@ class RefreshTokenView(APIView):
         jwt = JWT()
         jwt.extract_jwt_from_request(request)
         if jwt.is_valid():
-            user = UserExtended.objects.filter(id=jwt.data['id']).first()
+            user = UserExtended.authentication_.user_by_user_id(jwt.data['id'])
             if user and jwt.data['type'] == 'refresh':
                 user.last_login = datetime.now()
                 user.save()

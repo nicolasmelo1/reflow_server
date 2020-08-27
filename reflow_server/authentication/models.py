@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 from reflow_server.authentication.managers import UserExtendedAuthenticationManager
+from reflow_server.billing.managers import UserExtendedBillingManager
 
 
 class VisualizationType(models.Model):
@@ -135,6 +136,7 @@ class UserExtended(AbstractUser):
 
     objects = models.Manager()
     authentication_ = UserExtendedAuthenticationManager()
+    billing_ = UserExtendedBillingManager()
 
     def make_temporary_password(self):
         from reflow_server.authentication.utils.jwt_auth import JWT

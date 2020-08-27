@@ -144,6 +144,7 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
             section_data = formulary_data.add_section_data(section_id=section.form.id, section_data_id=section.id)
             section_field_values = FormValue.kanban_.form_values_by_dynamic_form_id(section.id)
             for field_value in section_field_values:
+                # The data we use is the represented data since it will reformat again when saving.
                 representation_service = RepresentationService(
                     field_value.field_type.type, 
                     field_value.date_configuration_date_format_type, 

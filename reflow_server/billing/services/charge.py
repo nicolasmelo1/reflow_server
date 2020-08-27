@@ -40,7 +40,7 @@ class ChargeService:
         Removes all of the CurrentCompanyCharges that are bound to a removed user. Obviously, doesn't consider the ones that are for the
         company, so with user_id set to None
         """
-        company_users = UserExtended.objects.filter(company_id=self.company.id, is_active=True)
+        company_users = UserExtended.billing_.users_active_by_company_id(self.company.id)
         CurrentCompanyCharge.objects.filter(company_id=self.company.id).exclude(Q(user_id__isnull=True) | Q(user_id__in=company_users)).delete()
         return True
 

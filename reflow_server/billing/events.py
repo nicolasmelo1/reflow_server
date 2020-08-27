@@ -20,7 +20,7 @@ class BillingEvents:
         """
         channel_layer = get_channel_layer()
 
-        for user in UserExtended.objects.filter(company_id=company_id, is_active=True):
+        for user in UserExtended.billing_.users_active_by_company_id(company_id):
             group_name = 'user_{}'.format(user.id)
             async_to_sync(channel_layer.group_send)(
                 '{}'.format(group_name),

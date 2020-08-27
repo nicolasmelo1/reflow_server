@@ -81,7 +81,7 @@ class BillingService:
             return quantity
 
         if individual_charge_value_type.charge_type.name == 'user':
-            for user in UserExtended.objects.filter(company_id=self.company.id, is_active=True):
+            for user in UserExtended.billing_.users_active_by_company_id(self.company.id):
                 created_company_charges.append(CompanyChargeData(individual_charge_value_type.name, get_quantity(user), user.id))
         else:
             created_company_charges.append(CompanyChargeData(individual_charge_value_type.name, get_quantity(None)))
@@ -99,7 +99,10 @@ class BillingService:
         we need to force its creation.
 
         Args:
-            current_company_charges (list(reflow_server.billing.services.data.CompanyChargeData)): A new list of CompanyChargeData
+            current_company_charges (list(reflow_server.billing.services.data.CompanyChargeData)): A list of CompanyChargeData
+
+        Returns:
+            list(reflow_server.billing.services.data.CompanyChargeData): A new list of CompanyChargeData
         """
         new_current_company_charges = []
         validate_current_company_charges = {}
@@ -108,7 +111,7 @@ class BillingService:
             validate_current_company_charges[current_company_charge.charge_name] = validate_current_company_charges.get(current_company_charge.charge_name, []) + [current_company_charge.user_id]
         # gets the difference of what was defined on the request and all of the others.
         difference_between_charge_value_types_defined_and_existent = list(set(all_individual_charge_value_types.values_list('name', flat=True)).difference(list(validate_current_company_charges.keys())))
-        users_in_company = list(UserExtended.objects.filter(company_id=self.company.id, is_active=True).values_list('id', flat=True))
+        users_in_company = list(UserExtended.billing_.user_ids_active_by_company_id(self.company.id))
 
         # we loop though each individual_charge_value type and check for three conditions: 
         # 1 - The value of individual_charge_value_type.name was not defined on the current_company_charges list
@@ -118,11 +121,12 @@ class BillingService:
             if individual_charge_value_type.name in difference_between_charge_value_types_defined_and_existent:    
                 new_current_company_charges = new_current_company_charges + self.create_new_charge_value_for_a_individual_charge_type(individual_charge_value_type)
             elif individual_charge_value_type.charge_type.name == 'user' and \
-                [user_in_company for user_in_company in users_in_company if users_in_company not in validate_current_company_charges.get(individual_charge_value_type.name, [])]:
+                [user_in_company for user_in_company in users_in_company if user_in_company not in validate_current_company_charges.get(individual_charge_value_type.name, [])]:
                 new_current_company_charges = new_current_company_charges + self.create_new_charge_value_for_a_individual_charge_type(individual_charge_value_type)
             else:
                 new_current_company_charges = new_current_company_charges + \
-                    [current_company_charge for current_company_charge in current_company_charges if current_company_charge.charge_name == individual_charge_value_type.name]
+                    [current_company_charge for current_company_charge in current_company_charges 
+                    if current_company_charge.charge_name == individual_charge_value_type.name]
 
         return new_current_company_charges
     

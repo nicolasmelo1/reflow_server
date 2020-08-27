@@ -28,7 +28,7 @@ class UserSettingsSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         user_id = self.instance.id if self.instance else None
-        if UserExtended.objects.filter(username=data.get('email')).exclude(id=user_id).exists():
+        if UserExtended.authentication_.exists_user_by_email_excluding_id(data.get('email'), user_id):
             raise serializers.ValidationError(detail={'detail': 'email', 'reason': 'must_be_unique'})
         if not data.get('profile', None):
             raise serializers.ValidationError(detail={'detail': 'profile', 'reason': 'invalid_profile'})

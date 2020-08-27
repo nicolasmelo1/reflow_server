@@ -44,13 +44,12 @@ class UsersService:
         Returns:
             reflow_server.authentication.models.UserExtended: the instance of the created user.
         """
-        instance = UserExtended.objects.create(
-            username=email,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            profile=profile,
-            company=self.company
+        instance = UserExtended.authentication_.create_user(
+            email,
+            first_name,
+            last_name,
+            self.company.id,
+            profile.id
         )
 
         self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)
@@ -79,18 +78,16 @@ class UsersService:
         Returns:
             reflow_server.authentication.models.UserExtended: the instance of the updated user.
         """
-        instance, __ = UserExtended.objects.update_or_create(
-            id=user_id,
-            defaults={
-                'username': email,
-                'email': email,
-                'first_name': first_name,
-                'last_name': last_name,
-                'profile': profile
-            }
+        instance = UserExtended.authentication_.update_user(
+            user_id,
+            email,
+            first_name,
+            last_name,
+            profile.id
         )
-
-        self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)
+        
+        if instance:
+            self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)
 
         return instance
 
