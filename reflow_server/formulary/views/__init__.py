@@ -53,7 +53,7 @@ class FormFieldTypeOptionsView(APIView):
     """
     def get(self, request, company_id, form, field_id):
         form_field = Field.objects.filter(id=field_id).first()
-        instances = FormValue.objects.filter(company_id=company_id, field_id=form_field.form_field_as_option)
+        instances = FormValue.formulary_.form_values_by_company_id_and_field_id(company_id=company_id, field_id=form_field.form_field_as_option)
         serializer = FormFieldTypeOptionsSerializer(instance=instances, many=True)
         return Response({
             'status': 'ok',

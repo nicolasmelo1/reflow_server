@@ -10,7 +10,7 @@ class ExtractDataWorkerExternal(externals.External):
     host = settings.EXTERNAL_APPS['reflow_worker'][0]
 
     def build_extraction_data(self, file_id, file_format, company_id, user_id, form_id, field_ids, dynamic_form_ids):
-        dynamic_forms = DynamicForm.objects.filter(id__in=dynamic_form_ids)
+        dynamic_forms = DynamicForm.listing_.dynamic_forms_by_dynamic_form_ids_ordered(dynamic_form_ids)
         form = Form.objects.filter(id=form_id).first()
         url = '/utils/extraction/{company_id}/{user_id}/{form_name}/'.format(
             company_id=company_id,

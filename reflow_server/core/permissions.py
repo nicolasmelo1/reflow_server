@@ -50,12 +50,12 @@ def validate_permissions_from_request(request, permission_type, *args, **kwargs)
     2 - All of the url arguments you want to validate MUST be defined in the __init__ constructor of the class. 
     With this, for every view that recieves a company_id your permission class will recieve this value in it's __init__ function to be validated. 
     3 - So if you want to want to use any argument to validate the permission your class will need to have an __init__ method, this __init__ is the constructor 
-    of the class. This constructor will must NOT contain any positional arguments. All arguments must be keyword args. (you can default all of them to None)
+    of the class. This constructor  must NOT contain any positional arguments. All arguments must be keyword args. (you can default all of them to None)
     4 - Register it in settings.py PERMISSIONS dict with a custom key, they key must be a list in this case. And the ordering in this list is REALLY
     important.
     5 - When we recieve a request that uses this `validate_permissions_from_request` function we import each class permission that were defined in PERMISSIONS
     in settings.py. When we import this class, we run you class like a function passing a custom request object with some handy arguments. 
-    Because of this you NEED to define __call__ method in your classes. The __call__ function must obligatory return a boolean value
+    Because of this you NEED to define __call__ method in your classes. The __call__ function don't need to return anything
 
     EXAMPLE:
     Okay, so all of this stuff defined above might not be so clear so let's use an example.

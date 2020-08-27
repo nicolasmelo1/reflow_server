@@ -17,12 +17,16 @@ class ListingHeaderFieldsRelation(serializers.ModelSerializer):
 
 class ExtractFormValueListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        sections = list(DynamicForm.objects.filter(company_id=self.context['company_id'], depends_on=data.core_filters['form'].id).values_list('id', flat=True))
+        sections = list(
+            DynamicForm.listing_.dynamic_form_ids_by_company_id_and_depends_on_id(
+                self.context['company_id'], 
+                data.core_filters['form'].id
+            )
+        )
         if 'fields' in self.context and self.context['fields']:
-            order = Case(*[When(field_id=value, then=pos) for pos, value in enumerate(self.context['fields'])])
-            data = FormValue.objects.filter(company_id=self.context['company_id'], form_id__in=sections, field_id__in=self.context['fields']).order_by(order)
+            data = FormValue.listing_.form_values_by_company_id_and_form_ids_and_field_ids_ordered(self.context['company_id'], sections, self.context['fields'])
         else:
-            data = FormValue.objects.filter(company_id=self.context['company_id'], form_id__in=sections)
+            data = FormValue.listing_.form_values_by_company_id_and_form_ids(self.context['company_id'], sections)
         return super(ExtractFormValueListSerializer, self).to_representation(data)
 
 

@@ -1,6 +1,4 @@
 from django.conf import settings
-from django.db.models import Q, IntegerField
-from django.db.models.functions import Cast
 
 from reflow_server.core.utils.storage import Bucket
 from reflow_server.data.services.formulary.data import PostSaveData
@@ -44,6 +42,9 @@ class PostSave:
 
         Only works if instance is set in the serializer class, since it means you are trying to update a model,
         otherwise, nothing is made and we ignore this function.
+
+        It's important to understand that we only remove enabled fields, removed fields are ignored, so if you disabled
+        a field, the FormValue that it contains will be preserved.
         """
         if len(formulary_data.get_sections) != 0 and formulary_data.form_data_id:
             bucket = Bucket()
@@ -51,24 +52,9 @@ class PostSave:
             section_ids = [section.section_data_id for section in formulary_data.get_sections if section.section_data_id and section.section_data_id != '']
             form_value_ids = [field_value.field_value_data_id for field_value in formulary_data.get_field_values if field_value.field_value_data_id and field_value.field_value_data_id != '']
 
-            fields = Field.objects.filter(form__depends_on__form_name=self.form_name)
-            # we do not delete the data of disabled fields
-            disabled_fields = fields.filter(Q(enabled=False) | Q(form__enabled=False)).values('id', 'form_id')
-
-            form_value_to_delete = FormValue.objects.filter(
-                form__depends_on_id=formulary_data.form_data_id
-            ).exclude(
-                Q(id__in=form_value_ids) | Q(field_id__in=[disabled_field['id'] for disabled_field in disabled_fields])
-            )
-
-            dynamic_forms_to_delete = DynamicForm.objects.filter(
-                form__enabled=True, 
-                depends_on_id=formulary_data.form_data_id
-            ).exclude(id__in=section_ids)
-            
             # remove attachments from s3
-            for attachment_value in form_value_to_delete.filter(field_type__type='attachment'):
-                attachment_to_delete = Attachments.custom.attachment_by_dynamic_form_id_field_id_and_file_name(attachment_value.form.id, attachment_value.field.id, attachment_value.value)
+            for attachment_value in FormValue.data_.attachment_form_values_by_main_form_id_excluding_form_value_ids_and_disabled_fields(formulary_data.form_data_id, form_value_ids):
+                attachment_to_delete = Attachments.data_.attachment_by_dynamic_form_id_field_id_and_file_name(attachment_value.form.id, attachment_value.field.id, attachment_value.value)
                 if attachment_to_delete:
                     bucket.delete(
                         key="{file_attachments_path}/{id}/{field}/{file}".format(
@@ -79,8 +65,11 @@ class PostSave:
                         )
                     )
                     attachment_to_delete.delete()
-            form_value_to_delete.delete()
-            dynamic_forms_to_delete.delete()
+            FormValue.data_.delete_form_values_by_main_form_id_excluding_form_value_ids_and_disabled_fields(formulary_data.form_data_id, form_value_ids)
+            DynamicForm.data_.remove_dynamic_forms_from_enabled_forms_and_by_depends_on_id_excluding_dynamic_form_ids(
+                formulary_data.form_data_id,
+                section_ids
+            )
         return None
 
     def _post_process_formula(self, process):
@@ -96,8 +85,7 @@ class PostSave:
     
     def _post_process_id(self, process):
         if process.form_value_instance.value == '0':
-            last_id = FormValue.objects.filter(form__form=process.form_value_instance.field.form, field__type=process.form_value_instance.field.type, field=process.form_value_instance.field)\
-                .annotate(value_as_int=Cast('value', IntegerField())).order_by('-value_as_int').values_list('value_as_int', flat=True).first()
+            last_id = FormValue.data_.last_saved_value_of_id_field_type(process.form_value_instance.field.form.id, process.form_value_instance.field.type.id, process.form_value_instance.field.id)
             value = int(last_id) + 1 if last_id else 1
             process.form_value_instance.value = value
         return process
@@ -106,7 +94,7 @@ class PostSave:
         if process.form_value_instance.value != '':
             bucket = Bucket()
 
-            dynamic_form_attachment_instance = Attachments.custom.attachment_by_dynamic_form_id_field_id_and_file_name(
+            dynamic_form_attachment_instance = Attachments.data_.attachment_by_dynamic_form_id_field_id_and_file_name(
                 process.form_value_instance.form.id, process.form_value_instance.field.id, process.form_value_instance.value
             )
 
@@ -136,16 +124,16 @@ class PostSave:
                 dynamic_form_attachment_instance.file_size = file_data.size
                 dynamic_form_attachment_instance.save()
             elif hasattr(self, 'duplicate_form_data_id'):
-                to_duplicate = FormValue.objects.filter(form__depends_on=self.duplicate_form_data_id, field_id=process.form_value_instance.field.id, value=str(process.form_value_instance.value)).first()
+                to_duplicate = Attachments.data_.attachment_by_dynamic_form_id_field_id_and_file_name(self.duplicate_form_data_id, process.form_value_instance.field.id, str(process.form_value_instance.value))
                 if to_duplicate:
                     url = bucket.copy(
                         from_key="{file_attachments_path}/{id}/{field}/".format(
-                            id=str(to_duplicate.form.pk), 
+                            id=str(self.duplicate_form_data_id), 
                             field=str(to_duplicate.field.id), 
                             file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH
-                        ) + str(to_duplicate.value),
+                        ) + str(to_duplicate.file),
                         to_key="{file_attachments_path}/{id}/{field}/".format(
-                            id=str(process.form_value_instance.form.pk), 
+                            id=str(process.form_value_instance.form.id), 
                             field=str(process.form_value_instance.field.id), 
                             file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH
                         ) + str(process.form_value_instance.value),

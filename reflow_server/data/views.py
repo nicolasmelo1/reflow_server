@@ -54,8 +54,7 @@ class DataView(APIView):
             form_id=form_id
         )
         
-        order = Case(*[When(id=form_data_id, then=index) for index, form_data_id in enumerate(form_data_accessed_by_user)])
-        instances = DynamicForm.objects.filter(id__in=form_data_accessed_by_user).order_by(order)[pagination.offset:pagination.limit]
+        instances = DynamicForm.data_.dynamic_forms_by_dynamic_form_ids_ordered(form_data_accessed_by_user)[pagination.offset:pagination.limit]
         serializer = DataSerializer(instance=instances, many=True, context={
             'fields': fields,
             'company_id': company_id
@@ -111,14 +110,11 @@ class FormularyDataEditView(APIView):
     parser_classes = [FormParser, MultiPartParser]
 
     def get(self, request, company_id, form, dynamic_form_id):
-        instance = DynamicForm.objects.filter(id=dynamic_form_id).first()
-        if instance.depends_on_id:
-            instance = DynamicForm.objects.filter(
-                id=instance.depends_on_id, 
-                form__group__company_id=company_id, 
-                depends_on__isnull=True
-            ).first()
-            
+        instance = DynamicForm.data_.dynamic_form_by_dynamic_form_id_and_company_id(
+            dynamic_form_id,
+            company_id
+        )
+
         serializer = FormDataSerializer(
             instance=instance,
             user_id=request.user.id, 
@@ -153,8 +149,11 @@ class FormularyDataEditView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, company_id, form, dynamic_form_id):
-        DynamicForm.objects.filter(form__group__company_id=company_id,
-                                   form__form_name=form, id=dynamic_form_id).delete()
+        DynamicForm.data_.remove_dynamic_form_by_dynamic_form_id_company_id_and_form_name(
+            dynamic_form_id,
+            company_id,
+            form
+        )
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
@@ -172,7 +171,7 @@ class DownloadFileView(APIView):
                   in a new tab for the user.
     """
     def get(self, request, company_id, form, dynamic_form_id, field_id, file_name):
-        attachment = Attachments.custom.attachment_by_dynamic_form_id_field_id_and_file_name(dynamic_form_id, field_id, file_name)
+        attachment = Attachments.data_.attachment_by_dynamic_form_id_field_id_and_file_name(dynamic_form_id, field_id, file_name)
         if attachment:
             if attachment.file_url and len(attachment.file_url.split('/{}/'.format(attachment.file_attachments_path)))>1:
                 key = attachment.file_attachments_path + '/' + attachment.file_url.split('/{}/'.format(attachment.file_attachments_path))[1]

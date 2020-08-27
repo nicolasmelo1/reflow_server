@@ -17,7 +17,7 @@ class AuthenticationDefaultPermission:
     def __call__(self, request):
         self.user_id = request.request.user.id if request.request.user.is_authenticated else self.user_id
         
-        user = UserExtended.objects.filter(id=self.user_id).first()
+        user = UserExtended.authentication_.user_by_user_id(self.user_id)
     
         if not AuthenticationPermissionsService.is_valid_admin_only_path(user, request.url_name):
             raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)

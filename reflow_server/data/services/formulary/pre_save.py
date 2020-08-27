@@ -130,7 +130,7 @@ class PreSave(Validator):
 
         if field.date_configuration_auto_create or field.date_configuration_auto_update:
             if field.date_configuration_auto_create and formulary_data.form_data_id and field_data.field_value_data_id:
-                value = FormValue.objects.filter(id=field_data.field_value_data_id).values_list('value', flat=True).first()
+                value = FormValue.data_.value_by_form_value_id(field_data.field_value_data_id)
             else:
                 value = datetime.strptime(
                     (
@@ -145,7 +145,7 @@ class PreSave(Validator):
             except:
                 value = datetime.strptime(
                     value, 
-                    FormValue.objects.filter(id=field_data.field_value_data_id).first().date_configuration_date_format_type.format
+                    FormValue.data_.form_value_by_form_value_id(field_data.field_value_data_id).date_configuration_date_format_type.format
                 ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
         return value
 

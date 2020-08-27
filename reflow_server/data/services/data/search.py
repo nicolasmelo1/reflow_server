@@ -54,7 +54,7 @@ class DataSearch:
                 form_ids_to_filter = handler(to_search, field_data, form_ids_to_filter)
             else:
                 form_ids_to_filter = list(
-                    FormValue.custom.form_depends_on_ids_for_search_all_field_types(
+                    FormValue.data_.form_depends_on_ids_for_search_all_field_types(
                         company_id=self.company_id, 
                         depends_on_forms=list(form_ids_to_filter),
                         field_id=field_data['id'],
@@ -82,7 +82,7 @@ class DataSearch:
         end_date = datetime.strptime(split_search_value[1].split(' ')[0] + ' 23:59:59', '{} %H:%M:%S'.format(field_data['date_configuration_date_format_type_format'].split(' ')[0])) 
 
         return list(
-                FormValue.custom.form_depends_on_ids_for_search_date_field_types(
+                FormValue.data_.form_depends_on_ids_for_search_date_field_types(
                     company_id=self.company_id, 
                     depends_on_forms=list(form_ids_to_filter), 
                     field_id=field_data['id'], 
@@ -94,7 +94,7 @@ class DataSearch:
     
     def _search_form(self, search_item, field_data, form_ids_to_filter):
         return list(
-            FormValue.custom.form_depends_on_ids_for_search_form_field_types(
+            FormValue.data_.form_depends_on_ids_for_search_form_field_types(
                 company_id=self.company_id, 
                 depends_on_forms=list(form_ids_to_filter), 
                 field_id=field_data['id'], 
@@ -124,7 +124,7 @@ class DataSearch:
             )
 
         return list(
-            FormValue.custom.form_depends_on_ids_for_search_user_field_types(
+            FormValue.data_.form_depends_on_ids_for_search_user_field_types(
                 company_id=self.company_id, 
                 depends_on_forms=list(form_ids_to_filter), 
                 field_id=field_data['id'], 

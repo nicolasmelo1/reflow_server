@@ -128,9 +128,10 @@ class Token(Structure):
 
             field_id = value.replace('{{', '').replace('}}', '')
             if self.dynamic_form_id:
-                value = FormValue.objects.filter(
-                    field_id=int(field_id), form__depends_on_id=self.dynamic_form_id
-                ).values_list('value', flat=True)
+                value = FormValue.formula_.values_by_main_formulary_data_id_and_field_id(
+                    self.dynamic_form_id,
+                    int(field_id)
+                )
                 value = ','.join(value)
                 if value and not value.lstrip("-").isdigit():
                     value = r"'"+ value +r"'"

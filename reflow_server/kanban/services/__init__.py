@@ -50,19 +50,13 @@ class KanbanService(KanbanCardService):
         else:
             data_service = DataService(self.user_id, self.company_id)
             form_data_ids = data_service.get_user_form_data_ids_from_form_id(dimension.form.depends_on.id)
-            options = FormValue.objects.filter(
-                form__depends_on__in=form_data_ids, 
-                field=dimension
-            ).exclude(
-                Q(value='') | Q(value__isnull=True)
-            ).values_list('value', flat=True).distinct()
+            options = FormValue.kanban_.distinct_values_by_depends_on_ids_and_field_id_excluding_null_and_empty(
+                form_data_ids, 
+                dimension.id
+            )
 
             options = [int(option) for option in options]
-
-            possible_values = FormValue.objects.filter(
-                form__in=options, 
-                field=dimension.form_field_as_option
-            ).values_list('value', flat=True).distinct()
+            possible_values = FormValue.kanban_.distinct_values_by_dynamic_forms_and_field(options, dimension.form_field_as_option)
 
         dimension_orders = KanbanDimensionOrder.objects.filter(
             user_id=self.user_id,

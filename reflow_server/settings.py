@@ -72,7 +72,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'reflow_server.middleware.CORSMiddleware',
+    'reflow_server.core.middleware.CORSMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -80,7 +80,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'reflow_server.middleware.AuthJWTMiddleware'
+    'reflow_server.authentication.middleware.AuthJWTMiddleware'
 ]
 
 ROOT_URLCONF = 'reflow_server.urls'

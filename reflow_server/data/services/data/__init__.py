@@ -204,17 +204,18 @@ class DataService(DataSort, DataSearch):
         }
 
         if from_date and to_date:
-            self._data = DynamicForm.objects.filter(
-                company_id=self.company_id, 
-                updated_at__range=[from_date, to_date + timedelta(days=1)],
-                form_id=form_id
-            ).order_by('-updated_at')
+            self._data = DynamicForm.data_.dynamic_forms_by_company_id_form_id_between_updated_at_range_ordered_by_updated_at(
+                self.company_id, 
+                form_id,
+                from_date, 
+                to_date + timedelta(days=1)
+            )
 
         else:
-            self._data = DynamicForm.objects.filter(
-                company_id=self.company_id, 
-                form_id=form_id
-            ).order_by('-updated_at')
+            self._data = DynamicForm.data_.dynamic_forms_by_company_id_and_form_id_orderd_by_updated_at(
+                self.company_id, 
+                form_id
+            )
 
         if search_keys:
             if type(search_keys) != list or any([type(search) != dict for search in search_keys]) or any([type(list(search.values())[0]) != tuple for search in search_keys]):
@@ -272,7 +273,7 @@ class DataService(DataSort, DataSearch):
                         field_option['field_id'], []
                     ) + [field_option['option']]
 
-                all_form_values = FormValue.custom.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(
+                all_form_values = FormValue.data_.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(
                     company_id=self.company_id,
                     depends_on_forms=self._data,
                     field_ids=list(options_by_field.keys()),

@@ -130,12 +130,19 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
         super(ChangeKanbanCardBetweenDimensionsSerializer, self).__init__(**kwargs)
     
     def validate(self, data):
-        form_value_to_change = FormValue.objects.filter(id=int(data['form_value_id'])).first()
-        sections = DynamicForm.objects.filter(depends_on_id=form_value_to_change.form.depends_on.id)
+        """
+        What we do here is prepare the data to change the rows of the kanban.
+
+        What you notice right away is that what we actually do is build a formulary data on the fly changing
+        only the value of the FormValue that was changed and then sending it to the FormularyDataService. 
+        We do this because we can reuse all of the validation logic of this service without the need to redo it again.
+        """
+        form_value_to_change = FormValue.kanban_.form_value_by_form_value_id(int(data['form_value_id']))
+        sections = DynamicForm.kanban_.sections_data_by_depends_on_id(form_value_to_change.form.depends_on.id)
         formulary_data = self.formulary_data_service.add_formulary_data(form_value_to_change.form.depends_on.id)
         for section in sections:
             section_data = formulary_data.add_section_data(section_id=section.form.id, section_data_id=section.id)
-            section_field_values = FormValue.objects.filter(form_id=section.id)
+            section_field_values = FormValue.kanban_.form_values_by_dynamic_form_id(section.id)
             for field_value in section_field_values:
                 representation_service = RepresentationService(
                     field_value.field_type.type, 

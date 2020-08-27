@@ -20,7 +20,7 @@ class TestFormulaView(APIView):
                   can do it later.
     """
     def get(self, request, company_id, form_id):
-        dynamic_form_id = DynamicForm.objects.filter(form_id=form_id, depends_on__isnull=True).order_by('-updated_at').values_list('id', flat=True).first()
+        dynamic_form_id = DynamicForm.formula_.latest_main_dynamic_form_id_by_form_id(form_id)
         text = request.GET.get('text')
         formula = FormulaService(text, dynamic_form_id=dynamic_form_id)
         value = formula.value

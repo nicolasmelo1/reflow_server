@@ -2,7 +2,17 @@ from django.conf import settings
 from django.db import models
 
 from reflow_server.formulary.models.abstract import AbstractFieldStates
-from reflow_server.data import managers
+
+from reflow_server.data.managers import FormValueDataManager, AttachmentsDataManager, \
+    DynamicFormDataManager
+from reflow_server.notification.managers import FormValueNotificationManager
+from reflow_server.kanban.managers import FormValueKanbanManager, \
+    DynamicFormKanbanManager
+from reflow_server.listing.managers import FormValueListingManager, \
+    DynamicFormListingManager
+from reflow_server.formulary.managers import FormValueFormularyManager
+from reflow_server.formula.managers import FormValueFormulaManager, \
+    DynamicFormFormulaManager
 
 
 class DynamicForm(models.Model):
@@ -39,7 +49,12 @@ class DynamicForm(models.Model):
         ordering = ('-updated_at',)
         app_label = 'data'
 
-
+    objects = models.Manager()
+    data_ = DynamicFormDataManager()
+    formula_ = DynamicFormFormulaManager()
+    kanban_ = DynamicFormKanbanManager()
+    listing_ = DynamicFormListingManager()
+    
 
 class FormValue(AbstractFieldStates):
     """
@@ -67,13 +82,17 @@ class FormValue(AbstractFieldStates):
     form_field_as_option = models.ForeignKey('formulary.Field', models.SET_NULL, blank=True, null=True, db_index=True)
     field_type = models.ForeignKey('formulary.FieldType', models.CASCADE, db_index=True, null=True, related_name='field_type_value')
 
-
     class Meta:
         db_table = 'form_value'
         app_label = 'data'
 
     objects = models.Manager()
-    custom = managers.FormValueManager()
+    data_ = FormValueDataManager()
+    listing_ = FormValueListingManager()
+    kanban_ = FormValueKanbanManager()
+    formulary_ = FormValueFormularyManager()
+    formula_ = FormValueFormulaManager()
+    notification_ = FormValueNotificationManager()
 
 
 class Attachments(models.Model):
@@ -109,4 +128,4 @@ class Attachments(models.Model):
         app_label = 'data'
         
     objects = models.Manager()
-    custom = managers.AttachmentsManager()
+    data_ = AttachmentsDataManager()

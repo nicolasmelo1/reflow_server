@@ -122,7 +122,7 @@ class BaseConsumer(AsyncWebsocketConsumer):
             raise KeyError('Seems like there is no handler for %s event' % event_name)
 
         channel_layer = get_channel_layer()
-        await self.channel_layer.group_send(
+        await channel_layer.group_send(
             '{}'.format(group_name),
             {
                 'type': event_name,

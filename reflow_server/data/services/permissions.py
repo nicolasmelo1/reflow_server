@@ -45,7 +45,7 @@ class DataPermissionsService:
         Returns:
             bool: true if is valid, so everything can go as normal, and false if not valid, so needs to notify the user he can't do this operation.
         """
-        company_aggregated_file_sizes = Attachments.custom.company_aggregated_file_sizes(company_id)
+        company_aggregated_file_sizes = Attachments.data_.company_aggregated_file_sizes(company_id)
         current_gb_permission_for_company = CurrentCompanyCharge.objects.filter(
             individual_charge_value_type__name='per_gb', 
             company_id=company_id

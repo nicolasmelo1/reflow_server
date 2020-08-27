@@ -7,7 +7,7 @@ class EmailBackend:
     username and password.
     """
     def authenticate(self, request,  username=None, password=None):
-        user = UserExtended.objects.filter(email=username, is_active=True).first()
+        user = UserExtended.authentication_.user_active_by_email(username)        
         if user and user.check_password(password):
             return user
         else:
@@ -15,7 +15,4 @@ class EmailBackend:
         return None
 
     def get_user(self, user_id):
-        try:
-            return UserExtended.objects.get(id=user_id)
-        except UserExtended.DoesNotExist:
-            return None
+        return UserExtended.authentication_.user_by_user_id(user_id)

@@ -141,50 +141,44 @@ class FormularyDataService(PreSave, PostSave):
         
         self.files = files
 
-        formulary_instance, __ = DynamicForm.objects.update_or_create(
-            id=self.formulary_data.form_data_id,
-            defaults={
-                'updated_at': datetime.now(),
-                'form': self.form,
-                'user_id': self.user_id,
-                'company_id': self.company_id
-            }
+        formulary_instance = DynamicForm.data_.create_or_update_main_form_instance(
+            self.form.id,
+            self.user_id,
+            self.company_id,
+            main_form_instance_id=self.formulary_data.form_data_id
         )
 
         for section in self.formulary_data.get_sections:
-            section_instance, __ = DynamicForm.objects.update_or_create(
-                id=section.section_data_id, 
-                defaults={
-                    'form_id': section.section_id,
-                    'user_id': self.user_id,
-                    'company_id': self.company_id,
-                    'depends_on': formulary_instance
-                }
+            section_instance = DynamicForm.data_.create_or_update_section_instance(
+                section.section_id,
+                self.user_id,
+                self.company_id,
+                main_form_instance=formulary_instance
             )
+    
             # updates the section data if the newly section instance id so when deleting we consider this new value
             section.section_data_id = section_instance.id
 
             for field_value in section.get_field_values:
                 field = self.fields.filter(name=field_value.field_name).first()
-                form_value, __ = FormValue.objects.update_or_create(id=field_value.field_value_data_id,
-                    defaults={
-                        'field': field,
-                        'field_type': field.type,
-                        'company_id': self.company_id,
-                        'date_configuration_date_format_type': field.date_configuration_date_format_type,
-                        'period_configuration_period_interval_type': field.period_configuration_period_interval_type,
-                        'number_configuration_number_format_type': field.number_configuration_number_format_type,
-                        'formula_configuration': field.formula_configuration,
-                        'form_field_as_option': field.form_field_as_option if field.type.type == 'form' else None,
-                        'value': field_value.value,
-                        'form': section_instance
-                    }
+                form_value_instance = FormValue.data_.create_or_update(
+                    form_value_id=field_value.field_value_data_id,
+                    field=field,
+                    field_type=field.type,
+                    company_id=self.company_id,
+                    date_configuration_date_format_type=field.date_configuration_date_format_type,
+                    period_configuration_period_interval_type=field.period_configuration_period_interval_type,
+                    number_configuration_number_format_type=field.number_configuration_number_format_type,
+                    formula_configuration=field.formula_configuration,
+                    form_field_as_option=field.form_field_as_option if field.type.type == 'form' else None,
+                    value=field_value.value,
+                    section=section_instance
                 )
                 # updates the field_value data with the newly field_value instance id so when deleting
                 # removed data can consider this new value (so we don't delete it)
-                field_value.update_field_value_data_id(form_value.id)
+                field_value.update_field_value_data_id(form_value_instance.id)
 
-                self.add_saved_field_value_to_post_process(section_instance, form_value)
+                self.add_saved_field_value_to_post_process(section_instance, form_value_instance)
 
         self.post_save(self.formulary_data) 
 

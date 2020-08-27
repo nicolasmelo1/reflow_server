@@ -23,14 +23,17 @@ class DataDefaultPermission:
             form = Form.objects.filter(form_name=self.form, group__company_id=self.company_id).first()
 
             # can maybe be a section so we have to treat it
-            dynamic_form = DynamicForm.objects.filter(
-                Q(id=self.dynamic_form_id, form__group__company_id=self.company_id) | 
-                Q(id=self.dynamic_form_id, form__depends_on__group__company_id=self.company_id)
-            ).first()
+            dynamic_form = DynamicForm.data_.dynamic_form_by_dynamic_form_id_and_company_id(
+                self.dynamic_form_id,
+                self.company_id
+            )
             # if this conditional is set it is probably a section
             if dynamic_form and dynamic_form.depends_on_id:
-                dynamic_form = DynamicForm.objects.filter(id=dynamic_form.depends_on_id, form__group__company_id=self.company_id).first()
-
+                dynamic_form = DynamicForm.data_.dynamic_form_by_dynamic_form_id_and_company_id(
+                    dynamic_form.depends_on_id,
+                    self.company_id
+                )
+            
             if dynamic_form and form:
                 if not DataPermissionsService.is_valid(request.request.user.id, self.company_id, form.id, dynamic_form.id):
                     raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)

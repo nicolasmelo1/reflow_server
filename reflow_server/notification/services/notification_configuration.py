@@ -187,10 +187,10 @@ class NotificationConfigurationService:
             ).values_list('field_id', flat=True)
 
             for notification_configuration_variable in notification_configuration_variables:
-                form_value = FormValue.objects.filter(
-                    form__depends_on__id=pre_notification.dynamic_form_id, 
-                    field_id=notification_configuration_variable
-                ).first()
+                form_value = FormValue.notification_.form_value_by_main_formulary_data_id_and_field_id(
+                    pre_notification.dynamic_form_id, 
+                    notification_configuration_variable
+                )
                 if form_value:
                     variable_values.append(form_value)
                 else:

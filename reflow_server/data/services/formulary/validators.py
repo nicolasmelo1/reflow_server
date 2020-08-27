@@ -50,10 +50,10 @@ class Validator:
         if field.is_unique and field.name in field_values: 
             for field_value in field_values[field.name]:
                 if field_value.value not in [None, '']:
-                    if not field_value.field_value_data_id and FormValue.objects.filter(value=field_value.value, field=field, form__form_id=field.form_id).exists():
+                    if not field_value.field_value_data_id and FormValue.data_.exists_form_value_by_value_field_id_and_section_id(field_value.value, field.id, field.form_id):
                         self._errors = {'detail': field.name, 'reason': 'already_exists', 'data': field_value.value}
                         return False
-                    elif field_value.field_value_data_id and FormValue.objects.filter(value=field_value.value,field=field, form__form_id=field.form_id).exclude(id=field_value.field_value_data_id).exists():
+                    elif field_value.field_value_data_id and FormValue.data_.exists_form_value_by_value_field_id_and_section_id_excluding_form_value_id(field_value.value, field.id, field.form_id, field_value.field_value_data_id):
                         self._errors = {'detail': field.name, 'reason': 'already_exists', 'data': field_value.value}
                         return False
         return True

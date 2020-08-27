@@ -24,8 +24,6 @@ class AggregationService:
             company_id=company_id,
             form_id=form_id
         )
-
-        self.order = Case(*[When(id=form_data_id, then=index) for index, form_data_id in enumerate(self.dynamic_form_ids_to_aggregate)])
     
     def __sum_list(self, values):
         result = 0
@@ -111,7 +109,7 @@ class AggregationService:
         key_field = Field.objects.filter(id=field_id_key).first()
         value_field = Field.objects.filter(id=field_id_value).first()
         
-        keys_values = FormValue.custom.distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(
+        keys_values = FormValue.data_.distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(
             depends_on_ids=self.dynamic_form_ids_to_aggregate, 
             field_type_id=key_field.type.id, 
             field_id=key_field.id, 
@@ -120,7 +118,7 @@ class AggregationService:
         for key_value, key_form_data_id in keys_values:
             aggregation_data.add_key(key=key_value, form_data_id=key_form_data_id)
 
-        value_values = FormValue.custom.value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(
+        value_values = FormValue.data_.value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(
             depends_on_ids=self.dynamic_form_ids_to_aggregate, 
             field_type_id=value_field.type.id, 
             field_id=value_field.id, 
