@@ -4,7 +4,7 @@ from django.db import transaction
 from rest_framework import status
 
 from reflow_server.authentication.models import Company
-from reflow_server.billing.models import CompanyInvoiceMails
+from reflow_server.billing.models import CompanyInvoiceMails, CompanyBilling
 
 
 class VindiService:
@@ -20,18 +20,19 @@ class VindiService:
             company_id (int): The id of the company you want to handle in vindi gateway
         """
         self.company = Company.objects.filter(id=company_id).first()
+        self.company_billing = CompanyBilling.objects.filter(company_id=company_id).first()
 
         from reflow_server.billing.externals import VindiExternal
         from reflow_server.billing.services.charge import ChargeService
 
-        self.billing_service = ChargeService(self.company)
+        self.charge_service = ChargeService(company_id, self.company_billing)
         self.vindi_external = VindiExternal()
 
-        self.vindi_plan_id = self.company.vindi_plan_id
-        self.vindi_client_id = self.company.vindi_client_id
-        self.vindi_product_id = self.company.vindi_product_id
-        self.vindi_payment_profile_id = self.company.vindi_payment_profile_id
-        self.vindi_signature_id = self.company.vindi_signature_id
+        self.vindi_plan_id = self.company_billing.vindi_plan_id
+        self.vindi_client_id = self.company_billing.vindi_client_id
+        self.vindi_product_id = self.company_billing.vindi_product_id
+        self.vindi_payment_profile_id = self.company_billing.vindi_payment_profile_id
+        self.vindi_signature_id = self.company_billing.vindi_signature_id
     
     @property
     def __total(self):
@@ -49,7 +50,7 @@ class VindiService:
         if hasattr(self, '_cache_total'):
             return self._cache_total
         else:
-            self._cache_total = self.billing_service.get_total_data.total
+            self._cache_total = self.charge_service.get_total_data.total
             return self._cache_total
 
     def __get_correct_payment_method_type(self, payment_method):
@@ -78,18 +79,18 @@ class VindiService:
         if emails:
             if self.vindi_client_id:
                 response = self.vindi_external.update_client(
-                    self.vindi_client_id, self.company.street, self.company.number, 
-                    self.company.zip_code, self.company.neighborhood, 
-                    self.company.city, 'SP', self.company.country, 
-                    self.company.name, emails[0].email, self.company.cnpj,
+                    self.vindi_client_id, self.company_billing.street, self.company_billing.number, 
+                    self.company_billing.zip_code, self.company_billing.neighborhood, 
+                    self.company_billing.city, 'SP', self.company_billing.country, 
+                    self.company.name, emails[0].email, self.company_billing.cnpj,
                     [email.email for email in emails[1:]]
                 )
             else: 
                 response = self.vindi_external.create_client(
-                    self.company.street, self.company.number, 
-                    self.company.zip_code, self.company.neighborhood, 
-                    self.company.city, self.company.state, self.company.country, 
-                    self.company.name, emails[0].email, self.company.cnpj,
+                    self.company_billing.street, self.company_billing.number, 
+                    self.company_billing.zip_code, self.company_billing.neighborhood, 
+                    self.company_billing.city, self.company_billing.state, self.company_billing.country, 
+                    self.company.name, emails[0].email, self.company_billing.cnpj,
                     [email.email for email in emails[1:]]
                 )
 
@@ -150,13 +151,13 @@ class VindiService:
         if self.vindi_plan_id:
             response = self.vindi_external.update_plan(
                 self.vindi_plan_id,
-                'plan_of_company_{}'.format(self.company.endpoint),
-                self.company.invoice_date_type.date
+                'plan_of_company_{}'.format(self.company.id),
+                self.company_billing.invoice_date_type.date
             )
         else:
             response = self.vindi_external.create_plan(
-                'plan_of_company_{}'.format(self.company.endpoint),
-                self.company.invoice_date_type.date
+                'plan_of_company_{}'.format(self.company.id),
+                self.company_billing.invoice_date_type.date
             )
 
         status_code = response.status_code if response and response.status_code else None
@@ -184,7 +185,7 @@ class VindiService:
             response = self.vindi_external.create_payment_profile(
                 gateway_token,
                 self.vindi_client_id,
-                self.__get_correct_payment_method_type(self.company.payment_method_type.name)
+                self.__get_correct_payment_method_type(self.company_billing.payment_method_type.name)
             )
 
         # this works differently because it's not always that we want to create a payment profile, so it returns always 200
@@ -211,20 +212,19 @@ class VindiService:
             tuple: Tuple containing the `status_code` as first argument and the created `vindi_payment_profile_id`.
         """
         response = None
-
         if self.vindi_signature_id:
             response = self.vindi_external.update_subscription(
                 self.vindi_signature_id, self.vindi_plan_id, self.vindi_client_id, self.vindi_product_id, 
-                self.__get_correct_payment_method_type(self.company.payment_method_type.name),
-                self.company.invoice_date_type.date, self.__total
+                self.__get_correct_payment_method_type(self.company_billing.payment_method_type.name),
+                self.company_billing.invoice_date_type.date, self.__total
             )
             if response and response.status_code == 200 and response.json().get('subscription', {}).get('product_items', []):
                 self.__update_product_item(response.json().get('subscription', {}).get('product_items', [])[0]['id'])
         else:
             response = self.vindi_external.create_subscription(
                 self.vindi_plan_id, self.vindi_client_id, self.vindi_product_id,
-                self.__get_correct_payment_method_type(self.company.payment_method_type.name),
-                self.company.invoice_date_type.date, self.__total
+                self.__get_correct_payment_method_type(self.company_billing.payment_method_type.name),
+                self.company_billing.invoice_date_type.date, self.__total
             )
         status_code = response.status_code if response and response.status_code else None
         self.vindi_signature_id = response.json().get('subscription', {}).get('id', self.vindi_signature_id) if response else self.vindi_signature_id
@@ -274,8 +274,8 @@ class VindiService:
             return True
         else:
             if self.vindi_external.delete_payment_profile(self.vindi_payment_profile_id).status_code == 200:
-                self.company.vindi_payment_profile_id = None
-                self.company.save()
+                self.company_billing.vindi_payment_profile_id = None
+                self.company_billing.save()
                 return True
             else:
                 return False
@@ -309,12 +309,12 @@ class VindiService:
         if any([response[0] not in [status.HTTP_200_OK, status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED] for response in pipeline]):
             raise ConnectionError('We could not connect to Vindi servers.')
         else:
-            self.company.vindi_plan_id = self.vindi_plan_id
-            self.company.vindi_client_id = self.vindi_client_id
-            self.company.vindi_product_id = self.vindi_product_id
-            self.company.vindi_payment_profile_id = str(self.vindi_payment_profile_id)
-            self.company.vindi_signature_id = self.vindi_signature_id
-            self.company.save()
+            self.company_billing.vindi_plan_id = self.vindi_plan_id
+            self.company_billing.vindi_client_id = self.vindi_client_id
+            self.company_billing.vindi_product_id = self.vindi_product_id
+            self.company_billing.vindi_payment_profile_id = str(self.vindi_payment_profile_id)
+            self.company_billing.vindi_signature_id = self.vindi_signature_id
+            self.company_billing.save()
             return True
     
     @staticmethod
@@ -322,6 +322,9 @@ class VindiService:
         """
         This is responsible for handling Vindi webhook requests. You just need to send the data recieved and this function takes 
         care of the rest.
+
+        Here we only listen to `subscription_canceled` event so we deactivate a Company, we listen to `subscription_reactivated` so
+        we reactivate a Company and last but not least `bill_paid` this way we add the payment data in our database.
 
         For further reference: https://atendimento.vindi.com.br/hc/pt-br/articles/203305800-O-que-s%C3%A3o-e-como-funcionam-os-Webhooks-
 
@@ -333,16 +336,17 @@ class VindiService:
         data = data.get('event', {}).get('data', {})
         if event in list(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS.keys()) and data.get(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event], None):
             data = data[settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event]]
+
             if event == 'subscription_canceled':
-                company = Company.objects.filter(vindi_signature_id=data.get('id', -1)).first()
+                company = CompanyBilling.objects.filter(vindi_signature_id=data.get('id', -1)).first()
                 if company and not company.is_supercompany:
-                    company.is_active = False
-                    company.save()
+                    Company.objects.filter(id=company.id).update(is_active=False)
+
             elif event == 'subscription_reactivated':
-                company = Company.objects.filter(vindi_signature_id=data.get('id', -1)).first()
+                company = CompanyBilling.objects.filter(vindi_signature_id=data.get('id', -1)).first()
                 if company and not company.is_supercompany:
-                    company.is_active = True
-                    company.save()
+                    Company.objects.filter(id=company.id).update(is_active=True)
+
             elif event == 'bill_paid':
                 from reflow_server.billing.services.charge import ChargeService
 

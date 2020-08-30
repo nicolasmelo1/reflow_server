@@ -26,7 +26,7 @@ class CompanySettingsView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id):
-        instance = Company.objects.filter(id=company_id).first()
+        instance = Company.authentication_.company_by_company_id(company_id)
         serializer = CompanySettingsSerializer(instance=instance)
         return Response({
             'status': 'ok',
@@ -34,7 +34,7 @@ class CompanySettingsView(APIView):
         }, status=status.HTTP_200_OK)
 
     def put(self, request, company_id):
-        instance = Company.objects.filter(id=company_id).first()
+        instance = Company.authentication_.company_by_company_id(company_id)
         serializer = CompanySettingsSerializer(instance=instance, data=request.data)
         if serializer.is_valid():
             serializer.save()

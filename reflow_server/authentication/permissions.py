@@ -23,7 +23,7 @@ class AuthenticationDefaultPermission:
             raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)
 
         if self.company_id:
-            company = Company.objects.filter(id=self.company_id).first()
+            company = Company.authentication_.company_by_company_id(self.company_id)
 
             if not AuthenticationPermissionsService.is_valid_compay(company) or not AuthenticationPermissionsService.is_valid_user_company(company, user):
                 raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)

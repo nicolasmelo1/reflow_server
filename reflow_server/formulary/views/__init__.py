@@ -71,7 +71,7 @@ class UserFieldTypeOptionsView(APIView):
                   right now, all of the users of a current company
     """
     def get(self, request, company_id, form, field_id):
-        instances = UserExtended.objects.filter(company_id=company_id, is_active=True)
+        instances = UserExtended.formulary_.users_active_by_company_id(company_id)
         serializer = UserFieldTypeOptionsSerializer(instance=instances, many=True)
         return Response({
             'status': 'ok',

@@ -1,8 +1,14 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from reflow_server.authentication.managers import UserExtendedAuthenticationManager
+from reflow_server.authentication.managers import UserExtendedAuthenticationManager, \
+    CompanyAuthenticationManager
 from reflow_server.billing.managers import UserExtendedBillingManager
+from reflow_server.data.managers import UserExtendedDataManager
+from reflow_server.formulary.managers import UserExtendedFormularyManager
+from reflow_server.notification.managers import UserExtendedNotificationManager
+from reflow_server.theme.managers import UserExtendedThemeManager
 
 
 class VisualizationType(models.Model):
@@ -76,40 +82,24 @@ class Company(models.Model):
     This is the company, the company as the name suggest is the company of a user, right now a user can have only one
     company, but might change in the future for a user to have multiple companies.
 
-    A Company defines everything on a company level. So stuff like payment info, stuff to send "Nota fiscal" and others
-    MUST be defined here, not on the user level.
+    A Company defines everything on a company level. Stuff like payment info, stuff to send "Nota fiscal" and others
+    MUST NOT be defined here, they are defined on `reflow_server.billing.models.CompanyBilling` model since this is data
+    needed only for billing and not for here.
     """
     name = models.CharField(max_length=400, default=None, db_index=True)
     endpoint = models.CharField(max_length=280, default=None, db_index=True)
     company_type = models.ForeignKey('authentication.CompanyType', on_delete=models.CASCADE, null=True, blank=True)
-    address = models.CharField(max_length=500, default=None, null=True)
-    zip_code = models.CharField(max_length=500, default=None, null=True)
-    street = models.CharField(max_length=500, default=None, null=True)
-    number = models.IntegerField(null=True)
-    neighborhood = models.CharField(max_length=500, default=None, null=True)
-    country = models.CharField(max_length=280, default=None, null=True)
-    state = models.CharField(max_length=280, default=None, null=True)
-    city = models.CharField(max_length=280, default=None, null=True)
-    cnpj = models.CharField(max_length=280, default=None, null=True)
-    additional_details = models.CharField(max_length=280, default=None, null=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True, db_index=True)
-    is_supercompany = models.BooleanField(default=False)
-    is_paying_company = models.BooleanField(default=False)
-    vindi_plan_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
-    vindi_client_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
-    vindi_product_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
-    vindi_payment_profile_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
-    vindi_signature_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
     shared_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.CharField(max_length=500, default=None, null=True, blank=True)
-    payment_method_type = models.ForeignKey('billing.PaymentMethodType', on_delete=models.CASCADE, null=True)
-    charge_frequency_type = models.ForeignKey('billing.ChargeFrequencyType', on_delete=models.CASCADE, null=True)
-    invoice_date_type = models.ForeignKey('billing.InvoiceDateType', on_delete=models.CASCADE, null=True)
-
+    
     class Meta:
         db_table = 'company'
+
+    objects = models.Manager()
+    authentication_ = CompanyAuthenticationManager()
 
 
 class UserExtended(AbstractUser):
@@ -137,7 +127,11 @@ class UserExtended(AbstractUser):
     objects = models.Manager()
     authentication_ = UserExtendedAuthenticationManager()
     billing_ = UserExtendedBillingManager()
-
+    data_ = UserExtendedDataManager()
+    formulary_ = UserExtendedFormularyManager()
+    notification_ = UserExtendedNotificationManager()
+    theme_ = UserExtendedThemeManager()
+    
     def make_temporary_password(self):
         from reflow_server.authentication.utils.jwt_auth import JWT
         

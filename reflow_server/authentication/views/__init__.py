@@ -197,7 +197,7 @@ class CompanyView(APIView):
         How many trial days does it have left and so on.
     """
     def get(self, request, company_id):
-        instance = Company.objects.filter(id=company_id).first()
+        instance = Company.authentication_.company_by_company_id(company_id)
         serializer = CompanySerializer(instance=instance)
         return Response({
             'status': 'ok',

@@ -3,6 +3,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from reflow_server.authentication.models import Company
+from reflow_server.billing.models import CompanyBilling
 from reflow_server.data.models import Attachments
 
 from datetime import timedelta
@@ -13,8 +14,9 @@ class BillingPermissionsService:
     @staticmethod
     def is_valid_free_trial(company_id):
         company = Company.objects.filter(id=company_id).first()
-        if company:
-            if not company.is_paying_company and \
+        company_billing = CompanyBilling.objects.filter(company_id=company_id).first()
+        if company and company_billing:
+            if not company_billing.is_paying_company and \
                 company.created_at < timezone.now() - timedelta(days=settings.FREE_TRIAL_DAYS):
                 return False
             else:

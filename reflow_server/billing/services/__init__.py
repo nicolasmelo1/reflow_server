@@ -2,7 +2,7 @@ from django.db import transaction
 from django.db.models import Q
 
 from reflow_server.authentication.models import Company, UserExtended
-from reflow_server.billing.models import IndividualChargeValueType, CurrentCompanyCharge
+from reflow_server.billing.models import IndividualChargeValueType, CurrentCompanyCharge, CompanyBilling
 from reflow_server.billing.services.data import CompanyChargeData
 from reflow_server.billing.services.charge import ChargeService
 from reflow_server.billing.services.payment import PaymentService
@@ -19,12 +19,13 @@ class BillingService:
         Args:
             company_id (int): Gets the company info from the database so we can make changes to it
         """
-        self.company = Company.objects.filter(id=company_id).first()
-        self.charge_service = ChargeService(self.company)
-        self.payment_service = PaymentService(self.company)
+        self.company_id = company_id
+        self.company_billing = CompanyBilling.objects.filter(company_id=company_id).first()
+        self.charge_service = ChargeService(company_id, self.company_billing)
+        self.payment_service = PaymentService(company_id, self.company_billing)
     
     def remove_credit_card(self):
-        return VindiService(self.company.id).delete_payment_profile()
+        return VindiService(self.company_id).delete_payment_profile()
 
     @transaction.atomic
     def create_user(self, user_id):
@@ -54,6 +55,9 @@ class BillingService:
                                                                      each item on the list represents each row inserted on the database.
         """
         charge_value_names = ['per_gb']
+
+        CompanyBilling.objects.create(company=self.company)
+
         self.charge_service.create(charge_value_names, push_updates=False)
         return self.charge_service.push_updates()
 
@@ -73,7 +77,7 @@ class BillingService:
         created_company_charges = []
 
         def get_quantity(user):
-            current_quantity_for_this_individual_value_type = CurrentCompanyCharge.objects.filter(company_id=self.company.id, individual_charge_value_type=individual_charge_value_type).values_list('quantity', flat=True).first()
+            current_quantity_for_this_individual_value_type = CurrentCompanyCharge.objects.filter(company_id=self.company_id, individual_charge_value_type=individual_charge_value_type).values_list('quantity', flat=True).first()
             if current_quantity_for_this_individual_value_type:
                 quantity = current_quantity_for_this_individual_value_type
             else:
@@ -81,7 +85,7 @@ class BillingService:
             return quantity
 
         if individual_charge_value_type.charge_type.name == 'user':
-            for user in UserExtended.billing_.users_active_by_company_id(self.company.id):
+            for user in UserExtended.billing_.users_active_by_company_id(self.company_id):
                 created_company_charges.append(CompanyChargeData(individual_charge_value_type.name, get_quantity(user), user.id))
         else:
             created_company_charges.append(CompanyChargeData(individual_charge_value_type.name, get_quantity(None)))
@@ -111,7 +115,7 @@ class BillingService:
             validate_current_company_charges[current_company_charge.charge_name] = validate_current_company_charges.get(current_company_charge.charge_name, []) + [current_company_charge.user_id]
         # gets the difference of what was defined on the request and all of the others.
         difference_between_charge_value_types_defined_and_existent = list(set(all_individual_charge_value_types.values_list('name', flat=True)).difference(list(validate_current_company_charges.keys())))
-        users_in_company = list(UserExtended.billing_.user_ids_active_by_company_id(self.company.id))
+        users_in_company = list(UserExtended.billing_.user_ids_active_by_company_id(self.company_id))
 
         # we loop though each individual_charge_value type and check for three conditions: 
         # 1 - The value of individual_charge_value_type.name was not defined on the current_company_charges list
@@ -140,7 +144,7 @@ class BillingService:
         """
         from reflow_server.billing.events import BillingEvents
 
-        BillingEvents().send_updated_billing(self.company.id)
+        BillingEvents().send_updated_billing(self.company_id)
 
     @transaction.atomic
     def update_billing(self, payment_method_type_id, invoice_date_type_id, emails, 

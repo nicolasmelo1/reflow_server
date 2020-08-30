@@ -20,7 +20,7 @@ class ThemeService:
         group_order = Group.objects.filter(company_id=company_id).order_by('-order').values_list('order', flat=True).first()
         group = Group.objects.create(name=theme.company_type.label_name, company_id=company_id, enabled=True, order=group_order+1 if group_order else 1)
 
-        company_users = UserExtended.objects.filter(company_id=company_id, is_active=True)
+        company_users = UserExtended.theme_.users_active_by_company_id(company_id)
 
 
         field_reference = dict()

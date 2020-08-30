@@ -36,7 +36,7 @@ class OnboardingService(CompanyService):
             company_name = self._company_name_generator()
 
         if shared_by:
-            shared_by = Company.objects.filter(endpoint=shared_by).first()
+            shared_by = Company.authentication_.company_by_endpoint(shared_by)
 
         company = Company.objects.create(
             name=company_name,

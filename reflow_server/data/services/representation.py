@@ -84,7 +84,7 @@ class RepresentationService:
 
     def _representation_user(self, value):
         if not self.load_ids:
-            value = ' '.join(UserExtended.objects.filter(id=int(value)).values_list('first_name', 'last_name').first())
+            value = UserExtended.data_.user_full_name_by_user_id(int(value))
         return value
 
 

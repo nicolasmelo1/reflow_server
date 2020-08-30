@@ -8,7 +8,7 @@ from reflow_server.notify.services import NotifyService
 
 class UsersService:
     def __init__(self, company_id):
-        self.company = Company.objects.filter(id=company_id).first()
+        self.company = Company.authentication_.company_by_company_id(company_id)
     
     @staticmethod
     def is_self(user_id, request_user_id):
