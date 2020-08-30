@@ -6,6 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('billing', '0008_migrate_company_to_company_billing'),
         ('authentication', '0008_auto_20200828_1928'),
     ]
 
