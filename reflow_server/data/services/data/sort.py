@@ -101,24 +101,15 @@ class DataSort:
         )
          
     def _sort_user(self, order_up_or_down, field_data):
-        order_up_or_down = 'full_name' if order_up_or_down == 'value' else '-full_name'
-        user_id_order = UserExtended.objects.filter(
-                company_id=self.company_id, 
-                is_active=True
-            ) \
-            .annotate(
-                full_name=Concat('first_name', Value(' '), 'last_name', 
-                output_field=CharField())
-            ) \
-            .order_by(order_up_or_down) \
-            .values_list('id', flat=True)
-        
         return FormValue.data_.form_depends_on_and_values_for_sort_user_field_types(
             company_id=self.company_id, 
             depends_on_forms=self._data, 
             field_type=field_data['type'],
             field_id=field_data['id'],
-            user_ids_ordered=list(user_id_order)
+            user_ids_ordered=list(UserExtended.data_.user_ids_for_sort_by_company_id(
+                self.company_id,
+                order_up_or_down
+            ))
         )
     
 

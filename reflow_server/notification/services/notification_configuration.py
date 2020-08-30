@@ -130,7 +130,7 @@ class NotificationConfigurationService:
             reflow_server.notification.models.NotificationConfiguration -- The newly created or updated instance.
         """
         # if the user is not an admin and is trying to set the for_company, we enforce the for_company on being False
-        if for_company and UserExtended.objects.filter(id=user_id).exclude(profile__name='admin').exists():
+        if for_company and UserExtended.notification_exists_user_id_excluding_admin(user_id):
             for_company = False
         instance, __ = NotificationConfiguration.objects.update_or_create(
             id=instance.id if instance else None,

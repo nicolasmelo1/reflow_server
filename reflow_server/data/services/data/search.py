@@ -39,9 +39,12 @@ class DataSearch:
         Exact search is searching the hole value not searching parts of it.
 
         Args:
-            search_keys {list(dict)}- as explained above must be like [{ test_key: (test_value, 0) }]
-        
-        return all the forms filtered
+            search_keys (list(dict)):as explained above must be like:
+            >>> [
+                { 
+                    test_key: (test_value, 0) 
+                }
+            ]
         """
         search_data = SearchItem.convert_search_data(search_keys) 
 
@@ -72,7 +75,7 @@ class DataSearch:
 
         From 2020-08-06 00:00:00  TO 2020-06-06 23:59:59
 
-        Otherwise he is he types 06/08/2020 - 07/08/2020
+        Otherwise if he types 06/08/2020 - 07/08/2020 it is
 
         From 2020-08-06 00:00:00  TO 2020-06-07 23:59:59
         """
@@ -104,24 +107,39 @@ class DataSearch:
             )
         )
         
-    def _search_user(self, search_value, field_data, form_ids_to_filter):
-        first_name = search_value.split(' ')[0]
-        last_name = search_value.split(' ')[1] if len(search_value.split(' ')) > 1 else None
+    def _search_user(self, search_item, field_data, form_ids_to_filter):
+        first_name = search_item.value.split(' ')[0]
+        last_name = search_item.value.split(' ')[1] if len(search_item.value.split(' ')) > 1 else None
+        search_value_dict = self.__search_exact(search_item)
+        
         if not last_name:
-            search_values = list(
-                UserExtended.objects.filter(
-                    first_name__icontains=first_name, 
-                    company_id=self.company_id
-                ).values_list('id', flat=True)
-            )
+            if '__icontains' in search_value_dict.keys():
+                search_dict = {
+                    'first_name__icontains': first_name
+                }
+            else:
+                search_dict = {
+                    'first_name': first_name
+                }
+
         else:
-            search_values = list(
-                UserExtended.objects.filter(
-                    first_name__icontains=first_name, 
-                    last_name__icontains=last_name, 
-                    company_id=self.company_id
-                ).values_list('id', flat=True)
+            if '__icontains' in search_value_dict.keys():
+                search_dict = {
+                    'first_name__icontains': first_name,
+                    'last_name__icontains': last_name
+                }
+            else:
+                search_dict = {
+                    'first_name': first_name,
+                    'last_name': last_name
+                }
+
+        search_values = list(
+            UserExtended.data_.user_ids_for_search_by_search_value_and_company_id(
+                self.company_id,
+                search_dict
             )
+        )
 
         return list(
             FormValue.data_.form_depends_on_ids_for_search_user_field_types(

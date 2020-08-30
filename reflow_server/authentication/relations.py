@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from reflow_server.formulary.models import OptionAccessedBy, FormAccessedBy, \
     Field, FieldOptions, Form
+from reflow_server.billing.models import CompanyBilling
 
 
 class OptionAccessedByRelation(serializers.ModelSerializer):
@@ -56,3 +57,9 @@ class FormularyOptionsRelation(serializers.ModelSerializer):
         model = Form
         list_serializer_class = FormularyOptionsListSerializer
         fields = ('id', 'label_name', 'enabled', 'form_fields')
+
+    
+class CompanyBillingRelation(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyBilling
+        fields = ('is_supercompany', 'is_paying_company')

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import UserManager
 
 
-class UserExtendedBillingManager(UserManager):
+class UserExtendedFormularyManager(UserManager):
     def users_active_by_company_id(self, company_id):
         """
         Gets the active users of a company. This gets a Queryset of

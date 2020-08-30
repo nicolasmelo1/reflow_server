@@ -4,8 +4,21 @@ from reflow_server.billing.services.vindi import VindiService
 
 
 class PaymentService:
-    def __init__(self, company):
-        self.company = company
+    def __init__(self, company_id, company_billing):
+        """
+        This updates the data used for the company, in other words, the CompanyBilling instance.
+        This service holds everything about the data needed for making payments, it's not about permissions like
+        ChargeService.
+
+        Args:
+            Args:
+            company (int): The company_id we are changing
+            company_billing (reflow_server.billing.models.CompanyBilling): This is a CompanyBilling instance, 
+                                                                           it is similar to Company but holds all
+                                                                           of the billing data for a particular company
+        """
+        self.company_id = company_id
+        self.company_billing = company_billing
     
     def push_updates(self, gateway_token=None):
         """
@@ -14,23 +27,23 @@ class PaymentService:
     
         gateway_token (str, optional): Gateway token is something that is handled by Vindi payment gateway. Defaults to None.
         """
-        if not self.company.is_supercompany and self.company.is_paying_company:
-            vindi_service = VindiService(self.company.id)
+        if not self.company_billing.is_supercompany and self.company_billing.is_paying_company:
+            vindi_service = VindiService(self.company_id)
             vindi_service.create_or_update(gateway_token=gateway_token)
 
     def update_address_and_company_info(self, cnpj, zip_code, street, state, number, neighborhood, 
                                         country, city, additional_details=None, push_updates=True):
-        self.company.cnpj = cnpj
-        self.company.additional_details = additional_details
-        self.company.zip_code = zip_code
-        self.company.street = street
-        self.company.state = state
-        self.company.number = number
-        self.company.neighborhood = neighborhood
-        self.company.country = country
-        self.company.city = city
-        self.company.is_paying_company = True
-        self.company.save()
+        self.company_billing.cnpj = cnpj
+        self.company_billing.additional_details = additional_details
+        self.company_billing.zip_code = zip_code
+        self.company_billing.street = street
+        self.company_billing.state = state
+        self.company_billing.number = number
+        self.company_billing.neighborhood = neighborhood
+        self.company_billing.country = country
+        self.company_billing.city = city
+        self.company_billing.is_paying_company = True
+        self.company_billing.save()
 
         if push_updates:
             self.push_updates()
@@ -38,7 +51,7 @@ class PaymentService:
 
     def update_payment(self, payment_method_type_id, invoice_date_type_id, emails, gateway_token=None, push_updates=True):
         """
-        updates the payment data of a company
+        Updates the payment data of a company
 
         Args:
             payment_method_type_id (int): the id of a single reflow_server.billing.models.PaymentMethodType model.
@@ -46,13 +59,13 @@ class PaymentService:
             emails (list(str)): A list of strings where all of the strings are a single email.
             gateway_token (str, optional): Gateway token is something that is handled by Vindi payment gateway. Defaults to None.
         """
-        CompanyInvoiceMails.objects.filter(company_id=self.company.id).delete()
+        CompanyInvoiceMails.objects.filter(company_id=self.company_id).delete()
         CompanyInvoiceMails.objects.bulk_create([
-            CompanyInvoiceMails(email=email, company_id=self.company.id) for email in emails
+            CompanyInvoiceMails(email=email, company_id=self.company_id) for email in emails
         ])
-        self.company.payment_method_type_id = payment_method_type_id
-        self.company.invoice_date_type_id = invoice_date_type_id
-        self.company.save()
+        self.company_billing.payment_method_type_id = payment_method_type_id
+        self.company_billing.invoice_date_type_id = invoice_date_type_id
+        self.company_billing.save()
         if push_updates:
             self.push_updates(gateway_token)
         return True
@@ -62,8 +75,8 @@ class PaymentService:
         Removes the credit card of the company from our payment gateway, the payment gateway is
         also responsible for updating the company info.
         """
-        if self.company.is_paying_company:
-            vindi_service = VindiService(self.company.id)
+        if self.company_billing.is_paying_company:
+            vindi_service = VindiService(self.company_id)
             return vindi_service.delete_payment_profile()
         else:
             return False

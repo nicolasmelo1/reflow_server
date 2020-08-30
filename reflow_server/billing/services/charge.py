@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 
 class ChargeService:
-    def __init__(self, company):
+    def __init__(self, company_id, company_billing):
         """
         This service is responsible for handling each charge of a specific company. Billing is
         usually separated by 
@@ -22,17 +22,21 @@ class ChargeService:
         This service handles the Charge information.
 
         Args:
-            company (reflow_server.authentication.models.Company): Which company are we charging, send the object directly.
+            company (int): The company_id we are changing
+            company_billing (reflow_server.billing.models.CompanyBilling): This is a CompanyBilling instance, 
+                                                                           it is similar to Company but holds all
+                                                                           of the billing data for a particular company
         """
-        self.company = company
+        self.company_id = company_id
+        self.company_billing = company_billing
 
     def push_updates(self):
         """
         Sends the updates made here in our billing service to our Payment Gateway, so the Payment
         Gateway can work with new data.
         """
-        if not self.company.is_supercompany and self.company.is_paying_company:
-            vindi_service = VindiService(self.company.id)
+        if not self.company_billing.is_supercompany and self.company_billing.is_paying_company:
+            vindi_service = VindiService(self.company_id)
             vindi_service.create_or_update()
     
     def remove_charge_values_from_removed_users(self):
@@ -40,8 +44,8 @@ class ChargeService:
         Removes all of the CurrentCompanyCharges that are bound to a removed user. Obviously, doesn't consider the ones that are for the
         company, so with user_id set to None
         """
-        company_users = UserExtended.billing_.users_active_by_company_id(self.company.id)
-        CurrentCompanyCharge.objects.filter(company_id=self.company.id).exclude(Q(user_id__isnull=True) | Q(user_id__in=company_users)).delete()
+        company_users = UserExtended.billing_.users_active_by_company_id(self.company_id)
+        CurrentCompanyCharge.objects.filter(company_id=self.company_id).exclude(Q(user_id__isnull=True) | Q(user_id__in=company_users)).delete()
         return True
 
     def remove(self, charge_value_name, user_id=None, push_updates=True):
@@ -60,9 +64,9 @@ class ChargeService:
                                            new information. Defaults to True
         """
         if user_id:
-            to_delete = CurrentCompanyCharge.objects.filter(company_id=self.company.id, user_id=user_id, individual_charge_value_type__name=charge_value_name)
+            to_delete = CurrentCompanyCharge.objects.filter(company_id=self.company_id, user_id=user_id, individual_charge_value_type__name=charge_value_name)
         else:
-            to_delete = CurrentCompanyCharge.objects.filter(company_id=self.company.id, user__isnull=True, individual_charge_value_type__name=charge_value_name)
+            to_delete = CurrentCompanyCharge.objects.filter(company_id=self.company_id, user__isnull=True, individual_charge_value_type__name=charge_value_name)
         if to_delete:
             to_delete.delete()
             if push_updates:
@@ -107,7 +111,7 @@ class ChargeService:
         Returns:
             reflow_server.billing.services.data.TotalData: Totals object with handy functions.
         """
-        total_data = TotalData(company_id=self.company.id)
+        total_data = TotalData(company_id=self.company_id)
         for company_charge in current_company_charges:
             individual_charge_value = IndividualChargeValueType.objects.filter(name=company_charge.charge_name).first()
             if individual_charge_value:
@@ -134,8 +138,8 @@ class ChargeService:
         Returns:
             reflow_server.billing.services.data.TotalData: Object with handy functions.
         """
-        total_data = TotalData(company_id=self.company.id)
-        for current_company_charge in CurrentCompanyCharge.objects.filter(company=self.company):
+        total_data = TotalData(company_id=self.company_id)
+        for current_company_charge in CurrentCompanyCharge.objects.filter(company_id=self.company_id):
             discount_by_individual_charge_type_for_company = self.__get_discount_for_company_from_a_individual_charge_value_type(
                 current_company_charge.individual_charge_value_type.id
             )
@@ -156,7 +160,7 @@ class ChargeService:
         always works for every client on the platform. With this one we can set special discounts for companies and each funcionality.
         """
         return DiscountByIndividualNameForCompany.objects.filter(
-            company=self.company, 
+            company_id=self.company_id, 
             individual_charge_value_type_id=individual_charge_value_type_id
         ).first()
 
@@ -218,7 +222,7 @@ class ChargeService:
         
         charge_instance, __ = CurrentCompanyCharge.objects.update_or_create(
             individual_charge_value_type=individual_charge_value_type, 
-            company=self.company, 
+            company_id=self.company_id, 
             user_id=user_id,
             defaults={
                 'discount_by_individual_value': discount,

@@ -1,1 +1,2 @@
 from .user_extended import UserExtendedAuthenticationManager
+from .company import CompanyAuthenticationManager

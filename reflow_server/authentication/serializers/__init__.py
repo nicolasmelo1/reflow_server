@@ -7,6 +7,7 @@ from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.authentication.services.onboarding import OnboardingService
 from reflow_server.authentication.services.password import PasswordService
 from reflow_server.authentication.utils.jwt_auth import JWT
+from reflow_server.authentication.relations import CompanyBillingRelation
 
 import unicodedata
 
@@ -96,8 +97,9 @@ class CompanySerializer(serializers.ModelSerializer):
     This way no matter who is using accessing, every user of the company can get this data.
     """
     free_trial_days = serializers.IntegerField(default=settings.FREE_TRIAL_DAYS)
+    billing_company = CompanyBillingRelation()
 
     class Meta:
         model = Company
-        fields = ('id', 'endpoint', 'name', 'is_active', 'is_supercompany', 'is_paying_company', 
+        fields = ('id', 'endpoint', 'name', 'is_active', 'billing_company', 
                   'free_trial_days', 'created_at')

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from reflow_server.authentication.models import Company, AddressHelper
 from reflow_server.billing.services.data import CompanyChargeData
 from reflow_server.billing.services import VindiService, BillingService
-from reflow_server.billing.models import CurrentCompanyCharge, IndividualChargeValueType
+from reflow_server.billing.models import CompanyBilling, CurrentCompanyCharge, IndividualChargeValueType
 from reflow_server.billing.relations import CompanyInvoiceMailsRelation, TotalsByNameRelation
 from reflow_server.billing.utils import validate_cnpj, validate_cpf
 
@@ -30,13 +30,21 @@ class TotalsSerializer(serializers.Serializer):
     total_by_name = TotalsByNameRelation(many=True)
 
 
+class CompanySerializer(serializers.ModelSerializer):
+    company_invoice_emails = CompanyInvoiceMailsRelation(many=True)
+    current_company_charges = CurrentCompanyChargeSerializer(many=True, error_messages = { 'null': 'blank', 'blank': 'blank' })
+
+    class Meta:
+        model = Company
+        fields = ('company_invoice_emails', 'current_company_charges')
+        
+        
 class PaymentSerializer(serializers.ModelSerializer):
     gateway_token = serializers.CharField(allow_null=True)
-    company_invoice_emails = CompanyInvoiceMailsRelation(many=True)
+    company = CompanySerializer()
     payment_method_type_id = serializers.IntegerField(error_messages = { 'null': 'blank', 'blank': 'blank' })
     invoice_date_type_id = serializers.IntegerField(error_messages = { 'null': 'blank', 'blank': 'blank' })
     credit_card_data = serializers.SerializerMethodField(required=False)
-    current_company_charges = CurrentCompanyChargeSerializer(many=True, error_messages = { 'null': 'blank', 'blank': 'blank' })
     cnpj = serializers.CharField(error_messages={ 'null': 'blank', 'blank': 'blank' })
     zip_code = serializers.CharField(error_messages = { 'null': 'blank', 'blank': 'blank' })
     additional_details = serializers.CharField(allow_null=True, required=False)
@@ -52,14 +60,14 @@ class PaymentSerializer(serializers.ModelSerializer):
     city = serializers.CharField(error_messages = { 'null': 'blank', 'blank': 'blank'})
 
     def get_credit_card_data(self, obj):
-        vindi_service = VindiService(company_id=obj.id)
+        vindi_service = VindiService(obj.company_id)
         return vindi_service.get_credit_card_info()
 
     def validate(self, data):
-        self.billing_service = BillingService(self.instance.id)
+        self.billing_service = BillingService(self.instance.company_id)
         if not (validate_cnpj(data['cnpj']) or validate_cpf(data['cnpj'])):
             raise serializers.ValidationError(detail={'detail': 'cnpj', 'reason': 'invalid_registry_code'})
-        if not self.billing_service.is_valid_company_invoice_emails(len(data['company_invoice_emails'])):
+        if not self.billing_service.is_valid_company_invoice_emails(len(data['company']['company_invoice_emails'])):
             raise serializers.ValidationError(detail={'detail': 'company_invoice_emails', 'reason': 'cannot_be_bigger_than_three_or_less_than_one'})
         
         return data
@@ -71,9 +79,9 @@ class PaymentSerializer(serializers.ModelSerializer):
                 quantity=current_company_charge['quantity'], 
                 user_id=current_company_charge['user_id']
             ) 
-            for current_company_charge in validated_data['current_company_charges']
+            for current_company_charge in validated_data['company']['current_company_charges']
         ]
-        emails = [company_invoice_email['email'] for company_invoice_email in validated_data['company_invoice_emails']]
+        emails = [company_invoice_email['email'] for company_invoice_email in validated_data['company']['company_invoice_emails']]
 
         self.billing_service.update_billing(
             payment_method_type_id=validated_data['payment_method_type_id'],
@@ -95,9 +103,8 @@ class PaymentSerializer(serializers.ModelSerializer):
         return instance
 
     class Meta:
-        model = Company
-        fields = ('gateway_token', 'company_invoice_emails', 'payment_method_type_id', 
-                  'current_company_charges', 'invoice_date_type_id', 'credit_card_data',
-                  'additional_details', 'cnpj', 'zip_code', 'street', 'state', 'number', 
-                  'neighborhood', 'city', 'country') 
+        model = CompanyBilling
+        fields = ('gateway_token', 'company', 'payment_method_type_id', 'invoice_date_type_id', 
+                  'credit_card_data', 'additional_details', 'cnpj', 'zip_code', 'street', 'state', 
+                  'number', 'neighborhood', 'city', 'country') 
         

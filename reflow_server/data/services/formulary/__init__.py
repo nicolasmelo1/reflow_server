@@ -89,7 +89,7 @@ class FormularyDataService(PreSave, PostSave):
         self.__check_formulary_data
 
         # define everything we are gonna use while validating and saving the data
-        self.user = UserExtended.objects.filter(id=self.user_id).first()
+        self.user = UserExtended.data_.user_by_user_id(self.user_id)
         self.form = Form.objects.filter(
             form_name=self.form_name, 
             group__company_id=self.company_id

@@ -1,1 +1,2 @@
 from .form_value import FormValueNotificationManager
+from .user_extended import UserExtendedNotificationManager

@@ -1,1 +1,2 @@
 from .form_value import FormValueFormularyManager
+from .user_extended import UserExtendedFormularyManager

@@ -328,10 +328,11 @@ class FormValueDataManager(models.Manager):
 
     def form_depends_on_and_values_for_sort_all_field_types(self, company_id, depends_on_forms, field_id, order_by_value):
         """
-        This method is used to sort the form_depends_on and values of FormValue model for all field types.
+        This method is used to sort the form_depends_on and values of FormValue model for all field types. 
+        We actually don't filter by any field_type, so if the field type does not match
+        the field_type of the field it will be sorted anyway. Some special cases like `users` and `form`  
         It's important to notice that here we don't use the `form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id` to sort.
-        This is because that this method here actually don't filter by any field_type, so if the field type does not match
-        the field_type of the field it will be sorted anyway. Some special cases like `users` and `form` field_types needs to have
+        This is because that this method here a` field_types needs to have
         the types of the field matched on the FormValue.
 
         Args:

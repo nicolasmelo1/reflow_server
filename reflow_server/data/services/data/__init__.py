@@ -241,7 +241,7 @@ class DataService(DataSort, DataSearch):
         return list(self._data.values_list('id', flat=True))
 
     def __filter_by_profile_permissions(self, form_id):
-        user = UserExtended.objects.filter(id=self.user_id).first()
+        user = UserExtended.data_.user_by_user_id(self.user_id)
         if user.profile.name == 'simple_user':
             main_forms = self._data.filter(user_id=self.user_id)
         else:

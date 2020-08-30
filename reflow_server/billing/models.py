@@ -94,6 +94,40 @@ class IndividualChargeValueType(models.Model):
 
 
 # Billing tables
+class CompanyBilling(models.Model):
+    """
+    This model holds the required data for billing. Companies here have a ONE-on-ONE relationship with
+    the `authentication.Company` model.
+
+    This data is all the data needed for billing, so it's not something that must exist out of here. If you need any data from here
+    in other domains you can add it to Company.
+    """
+    address = models.CharField(max_length=500, default=None, null=True)
+    zip_code = models.CharField(max_length=500, default=None, null=True)
+    street = models.CharField(max_length=500, default=None, null=True)
+    number = models.IntegerField(null=True)
+    neighborhood = models.CharField(max_length=500, default=None, null=True)
+    country = models.CharField(max_length=280, default=None, null=True)
+    state = models.CharField(max_length=280, default=None, null=True)
+    city = models.CharField(max_length=280, default=None, null=True)
+    cnpj = models.CharField(max_length=280, default=None, null=True)
+    additional_details = models.CharField(max_length=280, default=None, null=True)
+    is_supercompany = models.BooleanField(default=False)
+    is_paying_company = models.BooleanField(default=False)
+    vindi_plan_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
+    vindi_client_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
+    vindi_product_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
+    vindi_payment_profile_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
+    vindi_signature_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
+    company = models.OneToOneField('authentication.Company', on_delete=models.CASCADE, related_name='billing_company')
+    payment_method_type = models.ForeignKey('billing.PaymentMethodType', on_delete=models.CASCADE, null=True)
+    charge_frequency_type = models.ForeignKey('billing.ChargeFrequencyType', on_delete=models.CASCADE, null=True)
+    invoice_date_type = models.ForeignKey('billing.InvoiceDateType', on_delete=models.CASCADE, null=True)
+    
+    class Meta:
+        db_table = 'company_billing'
+
+
 class DiscountByIndividualValueQuantity(models.Model):
     """
     This model holds the discounts for each individual charge we make based on quantity. For example on storage space.

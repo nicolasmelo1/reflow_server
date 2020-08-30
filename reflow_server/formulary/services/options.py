@@ -48,7 +48,7 @@ class FieldOptionsService:
         
         # when you create a new field option, all of the users have access to this option
         # automatically
-        company_user_ids = UserExtended.objects.filter(company_id=self.company_id, is_active=True).values_list('id', flat=True)
+        company_user_ids = UserExtended.formulary_.user_ids_active_by_company_id(self.company_id)
 
         OptionAccessedBy.objects.bulk_create([
             OptionAccessedBy(field_option=created_field_option, user_id=company_user_id)

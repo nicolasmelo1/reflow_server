@@ -92,7 +92,7 @@ class PreNotificationService:
 
         # if a form_id is defined we don't do anything much, just retrieve the forms data that the user has access to from the
         # form_id. Otherwise we retrieve ALL of the forms a user has access too and all of the forms data
-        user_ids = UserExtended.objects.filter(company_id=company_id, is_active=True).values_list('id', flat=True)
+        user_ids = UserExtended.notification_.user_ids_active_by_company_id(company_id)
         for user_id in user_ids:
             data_service = DataService(user_id, company_id)
             notification_configurations = NotificationConfiguration.objects.filter(Q(user_id=user_id) | Q(user__company_id=company_id, for_company=True))
@@ -108,7 +108,6 @@ class PreNotificationService:
             ).exclude(
                 notification_configuration__in=notification_configurations
             ).delete()
-
         
         PreNotification.objects.filter(
             notification_configuration__form__group__company_id=company_id, 
@@ -129,7 +128,7 @@ class PreNotificationService:
             user_id {int} -- the user_id to update the pre_notifications
             user_accessed_forms {list(int)} -- the form ids to update the pre_notifications
         """
-        user = UserExtended.objects.filter(id=user_id).first()
+        user = UserExtended.notification_.user_by_user_id(user_id)
         
         if notification_configuration.field.type.type in ['date']:
             form_values = FormValue.notification_.create_reminders_based_on_data_saved(
