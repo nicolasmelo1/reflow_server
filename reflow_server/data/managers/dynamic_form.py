@@ -178,7 +178,7 @@ class DynamicFormDataManager(models.Manager):
             company_id (int): The company id from who this DynamicForm is from.
             form_name (str): The form name of whose form this data is from.
         """
-        return self.dynamic_form_by_dynamic_form_id_and_company_id(dynamic_form_id, company_id)\
+        return self.dynamic_form_by_dynamic_form_id_and_company_id(dynamic_form_id, company_id, form_name)\
             .delete()
 
     def remove_dynamic_forms_from_enabled_forms_and_by_depends_on_id_excluding_dynamic_form_ids(
