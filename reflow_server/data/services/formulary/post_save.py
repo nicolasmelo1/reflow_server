@@ -128,7 +128,7 @@ class PostSave:
                 if to_duplicate:
                     url = bucket.copy(
                         from_key="{file_attachments_path}/{id}/{field}/".format(
-                            id=str(self.duplicate_form_data_id), 
+                            id=str(to_duplicate.form.id), 
                             field=str(to_duplicate.field.id), 
                             file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH
                         ) + str(to_duplicate.file),
