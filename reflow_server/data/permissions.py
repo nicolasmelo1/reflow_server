@@ -25,13 +25,15 @@ class DataDefaultPermission:
             # can maybe be a section so we have to treat it
             dynamic_form = DynamicForm.data_.dynamic_form_by_dynamic_form_id_and_company_id(
                 self.dynamic_form_id,
-                self.company_id
+                self.company_id,
+                self.form
             )
             # if this conditional is set it is probably a section
             if dynamic_form and dynamic_form.depends_on_id:
                 dynamic_form = DynamicForm.data_.dynamic_form_by_dynamic_form_id_and_company_id(
                     dynamic_form.depends_on_id,
-                    self.company_id
+                    self.company_id,
+                    self.form
                 )
             
             if dynamic_form and form:

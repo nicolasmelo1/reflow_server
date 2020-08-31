@@ -112,7 +112,8 @@ class FormularyDataEditView(APIView):
     def get(self, request, company_id, form, dynamic_form_id):
         instance = DynamicForm.data_.dynamic_form_by_dynamic_form_id_and_company_id(
             dynamic_form_id,
-            company_id
+            company_id,
+            form
         )
 
         serializer = FormDataSerializer(

@@ -127,26 +127,28 @@ class PreSave(Validator):
         Be carefoul overriding  DEFAULT_DATE_FIELD_FORMAT since it can have some serious issues.
         """
         value = field_data.value
-
-        if field.date_configuration_auto_create or field.date_configuration_auto_update:
-            if field.date_configuration_auto_create and formulary_data.form_data_id and field_data.field_value_data_id:
-                value = FormValue.data_.value_by_form_value_id(field_data.field_value_data_id)
-            else:
-                value = datetime.strptime(
-                    (
-                        datetime.now() + timedelta(hours=self.user.timezone)
-                    ).strftime(field.date_configuration_date_format_type.format), field.date_configuration_date_format_type.format
-                ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
-        elif value != '' and not self.__validate_date(value):
-            # we try to format to the value of the field supplied, otherwise we format to the value that was already saved.
-            # This can happen if we changed the format of this date field.
-            try:
-                value = datetime.strptime(value, field.date_configuration_date_format_type.format).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
-            except:
-                value = datetime.strptime(
-                    value, 
-                    FormValue.data_.form_value_by_form_value_id(field_data.field_value_data_id).date_configuration_date_format_type.format
-                ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+        if field.date_configuration_date_format_type:
+            if field.date_configuration_auto_create or field.date_configuration_auto_update:
+                if field.date_configuration_auto_create and formulary_data.form_data_id and field_data.field_value_data_id:
+                    value = FormValue.data_.value_by_form_value_id(field_data.field_value_data_id)
+                else:
+                    value = datetime.strptime(
+                        (
+                            datetime.now() + timedelta(hours=self.user.timezone)
+                        ).strftime(field.date_configuration_date_format_type.format), field.date_configuration_date_format_type.format
+                    ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+            elif value != '' and not self.__validate_date(value):
+                # we try to format to the value of the field supplied, otherwise we format to the value that was already saved.
+                # This can happen if we changed the format of this date field.
+                try:
+                    value = datetime.strptime(value, field.date_configuration_date_format_type.format).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+                except:
+                    value = datetime.strptime(
+                        value, 
+                        FormValue.data_.form_value_by_form_value_id(field_data.field_value_data_id).date_configuration_date_format_type.format
+                    ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+        else:
+            value = ''
         return value
 
     

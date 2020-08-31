@@ -63,7 +63,7 @@ class DynamicFormDataManager(models.Manager):
 
         return instance
 
-    def dynamic_form_by_dynamic_form_id_and_company_id(self, dynamic_form_id, company_id):
+    def dynamic_form_by_dynamic_form_id_and_company_id(self, dynamic_form_id, company_id, form_name):
         """
         This gets a DynamicForm instance by a dynamic_form_id and a company_id.
         It's important to understand that this works for both sections (instances with depends_on as NOT NULL)
@@ -78,8 +78,8 @@ class DynamicFormDataManager(models.Manager):
             reflow_server.data.models.DynamicForm: The DynamicForm instance.
         """
         return self.get_queryset().filter(
-                Q(id=dynamic_form_id, form__group__company_id=company_id) | 
-                Q(id=dynamic_form_id, form__depends_on__group__company_id=company_id)
+                Q(id=dynamic_form_id, form__group__company_id=company_id, form__form_name=form_name) | 
+                Q(id=dynamic_form_id, form__depends_on__group__company_id=company_id, form__depends_on__form_name=form_name)
         ).first()
     
     def dynamic_forms_by_company_id_and_form_id_orderd_by_updated_at(self, company_id, form_id):
@@ -179,7 +179,6 @@ class DynamicFormDataManager(models.Manager):
             form_name (str): The form name of whose form this data is from.
         """
         return self.dynamic_form_by_dynamic_form_id_and_company_id(dynamic_form_id, company_id)\
-            .filter(form__form_name=form_name)\
             .delete()
 
     def remove_dynamic_forms_from_enabled_forms_and_by_depends_on_id_excluding_dynamic_form_ids(
