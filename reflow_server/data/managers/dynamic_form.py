@@ -73,6 +73,7 @@ class DynamicFormDataManager(models.Manager):
             dynamic_form_id (int): The dynamic_form_id, can be a section instance
                                    or a form instance.
             company_id (int): The id of Company instance
+            form_name (str): The form name of whose form this data is from.
 
         Returns:
             reflow_server.data.models.DynamicForm: The DynamicForm instance.

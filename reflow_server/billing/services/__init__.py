@@ -56,7 +56,7 @@ class BillingService:
         """
         charge_value_names = ['per_gb']
 
-        CompanyBilling.objects.create(company=self.company)
+        CompanyBilling.objects.create(company_id=self.company_id)
 
         self.charge_service.create(charge_value_names, push_updates=False)
         return self.charge_service.push_updates()

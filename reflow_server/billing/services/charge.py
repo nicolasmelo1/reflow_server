@@ -3,7 +3,8 @@ from django.db.models import Q
 
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.billing.models import CurrentCompanyCharge, DiscountByIndividualValueQuantity, \
-    IndividualChargeValueType, ChargeType, DiscountByIndividualNameForCompany, CompanyCharge
+    IndividualChargeValueType, ChargeType, DiscountByIndividualNameForCompany, CompanyCharge, \
+    CompanyBilling
 from reflow_server.billing.services.data import TotalData
 from reflow_server.billing.services.vindi import VindiService
 
@@ -88,11 +89,13 @@ class ChargeService:
                                      on the user, not the company itself. Defaults to None.
             push_updates (bool, optional): set this to True if you want to push this update to our payment gateway. 
                                            If set to false it saves in our database but doesn't update the payment gateway with the
-                                           new information. Defaults to True
+                                           new information. Defaults to True 
 
         Returns:
             list: list of reflow_server.billing.models.CurrentCompanyCharge, returns each model that was created in the database.
         """
+        self.company_billing = CompanyBilling.objects.filter(company_id=self.company_id).first()
+
         created = list()
         for charge_value_name in charge_value_names:
             created.append(
