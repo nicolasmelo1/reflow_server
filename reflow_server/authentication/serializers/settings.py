@@ -10,7 +10,12 @@ from reflow_server.formulary.models import Group
 
 
 class CompanySettingsSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
+    name = serializers.CharField(allow_blank=False, allow_null=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.save()
+        return instance
 
     class Meta:
         model = Company
