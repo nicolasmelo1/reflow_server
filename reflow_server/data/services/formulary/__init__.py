@@ -153,7 +153,8 @@ class FormularyDataService(PreSave, PostSave):
                 section.section_id,
                 self.user_id,
                 self.company_id,
-                main_form_instance=formulary_instance
+                main_form_instance=formulary_instance,
+                section_instance_id=section.section_data_id
             )
     
             # updates the section data if the newly section instance id so when deleting we consider this new value

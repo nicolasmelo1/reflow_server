@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.core.utils.storage import Bucket
+from reflow_server.core.utils.storage import Bucket, BucketUploadException
 from reflow_server.core.utils.pagination import Pagination
 from reflow_server.data.serializers import FormDataSerializer, DataSerializer
 from reflow_server.data.models import DynamicForm, Attachments
@@ -85,10 +85,17 @@ class FormularyDataView(APIView):
         files = {key:request.data.getlist(key) for key in request.data.keys() if key != 'data'}
         serializer = FormDataSerializer(user_id=request.user.id, company_id=company_id, form_name=form, data=json.loads(request.data.get('data', '\{\}')))
         if serializer.is_valid():
-            serializer.save(files=files)
-            return Response({
-                'status': 'ok'
-            }, status=status.HTTP_200_OK)
+            try:
+                serializer.save(files=files)
+                return Response({
+                    'status': 'ok'
+                }, status=status.HTTP_200_OK)
+
+            except BucketUploadException as bue:
+                return Response({
+                    'status': 'error',
+                    'error': json.loads(str(bue))
+                }, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({
                 'status': 'error',
@@ -139,10 +146,17 @@ class FormularyDataEditView(APIView):
             data=json.loads(request.data.get('data', '\{\}'))
         )
         if serializer.is_valid():
-            serializer.save(files=files)
-            return Response({
-                'status': 'ok'
-            }, status=status.HTTP_200_OK)
+            try:
+                serializer.save(files=files)
+                return Response({
+                    'status': 'ok'
+                }, status=status.HTTP_200_OK)
+
+            except BucketUploadException as bue:
+                return Response({
+                    'status': 'error',
+                    'error': json.loads(str(bue))
+                }, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({
                 'status': 'error',

@@ -18,9 +18,9 @@ class ListingHeaderFieldsRelation(serializers.ModelSerializer):
 class ExtractFormValueListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         sections = list(
-            DynamicForm.listing_.dynamic_form_ids_by_company_id_and_depends_on_id(
-                self.context['company_id'], 
-                data.core_filters['form'].id
+            DynamicForm.listing_.dynamic_form_ids_by_depends_on_id_and_company_id( 
+                data.core_filters['form'].id,
+                self.context['company_id']
             )
         )
         if 'fields' in self.context and self.context['fields']:

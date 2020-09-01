@@ -8,6 +8,10 @@ import botocore
 import logging
 
 
+class BucketUploadException(ConnectionError):
+    pass
+
+
 class Bucket:
     """
     Instead of using django-storages we decided to use the default package for managing S3 from AWS called 
@@ -89,8 +93,7 @@ class Bucket:
             'Key': from_key
             }, to_key
         )
-        response = parse.urljoin(self.get_temp_url(to_key),
-                                 parse.urlparse(self.get_temp_url(to_key)).path)
+        response = parse.urljoin(self.get_temp_url(to_key), parse.urlparse(self.get_temp_url(to_key)).path)
         return response
 
     def check(self, key):
