@@ -82,8 +82,8 @@ class FormularyDataView(APIView):
     parser_classes = [FormParser, MultiPartParser]
 
     def post(self, request, company_id, form):
-        files = {key:request.data.getlist(key) for key in request.data.keys() if key != '[data]'}
-        serializer = FormDataSerializer(user_id=request.user.id, company_id=company_id, form_name=form, data=json.loads(request.data.get('[data]', '\{\}')))
+        files = {key:request.data.getlist(key) for key in request.data.keys() if key != 'data'}
+        serializer = FormDataSerializer(user_id=request.user.id, company_id=company_id, form_name=form, data=json.loads(request.data.get('data', '\{\}')))
         if serializer.is_valid():
             try:
                 serializer.save(files=files)
@@ -136,14 +136,14 @@ class FormularyDataEditView(APIView):
 
     def post(self, request, company_id, form, dynamic_form_id):
         duplicate = 'duplicate' in request.query_params
-        files = {key:request.data.getlist(key) for key in request.data.keys() if key != '[data]'}
+        files = {key:request.data.getlist(key) for key in request.data.keys() if key != 'data'}
         serializer = FormDataSerializer(
             user_id=request.user.id, 
             company_id=company_id, 
             form_name=form,
             form_data_id=dynamic_form_id,
             duplicate=duplicate,
-            data=json.loads(request.data.get('[data]', '\{\}'))
+            data=json.loads(request.data.get('data', '\{\}'))
         )
         if serializer.is_valid():
             try:
