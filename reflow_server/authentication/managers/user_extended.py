@@ -152,8 +152,21 @@ class UserExtendedAuthenticationManager(UserManager):
             reflow_server.authentication.models.UserExtended: The found UserExtended instance.
         """
         return self.get_queryset().filter(id=user_id).first()
-    
-    def users_active_by_company_id_ordered_by_descendinc_id(self, company_id):
+
+    def users_active_by_company_id(self, company_id):
+        """
+        Retrieves a queryset of ACTIVE UserExtended instances
+
+        Args:
+            company_id (int): An Company instance id that the users must be from.
+
+        Returns:
+            django.db.models.QuerySet(reflow_server.authentication.models.UserExtended): An queryset of UserExtended instances
+                                                                                         from the company selected
+        """
+        return self.get_queryset().filter(company_id=company_id, is_active=True)
+
+    def users_active_by_company_id_ordered_by_descending_id(self, company_id):
         """
         Retrieves a queryset of ACTIVE UserExtended instances ordered by the bigger id to the lowest id.
         This filters by company_id.
@@ -165,7 +178,7 @@ class UserExtendedAuthenticationManager(UserManager):
             django.db.models.QuerySet(reflow_server.authentication.models.UserExtended): An queryset of ordered UserExtended instances
                                                                                          of the company selected
         """
-        return self.get_queryset().filter(company_id=company_id, is_active=True).order_by('-id')
+        return self.users_active_by_company_id(company_id).order_by('-id')
 
     def exists_user_by_email(self, email):
         return self.get_queryset().filter(username=email).exists()

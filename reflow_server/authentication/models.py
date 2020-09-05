@@ -94,7 +94,10 @@ class Company(models.Model):
     is_active = models.BooleanField(default=True, db_index=True)
     shared_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
     partner = models.CharField(max_length=500, default=None, null=True, blank=True)
-    
+    logo_image_bucket = models.CharField(max_length=200, default=settings.S3_BUCKET)
+    logo_image_path = models.CharField(max_length=250, default=settings.S3_COMPANY_LOGO_PATH)
+    logo_image_url = models.CharField(max_length=1000, null=True, blank=True)
+
     class Meta:
         db_table = 'company'
 

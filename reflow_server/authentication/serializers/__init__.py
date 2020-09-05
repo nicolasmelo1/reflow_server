@@ -6,6 +6,7 @@ from rest_framework import serializers
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.authentication.services.onboarding import OnboardingService
 from reflow_server.authentication.services.password import PasswordService
+from reflow_server.authentication.services.company import CompanyService
 from reflow_server.authentication.utils.jwt_auth import JWT
 from reflow_server.authentication.relations import CompanyBillingRelation
 
@@ -98,8 +99,13 @@ class CompanySerializer(serializers.ModelSerializer):
     """
     free_trial_days = serializers.IntegerField(default=settings.FREE_TRIAL_DAYS)
     billing_company = CompanyBillingRelation()
+    logo_url = serializers.SerializerMethodField()
+
+    def get_logo_url(self, obj):
+        company_service = CompanyService()
+        return company_service.get_company_logo_url(obj.id)
 
     class Meta:
         model = Company
-        fields = ('id', 'endpoint', 'name', 'is_active', 'billing_company', 
+        fields = ('id', 'endpoint', 'name', 'is_active', 'billing_company', 'logo_url', 
                   'free_trial_days', 'created_at')

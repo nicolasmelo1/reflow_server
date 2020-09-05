@@ -2,6 +2,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.views import APIView
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -12,6 +13,9 @@ from reflow_server.authentication.serializers.settings import CompanySettingsSer
 from reflow_server.authentication.models import Company, UserExtended
 from reflow_server.authentication.services.users import UsersService
 from reflow_server.formulary.models import Group
+
+import json
+import base64
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -24,6 +28,7 @@ class CompanySettingsView(APIView):
         .put() -- Updates the data of the company
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
+    parser_classes = [FormParser, MultiPartParser]
 
     def get(self, request, company_id):
         instance = Company.authentication_.company_by_company_id(company_id)
@@ -33,11 +38,13 @@ class CompanySettingsView(APIView):
             'data': serializer.data
         }, status=status.HTTP_200_OK)
 
-    def put(self, request, company_id):
+    def post(self, request, company_id):
         instance = Company.authentication_.company_by_company_id(company_id)
-        serializer = CompanySettingsSerializer(instance=instance, data=request.data)
+        files = {key:request.data.getlist(key) for key in request.data.keys() if key != 'data'}
+        serializer = CompanySettingsSerializer(instance=instance, data=json.loads(request.data.get('data', '\{\}')))
+    
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(files=files)
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)
@@ -62,7 +69,7 @@ class UserSettingsView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id):
-        instances = UserExtended.authentication_.users_active_by_company_id_ordered_by_descendinc_id(company_id)
+        instances = UserExtended.authentication_.users_active_by_company_id_ordered_by_descending_id(company_id)
         serializer = UserSettingsSerializer(instance=instances, many=True)
         return Response({
             'status': 'ok',

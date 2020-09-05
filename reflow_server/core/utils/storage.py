@@ -43,8 +43,12 @@ class Bucket:
     def get_temp_url(self, key):
         """
         Retrieves a temporary url for the user to download the file.
-        :param key: str - the key with the name of the file you want to recieve the temporary url
-        :return a termporary url
+
+        Args:
+            key (str):  the key with the name of the file you want to recieve the temporary url
+
+        Returns:
+            str: A temporary url that you can use to download a file or any other stuff
         """
         bucket = self.__get_client()
         url = bucket.generate_presigned_url('get_object', Params={
@@ -56,10 +60,14 @@ class Bucket:
 
     def upload(self, file, key):
         """
-        Upload the file to S3
-        :param file: file - is the metadata of the file you want to upload
-        :param key: str - is the key with the name of the file.
-        return the url for the file
+        Upload the file to S3 at a specific key.
+
+        Args:
+            file (io.BytesIO / django.core.files.uploadedFile.InMemoryUploadedFile): The metadata you want to upload to s3
+            key (str): This is the key with the name of the file.
+
+        Returns:
+            str: the url for the file
         """
         self.bucket.upload_fileobj(
             file,
@@ -72,7 +80,9 @@ class Bucket:
     def delete(self, key):
         """
         Deletes a file from Amazon S3.
-        :param key: str - the key with the name of the file you want to delete
+
+        Args:
+            key (str): the key with the name of the file you want to delete
         """
         self.bucket.delete_objects(
             Delete={
@@ -85,8 +95,13 @@ class Bucket:
     def copy(self, from_key, to_key):
         """
         Copy a file from one location to another in S3
-        :param from_key: str - the key you want to copy
-        :param to_key: str - the new key of the file
+
+        Args:
+            from_key (str): the key you want to copy
+            to_key (str): the new key of the file
+
+        Returns:
+            str: returns the url of the new uploaded file. It creates a temporary file and extract the parameters from the url.
         """
         self.bucket.copy({
             'Bucket': settings.S3_BUCKET,

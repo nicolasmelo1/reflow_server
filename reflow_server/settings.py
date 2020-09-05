@@ -226,7 +226,8 @@ CONSUMERS = {
     'LOGIN_REQUIRED': [
         'reflow_server.notification.consumers.NotificationReadConsumer',
         'reflow_server.data.consumers.DataConsumer',
-        'reflow_server.billing.consumers.BillingConsumer'
+        'reflow_server.billing.consumers.BillingConsumer',
+        'reflow_server.authentication.consumers.AuthenticationConsumer'
     ]
 }
 
@@ -298,6 +299,7 @@ LOCALSTACK_PORT = getattr(configuration, 'LOCALSTACK_PORT', '')
 # check core.utils.bucket file
 S3_REGION_NAME = configuration.S3_REGION_NAME
 S3_FILE_ATTACHMENTS_PATH = configuration.S3_FILE_ATTACHMENTS_PATH
+S3_COMPANY_LOGO_PATH = configuration.S3_COMPANY_LOGO_PATH
 S3_BUCKET = configuration.S3_BUCKET
 
 # AUTH BEARER CONFIGURATION (this is the app that we use to authenticate apps on reflow environment)

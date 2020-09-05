@@ -3,6 +3,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from reflow_server.authentication.services.users import UsersService
+from reflow_server.authentication.services.company import CompanyService
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.authentication.relations import OptionAccessedByRelation, FormAccessedByRelation, \
     FormularyOptionsRelation
@@ -11,15 +12,37 @@ from reflow_server.formulary.models import Group
 
 class CompanySettingsSerializer(serializers.ModelSerializer):
     name = serializers.CharField(allow_blank=False, allow_null=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
+    logo_url = serializers.SerializerMethodField()
+    
+    def get_logo_url(self, obj):
+        return self.company_service.get_company_logo_url(obj.id)
 
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.save()
+    def __init__(self, *args, **kwargs):
+        self.company_service = CompanyService()
+        super(CompanySettingsSerializer, self).__init__(*args, **kwargs)
+
+    def save(self, files=None):
+        if self.instance is not None:
+            instance = self.update(self.instance, self.validated_data, files)
+        else:
+            instance = self.create(self.validated_data)
+
         return instance
+
+    def update(self, instance, validated_data, files):
+        company_logo = list(files.values())[0] if files and isinstance(files, dict) else None
+        instance = self.company_service.update_company(
+            company_id=instance.id, 
+            name=validated_data.get('name', instance.name),
+            company_logo=company_logo
+        )
+        return instance
+
+    
 
     class Meta:
         model = Company
-        fields = ('name',) 
+        fields = ('name', 'logo_url') 
 
 
 class UserSettingsSerializer(serializers.ModelSerializer):
