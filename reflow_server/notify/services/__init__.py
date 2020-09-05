@@ -106,8 +106,7 @@ class NotifyService:
             url (str): The front-end url, usually this is recieved from the front-end since it can change quite often.
         """
         template_name = 'change_password'
-        subject = user_first_name + ", aqui está o link para alterar sua senha",
-
+        subject = user_first_name + ", aqui está o link para alterar sua senha"
         MailService.send_mail(
             settings.FROM_EMAIL, 
             template_name, 
