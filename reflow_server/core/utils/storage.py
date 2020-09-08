@@ -23,8 +23,7 @@ class Bucket:
         if not bucket:
             bucket = settings.S3_BUCKET
 
-        self.__config = TransferConfig(multipart_threshold=1024 * 25, max_concurrency=10,
-                                                         multipart_chunksize=1024 * 25, use_threads=True)
+        self.__config = TransferConfig(multipart_threshold=1024 * 25, max_concurrency=10, multipart_chunksize=1024 * 25, use_threads=True)
 
         self.__session = boto3.Session(
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -58,7 +57,7 @@ class Bucket:
         url = url if settings.ENV != 'development' else url.replace(settings.LOCALSTACK_ENDPOINT, 'localhost')
         return url
 
-    def upload(self, file, key):
+    def upload(self, file, key, is_public=False):
         """
         Upload the file to S3 at a specific key.
 
@@ -69,11 +68,19 @@ class Bucket:
         Returns:
             str: the url for the file
         """
-        self.bucket.upload_fileobj(
-            file,
-            key,
-            Config=self.__config
-        )
+        if is_public:
+            self.bucket.upload_fileobj(
+                file,
+                key,
+                ExtraArgs={'ACL': 'public-read'},
+                Config=self.__config
+            ) 
+        else:
+            self.bucket.upload_fileobj(
+                file,
+                key,
+                Config=self.__config
+            )
         response = parse.urljoin(self.get_temp_url(key), parse.urlparse(self.get_temp_url(key)).path)
         return response
 

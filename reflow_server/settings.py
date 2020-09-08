@@ -209,14 +209,6 @@ REST_FRAMEWORK = {
     ]
 }
 
-# CORS HEADERS CONFIGURATION
-CORS_EXPOSE_HEADERS=['content-disposition', 'Authorization', '*']
-CORS_ORIGIN_REGEX_WHITELIST = [
-    r"^\w+://\w+\.reflow\.com$",
-    r"^\w+://\w+\.reflow\.com\.br$",
-    r"^\w+://localhost:\d+$",
-    r"^\w+://127.0.0.1:\d+$",
-]
 
 # Reflow configurations, configurations specific for Reflow project
 
