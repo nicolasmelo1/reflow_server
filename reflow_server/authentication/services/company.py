@@ -117,13 +117,11 @@ class CompanyService:
         """
         bucket = Bucket()
         instance = Company.authentication_.company_by_company_id(company_id)
-        
-        """if instance.logo_image_url not in ['', None]:
+        if instance.logo_image_url not in ['', None]:
             key_path= "{company_logo_path}/{company_id}/".format(
                 company_id=str(company_id),
                 company_logo_path=instance.logo_image_path
             )
             file_name = instance.logo_image_url.split(key_path)[1]
             return bucket.get_temp_url(key_path+file_name)
-        """
-        return instance.logo_image_url
+        return ''
