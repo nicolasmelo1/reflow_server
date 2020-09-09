@@ -12,11 +12,8 @@ from reflow_server.formulary.models import Group
 
 class CompanySettingsSerializer(serializers.ModelSerializer):
     name = serializers.CharField(allow_blank=False, allow_null=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
-    logo_url = serializers.SerializerMethodField()
+    logo_image_url = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     
-    def get_logo_url(self, obj):
-        return self.company_service.get_company_logo_url(obj.id)
-
     def __init__(self, *args, **kwargs):
         self.company_service = CompanyService()
         super(CompanySettingsSerializer, self).__init__(*args, **kwargs)
@@ -42,7 +39,7 @@ class CompanySettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company
-        fields = ('name', 'logo_url') 
+        fields = ('name', 'logo_image_url') 
 
 
 class UserSettingsSerializer(serializers.ModelSerializer):

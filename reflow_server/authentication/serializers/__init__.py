@@ -99,13 +99,9 @@ class CompanySerializer(serializers.ModelSerializer):
     """
     free_trial_days = serializers.IntegerField(default=settings.FREE_TRIAL_DAYS)
     billing_company = CompanyBillingRelation()
-    logo_url = serializers.SerializerMethodField()
-
-    def get_logo_url(self, obj):
-        company_service = CompanyService()
-        return company_service.get_company_logo_url(obj.id)
+    logo_image_url = serializers.CharField(allow_blank=True, allow_null=True, required=False)
 
     class Meta:
         model = Company
-        fields = ('id', 'endpoint', 'name', 'is_active', 'billing_company', 'logo_url', 
+        fields = ('id', 'endpoint', 'name', 'is_active', 'billing_company', 'logo_image_url', 
                   'free_trial_days', 'created_at')
