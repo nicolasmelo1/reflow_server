@@ -104,24 +104,3 @@ class CompanyService:
         # sends the events to the clients
         AuthenticationEvents.send_updated_company(instance.id)
         return instance
-
-    def get_company_logo_url(self, company_id):
-        """
-        Gets a temporary url for the logo of the company so we can display it to the user.
-
-        Args:
-            company_id (int): The company id to retrieve the logo for
-
-        Returns:
-            str: A url of the company logo
-        """
-        bucket = Bucket()
-        instance = Company.authentication_.company_by_company_id(company_id)
-        if instance.logo_image_url not in ['', None]:
-            key_path= "{company_logo_path}/{company_id}/".format(
-                company_id=str(company_id),
-                company_logo_path=instance.logo_image_path
-            )
-            file_name = instance.logo_image_url.split(key_path)[1]
-            return bucket.get_temp_url(key_path+file_name)
-        return ''
