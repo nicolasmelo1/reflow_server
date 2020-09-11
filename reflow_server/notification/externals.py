@@ -14,9 +14,25 @@ class NotificationWorkerExternal(externals.External):
 
         This view handles the retrieval of the data needed to build the notifications.
         """
-        self.post('/notification/', data=list(pre_notifications_list_ids))
+        from reflow_server.notification.serializers import PreNotificationIdsForBuildSerializer
+
+        data = {
+            'pre_notification_ids': list(pre_notifications_list_ids)
+        }
+        serializer = PreNotificationIdsForBuildSerializer(data=data)
+        self.post('/notification/external/build_notification/', data=serializer.initial_data)
 
     def update_pre_notifications(self, company_id):
+        """
+        This is used to update pre_notifications, we send this to the worker application
+        so the worker calls this application again sending back the data. This way we don't
+        stop the user from saving a notification_configuration instance, saving a user instance
+        or a DynamicForm instance. We resolve the pre_notification after the
+        data have been saved.
+
+        Args:
+            company_id (int): The reflow_server.authentication.models.Company instance id
+        """
         data = {
             'user_id': None,
             'dynamic_form_id': None,
@@ -24,5 +40,5 @@ class NotificationWorkerExternal(externals.External):
         }
         serializer = PreNotificationSerializer(data=data)
         serializer.is_valid()
-        self.post('/notification/pre_notification/{}/'.format(company_id), serializer.data)
+        self.post('/notification/external/pre_notification/{}/'.format(company_id), serializer.data)
         

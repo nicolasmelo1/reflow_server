@@ -102,6 +102,7 @@ class PreNotificationService:
                 
             # we usually create or update the pre_notifications in `.__update_pre_notification` function
             # but we usually don't delete the pre_notifications, that's why we need this part here.
+            # deletes notifications from a specific user
             PreNotification.objects.filter(
                 user_id=user_id, 
                 has_sent=False
@@ -109,6 +110,8 @@ class PreNotificationService:
                 notification_configuration__in=notification_configurations
             ).delete()
         
+        # deletes pre_notifications of the company if a user is not from a specific company
+        # anymore
         PreNotification.objects.filter(
             notification_configuration__form__group__company_id=company_id, 
             has_sent=False

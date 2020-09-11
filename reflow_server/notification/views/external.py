@@ -8,7 +8,8 @@ from rest_framework import status
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.notification.services.notification_configuration import NotificationConfigurationService
-from reflow_server.notification.serializers import PreNotificationSerializer, NotificationDataForBuildSerializer, NotificationSerializer
+from reflow_server.notification.serializers import PreNotificationSerializer, NotificationDataForBuildSerializer, NotificationSerializer, \
+    PreNotificationIdsForBuildSerializer
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -72,8 +73,9 @@ class NotificationConfigurationExternalView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request):
-        if request.data and type(request.data) == list:
-            data = NotificationConfigurationService.get_notification_configuration_data_from_pre_notifications(request.data)
+        serializer = PreNotificationIdsForBuildSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.save()
             notification_data_for_build_serializer = NotificationDataForBuildSerializer(data, many=True)
 
             return Response({

@@ -137,9 +137,14 @@ class NotificationConfigurationFieldsSerializer(serializers.Serializer):
         return NotificationConfigurationFieldsRelation(instance=self.notification_configuration_fields_service.get_variable_fields, many=True).data
 
 
+class PreNotificationIdsForBuildSerializer(serializers.Serializer):
+    pre_notification_ids = serializers.ListField()
+
+    def save(self):
+        return NotificationConfigurationService.get_notification_configuration_data_from_pre_notifications(self.validated_data['pre_notification_ids'])
+
 
 class PreNotificationSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(allow_null=True, required=False)
     dynamic_form_id = serializers.IntegerField(allow_null=True)
     user_id = serializers.IntegerField(allow_null=True)
     notification_configuration_id = serializers.IntegerField(allow_null=True)
@@ -152,7 +157,7 @@ class PreNotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PreNotification
-        fields = ('id', 'user_id', 'dynamic_form_id', 'notification_configuration_id')
+        fields = ('user_id', 'dynamic_form_id', 'notification_configuration_id')
 
 
 class NotificationDataForBuildSerializer(serializers.Serializer):
