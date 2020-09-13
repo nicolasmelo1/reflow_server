@@ -31,14 +31,12 @@ class ExtractFormValueListSerializer(serializers.ListSerializer):
 
 
 class ExtractFormValueRelation(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False, allow_null=True)
-    field_name = serializers.CharField(source='field.name')
     value = ValueField(source='*')
 
     class Meta:
         model = FormValue
         list_serializer_class = ExtractFormValueListSerializer
-        fields = ('id', 'value', 'field_id', 'field_name')
+        fields = ('value', 'field_id')
 
 
 class ExtractSectionFieldListSerializer(serializers.ListSerializer):
@@ -48,10 +46,12 @@ class ExtractSectionFieldListSerializer(serializers.ListSerializer):
 
 
 class ExtractSectionFieldRelation(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
     class Meta:
         model = Field
         list_serializer_class = ExtractSectionFieldListSerializer
-        exclude = ('created_at', 'updated_at')
+        fields = ('id', 'label_name')
 
 
 class ExtractSectionListSerializer(serializers.ListSerializer):
@@ -67,4 +67,4 @@ class ExtractSectionRelation(serializers.ModelSerializer):
     class Meta:
         model = Form
         list_serializer_class = ExtractSectionListSerializer
-        fields = ('id', 'label_name', 'form_type', 'form_fields')
+        fields = ('form_type', 'form_fields')

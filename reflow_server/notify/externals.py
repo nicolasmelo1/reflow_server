@@ -17,7 +17,7 @@ class MailerExternal(externals.External):
                 'variables': mail.variables
             } for mail in mails]
         })
-        self.post('/mail/', data=serializer.data)
+        self.post('/notify/external/mail/', data=serializer.data)
 
 
 class PusherExternal(externals.External):
@@ -38,4 +38,4 @@ class PusherExternal(externals.External):
             } for push in pushs]
         })
 
-        self.post('/push/', data=serializer.data)
+        self.post('/notify/external/push/', data=serializer.data)

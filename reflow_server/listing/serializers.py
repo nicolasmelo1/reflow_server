@@ -90,7 +90,7 @@ class ExtractFormDataSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = DynamicForm
-        fields = ('id', 'user', 'dynamic_form_value')
+        fields = ('dynamic_form_value',)
 
 
 class ExtractFormSerializer(serializers.ModelSerializer):
@@ -98,7 +98,7 @@ class ExtractFormSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Form
-        fields = ('id', 'form_name', 'group_id', 'label_name', 'depends_on_form')
+        fields = ('label_name', 'depends_on_form')
 
 
 class ExtractFileSerializer(serializers.Serializer):

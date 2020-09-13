@@ -1,6 +1,5 @@
 from django.shortcuts import redirect
 from django.conf import settings
-from django.db.models import Q, Case, When
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
