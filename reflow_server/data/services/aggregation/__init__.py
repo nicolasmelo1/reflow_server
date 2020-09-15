@@ -126,7 +126,7 @@ class AggregationService:
 
         for value_value, value_form_data_id in value_values:
             aggregation_data.add_value(value=value_value, form_data_id=value_form_data_id)
-        aggregation_result_data = method_handler(aggregation_data.aggregated)
+        aggregation_result_data = method_handler(aggregation_data.aggregated, value_field.type.type)
         formated_aggregation_result_data = {}
         if formated:
             for key, value in aggregation_result_data.items():
@@ -143,66 +143,95 @@ class AggregationService:
             formated_aggregation_result_data = aggregation_result_data
         return formated_aggregation_result_data
 
-    def _aggregate_sum(self, formated_data):
+    def _aggregate_sum(self, formated_data, field_type):
         """
+        ONLY WORKS with numbers, otherwise it is considered as 0.
         Aggregates the data by sum.
         """
-        for key, value in formated_data.items():
-            result = self.__sum_list(value)
-            formated_data[key] = int(result)
+        if field_type != 'number':
+            for key, value in formated_data.items():
+                result = self.__sum_list(value)
+                formated_data[key] = int(result)
+        else:
+            for key in formated_data.keys():
+                formated_data[key] = 0
         return formated_data
         
-    def _aggregate_avg(self, formated_data):
+    def _aggregate_avg(self, formated_data, field_type):
         """
+        ONLY WORKS with numbers, otherwise it is considered as 0.
         Average aggregation type so total of items by quantity of items.
         """
-        for key, value in formated_data.items():
-            result = self.__sum_list(value)
-            if len(value) > 0:
-                result = decimal.Decimal(result)/decimal.Decimal(len(value))
-            formated_data[key] = int(result)
+        if field_type != 'number':
+            for key, value in formated_data.items():
+                result = self.__sum_list(value)
+                if len(value) > 0:
+                    result = decimal.Decimal(result)/decimal.Decimal(len(value))
+                formated_data[key] = int(result)
+        else:
+            for key in formated_data.keys():
+                formated_data[key] = 0
         return formated_data
 
-    def _aggregate_percent(self, formated_data):
+    def _aggregate_percent(self, formated_data, field_type):
         """
+        ONLY WORKS with numbers, otherwise it is considered as 0.
         Percent aggregation is simple, it is each total of items by total.
         This means we first sum the total from all of the keys and divide each key
         by the total.
         """
-        total = 0
-        # gets the total from each array, giving the full total
-        for value in formated_data.values():
-            result = self.__sum_list(value)
-            total = int(total) + int(result)
-        if total > 0:
-            for key, value in formated_data.items():
+        if field_type != 'number':
+            total = 0
+            # gets the total from each array, giving the full total
+            for value in formated_data.values():
                 result = self.__sum_list(value)
-                result = int(result)/int(total)
-                formated_data[key] = int(result*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT*100)
-            return formated_data
+                total = int(total) + int(result)
+            if total > 0:
+                for key, value in formated_data.items():
+                    result = self.__sum_list(value)
+                    result = int(result)/int(total)
+                    formated_data[key] = int(result*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT*100)
+                return formated_data
+            else:
+                return formated_data
         else:
+            for key in formated_data.keys():
+                formated_data[key] = 0 
             return formated_data
-
-    def _aggregate_count(self, formated_data):
+    
+    def _aggregate_count(self, formated_data, field_type):
+        """
+        Works on every field type. Counts the values of each label.
+        """
         for key, value in formated_data.items():
             formated_data[key] = int(decimal.Decimal(len(value)*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT))
         return formated_data
 
-    def _aggregate_max(self, formated_data):
+    def _aggregate_max(self, formated_data, field_type):
         """
+        ONLY WORKS with numbers, otherwise it is considered as 0.
         Retrieves the maximum value of the aggregation
         """
-        for key, values in formated_data.items():
-            max_value = max([self.__convert_to_int(value) for value in values]) if values else 0
-            formated_data[key] = max_value
+        if field_type != 'number':
+            for key, values in formated_data.items():
+                max_value = max([self.__convert_to_int(value) for value in values]) if values else 0
+                formated_data[key] = max_value
+        else:
+            for key in formated_data.keys():
+                formated_data[key] = 0
         return formated_data
 
-    def _aggregate_min(self, formated_data):
+    def _aggregate_min(self, formated_data, field_type):
         """
+        ONLY WORKS with numbers, otherwise it is considered as 0.
         Retrieves the minimum value of the aggregation
         """
-        for key, values in formated_data.items():
-            max_value = min([self.__convert_to_int(value) for value in values]) if values else 0
-            formated_data[key] = max_value
+        if field_type != 'number':
+            for key, values in formated_data.items():
+                max_value = min([self.__convert_to_int(value) for value in values]) if values else 0
+                formated_data[key] = max_value
+        else:
+            for key in formated_data.keys():
+                formated_data[key] = 0
         return formated_data
      
