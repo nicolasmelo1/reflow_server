@@ -148,7 +148,7 @@ class AggregationService:
         ONLY WORKS with numbers, otherwise it is considered as 0.
         Aggregates the data by sum.
         """
-        if field_type != 'number':
+        if field_type == 'number':
             for key, value in formated_data.items():
                 result = self.__sum_list(value)
                 formated_data[key] = int(result)
@@ -162,7 +162,7 @@ class AggregationService:
         ONLY WORKS with numbers, otherwise it is considered as 0.
         Average aggregation type so total of items by quantity of items.
         """
-        if field_type != 'number':
+        if field_type == 'number':
             for key, value in formated_data.items():
                 result = self.__sum_list(value)
                 if len(value) > 0:
@@ -180,7 +180,7 @@ class AggregationService:
         This means we first sum the total from all of the keys and divide each key
         by the total.
         """
-        if field_type != 'number':
+        if field_type == 'number':
             total = 0
             # gets the total from each array, giving the full total
             for value in formated_data.values():
@@ -212,7 +212,7 @@ class AggregationService:
         ONLY WORKS with numbers, otherwise it is considered as 0.
         Retrieves the maximum value of the aggregation
         """
-        if field_type != 'number':
+        if field_type == 'number':
             for key, values in formated_data.items():
                 max_value = max([self.__convert_to_int(value) for value in values]) if values else 0
                 formated_data[key] = max_value
@@ -226,7 +226,7 @@ class AggregationService:
         ONLY WORKS with numbers, otherwise it is considered as 0.
         Retrieves the minimum value of the aggregation
         """
-        if field_type != 'number':
+        if field_type == 'number':
             for key, values in formated_data.items():
                 max_value = min([self.__convert_to_int(value) for value in values]) if values else 0
                 formated_data[key] = max_value
