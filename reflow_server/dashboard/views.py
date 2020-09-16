@@ -64,7 +64,7 @@ class DashboardChartsView(APIView):
         instances = DashboardChartConfiguration.objects.filter(
             Q(user_id=request.user.id, form__form_name=form, company_id=company_id) | 
             Q(company_id=company_id, form__form_name=form, for_company=True)
-        )
+        ).order_by('id')
         serializer = DashboardChartSerializer(instance=instances, many=True)
 
         return Response({
