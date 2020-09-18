@@ -49,7 +49,7 @@ class GroupService(Settings):
         """
         existing_groups = Group.objects.filter(company_id=self.company_id).order_by('-order')
         if existing_groups:
-            order = existing_groups[0] + 1
+            order = existing_groups[0].order + 1
         else:
             order = 1
         

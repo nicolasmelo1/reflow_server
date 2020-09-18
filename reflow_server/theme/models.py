@@ -51,6 +51,7 @@ class Theme(models.Model):
     class Meta:
         db_table = 'theme'
 
+    objects = models.Manager()
     theme_ = ThemeThemeManager()
     
 

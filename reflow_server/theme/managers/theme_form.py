@@ -5,6 +5,9 @@ class ThemeFormThemeManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
+    def theme_form_by_theme_id_and_theme_form_id(self, theme_id, theme_form_id):
+        return self.get_queryset().filter(id=theme_form_id, theme_id=theme_id).first()
+
     def main_theme_forms_by_theme_id(self, theme_id):
         """
         Gets a queryset of main_forms, this means ThemeForm instances where depends_on is null.

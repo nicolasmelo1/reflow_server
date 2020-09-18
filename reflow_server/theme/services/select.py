@@ -60,7 +60,7 @@ class ThemeSelectService:
         formulary_service = FormularyService(self.user_id, self.company_id)
 
         for theme_form in ThemeForm.theme_.main_theme_forms_by_theme_id(self.theme.id):
-            formulary_instance = self.formulary_service.save_formulary(True, theme_form.label_name, theme_form.order, group)
+            formulary_instance = formulary_service.save_formulary(True, theme_form.label_name, theme_form.order, group)
             formulary_reference[theme_form.id] = formulary_instance
 
         return formulary_reference
@@ -92,7 +92,7 @@ class ThemeSelectService:
         section_conditionals_reference = {}
 
         for theme_section in ThemeForm.theme_.sections_theme_forms_by_theme_id(self.theme.id):
-            section_service = SectionService(user_id=user_id, company_id=company_id, form_id=formulary_reference[theme_section.depends_on.id].id)
+            section_service = SectionService(user_id=self.user_id, company_id=self.company_id, form_id=formulary_reference[theme_section.depends_on.id].id)
                 
             section = section_service.save_section(
                 True, theme_section.label_name, theme_section.order, 
@@ -151,7 +151,7 @@ class ThemeSelectService:
                 field_options = list(ThemeFieldOptions.theme_.options_by_theme_field_id(theme_field_id=theme_field.id))
             
             field_service = FieldService(
-                user_id=user_id, company_id=company_id, form_id=formulary_reference[theme_field.form.depends_on.id].id
+                user_id=self.user_id, company_id=self.company_id, form_id=formulary_reference[theme_field.form.depends_on.id].id
             )
 
             field = field_service.save_field(
@@ -216,7 +216,7 @@ class ThemeSelectService:
                     dimension_id=field_reference[theme_kanban_dimension.dimension.id].id,
                     order=theme_kanban_dimension.order, 
                     default=theme_kanban_dimension.default, 
-                    user=user, 
+                    user_id=user.id, 
                     options=theme_kanban_dimension.options
                 )
 
@@ -258,8 +258,8 @@ class ThemeSelectService:
                 notification_configuration_service.add_notification_variable(field_reference[theme_notification_variable.field.id].id)
             
             notification_configuration_service.save_notification_configuration(
-                company_id=company_id, 
-                user_id=user_id,
+                company_id=self.company_id, 
+                user_id=self.user_id,
                 for_company=theme_notification_configuration.for_company,
                 name=theme_notification_configuration.name,
                 text=theme_notification_configuration.text,

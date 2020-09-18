@@ -5,6 +5,9 @@ class ThemeThemeManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
+    def themes_by_company_type_name(self, company_type_name):
+        return self.get_queryset().filter(company_type__name=company_type_name)
+
     def theme_by_theme_id(self, theme_id):
         """
         Retrives a single Theme instance by the theme id

@@ -27,7 +27,7 @@ class ThemeView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id, theme_id):
-        instance = Theme.objects.filter(id=theme_id).first()
+        instance = Theme.theme_.theme_by_theme_id(theme_id)
         serializer = ThemeSerializer(instance=instance)
         return Response({
             'status': 'ok',
@@ -35,7 +35,7 @@ class ThemeView(APIView):
         }, status=status.HTTP_200_OK)
     
     def post(self, request, company_id, theme_id):
-        theme = Theme.objects.filter(id=theme_id).first()
+        theme = Theme.theme_.theme_by_theme_id(theme_id)
         if theme:
             ThemeService.select_theme(theme_id, company_id, request.user.id)
             form_name = Form.objects.filter(depends_on__isnull=True, group__company_id=company_id).order_by('-created_at').values_list('form_name', flat=True).first()
@@ -54,7 +54,7 @@ class ThemeView(APIView):
 
 class ThemeFormularyView(APIView):
     def get(self, request, company_id, theme_id, theme_form_id):
-        instance = ThemeForm.objects.filter(id=theme_form_id, theme_id=theme_id).first()
+        instance = ThemeForm.theme_.theme_form_by_theme_id_and_theme_form_id(theme_id, theme_form_id)
         serializer = ThemeFormularySerializer(instance=instance, is_loading_formulary=True)
         return Response({
             'status': 'ok',
@@ -69,7 +69,7 @@ class ThemeCompanyTypeView(APIView):
         )
         filter_by = request.query_params.get('filter', 'reflow')
         filter_by = filter_by if filter_by in ['reflow', 'company', 'community'] else 'reflow'
-        themes = Theme.objects.filter(company_type__name=company_type)
+        themes = Theme.theme_.themes_by_company_type_name(company_type)
         if filter_by == 'reflow':
             themes = themes.filter(user_id=1, is_public=True)
         elif filter_by == 'company':
