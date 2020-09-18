@@ -1,0 +1,19 @@
+from django.db import models
+
+
+class ThemeKanbanCardFieldThemeManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def theme_field_ids_by_theme_kanban_card_id(self, theme_kanban_card_id):
+        """
+        Returns a queryset of ThemeKanbanCardField instances from a specific theme_kanban_card_id
+
+        Args:
+            theme_kanban_card_id (int): A id of a reflow_server.theme.models.ThemeKanbanCard instance
+
+        Returns:
+            django.db.QuerySet(reflow_server.theme.models.ThemeKanbanCardField): Returns a queryset of
+            ThemeKanbanCardField instances from a specific theme_kanban_card_id.
+        """
+        return self.get_queryset().filter(kanban_card_id=theme_kanban_card_id)

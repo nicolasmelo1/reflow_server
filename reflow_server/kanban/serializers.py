@@ -70,12 +70,12 @@ class KanbanCardsSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         field_ids = [field['field']['id'] for field in validated_data.get('kanban_card_fields')]
-        instance = self.kanban_service.save_kanban_card(KanbanCard(), field_ids)
+        instance = self.kanban_service.save_kanban_card(field_ids)
         return instance
 
     def update(self, instance, validated_data):
         field_ids = [field['field']['id'] for field in validated_data.get('kanban_card_fields')]
-        instance = self.kanban_service.save_kanban_card(instance, field_ids)
+        instance = self.kanban_service.save_kanban_card(field_ids, instance)
         return instance
 
     class Meta:

@@ -107,27 +107,29 @@ class NotificationConfigurationService:
         ])
 
     @transaction.atomic
-    def save_notification_configuration(self, company_id, for_company, name, text, days_diff, form, field, user_id, instance=None):
+    def save_notification_configuration(self, company_id, for_company, name, text, days_diff, form, field, user_id, instance=NotificationConfiguration()):
         """
+        IF YOU WANT TO ADD OR UPDATE VARIABLES YOU MUST ADD VARIABLES FIRST USING THE `.add_variables()` method.
         As the name of the method suggests this method is for creating or updating a certain notification_configuration.
         It's important to understand that after creating or updating the NotificationConfiguration model we also need to
         update it's variables, if it has any, and also update all of the PreNotifications.
 
-        Arguments:
-            company_id {int} -- The id of the current company
-            for_company {bool} -- Sets the notification configuration for the hole company 
-            name {str} -- Just a placeholder and user friendly name for the notification configuration, setted by the user
-            text {str} -- The text of the notification configuration, it's important to understand it also could contain variables
-                          if that's the case, use `.add_notification_variable()` method to add variables.
-            days_diff {int} -- The number of the difference of days to notify. So you could notify the user on the same day, sixty
-                               days earlier of the date, or even sixty days after the date
-            form {reflow_server.formulary.models.Form} -- What form does this notification_configuration references to
-            field {reflow_server.formulary.models.Field} -- What `date` field_type field does this notification configuration 
-                                                            references to
-            user_id {int} -- the user id creating this notification configuration 
+        Args:
+            company_id (int):  The id of the current company
+            for_company (bool): Sets the notification configuration for the hole company 
+            name (str): Just a placeholder and user friendly name for the notification configuration, setted by the user
+            text (str): The text of the notification configuration, it's important to understand it also could contain variables
+                        if that's the case, use `.add_notification_variable()` method to add variables.
+            days_diff (int): The number of the difference of days to notify. So you could notify the user on the same day, sixty
+                             days earlier of the date, or even sixty days after the date
+            form (reflow_server.formulary.models.Form): What form does this notification_configuration references to
+            field (reflow_server.formulary.models.Field): What `date` field_type field does this notification configuration 
+                                                          references to
+            user_id (int): The user id creating this notification configuration 
+            instance (reflow_server.notification.models.NotificationConfiguration, optional): The instance to create or update. Defaults to NotificationConfiguration().
 
         Returns:
-            reflow_server.notification.models.NotificationConfiguration -- The newly created or updated instance.
+            reflow_server.notification.models.NotificationConfiguration: The newly created or updated instance.
         """
         # if the user is not an admin and is trying to set the for_company, we enforce the for_company on being False
         if for_company and UserExtended.notification_.exists_user_id_excluding_admin(user_id):

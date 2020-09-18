@@ -50,6 +50,7 @@ class ExtractService:
         from reflow_server.listing.externals import ExtractDataWorkerExternal
         ExtractDataWorkerExternal().build_extraction_data(file_id, file_format, company_id, user_id, form_id, fields_ids, form_data_accessed_by_user)
 
+
     def extract(self, file_format, from_date, to_date, 
                 sort_value=[], sort_field=[], 
                 search_value=[], search_field=[], search_exact=[]):

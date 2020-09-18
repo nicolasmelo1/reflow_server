@@ -8,14 +8,15 @@ class KanbanCardService:
         self.user_id = user_id
 
     @transaction.atomic
-    def save_kanban_card(self, instance, field_ids):
+    def save_kanban_card(self, field_ids, instance=KanbanCard()):
         """
         Creates or updates a Kanban Card data, with it's fields.
         For it you need to send the field_ids as list in the parameter, so we can update all of the fields of the kanban card
 
         Args:
-            instance (reflow_server.kanban.models.KanbanCard): The instance of the KanbanCard to update or to create
             field_ids (list(int)): List of field_ids to use on the kanban card
+            instance (reflow_server.kanban.models.KanbanCard, optional): The instance of the KanbanCard to update or to create.
+            Defaults to reflow_server.kanban.models.KanbanCard.
 
         Returns:
             reflow_server.kaban.models.KanbanCard: The newly created or updated KanbanCard

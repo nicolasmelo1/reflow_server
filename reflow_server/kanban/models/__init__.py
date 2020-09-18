@@ -1,5 +1,7 @@
 from django.db import models
+
 from reflow_server.kanban.models.abstract import AbstractKanbanDimensionOrder, AbstractKanbanCardField, AbstractKanbanCard
+from reflow_server.theme.managers import KanbanDimensionOrderThemeManager
 
 
 class KanbanCard(AbstractKanbanCard):
@@ -48,3 +50,6 @@ class KanbanDimensionOrder(AbstractKanbanDimensionOrder):
     class Meta:
         db_table = 'kanban_dimension_order'
         app_label = 'kanban'
+
+    objects = models.Manager()
+    theme_ = KanbanDimensionOrderThemeManager()

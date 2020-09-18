@@ -14,7 +14,7 @@ def validate_billing(function):
     @permission_required
     def validate_billing_wrap(request, *args, **kwargs):
         # validates only companies that are not supercompanies. Supercompanies can be bypassed
-        company = Company.objects.filter(id=kwargs.get('company_id', None)).first()
+        company = Company.billing_.company_by_company_id(kwargs.get('company_id', None))
         company_billing = CompanyBilling.objects.filter(company=company).first()
         if company and company_billing and not company_billing.is_supercompany:
             try:

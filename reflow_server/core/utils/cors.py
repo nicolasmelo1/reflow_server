@@ -1,6 +1,10 @@
 from django.http import HttpResponse
 
 class Cors:
+    """
+    Class created for handling CORS. Like explained in reflow_server.core.middleware.CorsMiddleware i was using
+    the django-cors library. But seeing the source code, everything looks easy enough to implement it by hand.
+    """
     OPTIONS_METHOD = 'OPTIONS'
     ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin"
     ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods"
@@ -13,6 +17,17 @@ class Cors:
     DEFAULT_ACCEPTED_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
 
     def is_preflight(self, request):
+        """
+        The stuff starts mostly here if you see. With CORS the browser AUTOMATICALLY sends an Option request
+        to the server to see all of the cors configuration from the server.
+
+        Args:
+            request (django.Request): The Request object from django recieved on the middleware.
+
+        Returns:
+            bool: If it is a pre flight (so the browser checking for our backend configuration) we return true, 
+            otherwise we return False
+        """
         if hasattr(request, 'method') and request.method == self.OPTIONS_METHOD:
             return True
         else:

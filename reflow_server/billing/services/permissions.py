@@ -13,7 +13,7 @@ import functools
 class BillingPermissionsService:
     @staticmethod
     def is_valid_free_trial(company_id):
-        company = Company.objects.filter(id=company_id).first()
+        company = Company.billing_.company_by_company_id(company_id)
         company_billing = CompanyBilling.objects.filter(company_id=company_id).first()
         if company and company_billing:
             if not company_billing.is_paying_company and \

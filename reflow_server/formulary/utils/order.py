@@ -36,9 +36,9 @@ class Order:
         array = [index+1 for index in range(len(current_order))]
 
         # this might be a little confusing on start but it makes a lot of sense, next_element_indexes is an array containing all
-        # the index that needs to be updated, so, if the `number_to_add` is 2 and the `self.current_order` is [1,2,3,4]
-        # we first get the next_element_indexes, in this case [1], it means we must update the `self.current_order` array at index 1
-        # if you want to insert the number 2 look at the index in the array.
+        # the index that needs to be updated, so, if the `number_to_add` is 2 and the `current_order` is [1,2,3,4]
+        # we first get the next_element_indexes, in this case [1]. It means we must update the `current_order` array at index 1.
+        # So in the array [1,2,3,4], we are starting updating number 2, which is the value at index 1 in the array.
         # `last_element` holds the number we want to add in this position. In this example, before the while it is 2, inside of the while
         # `last_element` becomes `last_element` + 1, so, number 3.
         # it's important to notice this function also works for reapeated lists or unordered lists

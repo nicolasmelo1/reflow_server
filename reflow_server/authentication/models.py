@@ -4,7 +4,8 @@ from django.contrib.auth.models import AbstractUser
 
 from reflow_server.authentication.managers import UserExtendedAuthenticationManager, \
     CompanyAuthenticationManager
-from reflow_server.billing.managers import UserExtendedBillingManager
+from reflow_server.billing.managers import UserExtendedBillingManager, CompanyBillingManager, \
+    AddressHelperBillingManager
 from reflow_server.data.managers import UserExtendedDataManager
 from reflow_server.formulary.managers import UserExtendedFormularyManager
 from reflow_server.notification.managers import UserExtendedNotificationManager
@@ -71,10 +72,13 @@ class AddressHelper(models.Model):
     state_code = models.CharField(max_length=100)
     city = models.CharField(max_length=400)
     order = models.BigIntegerField(default=1)
-
+    
     class Meta:
         db_table = 'address_helper'
         ordering = ('order',)
+
+    objects = models.Manager()
+    billing_ = AddressHelperBillingManager()
 
 
 class Company(models.Model):
@@ -103,6 +107,7 @@ class Company(models.Model):
 
     objects = models.Manager()
     authentication_ = CompanyAuthenticationManager()
+    billing_ = CompanyBillingManager()
 
 
 class UserExtended(AbstractUser):

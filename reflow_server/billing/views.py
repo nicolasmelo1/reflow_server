@@ -18,7 +18,7 @@ from reflow_server.billing.serializers import CurrentCompanyChargeSerializer, Pa
 
 class AddressOptionsView(APIView):
     def get(self, request, company_id):
-        instance = AddressHelper.objects.all()
+        instance = AddressHelper.billing_.get_all()
         serializer = AddressOptionsSerializer(instance=instance, many=True)
         return Response({
             'status': 'ok',

@@ -1,8 +1,13 @@
 from django.db import models
+
+from reflow_server.theme.managers import ThemeThemeManager, ThemeFormThemeManager, ThemeFieldThemeManager, \
+    ThemeFieldOptionThemeManager, ThemeKanbanDimensionOrderThemeManager, ThemeKanbanCardThemeManager, \
+    ThemeKanbanCardFieldThemeManager, ThemeNotificationConfigurationThemeManager, \
+    ThemeNotificationConfigurationVariableThemeManager
 from reflow_server.formulary.models.abstract import AbstractField, AbstractFieldOptions, AbstractForm
-from reflow_server.notification.models.abstract import AbstractNotificationConfiguration
+from reflow_server.notification.models.abstract import AbstractNotificationConfiguration 
 from reflow_server.kanban.models.abstract import AbstractKanbanCard, AbstractKanbanCardField, AbstractKanbanDimensionOrder
-from reflow_server.listing.models.abstract import AbstractListingTotalForField
+from reflow_server.dashboard.models.abstract import AbstractDashboardChartConfiguration
 
 
 class ThemeType(models.Model):
@@ -46,6 +51,8 @@ class Theme(models.Model):
     class Meta:
         db_table = 'theme'
 
+    theme_ = ThemeThemeManager()
+    
 
 class ThemePhotos(models.Model):
     """
@@ -73,6 +80,9 @@ class ThemeForm(AbstractForm):
     
     class Meta:
         db_table = 'theme_form'
+        ordering = ('order',)
+
+    theme_ = ThemeFormThemeManager()
 
 
 class ThemeField(AbstractField):
@@ -86,6 +96,9 @@ class ThemeField(AbstractField):
 
     class Meta:
         db_table = 'theme_field'
+        ordering = ('order',)
+
+    theme_ = ThemeFieldThemeManager()
 
 
 class ThemeFieldOptions(AbstractFieldOptions):
@@ -99,17 +112,7 @@ class ThemeFieldOptions(AbstractFieldOptions):
     class Meta:
         db_table = 'theme_field_options'
 
-
-class ThemeListingTotalForField(AbstractListingTotalForField):
-    """
-    See `reflow_server.theme.models.Theme`, `reflow_server.listing.models.abstract.AbstractListingTotalForField` 
-    and `reflow_server.listing.models.ListingTotalForField` for reference
-    """
-    field = models.ForeignKey('theme.ThemeField', models.CASCADE, db_index=True)
-    theme = models.ForeignKey('theme.Theme', models.CASCADE, db_index=True)
-
-    class Meta:
-        db_table = 'theme_listing_total_for_fields'
+    theme_ = ThemeFieldOptionThemeManager()
 
 
 class ThemeKanbanCard(AbstractKanbanCard):
@@ -121,6 +124,8 @@ class ThemeKanbanCard(AbstractKanbanCard):
 
     class Meta:
         db_table = 'theme_kanban_card'
+
+    theme_ = ThemeKanbanCardThemeManager()
 
 
 class ThemeKanbanCardField(AbstractKanbanCardField):
@@ -135,6 +140,8 @@ class ThemeKanbanCardField(AbstractKanbanCardField):
     class Meta:
         db_table = 'theme_kanban_card_field'
 
+    theme_ = ThemeKanbanCardFieldThemeManager()
+
 
 class ThemeKanbanDimensionOrder(AbstractKanbanDimensionOrder):
     """
@@ -146,7 +153,10 @@ class ThemeKanbanDimensionOrder(AbstractKanbanDimensionOrder):
 
     class Meta:
         db_table = 'theme_kanban_dimension_order'
+        ordering = ('order',)
 
+    theme_ = ThemeKanbanDimensionOrderThemeManager()
+    
 
 class ThemeNotificationConfiguration(AbstractNotificationConfiguration):
     """
@@ -158,6 +168,8 @@ class ThemeNotificationConfiguration(AbstractNotificationConfiguration):
 
     class Meta:
         db_table = 'theme_notification_configuration'
+
+    theme_ = ThemeNotificationConfigurationThemeManager()
 
 
 class ThemeNotificationConfigurationVariable(models.Model):
@@ -171,3 +183,21 @@ class ThemeNotificationConfigurationVariable(models.Model):
 
     class Meta:
         db_table = 'theme_notification_configuration_variable'
+        ordering = ('order',)
+
+    theme_ = ThemeNotificationConfigurationVariableThemeManager()
+
+
+class ThemeDashboardChartConfiguration(AbstractDashboardChartConfiguration):
+    """
+    See `reflow_server.dashboard.models.abstract.AbstractDashboardChartConfiguration` for reference
+    """
+    label_field = models.ForeignKey('theme.ThemeField', on_delete=models.CASCADE, db_index=True, 
+                                    related_name='theme_dashboard_chart_configuration_label_fields')
+    value_field = models.ForeignKey('theme.ThemeField', on_delete=models.CASCADE, db_index=True,
+                                     related_name='theme_dashboard_chart_configuration_value_fields')
+    form = models.ForeignKey('theme.ThemeForm', on_delete=models.CASCADE, db_index=True)
+    theme = models.ForeignKey('theme.Theme', on_delete=models.CASCADE, db_index=True)
+    
+    class Meta:
+        db_table = 'theme_dashboard_chart_configuration'

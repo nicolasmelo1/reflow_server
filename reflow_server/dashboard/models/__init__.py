@@ -1,5 +1,7 @@
 from django.db import models
 
+from reflow_server.dashboard.models.abstract import AbstractDashboardChartConfiguration
+
 
 class AggregationType(models.Model):
     """
@@ -29,33 +31,13 @@ class ChartType(models.Model):
         ordering = ('order',)
 
 
-class DashboardChartConfiguration(models.Model):
+class DashboardChartConfiguration(AbstractDashboardChartConfiguration):
     """
-    This model is responsible for holding each chart configuration. Each chart configuration is bound to a specific company,
-    a specific user and a specific formulary. This means you can't have charts that cross information between formularies. 
-    You can't aggregate a data from a another formulary to this formulary.
+    For further explanation on what this model do read reflow_server.dashboard.models.AbstractDashboardConfiguration.
 
-    To understand how this works you first need to understand what is an aggregation, in a simple explanation a aggregation 
-    is actually kinda the same as a python dict. What this means is:
-    1 - You first have the keys (labels)
-    2 - Each key have a value (values)
-    
-    That's why we need label_field and value_field, to know which field from the formulary to use as keys, and which to use as
-    value. This means that obviously to work with charts you need to work with charts you need to fill the formularies with data.
-    
-    Besides that a chart configuration should hold these informations:
-    - How we want to aggregate the data
-    - How we want to display the data to the user
-    - How to format each number to the user on the result
+    In the most basic sense, this is used for holding the dashboard configuration data needed to construct the dashboards.
+    IT DOES NOT HOLD THE DATA AGGREGATED DATA, BUT THE DATA NEEDED TO BUILD THE CHARTS.
     """
-    name = models.CharField(max_length=350)
-    for_company = models.BooleanField(default=False)
-    aggregation_type = models.ForeignKey('dashboard.AggregationType', on_delete=models.CASCADE, db_index=True,
-                                         related_name='dashboard_chart_configuration_aggregation_types')
-    chart_type = models.ForeignKey('dashboard.ChartType', on_delete=models.CASCADE, db_index=True,
-                                    related_name='dashboard_chart_configuration_chart_types')
-    number_format_type = models.ForeignKey('formulary.FieldNumberFormatType', on_delete=models.CASCADE, db_index=True,
-                                            related_name='dashboard_chart_configuration_number_format_types')
     label_field = models.ForeignKey('formulary.Field', on_delete=models.CASCADE, db_index=True, 
                                     related_name='dashboard_chart_configuration_label_fields')
     value_field = models.ForeignKey('formulary.Field', on_delete=models.CASCADE, db_index=True,
@@ -65,6 +47,5 @@ class DashboardChartConfiguration(models.Model):
                              related_name='dashboard_chart_configuration_users')
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, db_index=True,
                                 related_name='dashboard_chart_configuration_companies')
-    #order = models.BigIntegerField(default=1)
     class Meta:
         db_table = 'dashboard_chart_configuration'

@@ -1,1 +1,4 @@
 from .user_extended import UserExtendedBillingManager
+from .company import CompanyBillingManager
+from .address_helper import AddressHelperBillingManager
+from .company_charge import CompanyChargeBillingManager

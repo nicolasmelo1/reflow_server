@@ -8,8 +8,8 @@ class SectionService(Settings):
         self.company_id = company_id
         self.form_id = form_id
 
-    def save_section(self, instance, enabled, label_name, order, conditional_value, 
-                     section_type, conditional_type, conditional_on_field):
+    def save_section(self, enabled, label_name, order, conditional_value, 
+                     section_type, conditional_type, conditional_on_field, instance=Form()):
             existing_sections = Form.objects.filter(
                 depends_on__group__company_id=self.company_id, 
                 depends_on_id=self.form_id

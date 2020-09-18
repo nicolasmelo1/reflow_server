@@ -34,6 +34,17 @@ class FieldOptionsService:
         return True
 
     def create_new_field_options(self, field, field_options):
+        """
+        Creates new field_options for a specific field
+
+        Args:
+            field (reflow_server.formulary.models.Field): A field instance to create
+            the options for.
+            field_options (list(str)): The options to set on the field instance.
+
+        Returns:
+            bool: returns True to indicate everything went fine.
+        """
         created_field_options=list()
         FieldOptions.objects.exclude(option__in=field_options).filter(field=field).delete()
         for field_option_index, field_option in enumerate(field_options):

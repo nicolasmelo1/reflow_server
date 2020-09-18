@@ -19,7 +19,7 @@ class VindiService:
         Args:
             company_id (int): The id of the company you want to handle in vindi gateway
         """
-        self.company = Company.objects.filter(id=company_id).first()
+        self.company = Company.billing_.company_by_company_id(company_id)
         self.company_billing = CompanyBilling.objects.filter(company_id=company_id).first()
 
         from reflow_server.billing.externals import VindiExternal
@@ -338,14 +338,14 @@ class VindiService:
             data = data[settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event]]
 
             if event == 'subscription_canceled':
-                company = CompanyBilling.objects.filter(vindi_signature_id=data.get('id', -1)).first()
-                if company and not company.is_supercompany:
-                    Company.objects.filter(id=company.id).update(is_active=False)
+                company_billing = CompanyBilling.objects.filter(vindi_signature_id=data.get('id', -1)).first()
+                if company_billing and not company_billing.is_supercompany:
+                    Company.billing_.update_is_active_by_company_id(company_billing.company.id, False)
 
             elif event == 'subscription_reactivated':
-                company = CompanyBilling.objects.filter(vindi_signature_id=data.get('id', -1)).first()
-                if company and not company.is_supercompany:
-                    Company.objects.filter(id=company.id).update(is_active=True)
+                company_billing = CompanyBilling.objects.filter(vindi_signature_id=data.get('id', -1)).first()
+                if company_billing and not company_billing.is_supercompany:
+                    Company.billing_.update_is_active_by_company_id(company_billing.company.id, True)
 
             elif event == 'bill_paid':
                 from reflow_server.billing.services.charge import ChargeService

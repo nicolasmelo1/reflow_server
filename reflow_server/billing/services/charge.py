@@ -251,16 +251,16 @@ class ChargeService:
             total_value (float): The amout the user has paid
             attempt_count (int): how many attempts we needed to bill the user.
         """
-        company = Company.objects.filter(vindi_client_id=vindi_customer_id).first()
-        if company:
+        company_billing = CompanyBilling.objects.filter(vindi_client_id=vindi_customer_id).first()
+        if company_billing:
             today_end = datetime.now()
             today_start = today_end - timedelta(minutes=1)
-            company_charges_updated_in_the_last_minute = CompanyCharge.objects.filter(
-                company=company, created_at__lte=today_end, created_at__gte=today_start
+            company_charges_updated_in_the_last_minute = CompanyCharge.billing_.exists_company_charge_created_between_dates_by_company(
+                company=company_billing.company, created_at__lte=today_end, created_at__gte=today_start
             )
             if not company_charges_updated_in_the_last_minute:
-                CompanyCharge.objects.create(
-                    company=company,
+                CompanyCharge.billing_.create_company_charge(
+                    company=company_billing.company,
                     total_value=total_value,
                     attempt_count=attempt_count
                 )

@@ -1,5 +1,8 @@
 from django.db import models
 
+from reflow_server.billing.managers import CompanyChargeBillingManager
+
+
 # Create your models here.
 class ChargeType(models.Model):
     """
@@ -242,3 +245,6 @@ class CompanyCharge(models.Model):
 
     class Meta:
         db_table = 'company_charge'
+
+    objects = models.Manager()
+    billing_ = CompanyChargeBillingManager()

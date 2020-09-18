@@ -1,5 +1,7 @@
-from reflow_server.notification.models.abstract import AbstractNotificationConfiguration
 from django.db import models
+
+from reflow_server.notification.models.abstract import AbstractNotificationConfiguration
+
 
 class NotificationConfiguration(AbstractNotificationConfiguration):
     """

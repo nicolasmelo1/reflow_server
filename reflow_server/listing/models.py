@@ -1,7 +1,5 @@
 from django.db import models
 
-from reflow_server.listing.models.abstract import AbstractListingTotalForField
-
 import uuid
 
 
@@ -45,16 +43,4 @@ class ExtractFileData(models.Model):
 
     class Meta:
         db_table = 'extract_file_data'
-        app_label = 'listing'
-
-
-class ListingTotalForField(AbstractListingTotalForField):
-    # TODO: move this to dashboard. this is deprecated.
-    # might be deleted later , it will be defined on Dashboard tables
-    field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True)
-    user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
-    number_configuration_number_format_type = models.ForeignKey('formulary.FieldNumberFormatType', on_delete=models.CASCADE, db_index=True, default=1)
-
-    class Meta:
-        db_table = 'listing_total_for_fields'
         app_label = 'listing'

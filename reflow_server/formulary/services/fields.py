@@ -14,11 +14,11 @@ class FieldService(Settings):
         self.form_id = form_id
     
     @transaction.atomic
-    def save_field(self, instance, enabled, label_name, order, is_unique, field_is_hidden, 
+    def save_field(self, enabled, label_name, order, is_unique, field_is_hidden, 
                    label_is_hidden, placeholder, required, section, form_field_as_option, 
                    formula_configuration, date_configuration_auto_create, date_configuration_auto_update,
                    number_configuration_number_format_type, date_configuration_date_format_type,
-                   period_configuration_period_interval_type, field_type, field_options=list()):
+                   period_configuration_period_interval_type, field_type, field_options=list(), instance=Field()):
                    
         field_options_service = FieldOptionsService(self.user_id, self.company_id)
 

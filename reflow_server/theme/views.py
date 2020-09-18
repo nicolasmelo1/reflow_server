@@ -36,14 +36,20 @@ class ThemeView(APIView):
     
     def post(self, request, company_id, theme_id):
         theme = Theme.objects.filter(id=theme_id).first()
-        ThemeService.select_theme(theme, company_id, request.user.id)
-        form_name = Form.objects.filter(depends_on__isnull=True, group__company_id=company_id).order_by('-created_at').values_list('form_name', flat=True).first()
-        return Response({
-            'status': 'ok',
-            'data': {
-                'last_form_name': form_name
-            }
-        }, status=status.HTTP_200_OK)
+        if theme:
+            ThemeService.select_theme(theme_id, company_id, request.user.id)
+            form_name = Form.objects.filter(depends_on__isnull=True, group__company_id=company_id).order_by('-created_at').values_list('form_name', flat=True).first()
+            return Response({
+                'status': 'ok',
+                'data': {
+                    'last_form_name': form_name
+                }
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'error',
+                'reason': 'theme_does_not_exist'
+            }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class ThemeFormularyView(APIView):

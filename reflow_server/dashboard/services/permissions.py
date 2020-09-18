@@ -52,7 +52,7 @@ class DashboardPermissionsService:
         Using the above example let's go with the following:
         1 - Let's imagine the user `Charts Crazy Person Assistant` that is the ADMIN of the company `Charts Crazy Company`.
         2 - The `Charts Crazy Person` already went through all of the steps in the example above so he have 2
-        3 - The after that user `Charts Crazy Person Assistant` creates a new chart in the formulary `Crazy Charts Form` called
+        3 - After that, the user `Charts Crazy Person Assistant` creates a new chart in the formulary `Crazy Charts Form` called
         `Chart sales quantity`. This one will be just for him, so when he saves everything works fine.
         4 - Then this same user creates a new chart on the same formulary but for the hole company. When he does this he recieves
         an error.
@@ -63,7 +63,8 @@ class DashboardPermissionsService:
         It get's kinda confusing when we say that we bill each `per_chart_company` per the quantity of users. So if we bill $1,00
         for each `per_chart_company` the formula is simple: 1*quantity. BUT WE DON'T DO THAT, because each user individually
         consumes resources when they enter the page with charts. A company with 5 charts `for_company` and with 10 users will
-        consume more resources than a company with 5 charts `for_company` and with 2 users. So we can't bill them equally.
+        consume more resources than a company with 5 charts `for_company` and with 2 users(10 users will be consuming 5 charts 
+        at the same time, so 10*5 = 50, where the second company is 2 users consuming 5 charts so 5*2=10). So we can't bill them equally.
         With the explanation above the formula becomes: 1 * quantity * quantity_of_users.
         
         Args:

@@ -84,7 +84,6 @@ class FieldSerializer(serializers.ModelSerializer):
             form_id=self.context['form_id']
         )
         instance = field_service.save_field(
-            instance, 
             enabled=self.validated_data['enabled'],
             label_name=self.validated_data['label_name'],
             order=self.validated_data['order'],
@@ -102,7 +101,8 @@ class FieldSerializer(serializers.ModelSerializer):
             date_configuration_date_format_type=self.validated_data.get('date_configuration_date_format_type', None),
             period_configuration_period_interval_type=self.validated_data.get('period_configuration_period_interval_type', None),
             field_type=self.validated_data['type'],
-            field_options=[field_option['option'] for field_option in self.validated_data.get('field_option', list())]
+            field_options=[field_option['option'] for field_option in self.validated_data.get('field_option', list())],
+            instance=instance
         )
         return instance
 
@@ -136,14 +136,14 @@ class SectionSerializer(serializers.ModelSerializer):
             form_id=self.context['form_id']
         )
         instance = section_service.save_section(
-            instance, 
             enabled=self.validated_data['enabled'],
             label_name=self.validated_data['label_name'],
             order=self.validated_data['order'],
             conditional_value=self.validated_data['conditional_value'] if self.validated_data.get('conditional_value', None) and self.validated_data['conditional_value'] != '' else None,
             section_type=self.validated_data['type'],
             conditional_type=self.validated_data.get('conditional_type', None),
-            conditional_on_field=self.validated_data.get('conditional_on_field', None)
+            conditional_on_field=self.validated_data.get('conditional_on_field', None),
+            instance=instance
         )
         return instance
 
@@ -187,11 +187,11 @@ class FormularySerializer(serializers.ModelSerializer):
 
         formulary_service = FormularyService(user_id=self.context['user_id'], company_id=self.context['company_id'])
         instance = formulary_service.save_formulary(
-            instance=instance, 
             enabled=self.validated_data['enabled'], 
             label_name=self.validated_data['label_name'], 
             order=self.validated_data['order'], 
-            group=self.validated_data['group']
+            group=self.validated_data['group'],
+            instance=instance
         )
         return instance
     
@@ -213,8 +213,8 @@ class GroupSerializer(serializers.ModelSerializer):
     form_group = FormularySerializer(many=True, required=False, allow_null=True)
 
     def update(self, instance, validated_data):
-        group_service = GroupService(self.context['user_id'], self.context['company_id'])
-        instance = group_service.save_group(
+        group_service = GroupService(self.context['company_id'])
+        instance = group_service.update_group(
             instance, 
             validated_data['name'],
             validated_data['enabled'],

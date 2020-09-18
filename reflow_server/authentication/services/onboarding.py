@@ -38,9 +38,8 @@ class OnboardingService(CompanyService):
         if shared_by:
             shared_by = Company.authentication_.company_by_endpoint(shared_by)
 
-        company = Company.objects.create(
+        company = Company.authentication_.create_company(
             name=company_name,
-            is_active=True,
             endpoint=self._create_company_endpoint(company_name),
             shared_by=shared_by,
             partner=partner
