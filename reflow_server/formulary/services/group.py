@@ -47,12 +47,12 @@ class GroupService(Settings):
         Returns:
             reflow_server.formulary.models.Group: The newly created Group instance.
         """
-        existing_groups = Group.objects.filter(company_id=self.company_id).order_by('-order')
+        existing_groups = Group.objects.filter(company_id=self.company_id).order_by('order')
         if existing_groups:
-            order = existing_groups[0].order + 1
+            order = existing_groups[existing_groups.count() - 1].order + 1
         else:
             order = 1
-        
+
         self.update_order(existing_groups, order)
 
         instance = Group.objects.create(
