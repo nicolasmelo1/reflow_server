@@ -24,7 +24,7 @@ class CompanyAuthenticationManager(models.Manager):
         Returns:
             reflow_server.authentication.models.Company: The created company instance
         """
-        instance = self.create(
+        instance = self.get_queryset().create(
             name=company_name,
             is_active=True,
             endpoint=company_endpoint,
