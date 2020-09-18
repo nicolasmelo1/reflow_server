@@ -16,7 +16,8 @@ class GroupSettingsView(APIView):
     def get(self, request, company_id):
         instances = Group.objects.filter(company=company_id)
         serializer = GroupSerializer(instance=instances, many=True, context={
-            'company_id': company_id
+            'company_id': company_id,
+            'user_id': request.user.id
         })
         return Response({
             'status': 'ok',
