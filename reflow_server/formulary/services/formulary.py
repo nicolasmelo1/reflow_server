@@ -50,11 +50,15 @@ class FormularyService(Settings):
     def formulary_names_the_user_has_access_to(self):
         return FormAccessedBy.objects.filter(user_id=self.user_id).values_list('form__form_name', flat=True)
 
-    def save_formulary(self, enabled, label_name, order, group, instance=Form()):
+    def save_formulary(self, enabled, label_name, order, group, instance=None):
+        if instance == None:
+            instance = Form()
+            
         existing_forms = Form.objects.filter(group__company_id=self.company_id, depends_on__isnull=True)\
                                      .exclude(id=instance.id if instance else None)\
                                      .order_by('group__order', 'order')
         self.update_order(existing_forms, order)
+
         is_new = instance.id == None
 
         instance.company_id = self.company_id

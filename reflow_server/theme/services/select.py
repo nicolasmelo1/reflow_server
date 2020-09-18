@@ -56,13 +56,12 @@ class ThemeSelectService:
         # this contains the reference on what the themeform id was as key and the created Form instance as the value.
         # this way we can know the actual relation of the theme_form_id.
         formulary_reference = {}
-
         formulary_service = FormularyService(self.user_id, self.company_id)
 
         for theme_form in ThemeForm.theme_.main_theme_forms_by_theme_id(self.theme.id):
             formulary_instance = formulary_service.save_formulary(True, theme_form.label_name, theme_form.order, group)
             formulary_reference[theme_form.id] = formulary_instance
-
+        
         return formulary_reference
 
     def __create_sections(self, formulary_reference):

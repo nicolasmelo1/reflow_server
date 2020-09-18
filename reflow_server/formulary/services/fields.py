@@ -18,9 +18,12 @@ class FieldService(Settings):
                    label_is_hidden, placeholder, required, section, form_field_as_option, 
                    formula_configuration, date_configuration_auto_create, date_configuration_auto_update,
                    number_configuration_number_format_type, date_configuration_date_format_type,
-                   period_configuration_period_interval_type, field_type, field_options=list(), instance=Field()):
+                   period_configuration_period_interval_type, field_type, field_options=list(), instance=None):
+        if instance == None:
+            instance = Field()
                    
         field_options_service = FieldOptionsService(self.user_id, self.company_id)
+
 
         existing_fields = Field.objects.filter(
             form=section, 
@@ -29,7 +32,9 @@ class FieldService(Settings):
         ).exclude(
             id=instance.id if instance else None
         ).order_by('form__order', 'order')
+        
         self.update_order(existing_fields, order)          
+
 
         instance.enabled = enabled
         instance.label_name = label_name

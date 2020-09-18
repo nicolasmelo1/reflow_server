@@ -107,7 +107,7 @@ class NotificationConfigurationService:
         ])
 
     @transaction.atomic
-    def save_notification_configuration(self, company_id, for_company, name, text, days_diff, form, field, user_id, instance=NotificationConfiguration()):
+    def save_notification_configuration(self, company_id, for_company, name, text, days_diff, form, field, user_id, instance=None):
         """
         IF YOU WANT TO ADD OR UPDATE VARIABLES YOU MUST ADD VARIABLES FIRST USING THE `.add_variables()` method.
         As the name of the method suggests this method is for creating or updating a certain notification_configuration.
@@ -131,6 +131,9 @@ class NotificationConfigurationService:
         Returns:
             reflow_server.notification.models.NotificationConfiguration: The newly created or updated instance.
         """
+        if instance == None:
+            instance = NotificationConfiguration()
+        
         # if the user is not an admin and is trying to set the for_company, we enforce the for_company on being False
         if for_company and UserExtended.notification_.exists_user_id_excluding_admin(user_id):
             for_company = False
