@@ -48,8 +48,9 @@ class ExtractService:
         form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data, from_date, to_date)
         # call external service
         from reflow_server.listing.externals import ExtractDataWorkerExternal
-        ExtractDataWorkerExternal().build_extraction_data(file_id, file_format, company_id, user_id, form_id, fields_ids, form_data_accessed_by_user)
-
+        response = ExtractDataWorkerExternal().build_extraction_data(file_id, file_format, company_id, user_id, form_id, fields_ids, form_data_accessed_by_user)
+        print('BREAKPOINT')
+        print(response.content)
 
     def extract(self, file_format, from_date, to_date, 
                 sort_value=[], sort_field=[], 

@@ -217,7 +217,7 @@ class ThemeSelectService:
                     order=theme_kanban_dimension.order, 
                     default=theme_kanban_dimension.default, 
                     user_id=user.id, 
-                    options=theme_kanban_dimension.options
+                    option=theme_kanban_dimension.options
                 )
 
             for theme_kanban_card in theme_kanban_cards:
