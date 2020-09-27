@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
+
 from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldStates, AbstractFieldOptions
+from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager
 
 
 class SectionType(models.Model):
@@ -242,6 +244,9 @@ class Form(AbstractForm):
         db_table = 'form'
         ordering = ('order',)
 
+    objects = models.Manager()
+    theme_ = FormThemeManager()
+
 
 class Field(AbstractField):
     """
@@ -271,6 +276,9 @@ class Field(AbstractField):
         ordering = ('order',)
         app_label = 'formulary'
 
+    objects = models.Manager()
+    theme_ = FieldThemeManager()
+    
 
 class FieldOptions(AbstractFieldOptions):
     """
@@ -285,6 +293,9 @@ class FieldOptions(AbstractFieldOptions):
         db_table = 'field_options'
         ordering = ('order',)
         app_label = 'formulary'
+    
+    objects = models.Manager()
+    theme_ = FieldOptionsThemeManager()
 
 
 class OptionAccessedBy(models.Model):

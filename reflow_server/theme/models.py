@@ -3,7 +3,7 @@ from django.db import models
 from reflow_server.theme.managers import ThemeThemeManager, ThemeFormThemeManager, ThemeFieldThemeManager, \
     ThemeFieldOptionThemeManager, ThemeKanbanDimensionOrderThemeManager, ThemeKanbanCardThemeManager, \
     ThemeKanbanCardFieldThemeManager, ThemeNotificationConfigurationThemeManager, \
-    ThemeNotificationConfigurationVariableThemeManager
+    ThemeNotificationConfigurationVariableThemeManager, ThemeTypeThemeManager
 from reflow_server.formulary.models.abstract import AbstractField, AbstractFieldOptions, AbstractForm
 from reflow_server.notification.models.abstract import AbstractNotificationConfiguration 
 from reflow_server.kanban.models.abstract import AbstractKanbanCard, AbstractKanbanCardField, AbstractKanbanDimensionOrder
@@ -23,6 +23,9 @@ class ThemeType(models.Model):
     class Meta:
         db_table = 'group_type'
         ordering = ('order',)
+
+    objects = models.Manager()
+    theme_ = ThemeTypeThemeManager()
 
 
 class Theme(models.Model):
@@ -69,6 +72,9 @@ class ThemePhotos(models.Model):
 
 class ThemeForm(AbstractForm):
     """
+    `form_id` here holds the id of the formulary it was based on. It's not an actual reference and is just an number
+    because it becomes easier to loose the reference.
+
     See `reflow_server.theme.models.Theme`, `reflow_server.formulary.models.abstract.AbstractForm` 
     and `reflow_server.formulary.models.Form` for reference
     """

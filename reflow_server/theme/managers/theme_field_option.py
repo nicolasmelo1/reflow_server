@@ -17,3 +17,23 @@ class ThemeFieldOptionThemeManager(models.Manager):
             django.db.QuerySet(str): Queryset where each item is the option as string.
         """
         return self.get_queryset().filter(field_id=theme_field_id).values_list('option', flat=True)
+    
+    def create_theme_field_option(self, theme_field_instance, option, order):
+        """
+        Creates a new ThemeFieldOption instance
+
+        Args:
+            theme_field_instance (reflow_server.theme.models.ThemeField): The ThemeField instance that this
+                                                                          option is bound to.
+            option (str): The option, option is nothing more than a string with a value, this is the option
+                          the user can select.
+            order (int): The ordering of the options, which comes first and which is last.
+
+        Returns:
+            reflow_server.theme.models.ThemeFieldOptions: The newly created theme field option instance.
+        """
+        return self.get_queryset().create(
+            field=theme_field_instance,
+            option=option,
+            order=order
+        )

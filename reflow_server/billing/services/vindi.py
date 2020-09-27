@@ -268,7 +268,7 @@ class VindiService:
         As the name suggests, deletes the payment profile from vindi. This is usually used when the user wants to delete his credit card.
 
         Returns:
-            bool: returns True or False wheather the delete action was successful or not.
+            bool: returns True or False whether the delete action was successful or not.
         """
         if self.vindi_payment_profile_id in [None, '']:
             return True

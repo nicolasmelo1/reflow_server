@@ -17,7 +17,7 @@ class ExternalService:
             request {django.Request} -- The request recieved in a view.
 
         Returns:
-            bool -- returns True or False wheather the request is valid or not.
+            bool -- returns True or False whether the request is valid or not.
         """
         if settings.ENV == 'server':
             if 'HTTP_AUTHORIZATION' in request.META:

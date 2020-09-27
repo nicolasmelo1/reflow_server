@@ -17,7 +17,7 @@ class Validator:
             and fields.
 
         Returns:
-            bool: boolean wheather a formulary data is valid or not when saving
+            bool: boolean whether a formulary data is valid or not when saving
         """
         self._errors = {}
         

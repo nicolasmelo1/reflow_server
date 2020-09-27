@@ -4,8 +4,10 @@ from reflow_server.theme.models import Theme, ThemeForm, ThemeField, ThemeFieldO
     ThemeKanbanDimensionOrder, ThemeKanbanCard, ThemeKanbanCardField, \
     ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable, \
     ThemeDashboardChartConfiguration
+from reflow_server.theme.services.data import ThemeReference
 from reflow_server.authentication.models import UserExtended
 from reflow_server.kanban.models import KanbanDimensionOrder
+
 
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.formulary import FormularyService
@@ -21,6 +23,7 @@ class ThemeSelectService:
         self.company_users = UserExtended.theme_.users_active_by_company_id(company_id)
         self.company_id = company_id
         self.user_id = user_id
+        self.theme_reference = ThemeReference()
         
     def __create_group(self):
         """
@@ -48,26 +51,20 @@ class ThemeSelectService:
             formularies created here.
 
         Returns:
-            dict: This is a dict that holds the reference of ThemeForm and Form instances.
-                  On this dict, each key is the ThemeForm id, and the value is each Form 
-                  instance created. This way whenever we encounter a ThemeForm we can get 
-                  the Form instance it references to.
+            bool: returns True indicating the formularies and references where created.
         """
-        # this contains the reference on what the themeform id was as key and the created Form instance as the value.
-        # this way we can know the actual relation of the theme_form_id.
-        formulary_reference = {}
         formulary_service = FormularyService(self.user_id, self.company_id)
 
         for theme_form in ThemeForm.theme_.main_theme_forms_by_theme_id(self.theme.id):
             formulary_instance = formulary_service.save_formulary(True, theme_form.label_name, theme_form.order, group)
-            formulary_reference[theme_form.id] = formulary_instance
+            self.theme_reference.add_formulary_reference(theme_form.id, formulary_instance)
         
-        return formulary_reference
+        return True
 
-    def __create_sections(self, formulary_reference):
+    def __create_sections(self):
         """
         This creates sections of the ThemeForm instances that have depends_on as not null.
-        We use the SectionService for creating sections so it can handle most of the logic.
+        We use the SectionService for creating sections so it can handle most of the business logic.
 
         There are two things important to understand:
         - `formulary_reference` dict is also updated with the sections, SO the `formulary_reference`
@@ -77,33 +74,27 @@ class ThemeSelectService:
         fields we can just add the proper conditionals. Each key of the dict is the field_id the conditional 
         references to and the value is the section instance to update.
 
-        Args:
-            formulary_reference (dict): This is a dict that holds the reference of ThemeForm and Form instances.
-                                        On this dict, each key is the ThemeForm id, and the value is each Form 
-                                        instance created. This way whenever we encounter a ThemeForm we can get 
-                                        the Form instance it references to.
-
         Returns:
-            tuple(dict, dict): returns two dicts in a tuple. The first element of this tuple is the formulary_reference
-            dict we recieve as parameter but updated with sections also. The second element of this tuple is the 
-            `section_conditionals_reference` which is a dict that holds the reference of conditionals for sections.
+            bool: returns True to indicate that everything went fine.
         """
-        section_conditionals_reference = {}
-
         for theme_section in ThemeForm.theme_.sections_theme_forms_by_theme_id(self.theme.id):
-            section_service = SectionService(user_id=self.user_id, company_id=self.company_id, form_id=formulary_reference[theme_section.depends_on.id].id)
+            section_service = SectionService(
+                user_id=self.user_id, 
+                company_id=self.company_id, 
+                form_id=self.theme_reference.get_formulary_reference(theme_section.depends_on.id).id
+            )
                 
             section = section_service.save_section(
                 True, theme_section.label_name, theme_section.order, 
                 theme_section.conditional_value, theme_section.type,
                 theme_section.conditional_type, None
             )
-            formulary_reference[theme_section.id] = section
+            self.theme_reference.add_formulary_reference(theme_section.id, section)
             if theme_section.conditional_on_field:
-                section_conditionals_reference[theme_section.conditional_on_field.id] = section
-        return formulary_reference, section_conditionals_reference
+                self.theme_reference.add_section_conditionals_reference(theme_section.conditional_on_field.id, section)
+        return True
     
-    def __create_fields(self, formulary_reference, section_conditionals_reference):
+    def __create_fields(self):
         """
         This method is responsible for creating fields of all of the formularies and sections of a theme.
         
@@ -113,30 +104,12 @@ class ThemeSelectService:
         - Second, conditionals are bound to a specific field. Like the first item, we also wait the creation of EVERY
         field to add the conditional fields. That's why we use the `section_conditionals_reference` parameter to.
 
-        Last but not least, after all of the fields have been created we return a dict to be used as reference. With this
-        we can know by the ThemeField id what Field should we use when we create a new data.
-        For example, on NotificationConfigurations (not the Theme ones), they are usually bound to a Field instance.
-        ThemeNotificationConfiguration holds the reference for a ThemeField. When we are creating a new NotificationConfiguration
-        for the user based on the ThemeNotificationConfiguration we will have initally the ThemeField id. We use this
-        to set the correct reference to it.
-
-        Args:
-            formulary_reference (dict): This is a dict that holds the reference of ThemeForm and Form instances.
-                                        On this dict, each key is the ThemeForm id, and the value is each Form 
-                                        instance created. This way whenever we encounter a ThemeForm we can get 
-                                        the Form instance it references to.
-            section_conditionals_reference (dict): Same as `formulary_reference` except that is just holds sections
-                                                   (so instances when depends_on IS NOT NULL). These sections are 
-                                                   the ones that have a conditional bound
-            to it. The sections with conditional_on_field = None ARE NOT on this dict.
+        Last but not least, after all of the fields have been created we append the created fields to the field_reference
+        on the ThemeReference object. return a dict to be used as reference. 
 
         Returns:
-            dict: return a dict to be used as reference. With this we can know by the ThemeField id what Field 
-            should we use when we create a new data. On this dict, each key is the ThemeField id, and the value 
-            is each Field instance created. This way whenever we encounter a ThemeField we can get the Field 
-            instance it references to.
+            bool: returns True indicating all fields were created
         """
-        field_reference = {}
         form_field_as_option_reference = {}
         form_field_type_fields = []
 
@@ -150,18 +123,20 @@ class ThemeSelectService:
                 field_options = list(ThemeFieldOptions.theme_.options_by_theme_field_id(theme_field_id=theme_field.id))
             
             field_service = FieldService(
-                user_id=self.user_id, company_id=self.company_id, form_id=formulary_reference[theme_field.form.depends_on.id].id
+                user_id=self.user_id, 
+                company_id=self.company_id, 
+                form_id=self.theme_reference.get_formulary_reference(theme_field.form.depends_on.id).id
             )
 
             field = field_service.save_field(
                 True, theme_field.label_name, theme_field.order, theme_field.is_unique, theme_field.field_is_hidden, 
-                theme_field.label_is_hidden, theme_field.placeholder, theme_field.required, formulary_reference[theme_field.form_id],
+                theme_field.label_is_hidden, theme_field.placeholder, theme_field.required, self.theme_reference.get_formulary_reference(theme_field.form_id),
                 None, theme_field.formula_configuration, theme_field.date_configuration_auto_create, theme_field.date_configuration_auto_update,
                 theme_field.number_configuration_number_format_type, theme_field.date_configuration_date_format_type, 
                 theme_field.period_configuration_period_interval_type, theme_field.type, field_options
             )
 
-            field_reference[theme_field.id] = field
+            self.theme_reference.add_field_reference(theme_field.id, field)
 
             # If the theme_field is of type `form` what we do is create a reference to it, so the key of the dict
             # is the theme_field.id and the value is the field instance we should update.
@@ -176,30 +151,24 @@ class ThemeSelectService:
 
                 
         # set conditionals on sections
-        for theme_field_id, section in section_conditionals_reference.items():
-            section.conditional_on_field_id = field_reference[theme_field_id].id
+        for theme_field_id, section in self.theme_reference.get_section_conditionals_reference():
+            section.conditional_on_field_id = self.theme_reference.get_field_reference(theme_field_id).id
             section.save()
 
         # set form_field_as_option on fields
         for theme_field in form_field_type_fields:
             field = form_field_as_option_reference[theme_field.id]
-            field.form_field_as_option_id = field_reference[theme_field.form_field_as_option_id].id
+            field.form_field_as_option_id = self.theme_reference.get_field_reference(theme_field.form_field_as_option_id).id
             field.save()
 
-        return field_reference
+        return True
 
-    def __create_kanban(self, field_reference):
+    def __create_kanban(self):
         """
         Create the kanban dimnesion order values for all of the users of the company and also creates
         the KanbanCard for all of the users.
         This method defines kanban defaults so when the user opens the kanban we can already know its 
         default kanban card and also the default kanban dimension.
-
-        Args:
-            field_reference (dict): This is a dict that holds the reference of ThemeField and Field instances.
-                                    On this dict, each key is the ThemeField id, and the value is each Field 
-                                    instance created. This way whenever we encounter a ThemeField we can get 
-                                    the Field instance it references to.
 
         Returns:
             bool: Return True to indicate everything went fine.
@@ -212,7 +181,7 @@ class ThemeSelectService:
 
             for theme_kanban_dimension in theme_kanban_dimension_orders:
                 KanbanDimensionOrder.theme_.create_kanban_dimension_order(
-                    dimension_id=field_reference[theme_kanban_dimension.dimension.id].id,
+                    dimension_id=self.theme_reference.get_field_reference(theme_kanban_dimension.dimension.id).id,
                     order=theme_kanban_dimension.order, 
                     default=theme_kanban_dimension.default, 
                     user_id=user.id, 
@@ -221,7 +190,8 @@ class ThemeSelectService:
 
             for theme_kanban_card in theme_kanban_cards:
                 theme_kanban_card_field_ids = ThemeKanbanCardField.theme_.theme_field_ids_by_theme_kanban_card_id(theme_kanban_card.id)
-                kanban_card_field_ids = [field_reference[theme_kanban_card_field_id].id for theme_kanban_card_field_id in theme_kanban_card_field_ids]
+                kanban_card_field_ids = [self.theme_reference.get_field_reference(theme_kanban_card_field_id).id 
+                                         for theme_kanban_card_field_id in theme_kanban_card_field_ids]
 
                 # we create a new kanban card with it's fields, and then we set the default of the instance created
                 # to be equal the theme_kanban_card default
@@ -230,19 +200,11 @@ class ThemeSelectService:
                 kanban_card_instance.save()
         return True
 
-    def __create_notification(self, field_reference, formulary_reference):
+    def __create_notification(self):
         """
         Create notification configuration and notification configuration variables from the selected Theme.
         It uses the NotificationConfigurationService class for creating the notifications.
-
-        Args:
-            field_reference (dict): This is a dict that holds the reference of ThemeField and Field instances.
-            On this dict, each key is the ThemeField id, and the value is each Field instance created. This way
-            whenever we encounter a ThemeField we can get the Field instance it references to.
-            formulary_reference (dict): This is a dict that holds the reference of ThemeForm and Form instances.
-            On this dict, each key is the ThemeForm id, and the value is each Form instance created. This way
-            whenever we encounter a ThemeForm we can get the Form instance it references to.
-
+        
         Returns:
             bool: Return True to indicate everything went fine.
         """
@@ -254,7 +216,7 @@ class ThemeSelectService:
                 theme_notification_configuration.id
             )
             for theme_notification_variable in theme_notification_variables:
-                notification_configuration_service.add_notification_variable(field_reference[theme_notification_variable.field.id].id)
+                notification_configuration_service.add_notification_variable(self.theme_reference.get_field_reference(theme_notification_variable.field.id).id)
             
             notification_configuration_service.save_notification_configuration(
                 company_id=self.company_id, 
@@ -263,8 +225,8 @@ class ThemeSelectService:
                 name=theme_notification_configuration.name,
                 text=theme_notification_configuration.text,
                 days_diff=theme_notification_configuration.days_diff,
-                form=formulary_reference[theme_notification_configuration.form.id],
-                field=field_reference[theme_notification_configuration.field.id]
+                form=self.theme_reference.get_formulary_reference(theme_notification_configuration.form.id),
+                field=self.theme_reference.get_field_reference(theme_notification_configuration.field.id)
             )
 
         return True
@@ -283,10 +245,10 @@ class ThemeSelectService:
             bool: returns True to indicate that everything was created
         """
         group = self.__create_group()
-        formulary_reference = self.__create_forms(group)
-        formulary_reference, section_conditionals_reference = self.__create_sections(formulary_reference)
-        field_reference = self.__create_fields(formulary_reference, section_conditionals_reference)
+        self.__create_forms(group)
+        self.__create_sections()
+        self.__create_fields()
 
-        self.__create_kanban(field_reference)
-        self.__create_notification(field_reference, formulary_reference)
+        self.__create_kanban()
+        self.__create_notification()
         return True
