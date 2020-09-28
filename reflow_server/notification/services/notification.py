@@ -108,7 +108,7 @@ class NotificationService:
         user_notifications = UserNotification.objects.filter(user_id=user_id)
         user_notifications.update(is_new=False)
         user_notifications_response = UserNotificationResponse(
-            user_notifications.order_by('-created_at')[pagination_offset:pagination_limit], 
+            user_notifications.order_by('-notification__created_at')[pagination_offset:pagination_limit], 
             math.ceil(user_notifications.count()/items_per_page)
         )
         return user_notifications_response

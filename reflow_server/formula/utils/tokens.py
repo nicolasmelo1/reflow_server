@@ -139,5 +139,4 @@ class Token(Structure):
                     value = str(
                         decimal.Decimal(str(value if value else 0))/decimal.Decimal(str(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT))
                     )
-
         return value

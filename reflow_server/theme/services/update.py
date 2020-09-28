@@ -167,10 +167,8 @@ class ThemeUpdate:
             # object model.
             if field.type.type in ['option', 'multi_option']:
                 for field_option in FieldOptions.theme_.field_options_by_field_id(field.id):
-                    ThemeFieldOptions.objects.create(
-                        field=theme_field_intance,
-                        option=field_option.option,
-                        order=field_option.order
+                    ThemeFieldOptions.theme_.create_theme_field_option(
+                        theme_field_intance, field_option.option, field_option.order
                     )
 
         for field_id, theme_section in self.theme_reference.get_section_conditionals_reference():
@@ -197,30 +195,23 @@ class ThemeUpdate:
         Returns:
             bool: return True to indicate everything has been created
         """
-        kanban_card_ids = KanbanCardField.objects.filter(kanban_card__user_id=user_id, field__form__depends_on__in=form_ids, field__form__depends_on__group__company_id=company_id).values_list('kanban_card_id', flat=True)
+        kanban_card_ids = KanbanCardField.theme_.kanban_card_ids_by_user_id_company_id_and_main_form_ids(user_id, company_id, form_ids)
         kanban_dimension_orders = KanbanDimensionOrder.theme_.kanban_dimension_order_by_user_id_company_id_and_main_form_ids(user_id, company_id, form_ids)
-        kanban_cards = KanbanCard.objects.filter(id__in=kanban_card_ids)
+        kanban_cards = KanbanCard.theme_.kanban_cards_by_kanban_card_ids(kanban_card_ids)
 
         for kanban_dimension_order in kanban_dimension_orders:
-            ThemeKanbanDimensionOrder.objects.create(
-                dimension_id=self.theme_reference.get_field_reference(kanban_dimension_order.dimension.id).id,
-                order=kanban_dimension_order.order,
-                default=kanban_dimension_order.default,
-                theme=theme_instance,
-                option=kanban_dimension_order.options
+            ThemeKanbanDimensionOrder.theme_.create_theme_kanban_dimension_order(
+                theme_instance, self.theme_reference.get_field_reference(kanban_dimension_order.dimension.id).id, 
+                kanban_dimension_order.options, kanban_dimension_order.order, kanban_dimension_order.default
             )
 
         for kanban_card in kanban_cards:
-            theme_kanban_card = ThemeKanbanCard.objects.create(
-                default=kanban_card.default,
-                theme=theme_instance
+            theme_kanban_card = ThemeKanbanCard.theme_.create_theme_kanban_card(
+                theme_instance. kanban_card.default
             )
 
-            for kanban_card_field in KanbanCardField.objects.filter(kanban_card=kanban_card).order_by('id'):
-                ThemeKanbanCardField.objects.create(
-                    kanban_card=theme_kanban_card,
-                    field=self.theme_reference.get_field_reference(kanban_card_field.field.id)
-                )
+            for kanban_card_field in KanbanCardField.theme_.kanban_card_fields_by_kanban_card_id_ordered_by_id(kanban_card.id):
+                ThemeKanbanCardField.theme_.create_theme_kanban_card_field(theme_kanban_card.id, self.theme_reference.get_field_reference(kanban_card_field.field.id).id)
         return True
 
     def __create_theme_notification(self, theme_instance, form_ids, company_id, user_id):

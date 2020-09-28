@@ -34,3 +34,17 @@ class FormThemeManager(models.Manager):
             depends_on as NOT None
         """
         return self.get_queryset().filter(depends_on__in=main_form_ids, depends_on__group__company_id=company_id)
+
+    def update_section_conditional_on_field(self, form_section_id, field_id):
+        """
+        Updates the condiditional_on_field attribute of a single Form section instance based on its id 
+
+        Args:
+            form_section_id (int): The id of the Form you want to update. Usually, this id is of an instance
+                                         that has Form depends_on=None
+            field_id (int): The id of the field you want to use as conditional for this section
+
+        Returns:
+            int: Returns the number of affected rows, usually 1: https://docs.djangoproject.com/en/dev/ref/models/querysets/#update
+        """
+        return self.get_queryset().filter(id=form_section_id, depends_on__isnull=False).update(conditional_on_field_id=field_id)

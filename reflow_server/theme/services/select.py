@@ -6,8 +6,8 @@ from reflow_server.theme.models import Theme, ThemeForm, ThemeField, ThemeFieldO
     ThemeDashboardChartConfiguration
 from reflow_server.theme.services.data import ThemeReference
 from reflow_server.authentication.models import UserExtended
-from reflow_server.kanban.models import KanbanDimensionOrder
-
+from reflow_server.kanban.models import KanbanDimensionOrder, KanbanCard
+from reflow_server.formulary.models import Field, Form
 
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.formulary import FormularyService
@@ -152,14 +152,12 @@ class ThemeSelectService:
                 
         # set conditionals on sections
         for theme_field_id, section in self.theme_reference.get_section_conditionals_reference():
-            section.conditional_on_field_id = self.theme_reference.get_field_reference(theme_field_id).id
-            section.save()
+            Form.theme_.update_section_conditional_on_field(section.id, self.theme_reference.get_field_reference(theme_field_id).id)
 
         # set form_field_as_option on fields
         for theme_field in form_field_type_fields:
             field = form_field_as_option_reference[theme_field.id]
-            field.form_field_as_option_id = self.theme_reference.get_field_reference(theme_field.form_field_as_option_id).id
-            field.save()
+            Field.theme_.update_field_form_field_as_option_id(field.id, self.theme_reference.get_field_reference(theme_field.form_field_as_option_id).id)
 
         return True
 
@@ -196,8 +194,8 @@ class ThemeSelectService:
                 # we create a new kanban card with it's fields, and then we set the default of the instance created
                 # to be equal the theme_kanban_card default
                 kanban_card_instance = kanban_card_service.save_kanban_card(kanban_card_field_ids)
-                kanban_card_instance.default = theme_kanban_card.default
-                kanban_card_instance.save()
+                KanbanCard.theme_.update_kanban_card_default(kanban_card_instance.id, theme_kanban_card.default)
+
         return True
 
     def __create_notification(self):

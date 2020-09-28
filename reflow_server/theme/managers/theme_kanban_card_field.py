@@ -17,3 +17,9 @@ class ThemeKanbanCardFieldThemeManager(models.Manager):
             ThemeKanbanCardField instances from a specific theme_kanban_card_id.
         """
         return self.get_queryset().filter(kanban_card_id=theme_kanban_card_id).values_list('field_id', flat=True)
+    
+    def create_theme_kanban_card_field(self, theme_kanban_card_id, theme_field_id):
+        return self.get_queryset().create(
+            kanban_card_id=theme_kanban_card_id,
+            field_id=theme_field_id
+        )
