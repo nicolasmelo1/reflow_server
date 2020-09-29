@@ -53,7 +53,7 @@ class DataView(APIView):
             form_id=form_id
         )
         
-        instances = DynamicForm.data_.dynamic_forms_by_dynamic_form_ids_ordered(form_data_accessed_by_user)[pagination.offset:pagination.limit]
+        instances = pagination.paginate_queryset(DynamicForm.data_.dynamic_forms_by_dynamic_form_ids_ordered(form_data_accessed_by_user))
         serializer = DataSerializer(instance=instances, many=True, context={
             'fields': fields,
             'company_id': company_id

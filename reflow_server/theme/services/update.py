@@ -33,7 +33,7 @@ class ThemeUpdate:
         return Theme.theme_.update_or_create(
             theme_id=theme_id,
             display_name=display_name,
-            company_type_id=theme_type_id,
+            theme_type_id=theme_type_id,
             user_id=user_id,
             is_public=is_public,
             description=description

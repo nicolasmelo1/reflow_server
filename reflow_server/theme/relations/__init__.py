@@ -3,6 +3,7 @@ from rest_framework import serializers
 from reflow_server.theme.models import ThemeForm, ThemeFieldOptions, \
     ThemeField
 
+
 class ThemeFieldListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         data = data.order_by('order')

@@ -5,18 +5,33 @@ class ThemeThemeManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
-    def themes_by_company_type_name(self, company_type_name):
+    def themes_by_user_and_company(self, company_id, user_id):
+        """
+        Gets themes from a specific user at a specific company.
+
+        Args:
+            company_id (int): From what company the template you are loading is from
+            user_id (int): What user has created this template
+
+        Returns:
+            django.db.QuerySet(reflow_server.theme.models.Theme): A queryset of themes
+                                                                  from a user at a specific
+                                                                  company
+        """
+        return self.get_queryset().filter(user_id=user_id, company_id=company_id)
+
+    def themes_by_theme_type_name(self, theme_type_name):
         """
         Gets themes based on the theme type groups. `design`, `marketing` and so on.
 
         Args:
-            company_type_name (str): The name of the group. Check `company_type` table
+            theme_type_name (str): The name of the group. Check `theme_type` table
             for reference
 
         Returns:
             django.db.QuerySet(reflow_server.theme.models.Theme): The queryset of the themes of the group
         """
-        return self.get_queryset().filter(company_type__name=company_type_name)
+        return self.get_queryset().filter(theme_type__name=theme_type_name)
 
     def theme_by_theme_id(self, theme_id):
         """
@@ -48,7 +63,7 @@ class ThemeThemeManager(models.Manager):
         """
         return self.get_queryset().update_or_create(id=theme_id, defaults={
             'display_name': display_name,
-            'company_type_id': theme_type_id,
+            'theme_type_id': theme_type_id,
             'user_id': user_id,
             'is_public': is_public,
             'description': description

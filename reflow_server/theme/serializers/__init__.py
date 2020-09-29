@@ -15,6 +15,16 @@ class ThemeFormularySerializer(serializers.ModelSerializer):
     depends_on_theme_form = ThemeSectionRelation(many=True)
 
     def __init__(self, is_loading_formulary=False, *args, **kwargs):
+        """
+        Loads the used for loading the formulary data and presenting it to the user. It has two main applications:
+        1 - You want only to load the most basic data of the formulary, it's fields and sections are not necessary
+        2 - You want to load the hole formulary with it's fields and sections.
+
+        Args:
+            is_loading_formulary (bool, optional): If you want to use this serializer for LOADING the formulary data
+            you set this to true. When set to true the sections and fields of the theme will be loaded, otherwise
+            they are ignored. Defaults to False.
+        """
         super(ThemeFormularySerializer, self).__init__(*args, **kwargs)
         
         if not is_loading_formulary:
@@ -28,12 +38,19 @@ class ThemeFormularySerializer(serializers.ModelSerializer):
 
 
 class ThemeSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsible for retrieving all of the themes to the user, it holds the data that the user needs to see
+    about the theme before selecting the theme.
+
+    You will notice that this does not hold the ThemeForm data, if it held this serializer would be to costly
+    to load.
+    """
     id = serializers.IntegerField(allow_null=True)
     theme_form = ThemeFormularySerializer(many=True)
-    company_type = serializers.CharField(source='company_type.name', default='')
+    theme_type = serializers.CharField(source='theme_type.name', default='')
     user = serializers.CharField(source='user.first_name', allow_blank=True, allow_null=False, required=False)
     description = serializers.CharField(max_length=500)
 
     class Meta:
         model = Theme
-        fields = ('id', 'display_name', 'company_type', 'user', 'description', 'is_public', 'theme_form')
+        fields = ('id', 'display_name', 'theme_type', 'user', 'description', 'is_public', 'theme_form')

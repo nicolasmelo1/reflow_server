@@ -48,3 +48,15 @@ class FormThemeManager(models.Manager):
             int: Returns the number of affected rows, usually 1: https://docs.djangoproject.com/en/dev/ref/models/querysets/#update
         """
         return self.get_queryset().filter(id=form_section_id, depends_on__isnull=False).update(conditional_on_field_id=field_id)
+    
+    def main_form_name_by_company_id_last_created(self, company_id):
+        """
+        Returns the last created main form of a single company_id.
+
+        Args:
+            company_id (int): The Company instance id to filter the forms from
+
+        Returns:
+            str: The last created main formulary `form_name`
+        """
+        return self.get_queryset().filter(depends_on__isnull=True, group__company_id=company_id).order_by('-created_at').values_list('form_name', flat=True).first()

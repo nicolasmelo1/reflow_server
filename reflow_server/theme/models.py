@@ -21,7 +21,7 @@ class ThemeType(models.Model):
     order = models.BigIntegerField(default=1)
 
     class Meta:
-        db_table = 'group_type'
+        db_table = 'theme_type'
         ordering = ('order',)
 
     objects = models.Manager()
@@ -45,9 +45,10 @@ class Theme(models.Model):
     """
     display_name = models.CharField(max_length=300)
     created_at = models.DateTimeField(auto_now_add=True)
-    company_type = models.ForeignKey('theme.ThemeType', on_delete=models.CASCADE, related_name='theme_company_type', 
+    theme_type = models.ForeignKey('theme.ThemeType', on_delete=models.CASCADE, related_name='theme_theme_type', 
                                      db_index=True, null=True)
     user = models.ForeignKey('authentication.UserExtended', on_delete=models.CASCADE, related_name='theme_user', null=True)
+    company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, related_name='theme_company', null=True)
     description = models.CharField(max_length=500, blank=True, default='')
     is_public = models.BooleanField(default=False)
 

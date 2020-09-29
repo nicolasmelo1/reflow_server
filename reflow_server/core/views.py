@@ -80,7 +80,7 @@ class TypesView(APIView):
                    'profile_type': profile_type,
                    'company_type': company_type,
                    'data_type': data_type,
-                   'group_type': theme_type,
+                   'theme_type': theme_type,
                }
            }
         }, status=status.HTTP_200_OK)

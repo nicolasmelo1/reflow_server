@@ -27,7 +27,7 @@ class ThemeSelectService:
         
     def __create_group(self):
         """
-        Creates the group. It's important to notice that groups have the company_type name on it 
+        Creates the group. It's important to notice that groups have the theme_type name on it 
         and not the theme name. So if this theme is on the section `Sales` and the name of the theme is
         `Sales for Startups`. The name will be `Sales` and NOT `Sales for startups`
 
@@ -36,7 +36,7 @@ class ThemeSelectService:
             created of this template/theme.
         """
         group_service = GroupService(self.company_id)
-        return group_service.create_group(self.theme.company_type.label_name)
+        return group_service.create_group(self.theme.theme_type_name.label_name)
 
     def __create_forms(self, group):
         """
