@@ -19,6 +19,6 @@ urlpatterns = [
             re_path(r'^select/$', validate_billing(SelectThemeView.as_view()), name='theme_select'),
             re_path(r'^(?P<theme_form_id>\d+)/$', validate_billing(ThemeFormularyView.as_view()), name='theme_formulary'), 
         ])),
-        re_path(r'^theme_type/(?P<theme_type_id>\w+)/$', validate_billing(ThemeThemeTypeView.as_view()), name='theme_theme_type_themes'),
+        re_path(r'^theme_type/(?P<theme_type>\w+)/$', validate_billing(ThemeThemeTypeView.as_view()), name='theme_theme_type_themes'),
     ]))
 ]
