@@ -61,7 +61,6 @@ class ThemeReference:
 
         Raises:
             AttributeError: If the `formulary_reference` haven't been set
-            AttributeError: If you haven't added anything on `section_conditionals_reference` dict
 
         Returns:
             list(tuple): list of tuples, where the first item of the tuple is the field_id and the second item is the instance
@@ -72,7 +71,7 @@ class ThemeReference:
             if hasattr(self, 'section_conditionals_reference'):
                 return self.section_conditionals_reference.items()
             else:
-                raise AttributeError(self.__SECTION_CONDITIONALS_REFERENCE_ERROR_MESSAGE)
+                return []
 
     def add_field_reference(self, reference_id, instance):
         """
