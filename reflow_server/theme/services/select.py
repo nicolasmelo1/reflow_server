@@ -36,7 +36,7 @@ class ThemeSelectService:
             created of this template/theme.
         """
         group_service = GroupService(self.company_id)
-        return group_service.create_group(self.theme.theme_type_name.label_name)
+        return group_service.create_group(self.theme.theme_type.label_name)
 
     def __create_forms(self, group):
         """
