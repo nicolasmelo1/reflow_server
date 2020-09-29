@@ -4,12 +4,6 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
-def migrate_company_to_theme(apps, schema_editor):
-    Theme = apps.get_model('theme', 'Theme')
-    for theme in Theme.objects.all():
-        theme.company = theme.user.company
-        theme.save()
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -37,5 +31,4 @@ class Migration(migrations.Migration):
             name='themetype',
             table='theme_type',
         ),
-        migrations.RunPython(migrate_company_to_theme)
     ]
