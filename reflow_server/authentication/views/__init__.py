@@ -203,3 +203,22 @@ class CompanyView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+
+
+class UserView(APIView):
+    """
+    This view is responsible for retrieving user data to the user. When he logs in we send the user data
+    but we need it on other ocasions. With this we can get the most updated data whenever he opens the 
+    app.
+
+    Methods:
+        .get() -- Returns the user data to the user. This holds all of the user data. Obviously the user
+        needs to be logged in to use this.
+    """
+    def get(self, request):
+        instance = UserExtended.authentication_.user_by_user_id(request.user.id)
+        serializer = UserSerializer(instance=instance)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)

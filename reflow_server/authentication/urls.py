@@ -3,7 +3,7 @@ from django.conf.urls import re_path, include
 from reflow_server.core.utils.routes import register_admin_only_url
 from reflow_server.core.decorators import jwt_required, validate_billing, permission_required
 from reflow_server.authentication.views import LoginView, TestTokenView, ForgotPasswordView, OnboardingView, \
-    RefreshTokenView, ChangePasswordView, CompanyView
+    RefreshTokenView, ChangePasswordView, CompanyView, UserView
 from reflow_server.authentication.views.settings import CompanySettingsView, UserSettingsView, UserSettingsEditView, \
     FormularyAndFieldOptionsView
 
@@ -24,6 +24,7 @@ settings_urlpatterns = [
 loginrequired_urlpatterns = [
     register_admin_only_url(re_path(r'^settings/', include(settings_urlpatterns))),
     re_path(r'^test_token/$', jwt_required(TestTokenView.as_view()), name='authentication_test_token'),
+    re_path(r'^user/$', permission_required(UserView.as_view()), name='authentication_user'),
     re_path(r'^(?P<company_id>(\w+(\.)?(-)?(_)?)+)/company/$', permission_required(CompanyView.as_view()), name='authentication_company')
 ]
 
