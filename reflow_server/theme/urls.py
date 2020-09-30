@@ -3,11 +3,12 @@ from django.conf import settings
 
 from reflow_server.core.decorators import validate_billing
 from reflow_server.theme.views import ThemeView, ThemeFormularyView, ThemeThemeTypeView, SelectThemeView
-from reflow_server.theme.views.settings import ThemeSettingsView
+from reflow_server.theme.views.settings import ThemeSettingsView, ThemeSettingsDependentFormulariesView
 
 
 settings_urlpatterns = [
-    re_path(r'^$', validate_billing(ThemeSettingsView.as_view()), name='theme_settings_view')
+    re_path(r'^$', validate_billing(ThemeSettingsView.as_view()), name='theme_settings_view'),
+    re_path(r'^depends_on/$', validate_billing(ThemeSettingsDependentFormulariesView.as_view()), name='theme_settings_dependent_forms_view')
 ]
 
 

@@ -18,7 +18,7 @@ class FieldThemeManager(models.Manager):
         Returns:
             int: number of instances updated, in this case just 1
         """
-        return self.get_queryset.filter(id=field_id).update(form_field_as_option_id=form_field_as_option_id)
+        return self.get_queryset().filter(id=field_id).update(form_field_as_option_id=form_field_as_option_id)
 
     def fields_by_company_id_and_main_form_ids(self, company_id, main_form_ids):
         """

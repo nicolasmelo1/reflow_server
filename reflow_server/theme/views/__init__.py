@@ -108,7 +108,7 @@ class ThemeThemeTypeView(APIView):
             themes = themes.filter(user__company_id=company_id, is_public=False)
         elif filter_by == 'community':
             themes = themes.filter(is_public=True).exclude(Q(user__company_id=company_id) | Q(user=1))
-        instances = pagination.paginate_queryset(themes)
+        __, instances = pagination.paginate_queryset(themes)
         serializer = ThemeSerializer(instance=instances, many=True)
         return Response({
             'status': 'ok',
