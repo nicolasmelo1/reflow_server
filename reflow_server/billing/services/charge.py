@@ -256,7 +256,7 @@ class ChargeService:
             today_end = datetime.now()
             today_start = today_end - timedelta(minutes=1)
             company_charges_updated_in_the_last_minute = CompanyCharge.billing_.exists_company_charge_created_between_dates_by_company(
-                company=company_billing.company, created_at__lte=today_end, created_at__gte=today_start
+                company_id=company_billing.company.id, date_end=today_end, date_start=today_start
             )
             if not company_charges_updated_in_the_last_minute:
                 CompanyCharge.billing_.create_company_charge(

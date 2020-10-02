@@ -7,7 +7,8 @@ from rest_framework.response import Response
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.core.utils.pagination import Pagination
-from reflow_server.theme.serializers.settings import ThemeSettingsSerializer
+from reflow_server.formulary.models import Form
+from reflow_server.theme.serializers.settings import ThemeSettingsSerializer, FormularyOptionSerializer
 from reflow_server.theme.services import ThemeService
 from reflow_server.theme.models import Theme
 
@@ -49,6 +50,17 @@ class ThemeSettingsView(APIView):
             return Response({
                 'status': 'error'
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ThemeFormulariesOptionsView(APIView):
+    def get(self, request, company_id):
+        form_ids_options_for_user = ThemeService.get_forms_the_user_can_select(company_id, request.user.id)
+        instances = Form.theme_.main_forms_by_company_id_and_form_ids(company_id, form_ids_options_for_user)
+        serializer = FormularyOptionSerializer(instance=instances, many=True)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
 
 
 class ThemeSettingsDependentFormulariesView(APIView):

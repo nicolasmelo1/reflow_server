@@ -38,35 +38,42 @@ class DataView(APIView):
         return fields_query_param
 
     def get(self, request, company_id, form):
-        pagination = Pagination.handle_pagination(
-            current_page=int(request.query_params.get('page', 1)),
-            items_per_page=15
-        )        
+        formulary_instance = Form.objects.filter(group__company_id=company_id, form_name=form).first()
+        if formulary_instance:
+            pagination = Pagination.handle_pagination(
+                current_page=int(request.query_params.get('page', 1)),
+                items_per_page=15
+            )        
 
-        fields = self.__extact_fields_from_request_query_params(request.query_params)
+            fields = self.__extact_fields_from_request_query_params(request.query_params)
 
-        form_id = Form.objects.filter(group__company_id=company_id, form_name=form).first().id
-        form_data_accessed_by_user = DataService.get_user_form_data_ids_from_query_params(
-            query_params=request.query_params, 
-            user_id=request.user.id,
-            company_id=company_id,
-            form_id=form_id
-        )
-        
-        total_number_of_pages, instances = pagination.paginate_queryset(DynamicForm.data_.dynamic_forms_by_dynamic_form_ids_ordered(form_data_accessed_by_user))
-        serializer = DataSerializer(instance=instances, many=True, context={
-            'fields': fields,
-            'company_id': company_id
-        })
-        
-        return Response({
-            'status': 'ok',
-            'pagination': {
-                'current': pagination.current_page,
-                'total': total_number_of_pages
-            },
-            'data': serializer.data
-        })
+            form_id = formulary_instance.id
+            form_data_accessed_by_user = DataService.get_user_form_data_ids_from_query_params(
+                query_params=request.query_params, 
+                user_id=request.user.id,
+                company_id=company_id,
+                form_id=form_id
+            )
+            
+            total_number_of_pages, instances = pagination.paginate_queryset(DynamicForm.data_.dynamic_forms_by_dynamic_form_ids_ordered(form_data_accessed_by_user))
+            serializer = DataSerializer(instance=instances, many=True, context={
+                'fields': fields,
+                'company_id': company_id
+            })
+            
+            return Response({
+                'status': 'ok',
+                'pagination': {
+                    'current': pagination.current_page,
+                    'total': total_number_of_pages
+                },
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'error',
+                'reason': 'form_name_does_not_exist'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
