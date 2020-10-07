@@ -15,12 +15,13 @@ class FieldValueListSerializer(serializers.ListSerializer):
 class FieldValueRelation(serializers.ModelSerializer):
     id = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     field_name = serializers.CharField(source='field.name')
+    field_id = serializers.IntegerField()
     value = ValueField(source='*', allow_blank=True, load_ids=True)
 
     class Meta:
         model = FormValue
         list_serializer_class = FieldValueListSerializer
-        fields = ('id', 'value', 'field_name')
+        fields = ('id', 'value', 'field_id', 'field_name')
 
 
 class SectionDataListSerializer(serializers.ListSerializer):

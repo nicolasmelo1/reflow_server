@@ -10,7 +10,7 @@ from reflow_server.kanban.models import KanbanDimensionOrder, KanbanCard, Kanban
 from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable
 
 
-class ThemeUpdate:
+class ThemeUpdateService:
     def __init__(self):
         """
         Responsible for creating themes. Themes are created of a data that already exists.
@@ -26,7 +26,7 @@ class ThemeUpdate:
         """
         self.theme_reference = ThemeReference()
     
-    def __create_theme(self, theme_type_id, display_name, is_public, description, user_id, theme_id=None):
+    def __create_or_update_theme(self, theme_type_id, display_name, is_public, description, user_id, company_id, theme_id=None):
         if not ThemeType.theme_.exists_theme_type_by_theme_type_id(theme_type_id):
             theme_type_id = ThemeType.theme_.empty_theme_type_id()
 
@@ -35,6 +35,7 @@ class ThemeUpdate:
             display_name=display_name,
             theme_type_id=theme_type_id,
             user_id=user_id,
+            company_id=company_id,
             is_public=is_public,
             description=description
         )
@@ -207,7 +208,7 @@ class ThemeUpdate:
 
         for kanban_card in kanban_cards:
             theme_kanban_card = ThemeKanbanCard.theme_.create_theme_kanban_card(
-                theme_instance. kanban_card.default
+                theme_instance, kanban_card.default
             )
 
             for kanban_card_field in KanbanCardField.theme_.kanban_card_fields_by_kanban_card_id_ordered_by_id(kanban_card.id):
@@ -284,8 +285,7 @@ class ThemeUpdate:
         # we keep all of the theme data "written in stone"
         if theme_id and len(form_ids) > 0:
             Theme.theme_.delete_theme_by_theme_id(theme_id)
-
-        theme_instance, has_created_theme = self.__create_or_update_theme(theme_type_id, display_name, is_public, description, user_id, theme_id)
+        theme_instance, has_created_theme = self.__create_or_update_theme(theme_type_id, display_name, is_public, description, user_id, company_id, theme_id)
         # we only create the formulary and the fields and so on if the theme has just been created. otherwise we NEVER update the formularies.
         # this way we can actually edit the theme description, name and set if is public or not but without touching the coontent of the theme.
         if has_created_theme:
@@ -296,4 +296,4 @@ class ThemeUpdate:
             self.__create_theme_kanban(theme_instance, form_ids, company_id, user_id)
             self.__create_theme_notification(theme_instance, form_ids, company_id, user_id)
 
-        return True
+        return theme_instance

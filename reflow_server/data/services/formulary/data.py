@@ -1,6 +1,7 @@
 class FieldValueData:
-    def __init__(self, field_value_data_id, field_name, value):
+    def __init__(self, field_value_data_id, field_name, field_id, value):
         self.field_value_data_id = int(field_value_data_id) if field_value_data_id not in ['', None] else None
+        self.field_id = field_id
         self.field_name = field_name
         self.value = value
     
@@ -15,13 +16,14 @@ class SectionData:
         self.__field_values = list()
         self.formulary_data_id = formulary_data_id
     
-    def add_field_value(self, field_name, value, field_value_data_id=None):
+    def add_field_value(self, field_id, field_name, value, field_value_data_id=None):
         """
         This function is used to add field_values to sections. remember that formularies is a conjunction of sections following
         a conjuction of fields. This function is a handy function to add field_values to the section data with a new object.
         This way we are not bounded to serializers and that kind of stuff. 
 
         Args:
+            field_id (int): The id of the field this value is from
             field_name (str): Each value is from a field, from which field does is the value from?
             value (str): It doesn't matter if it is a number, date or any kind, we need ALWAYS a string
             field_value_data_id (int, optional): Are you editing a value that already existis in the database or adding a new one?
@@ -36,7 +38,7 @@ class SectionData:
 
         # we only add values that are not empty strings or none
         if value not in ['', None]:
-            field_value_obj = FieldValueData(field_value_data_id, field_name, value)
+            field_value_obj = FieldValueData(field_value_data_id, field_name, field_id, value)
             self.__field_values.append(field_value_obj)
             return field_value_obj
         return None
@@ -103,16 +105,16 @@ class FormularyData:
         """
         Transforms the data here in a way it's easier to validate the fields, basically the following structure:
         >>> { 
-            'field_name': [FieldValueData]
-            'field_name_2': [FieldValueData, FieldValueData] 
+            'field_id': [FieldValueData]
+            'field_id_2': [FieldValueData, FieldValueData] 
         }
         """
         formatted_field_values = dict()
         for section in self.__sections:
             for field_value in section.get_field_values:
-                field_value_item_list = formatted_field_values.get(field_value.field_name, []) 
+                field_value_item_list = formatted_field_values.get(field_value.field_id, []) 
                 field_value_item_list.append(field_value)
-                formatted_field_values[field_value.field_name] = field_value_item_list
+                formatted_field_values[field_value.field_id] = field_value_item_list
         return formatted_field_values
 
 

@@ -32,7 +32,7 @@ class FormDataSerializer(serializers.ModelSerializer):
         for section in data['depends_on_dynamic_form']:
             section_data = formulary_data.add_section_data(section_id=section['form_id'], section_data_id=section['id'])
             for field in section['dynamic_form_value']:
-                section_data.add_field_value(field['field']['name'], field['value'], field['id'])
+                section_data.add_field_value(field['field_id'], field['field']['name'], field['value'], field['id'])
         if self.formulary_service.is_valid():
             return data
         else:

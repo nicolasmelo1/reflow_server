@@ -1,4 +1,5 @@
 from .select import ThemeSelectService
+from .update import ThemeUpdateService
 
 from reflow_server.theme.models import ThemeField
 from reflow_server.formulary.models import Field, FormAccessedBy
@@ -8,6 +9,10 @@ class ThemeService:
     @staticmethod
     def select_theme(theme_id, company_id, user_id):
         return ThemeSelectService(theme_id, company_id, user_id).select()
+
+    @staticmethod
+    def update_or_create_theme(theme_type_id, display_name, is_public, description, user_id, company_id, form_ids=[], theme_id=None):
+        return ThemeUpdateService().create_or_update(theme_type_id, display_name, is_public, description, user_id, company_id, form_ids, theme_id)
 
     @classmethod
     def get_forms_the_user_can_select(cls, company_id, user_id):

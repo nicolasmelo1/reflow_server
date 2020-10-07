@@ -31,14 +31,14 @@ class Validator:
     
     def __validate_required_field(self, field, field_values):
         if field.type.type != 'id' and field.required:
-            if field.name not in field_values or any([field_value.value in [None, ''] for field_value in field_values.get(field.name, [])]):
+            if field.id not in field_values or any([field_value.value in [None, ''] for field_value in field_values.get(field.id, [])]):
                 self._errors = {'detail': field.name, 'reason': 'required_field', 'data': ''}
                 return False
         return True
 
     def __validate_attachments(self, field, field_values):
-        if field.type.type == 'attachment' and field.name in field_values:
-            for field_value in field_values[field.name]:
+        if field.type.type == 'attachment' and field.id in field_values:
+            for field_value in field_values[field.id]:
                 attachment_file_format = field_value.value.split('.').pop()
                 if field_value.value != '' and attachment_file_format.lower() not in ['doc','docx', 'jpeg', 'jpg', 'pdf', 'png',
                 'wav', 'xls', 'xlsx', 'zip']:
@@ -47,8 +47,8 @@ class Validator:
         return True
 
     def __validate_unique_fields(self, field, field_values):
-        if field.is_unique and field.name in field_values: 
-            for field_value in field_values[field.name]:
+        if field.is_unique and field.id in field_values: 
+            for field_value in field_values[field.id]:
                 if field_value.value not in [None, '']:
                     if not field_value.field_value_data_id and FormValue.data_.exists_form_value_by_value_field_id_and_section_id(field_value.value, field.id, field.form_id):
                         self._errors = {'detail': field.name, 'reason': 'already_exists', 'data': field_value.value}

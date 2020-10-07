@@ -53,7 +53,7 @@ class GroupEditSettingsView(APIView):
                 'data': serializer.data
             }, status=status.HTTP_200_OK)
         else:
-            Response({
+            return Response({
                 'status': 'ok',
                 'data': None
             }, status=status.HTTP_502_BAD_GATEWAY)

@@ -154,7 +154,7 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
                 )
                 value = representation_service.representation(field_value.value)
                 value = data['new_value'] if field_value.id == form_value_to_change.id else value
-                section_data.add_field_value(field_value.field.name, value, field_value.id)
+                section_data.add_field_value(field_value.field.id, field_value.field.name, value, field_value.id)
         if self.formulary_data_service.is_valid():
             return data
         else:

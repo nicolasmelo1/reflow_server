@@ -50,21 +50,22 @@ class DataSearch:
 
         form_ids_to_filter = list(self._data.values_list('id', flat=True))
         for to_search in search_data:
-            field_data = self._fields[to_search.field_name]
+            if to_search.field_name in self._fields:
+                field_data = self._fields[to_search.field_name]
 
-            handler = getattr(self, '_search_%s' % field_data['type'], None)
-            if handler:
-                form_ids_to_filter = handler(to_search, field_data, form_ids_to_filter)
-            else:
-                form_ids_to_filter = list(
-                    FormValue.data_.form_depends_on_ids_for_search_all_field_types(
-                        company_id=self.company_id, 
-                        depends_on_forms=list(form_ids_to_filter),
-                        field_id=field_data['id'],
-                        field_type=field_data['type'],
-                        search_value_dict=self.__search_exact(to_search)
+                handler = getattr(self, '_search_%s' % field_data['type'], None)
+                if handler:
+                    form_ids_to_filter = handler(to_search, field_data, form_ids_to_filter)
+                else:
+                    form_ids_to_filter = list(
+                        FormValue.data_.form_depends_on_ids_for_search_all_field_types(
+                            company_id=self.company_id, 
+                            depends_on_forms=list(form_ids_to_filter),
+                            field_id=field_data['id'],
+                            field_type=field_data['type'],
+                            search_value_dict=self.__search_exact(to_search)
+                        )
                     )
-                )
 
         self._data = self._data.filter(company_id=self.company_id, id__in=form_ids_to_filter)
 

@@ -50,7 +50,7 @@ class PreSave(Validator):
         field level and that when the conditional is not set we REMOVE the conditional section data
         from our database. (check `reflow_server.formulary.models.abstract.AbstractForm`)
         """
-        self.field_values = formulary_data.get_formatted_fields_data
+        field_values = formulary_data.get_formatted_fields_data
         section_ids_in_data = [section.section_id for section in formulary_data.get_sections]
         section_ids_to_exclude = []
         
@@ -58,9 +58,9 @@ class PreSave(Validator):
             conditional_section_is_defined = section.conditional_on_field != None
             if conditional_section_is_defined:
                 # if section is conditional and conditional field has not been inserted 
-                conditional_name_not_in_section = section.conditional_on_field.name not in self.field_values.keys()
+                conditional_name_not_in_section = section.conditional_on_field.id not in field_values.keys()
                 # if the conditional is set but the value in the conditional doesn't match the value supplied
-                conditional_value_not_validated = section.conditional_value not in [field_value.value for field_value in self.field_values.get(section.conditional_on_field.name, [])]
+                conditional_value_not_validated = section.conditional_value not in [field_value.value for field_value in field_values.get(section.conditional_on_field.id, [])]
                 if conditional_name_not_in_section or conditional_value_not_validated:
                     section_ids_to_exclude.append(section.id)
             # if section is a multi-section but it is not in the array of the data, we don't consider it
@@ -92,14 +92,14 @@ class PreSave(Validator):
                     field_values_of_this_field = section.get_field_values_by_field_name(field.name)
                     # no values exists for this field on this section
                     if len(field_values_of_this_field) == 0:
-                        field_data = FieldValueData(None, field.name, '')
+                        field_data = FieldValueData(None, field.name, field.id, '')
                         cleaned_value = self.__dispatch_clean(formulary_data, field, field_data)
-                        cleaned_section.add_field_value(field.name, cleaned_value)
+                        cleaned_section.add_field_value(field.id, field.name, cleaned_value)
                     else:
                         for field_value in field_values_of_this_field:
                             # clean the data
                             cleaned_value = self.__dispatch_clean(formulary_data, field, field_value)
-                            cleaned_section.add_field_value(field.name, cleaned_value, field_value.field_value_data_id)
+                            cleaned_section.add_field_value(field.id, field.name, cleaned_value, field_value.field_value_data_id)
         
         return cleaned_formulary_data
 

@@ -12,10 +12,17 @@ class GetKanbanFieldsRelation(serializers.ModelSerializer):
         fields = ('id', 'name', 'label_name', 'type')
 
 
+class KanbanCardFieldListSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        data = data.order_by('id')
+        return super(KanbanCardFieldListSerializer, self).to_representation(data)
+
+
 class KanbanCardFieldRelation(serializers.ModelSerializer):
     id = serializers.IntegerField(source='field.id')
     label = serializers.CharField(source='field.label_name', allow_null=True, allow_blank=True, required=False)
 
     class Meta:
         model = KanbanCardField
+        list_serializer_class = KanbanCardFieldListSerializer
         fields = ('id', 'label')

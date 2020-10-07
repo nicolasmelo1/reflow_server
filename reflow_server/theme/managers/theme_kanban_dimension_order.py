@@ -40,5 +40,5 @@ class ThemeKanbanDimensionOrderThemeManager(models.Manager):
             order=order,
             default=is_default,
             theme=theme_instance,
-            option=option
+            options=option
         )

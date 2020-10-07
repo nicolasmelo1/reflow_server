@@ -5,9 +5,9 @@ class ThemeThemeManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
-    def themes_by_user_and_company(self, company_id, user_id):
+    def themes_by_user_and_company_ordered_by_id(self, company_id, user_id):
         """
-        Gets themes from a specific user at a specific company.
+        Gets themes from a specific user at a specific company ordered by the last id to the first id.
 
         Args:
             company_id (int): From what company the template you are loading is from
@@ -18,7 +18,7 @@ class ThemeThemeManager(models.Manager):
                                                                   from a user at a specific
                                                                   company
         """
-        return self.get_queryset().filter(user_id=user_id, company_id=company_id)
+        return self.get_queryset().filter(user_id=user_id, company_id=company_id).order_by('-id')
 
     def themes_by_theme_type_name(self, theme_type_name):
         """
@@ -45,7 +45,7 @@ class ThemeThemeManager(models.Manager):
         """
         return self.get_queryset().filter(id=theme_id).first()
 
-    def update_or_create(self, display_name, theme_type_id, user_id, is_public, description, theme_id=None):
+    def update_or_create(self, display_name, theme_type_id, user_id, company_id, is_public, description, theme_id=None):
         """
         Updates or creates a single theme instance. If theme_id is defined we update, otherwise we 
         create a new instance.
@@ -55,6 +55,7 @@ class ThemeThemeManager(models.Manager):
             display_name (str): The name of your template, what you want to show
             is_public (bool): Public means users will be able to see the templates.
             description (str): A simple description of what the template do
+            company (int): From what company is this theme from.
             user_id (int): What user is creating this template, for some data we will use the data of this specific user.
             theme_id (int, optional): This is a Theme intance id, used only when editing an existing instance. Defaults to None.
 
@@ -65,6 +66,7 @@ class ThemeThemeManager(models.Manager):
             'display_name': display_name,
             'theme_type_id': theme_type_id,
             'user_id': user_id,
+            'company_id': company_id,
             'is_public': is_public,
             'description': description
         })

@@ -25,7 +25,7 @@ class ThemeSettingsView(APIView):
             current_page=int(request.query_params.get('page', 1)),
             items_per_page=15
         )
-        themes = Theme.theme_.themes_by_user_and_company(company_id, request.user.id)
+        themes = Theme.theme_.themes_by_user_and_company_ordered_by_id(company_id, request.user.id)
         total_number_of_pages, instances = pagination.paginate_queryset(themes)
         serializer = ThemeSettingsSerializer(instance=instances, many=True)
 
@@ -39,7 +39,10 @@ class ThemeSettingsView(APIView):
         }, status=status.HTTP_200_OK)
 
     def post(self, request, company_id):
-        serializer = ThemeSettingsSerializer(data=request.data)
+        serializer = ThemeSettingsSerializer(data=request.data, context={
+            'user_id': request.user.id,
+            'company_id': company_id
+        })
 
         if serializer.is_valid():
             serializer.save()
@@ -48,8 +51,39 @@ class ThemeSettingsView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({
-                'status': 'error'
+                'status': 'error',
+                'error': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ThemeSettingsEditView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def put(self, request, company_id, theme_id):
+        instance = Theme.theme_.theme_by_theme_id(theme_id)
+        serializer = ThemeSettingsSerializer(data=request.data, instance=instance, context={
+            'user_id': request.user.id,
+            'company_id': company_id
+        })
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'ok'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'error',
+                'error': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, company_id, theme_id):
+        instance = Theme.theme_.theme_by_theme_id(theme_id)
+        instance.delete()
+        return Response({
+            'status': 'ok'
+        }, status=status.HTTP_200_OK)
 
 
 class ThemeFormulariesOptionsView(APIView):

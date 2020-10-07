@@ -91,5 +91,5 @@ class ThemeFieldThemeManager(models.Manager):
         Returns:
             int: Returns the number of affected rows, usually 1: https://docs.djangoproject.com/en/dev/ref/models/querysets/#update
         """
-        return self.get_queryset().filter(field_id=theme_field_id).update(form_field_as_option_id=form_field_as_option_id)
+        return self.get_queryset().filter(id=theme_field_id).update(form_field_as_option_id=form_field_as_option_id)
         
