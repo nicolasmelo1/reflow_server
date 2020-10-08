@@ -23,7 +23,7 @@ class ThemeSettingsView(APIView):
     def get(self, request, company_id):
         pagination = Pagination.handle_pagination(
             current_page=int(request.query_params.get('page', 1)),
-            items_per_page=15
+            items_per_page=2
         )
         themes = Theme.theme_.themes_by_user_and_company_ordered_by_id(company_id, request.user.id)
         total_number_of_pages, instances = pagination.paginate_queryset(themes)
