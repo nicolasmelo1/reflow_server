@@ -26,8 +26,8 @@ class ThemeView(APIView):
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
-    def get(self, request, company_id, theme_id):
-        instance = Theme.theme_.theme_by_theme_id(theme_id)
+    def get(self, request, company_id, selected_theme_id):
+        instance = Theme.theme_.theme_by_theme_id(selected_theme_id)
         serializer = ThemeSerializer(instance=instance)
         return Response({
             'status': 'ok',
