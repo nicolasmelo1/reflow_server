@@ -14,7 +14,7 @@ class TestFormulaView(APIView):
         text -- it is the formula as text to calculate.
 
     Methods:
-        .get() -- used for validating if a formula is valid or not. If it has a `field` token 
+        GET: used for validating if a formula is valid or not. If it has a `field` token 
                   (see `reflow_server.formula.utils.token.Token` for reference) it uses the last
                   inserted data of the formulary to validate it. It could use a factory, but we 
                   can do it later.

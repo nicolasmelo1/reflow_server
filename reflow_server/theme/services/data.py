@@ -1,8 +1,6 @@
 class ThemeReference:
     __FORMULARY_REFERENCE_ERROR_MESSAGE = 'The `formulary_reference` does not exist yet, try adding references with `add_formulary_reference` method.'
-    __SECTION_CONDITIONALS_REFERENCE_ERROR_MESSAGE = 'The `section_conditionals_reference` does not exist yet, try adding references with `add_section_conditionals_reference` method.'
     __FIELD_REFERENCE_ERROR_MESSAGE = 'The `field_reference` does not exist yet, try adding references with `add_field_reference` method.'
-    __FORM_FIELD_AS_OPTION_ERROR_MESSAGE = 'The `form_field_as_option_reference` does not exist yet, try adding references with `add_form_field_as_option_reference` method.'
 
     def add_formulary_reference(self, reference_id, instance):
         """

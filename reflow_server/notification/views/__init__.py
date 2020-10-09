@@ -19,7 +19,7 @@ class NotificationsView(APIView):
     Retrieves all(paginated) of the notifications of a user.
 
     Methods:
-        .get() -- Returns the pagination of all of the notifications and all of the
+        GET: Returns the pagination of all of the notifications and all of the
                   notifications of a user.
     """
     def get(self, request, company_id):
@@ -47,8 +47,8 @@ class UnreadAndReadNotificationView(APIView):
     .post request to update that the user has read the notification id
 
     Methods:
-        .get() -- retrieves the number of new notifications
-        .post() -- updates that the user has read the notification id
+        GET: retrieves the number of new notifications
+        POST: updates that the user has read the notification id
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 

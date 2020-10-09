@@ -32,7 +32,7 @@ class ExtractDataBuilderView(APIView):
     to create the file, then the file is saved as base64 in our database.
 
     Methods:
-        .post() -- fires the method to build the base64 file.
+        POST: fires the method to build the base64 file.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -65,7 +65,7 @@ class GetExtractDataView(APIView):
     send you the file with all of the data.
 
     Methods:
-        .get() -- Usually returns a JSON saying if your data is ready to be downloaded or not. If it is you
+        GET: Usually returns a JSON saying if your data is ready to be downloaded or not. If it is you
                   need to add the `download` query parameter to your request to download the file
     """
     def get(self, request, company_id, file_id):

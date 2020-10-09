@@ -24,8 +24,8 @@ class CompanySettingsView(APIView):
     This view is responsible to send and recieve data about the company so the admin users can edit it.
 
     Methods:
-        .get() -- Gets all of the data of a company
-        .put() -- Updates the data of the company
+        GET: Gets all of the data of a company
+        PUT: Updates the data of the company
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
     parser_classes = [FormParser, MultiPartParser]
@@ -63,8 +63,8 @@ class UserSettingsView(APIView):
     to change everything about the user here.
 
     Methods:
-        .get() -- Gets the data from all of the users of a company
-        .post() -- Creates a new single user
+        GET: Gets the data from all of the users of a company
+        POST: Creates a new single user
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -96,8 +96,8 @@ class UserSettingsEditView(APIView):
     View responsible for updating a user and deleting a single user. It's important to notice that the user cannot edit or delete itself.
 
     Methods:
-        .put() -- Edits a single user id adding new permissions to the user as well as changing profile types.
-        .delete() -- Deletes a single user from the database.
+        PUT: Edits a single user id adding new permissions to the user as well as changing profile types.
+        DELETE: Deletes a single user from the database.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 

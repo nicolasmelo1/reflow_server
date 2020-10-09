@@ -31,8 +31,8 @@ class GroupEditSettingsView(APIView):
     This view is used for creating or editing groups.
 
     Methods:
-        .put() -- edit an existing group
-        .delete() -- deletes an existing group
+        PUT: edit an existing group
+        DELETE: deletes an existing group
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -100,9 +100,9 @@ class FormularySettingsEditView(APIView):
     with all of it's sections and fields.
 
     Methods:
-        .get() -- retrieves the data of the formulary containing all of it's sections and fields
-        .put() -- edit a single formulary data (the section can be omitted)
-        .delete() -- deletes a single formulary id
+        GET: retrieves the data of the formulary containing all of it's sections and fields
+        PUT: edit a single formulary data (the section can be omitted)
+        DELETE: deletes a single formulary id
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
     
@@ -154,7 +154,7 @@ class SectionSettingsView(APIView):
     This view is used for creating a new section instance of a formulary only
 
     Methods:
-        .post() -- creates a new section instance
+        POST: creates a new section instance
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -188,8 +188,8 @@ class SectionSettingsEditView(APIView):
     Edit a section instance, this edition handles the update and the delete of a section
 
     Methods:
-        .put() -- updates a section instance
-        .delete() -- deletes a section instance
+        PUT: updates a section instance
+        DELETE: deletes a section instance
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -241,7 +241,7 @@ class FieldSettingsView(APIView):
     Creates a new field instance, only.
 
     Methods:
-        .post() -- Creates a new Field instance
+        POST: Creates a new Field instance
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -275,8 +275,8 @@ class FieldSettingsEditView(APIView):
     Edits a single field instance.
 
     Methods:
-        .put() -- Creates a field instance
-        .delete() -- Deletes a field instance
+        PUT: Creates a field instance
+        DELETE: Deletes a field instance
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 

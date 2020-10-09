@@ -14,7 +14,7 @@ class GetGroupsView(APIView):
     Gets the groups data, so it returns a list of groups with all of its formularies.
 
     Methods:
-        .get() -- return a list of groups with all of its formularies.
+        GET: return a list of groups with all of its formularies.
     """
     def get(self, request, company_id):
         group_ids_accessed_by_user = FormAccessedBy.objects.filter(user_id=request.user.id).values_list('form__group_id', flat=True).distinct()
@@ -32,7 +32,7 @@ class GetFormularyView(APIView):
     fields.
 
     Methods:
-        .get() -- Retrieves the formulary data needed to build the formulary.
+        GET: Retrieves the formulary data needed to build the formulary.
     """
     def get(self, request, company_id, form):
         instance = Form.objects.filter(form_name=form, company_id=company_id, depends_on__isnull=True).first()
@@ -49,7 +49,7 @@ class FormFieldTypeOptionsView(APIView):
     we need to optmize it with paginated options.
 
     Methods:
-        .get() -- Retrieves all of the formulary options for a single field.
+        GET: Retrieves all of the formulary options for a single field.
     """
     def get(self, request, company_id, form, field_id):
         form_field = Field.objects.filter(id=field_id).first()
@@ -67,7 +67,7 @@ class UserFieldTypeOptionsView(APIView):
     If you have multiple `user` field_types you need to call it multiple times.
 
     Methods:
-        .get() -- retrieves all of the users you can select for this field. 
+        GET: retrieves all of the users you can select for this field. 
                   right now, all of the users of a current company
     """
     def get(self, request, company_id, form, field_id):

@@ -19,7 +19,7 @@ class VerifyPreNotificationExternalView(APIView):
         Verify if has a pre_notification configuration to be fired now or less than now
 
         Methods:
-            .get() -- verify if has a pre_notification to be fired and fires it
+            GET: verify if has a pre_notification to be fired and fires it
         """
         PreNotificationService.verify_pre_notifications()
         return Response({
@@ -37,7 +37,7 @@ class PreNotificationExternalView(APIView):
     That's why we don't use it inside the async function runner inside this application.
 
     Methods:
-        .post() -- recieves the data and fires a function to update the pre_notifications.
+        POST: recieves the data and fires a function to update the pre_notifications.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -67,8 +67,8 @@ class NotificationConfigurationExternalView(APIView):
     sends the data directly to this application.
 
     Methods:
-        .post() -- gets the data to build the notifications.
-        .put() -- creates the notifications recieved from the worker.
+        POST: gets the data to build the notifications.
+        PUT: creates the notifications recieved from the worker.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 

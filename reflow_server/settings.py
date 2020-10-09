@@ -233,7 +233,8 @@ PERMISSIONS = {
         'reflow_server.kanban.permissions.KanbanDefaultPermission',
         'reflow_server.dashboard.permissions.DashboardDefaultPermission',
         'reflow_server.formulary.permissions.FormularyDefaultPermission',
-        'reflow_server.notification.permissions.NotificationDefaultPermission'
+        'reflow_server.notification.permissions.NotificationDefaultPermission',
+        'reflow_server.theme.permissions.ThemeDefaultPermission'
     ],
     'BILLING': [
         'reflow_server.billing.permissions.BillingBillingPermission',

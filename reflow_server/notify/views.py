@@ -15,7 +15,7 @@ class RegisterPushNotificationEndpointView(APIView):
     Register push notification endpoint on the backend. With this we can send push notifications to the user.
 
     Methods:
-        .post() -- add push notification endpoint to the database bounded to an user.
+        POST: add push notification endpoint to the database bounded to an user.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 

@@ -22,8 +22,8 @@ class ListingHeaderView(APIView):
     Second, this class is used for unselecting fields to display in the table.
     
     Methods:
-        .get() -- gets the listing field headers
-        .put() -- updates the is_selected parameter of each listing field headers
+        GET: gets the listing field headers
+        PUT: updates the is_selected parameter of each listing field headers
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 

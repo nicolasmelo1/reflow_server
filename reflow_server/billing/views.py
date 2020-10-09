@@ -33,7 +33,7 @@ class TotalsView(APIView):
     value so he can see the right value in real time.
 
     Methods:
-        .post() -- Gets the total of all of the charges.
+        POST: Gets the total of all of the charges.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -78,8 +78,8 @@ class BillingSettingsView(APIView):
     3 - Payment - The payment information like when he wants to be billed, who he wants to bill and the payment method.
 
     Methods:
-        .get() -- Retrieves the payment data information containing all of the 3 stuff in the json.
-        .put() -- Recieves the json and updates the billing information of the user.
+        GET: Retrieves the payment data information containing all of the 3 stuff in the json.
+        PUT: Recieves the json and updates the billing information of the user.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -121,7 +121,7 @@ class CreditCardView(APIView):
     For security reasons we don't have any information about the credit card data transactioning our servers.
 
     Methods:
-        .delete() -- deletes the credit card data of a user.
+        DELETE: deletes the credit card data of a user.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -140,7 +140,7 @@ class VindiWebhookExternalView(APIView):
     events from the vindi platform so we can activate or deactivate a user. And so on.
 
     Methods:
-        .post() -- recieves a post request from the webhook, it's always a POST request
+        POST: recieves a post request from the webhook, it's always a POST request
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 

@@ -4,7 +4,7 @@ from django.db import models
 class ThemeThemeManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
-
+    
     def themes_by_user_and_company_ordered_by_id(self, company_id, user_id):
         """
         Gets themes from a specific user at a specific company ordered by the last id to the first id.
@@ -32,6 +32,20 @@ class ThemeThemeManager(models.Manager):
             django.db.QuerySet(reflow_server.theme.models.Theme): The queryset of the themes of the group
         """
         return self.get_queryset().filter(theme_type__name=theme_type_name)
+
+    def exists_theme_by_theme_id_user_id_and_company_id(self, theme_id, user_id, company_id):
+        """
+        Check if a theme id of particular user at a particular company exists.
+
+        Args:
+            theme_id (int): The Theme instance id to check
+            company_id (int): From what company the template you are loading is from
+            user_id (int): What user has created this template
+
+        Returns:
+            bool: Returns true if exists and false if not
+        """
+        return self.themes_by_user_and_company_ordered_by_id(company_id, user_id).filter(id=theme_id).exists()
 
     def theme_by_theme_id(self, theme_id):
         """

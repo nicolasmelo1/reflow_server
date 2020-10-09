@@ -28,7 +28,7 @@ class DataView(APIView):
     is formatted.
 
     Methods:
-        .get() -- Retrieves a list of formularies data from a single form.
+        GET: Retrieves a list of formularies data from a single form.
     """
     def __extact_fields_from_request_query_params(self, query_params):
         if 'fields' in query_params:
@@ -82,7 +82,7 @@ class FormularyDataView(APIView):
     View used for saving a new formulary data.
 
     Methods:
-        .post() -- saves a new data to a specific form_name
+        POST: saves a new data to a specific form_name
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
     parser_classes = [FormParser, MultiPartParser]
@@ -115,9 +115,9 @@ class FormularyDataEditView(APIView):
     edit the data of a formulary, use this view. 
 
     Methods:
-        .get() -- gets the data of a form_data_id
-        .post() -- updates a specific form_data_id with new data to a specific form_name
-        .delete() -- deletes the data of a form_data_id
+        GET: gets the data of a form_data_id
+        POST: updates a specific form_data_id with new data to a specific form_name
+        DELETE: deletes the data of a form_data_id
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
     parser_classes = [FormParser, MultiPartParser]
@@ -188,7 +188,7 @@ class DownloadFileView(APIView):
     for generating a new temporary url so he can download the file.
 
     Methods:
-        .get() -- This is not a normal API view since it makes a redirection, be aware of that, it's better if you call this
+        GET: This is not a normal API view since it makes a redirection, be aware of that, it's better if you call this
                   in a new tab for the user.
     """
     def get(self, request, company_id, form, dynamic_form_id, field_id, file_name):

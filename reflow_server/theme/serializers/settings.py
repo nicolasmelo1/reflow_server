@@ -5,6 +5,9 @@ from reflow_server.formulary.models import Form
 from reflow_server.theme.services import ThemeService
 
 class ThemeSettingsSerializer(serializers.ModelSerializer):
+    """
+    Serializer that holds each template data. This what we need for creating, updating and loading the templates
+    """
     id = serializers.IntegerField(allow_null=True)
     description = serializers.CharField(allow_null=False, allow_blank=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
     display_name = serializers.CharField(allow_null=False, allow_blank=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
@@ -46,6 +49,9 @@ class ThemeSettingsSerializer(serializers.ModelSerializer):
 
 
 class FormularyOptionSerializer(serializers.ModelSerializer):
+    """
+    This is used to get the formularies the user can choose in a template.
+    """
     id = serializers.IntegerField(allow_null=True)
 
     class Meta:

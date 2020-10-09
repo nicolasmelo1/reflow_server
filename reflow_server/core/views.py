@@ -21,7 +21,7 @@ class HealthCheckView(APIView):
     Simple healthcheck to check if the application is up and running or not.
 
     Methods:
-        .get() -- 
+        GET: 
     """
     def get(self, request):
         return Response({

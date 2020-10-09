@@ -19,8 +19,8 @@ class NotificationConfigurationEditView(APIView):
     notification configuration and to delete a notification_configuration_id only.
 
     Methods:
-        .delete() -- delete an specific notification_configuration_id
-        .put() -- edit a notification_configuration_id with new data
+        DELETE: delete an specific notification_configuration_id
+        PUT: edit a notification_configuration_id with new data
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -56,8 +56,8 @@ class NotificationConfigurationView(APIView):
     configuration
 
     Methods:
-        .get() -- Retrieves a list of notifications configurations that a user has access to for the current company.
-        .post() -- Creates a single notification configuration for the user.
+        GET: Retrieves a list of notifications configurations that a user has access to for the current company.
+        POST: Creates a single notification configuration for the user.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -93,7 +93,7 @@ class NotificationConfigurationFieldsView(APIView):
     Right now the fields used for notification_configuration needs to be only of field_type `date`
 
     Methods:
-        .get() -- Returns all of the possible fields to be used as variables, and to be used on the notification_configuration.
+        GET: Returns all of the possible fields to be used as variables, and to be used on the notification_configuration.
     """
     def get(self, request, company_id, form_id):
         serializer = NotificationConfigurationFieldsSerializer(form_id=form_id, company_id=company_id)

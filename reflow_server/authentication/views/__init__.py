@@ -23,7 +23,7 @@ class LoginView(APIView):
     View responsible for authenticating users inside of reflow.
     
     Methods:
-        .post() -- authenticate the user based on email and login and returns information about the user as well as 
+        POST: authenticate the user based on email and login and returns information about the user as well as 
                    jwt tokens.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
@@ -65,7 +65,7 @@ class TestTokenView(APIView):
     Simple view just used to validate if a token is still valid or not.
     
     Methods:
-        .get() -- we don't validate the token here, we validate using jwt_required() decorator, we just return a ok response
+        GET: we don't validate the token here, we validate using jwt_required() decorator, we just return a ok response
     """
     def get(self, request):
         return Response({
@@ -82,7 +82,7 @@ class ForgotPasswordView(APIView):
     The response is always the same independent if it worked or not, so a malicious user can't see which user is valid and which is not valid
     
     Methods:
-        .post() -- recieves a json containing the url of the front-end and a email to send a new password 
+        POST: recieves a json containing the url of the front-end and a email to send a new password 
         and sends a temporary password by email.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
@@ -103,7 +103,7 @@ class OnboardingView(APIView):
     for handling only the onbaording
 
     Methods:
-        .post() -- recieves data com user and company and creates a new company
+        POST: recieves data com user and company and creates a new company
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -133,7 +133,7 @@ class RefreshTokenView(APIView):
     View that refreshes a token and sends a new token and a new refresh token to the user.
 
     Methods:
-        .get() -- You need to send the refresh token in the header in order to recieve a new token
+        GET: You need to send the refresh token in the header in order to recieve a new token
         and a new refresh token
     """
     def get(self, request):
@@ -166,7 +166,7 @@ class ChangePasswordView(APIView):
     View that recieves a temporary password and a new password and changes the user password to the new password.
 
     Methods:
-        .post() -- Method that recieves the new password and the temp password and changes the user password.
+        POST: Method that recieves the new password and the temp password and changes the user password.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -193,7 +193,7 @@ class CompanyView(APIView):
     This way the front-end or whathever can handle the information as it should. 
 
     Methods:
-        .get() -- Gets a basic data from an overview about the company. It name, it's id. If it is active or not.
+        GET: Gets a basic data from an overview about the company. It name, it's id. If it is active or not.
         How many trial days does it have left and so on.
     """
     def get(self, request, company_id):
@@ -212,7 +212,7 @@ class UserView(APIView):
     app.
 
     Methods:
-        .get() -- Returns the user data to the user. This holds all of the user data. Obviously the user
+        GET: Returns the user data to the user. This holds all of the user data. Obviously the user
         needs to be logged in to use this.
     """
     def get(self, request):

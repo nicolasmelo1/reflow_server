@@ -19,7 +19,7 @@ class GetKanbanView(APIView):
     the visualization, stuff like what is the default kanban card to be used or what is the default dimension to be used.
 
     Methods:
-        .get() -- retrieve the initial data needed to load the kanban visualization
+        GET: retrieve the initial data needed to load the kanban visualization
     """
     def get(self, request, company_id, form):
         serializer = GetKanbanSerializer(user_id=request.user.id, company_id=company_id, form_name=form)
@@ -38,8 +38,8 @@ class KanbanCardsView(APIView):
     It's important to notice that get returns a list of kanban cards and the other requests expect just one.
     
     Methods:
-        .get() -- retrieve the kanban cards for a particular formulary.
-        .post() -- saves a new kanban card to be used on this formulary.
+        GET: retrieve the kanban cards for a particular formulary.
+        POST: saves a new kanban card to be used on this formulary.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -71,8 +71,8 @@ class KanbanCardsEditView(APIView):
     This view handles the edition of a single kanban_card_id, most likely KanbanCardsView.
 
     Methods:
-        .put() -- Edits a single kanban_card_id
-        .delete() -- Deletes a single kanban_card_id
+        PUT: Edits a single kanban_card_id
+        DELETE: Deletes a single kanban_card_id
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -107,7 +107,7 @@ class KanbanSetDefaultsView(APIView):
     form, the kanban is `automagically` loaded for him.
 
     Methods:
-        .put() -- sends the new default ids that are saved to our database.
+        PUT: sends the new default ids that are saved to our database.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -143,8 +143,8 @@ class KanbanDimensionOrderView(APIView):
     this we don't need to create or update any dimension, we just reorder with the options that are available for him.
 
     Methods:
-        .get() -- handles the point number 1
-        .put() -- handles the point number 2
+        GET: handles the point number 1
+        PUT: handles the point number 2
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 

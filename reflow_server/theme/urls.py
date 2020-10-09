@@ -18,7 +18,7 @@ settings_urlpatterns = [
 urlpatterns = [
     re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
         re_path(r'^settings/', include(settings_urlpatterns)),
-        re_path(r'^(?P<theme_id>\d+)/', include([
+        re_path(r'^(?P<selected_theme_id>\d+)/', include([
             re_path(r'^$', validate_billing(ThemeView.as_view()), name='theme_theme'),
             re_path(r'^select/$', validate_billing(SelectThemeView.as_view()), name='theme_select'),
             re_path(r'^(?P<theme_form_id>\d+)/$', validate_billing(ThemeFormularyView.as_view()), name='theme_formulary'), 

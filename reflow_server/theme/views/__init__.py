@@ -21,8 +21,8 @@ class ThemeView(APIView):
     and the other stuff is when the user selects a theme.
 
     Methods:
-        .get() -- Gets a theme data based on a theme_id
-        .post() -- Selects a theme based on a theme_id
+        GET: Gets a theme data based on a theme_id
+        POST: Selects a theme based on a theme_id
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -42,14 +42,14 @@ class SelectThemeView(APIView):
     from the theme to the default user models.
 
     Methods:
-        .post() -- Selects a theme based on a theme_id
+        POST: Selects a theme based on a theme_id
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
-    def post(self, request, company_id, theme_id):
-        theme = Theme.theme_.theme_by_theme_id(theme_id)
+    def post(self, request, company_id, selected_theme_id):
+        theme = Theme.theme_.theme_by_theme_id(selected_theme_id)
         if theme:
-            ThemeService.select_theme(theme_id, company_id, request.user.id)
+            ThemeService.select_theme(selected_theme_id, company_id, request.user.id)
             form_name = Form.theme_.main_form_name_by_company_id_last_created(company_id)
             return Response({
                 'status': 'ok',
@@ -70,10 +70,10 @@ class ThemeFormularyView(APIView):
     This data is used to preview the formulary to the user.
 
     Methods:
-        .get() -- Retrives the theme form data with it's sections and fields
+        GET: Retrives the theme form data with it's sections and fields
     """
-    def get(self, request, company_id, theme_id, theme_form_id):
-        instance = ThemeForm.theme_.theme_form_by_theme_id_and_theme_form_id(theme_id, theme_form_id)
+    def get(self, request, company_id, selected_theme_id, theme_form_id):
+        instance = ThemeForm.theme_.theme_form_by_theme_id_and_theme_form_id(selected_theme_id, theme_form_id)
         serializer = ThemeFormularySerializer(instance=instance, is_loading_formulary=True)
         return Response({
             'status': 'ok',
@@ -91,7 +91,7 @@ class ThemeThemeTypeView(APIView):
     'community' - Are themes created by the reflow community (all users of reflow) for the community (so public)
 
     Args:
-        .get() -- Retrieves the themes of it's types (you can check `theme_type` table for reference) 
+        GET: Retrieves the themes of it's types (you can check `theme_type` table for reference) 
                   by each group. Since we need to know what group you are filtering `filter` query 
                   parameter is obligatory.
     """

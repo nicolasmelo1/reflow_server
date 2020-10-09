@@ -23,7 +23,7 @@ class ExtractFileExternalView(APIView):
     view don't know how to parse and gives errors.
 
     Methods:
-        .post() -- recieves the data as json inside of the body
+        POST: recieves the data as json inside of the body
     """
     def post(self, request, company_id, user_id, form_name):
         serializer = ExtractFileSerializer(data=request.data, user_id=user_id, company_id=company_id, form_name=form_name)

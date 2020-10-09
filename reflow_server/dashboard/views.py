@@ -26,7 +26,7 @@ class DashboardDataView(APIView):
     need to have configurated a new chart in order to get the aggregated data.
 
     Method:
-        .get() -- Returns the aggregated data with `labels` being a list and `values` being a list 
+        GET: Returns the aggregated data with `labels` being a list and `values` being a list 
                   also, both lists needs to have the same size.
     """
     def get(self, request, company_id, form, dashboard_configuration_id):
@@ -57,7 +57,7 @@ class DashboardChartsView(APIView):
     the charts. So this view actually retrieves the charts for the user to load the data.
 
     Methods:
-        .get() -- retrive the charts to load for the specific user and the specific form 
+        GET: retrive the charts to load for the specific user and the specific form 
                   for the specific company
     """
     def get(self, request, company_id, form):
@@ -80,8 +80,8 @@ class DashboardChartConfigurationView(APIView):
     for creating a single chart for the user.
 
     Methods:
-        .get() -- retrieve a list of charts that the user can edit (the ones that the user have created)
-        .post() -- creates a new chart for the user
+        GET: retrieve a list of charts that the user can edit (the ones that the user have created)
+        POST: creates a new chart for the user
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -121,8 +121,8 @@ class DashboardChartConfigurationEditView(APIView):
     deletion of a chart in the users dashboard.
 
     Methods:
-        .put() -- Edits an chart instance
-        .delete() -- Deletes an chart instance
+        PUT: Edits an chart instance
+        DELETE: Deletes an chart instance
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -162,7 +162,7 @@ class DashboardFieldsView(APIView):
     a specific formulary, not all forms
 
     Methods:
-        .get() -- Returns an array of fields
+        GET: Returns an array of fields
     """
     def get(self, request, company_id, form):
         instances = Field.objects.filter(
