@@ -222,3 +222,23 @@ class UserView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UserVisualizationTypeView(APIView):
+    """
+    This is responsible for changing and updating the user's visualization types. Visualization types holds what 
+    visualization the user is on. Could be `dashboard`, `listing` and `kanban`. We usually use this when the user
+    changes the visualization type in the frontend.
+
+    Methods:
+        PUT: Changes the visualization type of a user.
+    """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def put(self, request, visualization_type_id):
+        UserExtended.authentication_.update_user_visualization_type(request.user.id, visualization_type_id)
+
+        return Response({
+            'status': 'ok'
+        }, status=status.HTTP_200_OK)

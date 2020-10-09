@@ -179,21 +179,28 @@ class FormValueDataManager(models.Manager):
             Q(value='') | Q(value__isnull=True)
         ).values_list('value', 'form__depends_on_id')
 
-    def distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(self, depends_on_ids, field_type_id, field_id):
+    def distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty_ordered(self, depends_on_ids, field_type_id, field_id, order=[]):
         """
         It is basically the same as `value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty` method, except it gives us
-        only the distinct values
+        only the distinct values.
+        This query also orders by values. If you want your results to be ordered you need to send the order in `order` parameter as list.
 
         Args:
             depends_on_ids (list(int)): This is a list of main formulary ids and not section ids from what forms you want to retrieve this FormValues from
             field_type_id (int): The id of the FieldType of this particular field. We use this to retrieve exactly the same FieldType as the Field you are retrieving.
             field_id (int): The id of the field of the FormValue
+            order (optional, list(str)): List of strings, each string is a value. The list you send is the order we will follow. Default as [].
 
         Returns:
             django.db.models.QuerySet(tuple): This is a queryset of tuples, used retrived from the `.values_list` function. Each tuple contains the first index as 
             the value, and the second index as the `form_id` it is from (form_id is the main formulary id, and not the section id).
         """
-        return self.value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(depends_on_ids, field_type_id, field_id).distinct()
+        data = self.value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(depends_on_ids, field_type_id, field_id)\
+                .distinct()
+        if order:
+            order = Case(*[When(value=str(value), then=pos) for pos, value in enumerate(order)])
+            data = data.order_by(order)
+        return data
     
     def form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(self,company_id, depends_on_forms, field_ids, field_types):
         """

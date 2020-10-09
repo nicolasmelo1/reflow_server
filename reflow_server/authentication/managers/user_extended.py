@@ -2,7 +2,7 @@ from django.contrib.auth.models import UserManager
 
 
 class UserExtendedAuthenticationManager(UserManager):
-    def create_user(self, email, first_name, last_name, company_id, profile_id, phone=None, password=None):
+    def create_user(self, email, first_name, last_name, company_id, profile_id, visualization_type_id, phone=None, password=None):
         """
         Creates a new user in the database. This method uses the `create_user` method from the
         `UserManager` class. You will notice that password is default to None, this is because 
@@ -16,6 +16,7 @@ class UserExtendedAuthenticationManager(UserManager):
             last_name (str): The last name of the user
             company_id (int): This is a Company instance id we always append an user to a specific company.
             profile_id (int): This is a Profiles instance id. This profile defines what the user can do on the company.
+            visualization_type_id (int): This is the default visualization type, usualy the listing visualization id.
             phone (str, optional): Usually required only on onboarding. Defaults to None.
             password (str, optional): Not required because sometimes we just create the user without setting password. 
                                       Defaults to None.
@@ -32,7 +33,8 @@ class UserExtendedAuthenticationManager(UserManager):
                 last_name=last_name,
                 company_id=company_id,
                 phone=phone,
-                profile_id=profile_id
+                profile_id=profile_id,
+                data_type_id=visualization_type_id
             )
         else:
             instance = self.create(
@@ -42,7 +44,8 @@ class UserExtendedAuthenticationManager(UserManager):
                 last_name=last_name,
                 company_id=company_id,
                 phone=phone,
-                profile_id=profile_id
+                profile_id=profile_id,
+                data_type_id=visualization_type_id
             )
         return instance
 
@@ -188,6 +191,24 @@ class UserExtendedAuthenticationManager(UserManager):
 
     def exists_user_by_temporary_password(self, temporary_password):
         return self.get_queryset().filter(temp_password=temporary_password).exists()
+
+    def update_user_visualization_type(self, user_id, visualization_type_id):
+        """
+        Responsible for changing and updating the user's visualization types. Visualization types holds what 
+        visualization the user is on. Could be `dashboard`, `listing` and `kanban`. We usually use this when the user
+        changes the visualization type in the frontend.
+
+        Args:
+            user_id (int): An UserExtended instance id
+            visualization_type_id (int): A VisualizationType instance model id, this is what we set to the user
+
+        Returns:
+            bool: Check if everything went fine.
+        """
+        instance = self.user_by_user_id(user_id)
+        instance.data_type_id = visualization_type_id
+        instance.save()
+        return True
 
     def remove_user_by_user_id_and_company_id(self, user_id, company_id):
         """

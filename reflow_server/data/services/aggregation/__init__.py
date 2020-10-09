@@ -5,7 +5,7 @@ from reflow_server.data.services.aggregation.data import AggregationData
 from reflow_server.data.services.representation import RepresentationService
 from reflow_server.data.services.data import DataService
 from reflow_server.data.models import FormValue
-from reflow_server.formulary.models import Field, FieldNumberFormatType, FieldType
+from reflow_server.formulary.models import Field, FieldNumberFormatType, FieldType, FieldOptions
 
 import numpy
 import functools
@@ -49,6 +49,32 @@ class AggregationService:
             return int(value)
         except ValueError as ve:
             return 0
+
+    def __order_keys(self, field):
+        """
+        This is used because of a business requirement. The keys of the aggregation
+        must be ordered if we are agregation by an `option` label. The same happen
+        to dates.
+
+        Args:
+            field (reflow_server.formulary.models.Field): This is the field we use as key on the aggragation
+
+        Returns:
+            list(str): Returns a list of values to be ordered, the order of the items in the list is the order we use.
+        """
+        if field.type.type == 'option':
+            return FieldOptions.objects.filter(field=field).order_by('order').values_list('option', flat=True)
+        elif field.type.type == 'date':
+            order_data = FormValue.data_.form_depends_on_and_values_for_sort_date_field_types(
+                field.form.depends_on.group.company_id, 
+                self.dynamic_form_ids_to_aggregate,
+                field.id,
+                field.type.type,
+                'value'
+            )
+            return list(dict.fromkeys([to_order['value'] for to_order in order_data]))
+        else:
+            return []
 
     def aggregate(self, method, field_id_key, field_id_value, formated=False):
         """
@@ -109,10 +135,12 @@ class AggregationService:
         key_field = Field.objects.filter(id=field_id_key).first()
         value_field = Field.objects.filter(id=field_id_value).first()
         
-        keys_values = FormValue.data_.distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(
+        keys_ordering = self.__order_keys(key_field)
+        keys_values = FormValue.data_.distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty_ordered(
             depends_on_ids=self.dynamic_form_ids_to_aggregate, 
             field_type_id=key_field.type.id, 
             field_id=key_field.id, 
+            order=keys_ordering
         )
 
         for key_value, key_form_data_id in keys_values:

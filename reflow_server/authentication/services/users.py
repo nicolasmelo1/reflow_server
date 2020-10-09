@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from reflow_server.authentication.models import UserExtended, Company
+from reflow_server.authentication.models import UserExtended, Company, VisualizationType
 from reflow_server.billing.services import BillingService
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.options import FieldOptionsService
@@ -44,12 +44,15 @@ class UsersService:
         Returns:
             reflow_server.authentication.models.UserExtended: the instance of the created user.
         """
+        visualization_type_id = VisualizationType.objects.filter(name='listing').values_list('id', flat=True).first()
+
         instance = UserExtended.authentication_.create_user(
             email,
             first_name,
             last_name,
             self.company.id,
-            profile.id
+            profile.id,
+            visualization_type_id
         )
 
         self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)

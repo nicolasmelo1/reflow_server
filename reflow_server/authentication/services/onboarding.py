@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from reflow_server.authentication.models import Company, UserExtended, ProfileType
+from reflow_server.authentication.models import Company, UserExtended, ProfileType, VisualizationType
 from reflow_server.authentication.services.company import CompanyService
 from reflow_server.billing.services import BillingService
 
@@ -47,12 +47,15 @@ class OnboardingService(CompanyService):
 
         admin_profile_id = ProfileType.objects.get(name='admin').id
 
+        visualization_type_id = VisualizationType.objects.filter(name='listing').values_list('id', flat=True).first()
+
         user = UserExtended.authentication_.create_user(
             user_email,
             user_first_name,
             user_last_name,
             company.id,
             admin_profile_id,
+            visualization_type_id,
             user_phone,
             user_password
         )
