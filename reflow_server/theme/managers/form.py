@@ -15,7 +15,7 @@ class FormThemeManager(models.Manager):
             form_ids (list(int)): A list of Form instance ids, those are from MAIN FORMS (so instances with depends_on = None)
 
         Returns:
-            django.db.QuerySet(reflow_server.formulary.models.Form): A queryset of main forms, all of the Form instances here have 
+            django.db.models.QuerySet(reflow_server.formulary.models.Form): A queryset of main forms, all of the Form instances here have 
             depends_on as None
         """
         return self.get_queryset().filter(id__in=form_ids, group__company_id=company_id, depends_on__isnull=True)
@@ -30,7 +30,7 @@ class FormThemeManager(models.Manager):
             form_ids (list(int)): A list of Form instance ids, those are from MAIN FORMS (so instances with depends_on = None)
 
         Returns:
-            django.db.QuerySet(reflow_server.formulary.models.Form): A queryset of section forms, all of the Form instances here have 
+            django.db.models.QuerySet(reflow_server.formulary.models.Form): A queryset of section forms, all of the Form instances here have 
             depends_on as NOT None
         """
         return self.get_queryset().filter(depends_on__in=main_form_ids, depends_on__group__company_id=company_id)

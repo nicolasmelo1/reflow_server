@@ -27,7 +27,7 @@ class ThemeFormThemeManager(models.Manager):
             theme_id (int): The id of the Theme instance of where this ThemeForm is from.
 
         Returns:
-            django.db.QuerySet(reflow_server.theme.models.ThemeForm): A queryset of ThemeForm instances
+            django.db.models.QuerySet(reflow_server.theme.models.ThemeForm): A queryset of ThemeForm instances
         """
         return self.get_queryset().filter(theme_id=theme_id, depends_on__isnull=True)
 
@@ -40,7 +40,7 @@ class ThemeFormThemeManager(models.Manager):
             theme_id (int): The id of the Theme instance of where this ThemeForm is from.
 
         Returns:
-            django.db.QuerySet(reflow_server.theme.models.ThemeForm): A queryset of ThemeForm instances
+            django.db.models.QuerySet(reflow_server.theme.models.ThemeForm): A queryset of ThemeForm instances
         """
         return self.get_queryset().filter(theme_id=theme_id, depends_on__isnull=False)
 

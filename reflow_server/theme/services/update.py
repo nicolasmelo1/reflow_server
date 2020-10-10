@@ -2,12 +2,14 @@ from django.db import transaction
 
 from reflow_server.theme.models import Theme, ThemeType, ThemeForm, \
     ThemeField, ThemeFieldOptions, ThemeKanbanDimensionOrder, ThemeKanbanCard, \
-    ThemeKanbanCardField, ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable
+    ThemeKanbanCardField, ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable, \
+    ThemeDashboardChartConfiguration
 from reflow_server.theme.services.data import ThemeReference
 
 from reflow_server.formulary.models import Form, Field, FieldOptions
 from reflow_server.kanban.models import KanbanDimensionOrder, KanbanCard, KanbanCardField
 from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable
+from reflow_server.dashboard.models import DashboardChartConfiguration
 
 
 class ThemeUpdateService:
@@ -229,24 +231,52 @@ class ThemeUpdateService:
         Returns:
             bool: return True to indicate everything has been created
         """
-        for notification_configuration in NotificationConfiguration.objects.filter(field__form__depends_on__group__company_id=company_id, user_id=user_id, field__form__in=form_ids, for_company=True):
-            theme_notification_configuration = ThemeNotificationConfiguration.objects.create(
-                field=self.theme_reference.get_field_reference(notification_configuration.field.id),
-                form=self.theme_reference.get_formulary_reference(notification_configuration.form.id),
+        for notification_configuration in NotificationConfiguration.theme_.notification_configurations_for_company_by_user_id_company_id_and_main_form_ids(user_id, company_id, form_ids):
+            theme_notification_configuration = ThemeNotificationConfiguration.theme_.create_theme_notification_configuration(
+                field_id=self.theme_reference.get_field_reference(notification_configuration.field.id).id,
+                form_id=self.theme_reference.get_formulary_reference(notification_configuration.form.id).id,
                 for_company=notification_configuration.for_company,
                 name=notification_configuration.name,
-                text=theme_notification_configuration.text,
-                days_diff=theme_notification_configuration.days_diff
+                text=notification_configuration.text,
+                days_diff=notification_configuration.days_diff
             )
 
-            for notification_configuration_variable in NotificationConfigurationVariable.objects.filter(notification_configuration=notification_configuration).order_by('order'):
-                ThemeNotificationConfigurationVariable.objects.create(
-                    order=notification_configuration_variable.order,
-                    notification_configuration=theme_notification_configuration,
-                    field=self.theme_reference.get_field_reference(notification_configuration_variable.field.id)
+            for notification_configuration_variable in NotificationConfigurationVariable.theme_.notification_configuration_variables_by_notification_configuration_id_ordered_by_order(notification_configuration.id):
+                ThemeNotificationConfigurationVariable.theme_.create_theme_notification_configuration_variable(
+                    notification_configuration_variable.order,
+                    theme_notification_configuration.id,
+                    self.theme_reference.get_field_reference(notification_configuration_variable.field.id).id
                 )
         return True
     
+    def __create_theme_dashboard(self, theme_instance, form_ids, company_id, user_id):
+        """
+        Creates the ThemeDashboardChartConfiguration instances based on DashboardChartConfiguration of the user
+        for this specific company and that are for the hole company. (so the ones with for_company = True)
+
+        Args:
+            theme_instance (reflow_server.theme.models.Theme): The Theme instance you have created to be used here
+            form_ids (list(int)): list of ints where each int is a Form instance id.
+            company_id (int): The id of the company that is creating this theme
+            user_id (int): The id of the user that is creating this theme
+
+        Returns:
+            bool: return True to indicate everything has been created
+        """
+        for dashboard_chart_configuration in DashboardChartConfiguration.theme_.dashboard_chart_configurations_by_company_id_main_form_ids_user_id_for_hole_company_ordered(company_id, form_ids, user_id):
+            theme_dashboard_chart_configuration = ThemeDashboardChartConfiguration.theme_.create_theme_dashboard_chart_configuration(
+                dashboard_chart_configuration.name,
+                dashboard_chart_configuration.for_company,
+                self.theme_reference.get_field_reference(dashboard_chart_configuration.value_field.id).id,
+                self.theme_reference.get_field_reference(dashboard_chart_configuration.label_field.id).id,
+                dashboard_chart_configuration.number_format_type.id,
+                dashboard_chart_configuration.chart_type.id,
+                dashboard_chart_configuration.aggregation_type.id,
+                self.theme_reference.get_formulary_reference(dashboard_chart_configuration.form.id).id,
+                theme_instance.id
+            )
+        return True
+
     @transaction.atomic
     def create_or_update(self, theme_type_id, display_name, is_public, description, user_id, company_id, form_ids=[], theme_id=None):
         """
@@ -295,5 +325,5 @@ class ThemeUpdateService:
 
             self.__create_theme_kanban(theme_instance, form_ids, company_id, user_id)
             self.__create_theme_notification(theme_instance, form_ids, company_id, user_id)
-
+            self.__create_theme_dashboard(theme_instance, form_ids, company_id, user_id)
         return theme_instance

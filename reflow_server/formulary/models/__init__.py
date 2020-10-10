@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldStates, AbstractFieldOptions
-from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager
+from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, FormAccessedByThemeManager
 
 
 class SectionType(models.Model):
@@ -351,3 +351,6 @@ class FormAccessedBy(models.Model):
     class Meta:
         db_table = 'form_accessed_by'
         app_label = 'formulary'
+
+    objects = models.Manager()
+    theme_ = FormAccessedByThemeManager()

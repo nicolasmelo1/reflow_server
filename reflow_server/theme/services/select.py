@@ -8,6 +8,7 @@ from reflow_server.theme.services.data import ThemeReference
 from reflow_server.authentication.models import UserExtended
 from reflow_server.kanban.models import KanbanDimensionOrder, KanbanCard
 from reflow_server.formulary.models import Field, Form
+from reflow_server.dashboard.models import DashboardChartConfiguration
 
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.formulary import FormularyService
@@ -15,10 +16,19 @@ from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
 from reflow_server.kanban.services import KanbanCardService, KanbanService
 from reflow_server.notification.services.notification_configuration import NotificationConfigurationService
+from reflow_server.dashboard.services.dashboard_configuration import DashboardChartConfigurationService
 
 
 class ThemeSelectService:
     def __init__(self, theme_id, company_id, user_id):
+        """
+        This is responsible for selecting themes.
+
+        Args:
+            theme_id (int): A Theme instance is, what theme the user have selected
+            company_id (int): A Company instance id, for what company the user has selected the template
+            user_id (int): A UserExtended instance id, this is the user that has selected the template
+        """
         self.theme = Theme.theme_.theme_by_theme_id(theme_id)
         self.company_users = UserExtended.theme_.users_active_by_company_id(company_id)
         self.company_id = company_id
@@ -229,8 +239,31 @@ class ThemeSelectService:
 
         return True
 
-    def __create_dashboard(self, field_reference, formulary_reference):
-        pass
+    def __create_dashboard(self):
+        """
+        Create dashboard chart configuration from the selected Theme.
+        It uses the DashboardChartConfigurationService class for creating the dashboard charts, that's because
+        we need to validate the billing when inserting.
+        
+        Returns:
+            bool: Return True to indicate everything went fine.
+        """
+        for theme_dashboard_chart_configuration in ThemeDashboardChartConfiguration.theme_.theme_dashboard_chart_configuration_by_theme_id_ordered(self.theme.id):
+            dashboard_chart_configuration_service = DashboardChartConfigurationService(
+                self.company_id, 
+                self.user_id, 
+                self.theme_reference.get_formulary_reference(theme_dashboard_chart_configuration.form.id)
+            )
+            dashboard_chart_configuration_service.create_or_update(
+                name=theme_dashboard_chart_configuration.name,
+                for_company=theme_dashboard_chart_configuration.for_company,
+                value_field=self.theme_reference.get_field_reference(theme_dashboard_chart_configuration.value_field.id),
+                label_field=self.theme_reference.get_field_reference(theme_dashboard_chart_configuration.label_field.id),
+                number_format_type=theme_dashboard_chart_configuration.number_format_type,
+                chart_type=theme_dashboard_chart_configuration.chart_type,
+                aggregation_type=theme_dashboard_chart_configuration.aggregation_type
+            )
+        return True
 
     @transaction.atomic
     def select(self):
@@ -249,4 +282,5 @@ class ThemeSelectService:
 
         self.__create_kanban()
         self.__create_notification()
+        self.__create_dashboard()
         return True

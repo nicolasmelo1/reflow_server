@@ -98,10 +98,10 @@ class DashboardChartConfigurationView(APIView):
         }, status=status.HTTP_200_OK)
 
     def post(self, request, company_id, form):
-        form_id = Form.objects.filter(form_name=form, company_id=company_id).values_list('id', flat=True).first()
+        form = Form.objects.filter(form_name=form, group__company_id=company_id).first()
         serializer = DashboardChartConfigurationSerializer(data=request.data)
         if serializer.is_valid():
-            instance = serializer.save(company_id, form_id, request.user.id)
+            instance = serializer.save(company_id, form, request.user.id)
             serializer = DashboardChartConfigurationSerializer(instance=instance)
             return Response({
                 'status': 'ok',
@@ -127,11 +127,11 @@ class DashboardChartConfigurationEditView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def put(self, request, company_id, form, dashboard_configuration_id):
-        form_id = Form.objects.filter(form_name=form, company_id=company_id).values_list('id', flat=True).first()
-        instance = DashboardChartConfiguration.objects.filter(user_id=request.user.id, form__form_name=form, company_id=company_id, id=dashboard_configuration_id).first()
+        form = Form.objects.filter(form_name=form, group__company_id=company_id).first()
+        instance = DashboardChartConfiguration.objects.filter(user_id=request.user.id, form__form_name=form.form_name, company_id=company_id, id=dashboard_configuration_id).first()
         serializer = DashboardChartConfigurationSerializer(instance=instance, data=request.data)
         if serializer.is_valid():
-            instance = serializer.save(company_id, form_id, request.user.id)
+            instance = serializer.save(company_id, form, request.user.id)
             serializer = DashboardChartConfigurationSerializer(instance=instance)
             return Response({
                 'status': 'ok',

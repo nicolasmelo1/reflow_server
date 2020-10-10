@@ -3,7 +3,7 @@ from django.db import models
 from reflow_server.theme.managers import ThemeThemeManager, ThemeFormThemeManager, ThemeFieldThemeManager, \
     ThemeFieldOptionThemeManager, ThemeKanbanDimensionOrderThemeManager, ThemeKanbanCardThemeManager, \
     ThemeKanbanCardFieldThemeManager, ThemeNotificationConfigurationThemeManager, \
-    ThemeNotificationConfigurationVariableThemeManager, ThemeTypeThemeManager
+    ThemeNotificationConfigurationVariableThemeManager, ThemeTypeThemeManager, ThemeDashboardChartConfigurationThemeManager
 from reflow_server.formulary.models.abstract import AbstractField, AbstractFieldOptions, AbstractForm
 from reflow_server.notification.models.abstract import AbstractNotificationConfiguration 
 from reflow_server.kanban.models.abstract import AbstractKanbanCard, AbstractKanbanCardField, AbstractKanbanDimensionOrder
@@ -209,3 +209,5 @@ class ThemeDashboardChartConfiguration(AbstractDashboardChartConfiguration):
     
     class Meta:
         db_table = 'theme_dashboard_chart_configuration'
+
+    theme_ = ThemeDashboardChartConfigurationThemeManager()

@@ -13,7 +13,7 @@ class ThemeKanbanCardThemeManager(models.Manager):
             theme_id (int): This is reflow_server.theme.models.Theme instance id
 
         Returns:
-            django.db.QuerySet(reflow_server.theme.models.ThemeKanbanCard): A queryset of the ThemeKanbanCard instances of this theme.
+            django.db.models.QuerySet(reflow_server.theme.models.ThemeKanbanCard): A queryset of the ThemeKanbanCard instances of this theme.
         """
         return self.get_queryset().filter(theme_id=theme_id)
 

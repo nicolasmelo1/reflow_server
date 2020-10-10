@@ -38,7 +38,7 @@ class KanbanService(KanbanCardService):
             field (reflow_server.formulary.models.Field): The dimension field object (dimension is just a field of `option` type)        
         
         Returns:
-            django.db.QuerySet(reflow_server.kanban.models.KanbanDimensionOrder): A queryset with all of the options in the current 
+            django.db.models.QuerySet(reflow_server.kanban.models.KanbanDimensionOrder): A queryset with all of the options in the current 
             selected dimension
         """
         dimension = Field.objects.filter(form__depends_on__group__company_id=self.company_id, id=field_id, form__depends_on__form_name=self.form_name).first()

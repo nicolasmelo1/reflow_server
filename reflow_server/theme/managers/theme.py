@@ -14,7 +14,7 @@ class ThemeThemeManager(models.Manager):
             user_id (int): What user has created this template
 
         Returns:
-            django.db.QuerySet(reflow_server.theme.models.Theme): A queryset of themes
+            django.db.models.QuerySet(reflow_server.theme.models.Theme): A queryset of themes
                                                                   from a user at a specific
                                                                   company
         """
@@ -29,7 +29,7 @@ class ThemeThemeManager(models.Manager):
             for reference
 
         Returns:
-            django.db.QuerySet(reflow_server.theme.models.Theme): The queryset of the themes of the group
+            django.db.models.QuerySet(reflow_server.theme.models.Theme): The queryset of the themes of the group
         """
         return self.get_queryset().filter(theme_type__name=theme_type_name)
 

@@ -14,10 +14,10 @@ class Pagination:
         This returns a range of instances in the queryset based of and offset and an limit
 
         Args:
-            queryset (django.db.QuerySet): A queryset you want to paginate
+            queryset (django.db.models.QuerySet): A queryset you want to paginate
 
         Returns:
-            tuple(int, django.db.QuerySet): Returns a tuple, with the first element being the number of pages and the second, 
+            tuple(int, django.db.models.QuerySet): Returns a tuple, with the first element being the number of pages and the second, 
                                             the queryset divided respecting the range defined.
         """
         total_number_of_pages = self.get_total_number_of_pages(queryset.count())

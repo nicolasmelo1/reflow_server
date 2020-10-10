@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from reflow_server.dashboard.services import DashboardChartConfigurationService
 from reflow_server.dashboard.models import DashboardChartConfiguration
 from reflow_server.formulary.models import Field
 
@@ -34,21 +35,17 @@ class DashboardChartConfigurationSerializer(serializers.ModelSerializer):
     """
     id = serializers.IntegerField(required=False, allow_null=True)
 
-    def save(self, company_id, form_id, user_id):
-        instance, __ = DashboardChartConfiguration.objects.update_or_create(
-            id=self.instance.id if self.instance else None,
-            defaults={
-                'name': self.validated_data['name'],
-                'for_company': self.validated_data['for_company'],
-                'value_field': self.validated_data['value_field'],
-                'label_field': self.validated_data['label_field'],
-                'number_format_type': self.validated_data['number_format_type'],
-                'chart_type': self.validated_data['chart_type'],
-                'aggregation_type': self.validated_data['aggregation_type'],
-                'company_id': company_id,
-                'form_id': form_id,
-                'user_id': user_id
-            }
+    def save(self, company_id, form, user_id):
+        dashboard_chart_configuration_service = DashboardChartConfigurationService(company_id, user_id, form)
+        instance = dashboard_chart_configuration_service.create_or_update(
+            self.validated_data['name'],
+            self.validated_data['for_company'],
+            self.validated_data['value_field'],
+            self.validated_data['label_field'],
+            self.validated_data['number_format_type'],
+            self.validated_data['chart_type'],
+            self.validated_data['aggregation_type'],
+            self.instance.id if self.instance else None
         )
         return instance
 

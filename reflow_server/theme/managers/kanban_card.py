@@ -13,7 +13,7 @@ class KanbanCardThemeManager(models.Manager):
             kanban_card_ids (list(int)): A list of KanbanCard instance ids.
 
         Returns:
-            django.db.QuerySet(reflow_server.kanban.models.KanbanCard): A queryset of KanbanCards that have 
+            django.db.models.QuerySet(reflow_server.kanban.models.KanbanCard): A queryset of KanbanCards that have 
                                                                         the instance id in the list provided.
         """
         return self.get_queryset().filter(id__in=kanban_card_ids)

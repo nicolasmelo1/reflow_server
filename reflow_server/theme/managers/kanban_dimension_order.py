@@ -16,7 +16,7 @@ class KanbanDimensionOrderThemeManager(models.Manager):
             main_form_ids (list(int)):  A list of Form instance ids, those are from MAIN FORMS (so instances with depends_on = None)
 
         Returns:
-            django.db.QuerySet(reflow_server.kanban.models.KanbanDimensionOrder): A queryset of KanbanDimensionOrder instances filtered by
+            django.db.models.QuerySet(reflow_server.kanban.models.KanbanDimensionOrder): A queryset of KanbanDimensionOrder instances filtered by
             the parameters provided
         """
         return self.get_queryset().filter(dimension__form__depends_on__in=main_form_ids, dimension__form__depends_on__group__company_id=company_id, user_id=user_id)

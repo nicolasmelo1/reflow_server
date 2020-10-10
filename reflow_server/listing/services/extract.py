@@ -49,8 +49,7 @@ class ExtractService:
         # call external service
         from reflow_server.listing.externals import ExtractDataWorkerExternal
         response = ExtractDataWorkerExternal().build_extraction_data(file_id, file_format, company_id, user_id, form_id, fields_ids, form_data_accessed_by_user)
-        print('BREAKPOINT')
-        print(response.content)
+
 
     def extract(self, file_format, from_date, to_date, 
                 sort_value=[], sort_field=[], 

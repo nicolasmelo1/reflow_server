@@ -13,7 +13,7 @@ class ThemeKanbanDimensionOrderThemeManager(models.Manager):
             theme_id (int): The id of a single Theme instance.
 
         Returns:
-            django.db.QuerySet(reflow_server.theme.models.ThemeKanbanDimensionOrder): Returns
+            django.db.models.QuerySet(reflow_server.theme.models.ThemeKanbanDimensionOrder): Returns
             a queryset of ThemeKanbanDimensionOrder instances ordered.
         """
         return self.get_queryset().filter(theme_id=theme_id).order_by('order')

@@ -1,6 +1,7 @@
 from django.db import models
 
 from reflow_server.dashboard.models.abstract import AbstractDashboardChartConfiguration
+from reflow_server.theme.managers import DashboardChartConfigurationThemeManager
 
 
 class AggregationType(models.Model):
@@ -49,3 +50,6 @@ class DashboardChartConfiguration(AbstractDashboardChartConfiguration):
                                 related_name='dashboard_chart_configuration_companies')
     class Meta:
         db_table = 'dashboard_chart_configuration'
+
+    objects = models.Manager()
+    theme_ = DashboardChartConfigurationThemeManager()

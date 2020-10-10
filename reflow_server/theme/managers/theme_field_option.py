@@ -14,7 +14,7 @@ class ThemeFieldOptionThemeManager(models.Manager):
             field_id (int): The id of a single 
 
         Returns:
-            django.db.QuerySet(str): Queryset where each item is the option as string.
+            django.db.models.QuerySet(str): Queryset where each item is the option as string.
         """
         return self.get_queryset().filter(field_id=theme_field_id).values_list('option', flat=True)
     

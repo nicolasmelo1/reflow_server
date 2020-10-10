@@ -13,7 +13,7 @@ class ThemeFieldThemeManager(models.Manager):
             theme_id (int): The id of the Theme instance of where this ThemeField is from.
 
         Returns:
-            django.db.QuerySet(reflow_server.theme.models.ThemeField): A queryset of ThemeField instances
+            django.db.models.QuerySet(reflow_server.theme.models.ThemeField): A queryset of ThemeField instances
             from the theme_id
         """
         return self.get_queryset().filter(form__depends_on__theme_id=theme_id)

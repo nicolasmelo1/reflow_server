@@ -14,7 +14,7 @@ class KanbanCardFieldThemeManager(models.Manager):
             kanban_card_id (int): A kanbanCard instance id to filter the KanbanCardFields
 
         Returns:
-            django.db.QuerySet(reflow_server.kanban.models.KanbanCardField): A queryset of KanbanCardField ordered by id
+            django.db.models.QuerySet(reflow_server.kanban.models.KanbanCardField): A queryset of KanbanCardField ordered by id
                                                                              and filtered by the kanban_card_id.
         """
         return self.get_queryset().filter(kanban_card_id=kanban_card_id).order_by('id')
@@ -31,7 +31,7 @@ class KanbanCardFieldThemeManager(models.Manager):
             main_form_ids (list(int)): A list of Form instance ids, those are from MAIN FORMS (so instances with depends_on = None)
 
         Returns:
-            django.db.QuerySet(int): A Queryset of ints, the ints here are KanbanCard instance ids.
+            django.db.models.QuerySet(int): A Queryset of ints, the ints here are KanbanCard instance ids.
         """
         return self.get_queryset().filter(
             kanban_card__user_id=user_id, 

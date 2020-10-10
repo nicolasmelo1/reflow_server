@@ -82,10 +82,10 @@ class Settings:
     def update_order(self, queryset_to_update, new_element_order):
         """
         Updates the `order` of attribute of many instances of a queryset. 
-        The queryset is a django.db.QuerySet object from any instances that have the `order` field in it.
+        The queryset is a django.db.models.QuerySet object from any instances that have the `order` field in it.
 
         Args:
-            queryset_to_update (django.db.QuerySet): This is a QuerySet object from
+            queryset_to_update (django.db.models.QuerySet): This is a QuerySet object from
             `reflow_server.formulary.models.Form`, `reflow_server.formulary.models.Field` or `reflow_server.formulary.models.Group`
             models.
             new_element_order (int): The order of the new element you are trying to insert in the list.
