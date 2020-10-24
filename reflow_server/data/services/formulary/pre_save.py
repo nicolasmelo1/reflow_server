@@ -66,7 +66,7 @@ class PreSave(Validator):
             
             # if the conditional field is not defined but the value is we don't consider it
             elif section.conditional_value not in ['', None]:
-                section_ids_to_exclude(section.id)
+                section_ids_to_exclude.append(section.id)
 
             # if section is a multi-section but it is not in the array of the data, we don't consider it
             # this way we can bypass required fields of multi-sections when they are not added
