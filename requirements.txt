@@ -29,7 +29,6 @@ msgpack==1.0.0
 numpy==1.19.1
 pamqp==2.3.0
 psycopg2==2.8.5
-psycopg2cffi==2.8.1
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycparser==2.20

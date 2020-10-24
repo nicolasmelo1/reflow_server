@@ -13,11 +13,6 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 import config
-try:
-    import psycopg2
-except ImportError:
-    from psycopg2cffi import compat
-    compat.register()
 
 
 ENV = os.environ.get('CONFIG', 'development')
@@ -64,6 +59,7 @@ INSTALLED_APPS = [
     'reflow_server.kanban',
     'reflow_server.listing',
     'reflow_server.theme',
+    #'reflow_server.rich_text',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

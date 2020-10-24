@@ -29,5 +29,6 @@ urlpatterns = [
     re_path(r'^listing/', include('reflow_server.listing.urls'), name='listing_app'),
     re_path(r'^formulary/', include('reflow_server.formulary.urls'), name='formulary_app'),
     re_path(r'^data/', include('reflow_server.data.urls'), name='data_app'),
-    re_path(r'^theme/', include('reflow_server.theme.urls'), name='theme_app')
+    re_path(r'^theme/', include('reflow_server.theme.urls'), name='theme_app'),
+    #re_path(r'^rich_text/', include('reflow_server.rich_text.urls'), name='rich_text_app')
 ]

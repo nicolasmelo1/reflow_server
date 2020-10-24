@@ -18,6 +18,8 @@ from reflow_server.kanban.services import KanbanCardService, KanbanService
 from reflow_server.notification.services.notification_configuration import NotificationConfigurationService
 from reflow_server.dashboard.services.dashboard_configuration import DashboardChartConfigurationService
 
+import re
+
 
 class ThemeSelectService:
     def __init__(self, theme_id, company_id, user_id):
@@ -122,6 +124,8 @@ class ThemeSelectService:
         """
         form_field_as_option_reference = {}
         form_field_type_fields = []
+        formula_reference = {}
+        formula_fields = []
 
         for theme_field in ThemeField.theme_.theme_fields_by_theme_id(self.theme.id):
             field_options = []
@@ -159,6 +163,10 @@ class ThemeSelectService:
                 form_field_as_option_reference[theme_field.id] = field
                 form_field_type_fields.append(theme_field)
 
+            # When a formula exists in a field we need to update its references since it is a string.
+            if theme_field.formula_configuration not in (None, ''):
+                formula_reference[theme_field.id] = field
+                formula_fields.append(theme_field)
                 
         # set conditionals on sections
         for theme_field_id, section in self.theme_reference.get_section_conditionals_reference():
@@ -168,6 +176,19 @@ class ThemeSelectService:
         for theme_field in form_field_type_fields:
             field = form_field_as_option_reference[theme_field.id]
             Field.theme_.update_field_form_field_as_option_id(field.id, self.theme_reference.get_field_reference(theme_field.form_field_as_option_id).id)
+
+        for theme_field in formula_fields:
+            field = formula_reference[theme_field.id]
+
+            formula_configuration = theme_field.formula_configuration
+            theme_field_ids_in_formula = re.findall(r'{{(\w+)?}}', formula_configuration)
+            for theme_field_id_in_formula in theme_field_ids_in_formula:
+                formula_configuration = formula_configuration.replace(
+                    '{{'+theme_field_id_in_formula+'}}', 
+                    '{{'+str(self.theme_reference.get_field_reference(int(theme_field_id_in_formula)).id)+'}}'
+                )
+            
+            Field.theme_.update_theme_field_formula_configuration(field.id, formula_configuration)
 
         return True
 
