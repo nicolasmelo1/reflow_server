@@ -50,8 +50,11 @@ class ThemeReference:
             instance ((reflow_server.models.formulary.Form, reflow_server.models.theme.ThemeForm)): usually a django 
             model instance. Can be either a Form instance or a ThemeForm instance.
         """
-        self.section_conditionals_reference = getattr(self, 'section_conditionals_reference', {})
-        self.section_conditionals_reference[reference_id] = instance
+        self.section_conditionals_reference = getattr(self, 'section_conditionals_reference', [])
+        self.section_conditionals_reference.append({
+            'reference_id': reference_id,
+            'instance': instance
+        })
 
     def get_section_conditionals_reference(self):
         """
@@ -67,7 +70,7 @@ class ThemeReference:
             raise AttributeError(self.__FORMULARY_REFERENCE_ERROR_MESSAGE)
         else:
             if hasattr(self, 'section_conditionals_reference'):
-                return self.section_conditionals_reference.items()
+                return self.section_conditionals_reference
             else:
                 return []
 

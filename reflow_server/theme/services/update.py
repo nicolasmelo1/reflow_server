@@ -186,8 +186,11 @@ class ThemeUpdateService:
                         theme_field_intance, field_option.option, field_option.order
                     )
 
-        for field_id, theme_section in self.theme_reference.get_section_conditionals_reference():
-            ThemeForm.theme_.update_section_conditional_on_field(theme_section.id, self.theme_reference.get_field_reference(field_id).id)
+        for conditional_reference in self.theme_reference.get_section_conditionals_reference():
+            ThemeForm.theme_.update_section_conditional_on_field(
+                conditional_reference['instance'].id, 
+                self.theme_reference.get_field_reference(conditional_reference['reference_id']).id
+            )
 
         for field in form_field_type_fields:
             theme_field = form_field_as_option_reference[field.id]

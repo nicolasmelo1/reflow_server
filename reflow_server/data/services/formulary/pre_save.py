@@ -63,6 +63,11 @@ class PreSave(Validator):
                 conditional_value_not_validated = section.conditional_value not in [field_value.value for field_value in field_values.get(section.conditional_on_field.id, [])]
                 if conditional_name_not_in_section or conditional_value_not_validated:
                     section_ids_to_exclude.append(section.id)
+            
+            # if the conditional field is not defined but the value is we don't consider it
+            elif not conditional_section_is_defined and section.conditional_value not in ['', None]:
+                section_ids_to_exclude(section.id)
+
             # if section is a multi-section but it is not in the array of the data, we don't consider it
             # this way we can bypass required fields of multi-sections when they are not added
             if section.type.type == 'multi-form' and section.id not in section_ids_in_data:

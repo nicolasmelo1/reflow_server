@@ -169,8 +169,11 @@ class ThemeSelectService:
                 formula_fields.append(theme_field)
                 
         # set conditionals on sections
-        for theme_field_id, section in self.theme_reference.get_section_conditionals_reference():
-            Form.theme_.update_section_conditional_on_field(section.id, self.theme_reference.get_field_reference(theme_field_id).id)
+        for conditional_reference in self.theme_reference.get_section_conditionals_reference():
+            Form.theme_.update_section_conditional_on_field(
+                conditional_reference['instance'].id, 
+                self.theme_reference.get_field_reference(conditional_reference['reference_id']).id
+            )
 
         # set form_field_as_option on fields
         for theme_field in form_field_type_fields:
