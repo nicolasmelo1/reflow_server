@@ -30,6 +30,7 @@ class ImageOptionRelation(serializers.ModelSerializer):
 
 class ContentRelation(serializers.ModelSerializer):
     order = serializers.IntegerField()
+    uuid = serializers.UUIDField()
     text = serializers.CharField(allow_null=True, allow_blank=True)
     is_bold = serializers.BooleanField(default=False)
     is_italic = serializers.BooleanField(default=False)
@@ -42,7 +43,7 @@ class ContentRelation(serializers.ModelSerializer):
 
     class Meta:
         model = TextContent
-        fields = ('order', 'text', 'is_bold', 'is_italic', 'is_underline', 'is_code', 
+        fields = ('order', 'uuid', 'text', 'is_bold', 'is_italic', 'is_underline', 'is_code', 
                   'latex_equation', 'marker_color', 'text_color', 'link')
 
 
@@ -55,6 +56,7 @@ class BlockListSerializer(serializers.ListSerializer):
 
 class BlockRelation(serializers.ModelSerializer):
     id = serializers.IntegerField(allow_null=True)
+    uuid = serializers.UUIDField()
     image_option = ImageOptionRelation(allow_null=True)
     list_option = ListOptionRelation(allow_null=True)
     text_option = TextOptionRelation(allow_null=True)
@@ -70,4 +72,4 @@ class BlockRelation(serializers.ModelSerializer):
     class Meta:
         model = TextBlock
         list_serializer_class = BlockListSerializer
-        fields = ('id', 'image_option', 'list_option', 'text_option', 'table_option', 'block_type', 'order', 'rich_text_block_contents')
+        fields = ('id', 'uuid', 'image_option', 'list_option', 'text_option', 'table_option', 'block_type', 'order', 'rich_text_block_contents')

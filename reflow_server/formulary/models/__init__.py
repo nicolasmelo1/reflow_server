@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.db import models
 
-from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldStates, AbstractFieldOptions
+from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldOptions
 from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, FormAccessedByThemeManager
+from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
 
 
 class SectionType(models.Model):
@@ -246,6 +247,7 @@ class Form(AbstractForm):
 
     objects = models.Manager()
     theme_ = FormThemeManager()
+    pdf_generator_ = FormPDFGeneratorManager()
 
 
 class Field(AbstractField):
@@ -278,7 +280,8 @@ class Field(AbstractField):
 
     objects = models.Manager()
     theme_ = FieldThemeManager()
-    
+    pdf_generator_ = FieldPDFGeneratorManager()
+
 
 class FieldOptions(AbstractFieldOptions):
     """

@@ -12,6 +12,7 @@ from reflow_server.formula.models import FormulaType
 from reflow_server.formulary.models import SectionType, FieldType, FieldPeriodIntervalType, FieldNumberFormatType, \
     FieldDateFormatType, ConditionalType
 from reflow_server.dashboard.models import AggregationType, ChartType
+from reflow_server.rich_text.models import TextAlignmentType, TextBlockType
 from reflow_server.theme.models import ThemeType
 
 
@@ -55,6 +56,8 @@ class TypesView(APIView):
         profile_type = list(ProfileType.objects.all().values())
         aggregation_type = list(AggregationType.objects.all().values())
         chart_type = list(ChartType.objects.all().values())
+        alignment_type = list(TextAlignmentType.objects.all().values()) 
+        block_type = list(TextBlockType.objects.all().values())
 
         return Response({
            'status': 'ok',
@@ -73,6 +76,10 @@ class TypesView(APIView):
                    'field_period_interval_type': field_period_interval_type,
                    'field_type': field_type,
                    'form_type': section_type
+               },
+               'rich_text': {
+                   'alignment_type': alignment_type,
+                   'block_type': block_type
                },
                'defaults': {
                    'chart_type': chart_type,

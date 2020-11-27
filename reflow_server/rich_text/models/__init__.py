@@ -1,5 +1,7 @@
 from django.db import models
 
+import uuid
+
 
 class TextBlockType(models.Model):
     name = models.CharField(max_length=250)
@@ -80,6 +82,7 @@ class TextImageOption(models.Model):
 class TextBlock(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    uuid = models.UUIDField(default=uuid.uuid4, db_index=True)
     page = models.ForeignKey('rich_text.TextPage',  models.CASCADE, db_index=True, related_name='rich_text_page_blocks')
     image_option = models.ForeignKey('rich_text.TextImageOption', models.CASCADE, db_index=True, null=True)
     list_option = models.ForeignKey('rich_text.TextListOption', models.CASCADE, db_index=True, null=True)
@@ -97,6 +100,7 @@ class TextBlock(models.Model):
 class TextContent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    uuid = models.UUIDField(default=uuid.uuid4, db_index=True)
     order = models.BigIntegerField(default=1)
     block = models.ForeignKey('rich_text.TextBlock', models.CASCADE, db_index=True, related_name='rich_text_block_contents')
     text = models.TextField(blank=True, null=True)
@@ -104,10 +108,12 @@ class TextContent(models.Model):
     is_italic = models.BooleanField(default=False)
     is_underline = models.BooleanField(default=False)
     is_code = models.BooleanField(default=False)
-    latex_equation = models.TextField(null=True, blank=True)
-    marker_color = models.CharField(max_length=150, null=True, blank=True)
-    text_color = models.CharField(max_length=150, null=True, blank=True)
-    link = models.TextField(blank=True, null=True)
+    is_custom = models.BooleanField(default=False)
+    custom_value = models.TextField(blank=True, null=True, default=None)
+    latex_equation = models.TextField(null=True, blank=True, default=None)
+    marker_color = models.CharField(max_length=150, null=True, blank=True, default='')
+    text_color = models.CharField(max_length=150, null=True, blank=True, default='')
+    link = models.TextField(blank=True, null=True, default='')
 
     class Meta:
         db_table='text_content'
