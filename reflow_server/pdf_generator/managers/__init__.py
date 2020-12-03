@@ -1,3 +1,5 @@
 from .pdf_template_configuration import PDFTemplateConfigurationPDFGeneratorManager
+from .pdf_template_configuration_rich_text import PDFTemplateConfigurationRichTextPDFGeneratorManager
+from .pdf_template_configuration_variables import PDFTemplateConfigurationVariablesPDFGeneratorManager
 from .form import FormPDFGeneratorManager
 from .field import FieldPDFGeneratorManager

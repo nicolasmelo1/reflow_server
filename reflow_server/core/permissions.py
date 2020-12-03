@@ -97,7 +97,7 @@ def validate_permissions_from_request(request, permission_type, *args, **kwargs)
         ]
     }
 
-    The permissions dict holds can hold as many keys as you want, each key is the `permission_type` str that you send as argument
+    The permissions dict can hold as many keys as you want, each key is the `permission_type` str that you send as argument
     to this function. With this we can group the validation not in a single group, but we can actually go through each pipeline
     as we need it. 
     

@@ -1,6 +1,7 @@
 from django.db import models
 
-from reflow_server.pdf_generator.managers import PDFTemplateConfigurationPDFGeneratorManager
+from reflow_server.pdf_generator.managers import PDFTemplateConfigurationPDFGeneratorManager, \
+    PDFTemplateConfigurationRichTextPDFGeneratorManager, PDFTemplateConfigurationVariablesPDFGeneratorManager
 
 
 class PDFTemplateConfiguration(models.Model):
@@ -25,6 +26,8 @@ class PDFTemplateConfigurationVariables(models.Model):
     class Meta:
         db_table = 'pdf_template_configuration_variables'
 
+    pdf_generator_ = PDFTemplateConfigurationVariablesPDFGeneratorManager()
+
 
 class PDFTemplateConfigurationRichText(models.Model):
     pdf_template = models.OneToOneField('pdf_generator.PDFTemplateConfiguration', models.CASCADE, db_index=True, 
@@ -34,3 +37,6 @@ class PDFTemplateConfigurationRichText(models.Model):
     
     class Meta:
         db_table = 'pdf_template_configuration_rich_text'
+
+    pdf_generator_ = PDFTemplateConfigurationRichTextPDFGeneratorManager()
+    

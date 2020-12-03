@@ -1,12 +1,10 @@
 from rest_framework import serializers
 
-from reflow_server.rich_text.models import TextBlock, TextImageOption, TextListOption, \
+from reflow_server.rich_text.models import TextPage, TextBlock, TextImageOption, TextListOption, \
     TextTextOption, TextTableOption, TextContent
 
 
 class TableOptionRelation(serializers.ModelSerializer):
-    border_color = serializers.CharField(allow_null=True, allow_blank=True)
-
     class Meta:
         model = TextTableOption
         fields = '__all__'
@@ -33,7 +31,7 @@ class ImageOptionRelation(serializers.ModelSerializer):
 class ContentRelation(serializers.ModelSerializer):
     order = serializers.IntegerField()
     uuid = serializers.UUIDField()
-    text = serializers.CharField(allow_null=True, allow_blank=True)
+    text = serializers.CharField(allow_null=True, allow_blank=True, trim_whitespace=False)
     is_bold = serializers.BooleanField(default=False)
     is_italic = serializers.BooleanField(default=False)
     is_underline = serializers.BooleanField(default=False)
@@ -53,11 +51,8 @@ class ContentRelation(serializers.ModelSerializer):
 
 
 class BlockListSerializer(serializers.ListSerializer):
-    def __init__(self, *args, **kwargs): 
-        super(BlockListSerializer, self).__init__(*args, **kwargs)
-    
     def to_representation(self, data):
-        if self.parent.instance != None:
+        if self.instance == None:
             data = data.filter(depends_on__isnull=True)
         return super(self.__class__, self).to_representation(data)
 
@@ -86,3 +81,13 @@ class BlockRelation(serializers.ModelSerializer):
         model = TextBlock
         list_serializer_class = BlockListSerializer
         fields = ('id', 'uuid', 'image_option', 'list_option', 'text_option', 'table_option', 'block_type', 'order', 'rich_text_block_contents')
+
+
+class PageRelation(serializers.ModelSerializer):
+    id = serializers.IntegerField(allow_null=True)
+    raw_text = serializers.CharField(allow_blank=True)
+    rich_text_page_blocks = BlockRelation(many=True)
+    
+    class Meta:
+        model = TextPage
+        fields = ('id', 'raw_text', 'rich_text_page_blocks')

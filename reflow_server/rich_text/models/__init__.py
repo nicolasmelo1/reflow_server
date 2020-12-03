@@ -1,8 +1,10 @@
 from django.db import models
 
+from reflow_server.rich_text.managers import RichTextTextBlockTypeManager
+
 import uuid
 
-
+# TODO: Documentation here
 class TextBlockType(models.Model):
     name = models.CharField(max_length=250)
     is_primitive = models.BooleanField(default=False)
@@ -12,6 +14,9 @@ class TextBlockType(models.Model):
         db_table = 'text_block_type'
         ordering = ('order',)
 
+    rich_text_ = RichTextTextBlockTypeManager()
+    objects = models.Manager()
+    
 
 class TextBlockTypeCanContainType(models.Model):
     block = models.ForeignKey('rich_text.TextBlockType', models.CASCADE, db_index=True, related_name='text_block_type_can_contain_block')
@@ -42,6 +47,8 @@ class TextAlignmentType(models.Model):
 class TextPage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True, null=True)
+    user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True, null=True)
     raw_text = models.TextField(blank=True, null=True)
     markdown_text = models.TextField(blank=True, null=True)
 
@@ -52,7 +59,7 @@ class TextPage(models.Model):
 class TextTableOption(models.Model):
     rows_num = models.BigIntegerField(default=1)
     columns_num = models.BigIntegerField(default=1)
-    border_color = models.CharField(max_length=150)
+    border_color = models.CharField(max_length=150, null=True, blank=True)
 
     class Meta:
         db_table = 'text_table_option'
