@@ -1,6 +1,7 @@
 from django.db import models
 
 from reflow_server.rich_text.managers import RichTextTextBlockTypeManager
+from reflow_server.pdf_generator.managers import TextPagePDFGeneratorManager
 
 import uuid
 
@@ -45,6 +46,10 @@ class TextAlignmentType(models.Model):
 
 
 class TextPage(models.Model):
+    """
+    The page is the common ancestor for every block and content. A Page represents literally a hole note page. If you want to bound a rich text data
+    to anything, you will probably might want to bound to this. A page is made up by blocks and each block by contents.
+    """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True, null=True)
@@ -54,6 +59,9 @@ class TextPage(models.Model):
 
     class Meta:
         db_table='text_page'
+
+    objects = models.Manager()
+    pdf_generator_ = TextPagePDFGeneratorManager()
 
 
 class TextTableOption(models.Model):
@@ -87,6 +95,19 @@ class TextImageOption(models.Model):
 
 
 class TextBlock(models.Model):
+    """
+    The rich text works similar to Notion.so and Coda.io. We use the idea that everything is separated by blocks. Google Docs and Word are outside of the scope
+    on what this rich text is supposed to do. This should be more a Notes editor than a page and documents editor.
+
+    Making stuff this way we have more control over data, we can extend it more than a normal text can. We can create N types of blocks, from fetching data
+    from a page internally, to iframing contents inside of the block. Remember that: every block type that you create WILL BE available for ALL THE RICH TEXTS.
+
+    IMPORTANT: Blocks are recursive, this means you can have Block inside of a block and so on, for that you use the depends_on.
+    This is important because on tables for example we might want to use the text block funcionality on each cell. On list block type each bullet point will
+    be a text block.
+
+    Each block can be of custom types also, similarly like TextContent but we do not support it yet. 
+    """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     uuid = models.UUIDField(default=uuid.uuid4, db_index=True)
@@ -105,6 +126,21 @@ class TextBlock(models.Model):
 
 
 class TextContent(models.Model):
+    """
+    This holds every content of a text, it is usually bound to a block. A content is basically the text of the text block.
+    When the user is typing a rich text, parts of the text can be bold, italic, underlined and so on. Each part of the text is a content.
+    If a text is underlined it is a content, if the text is bold, it is a content. With this we can know the state for each part of the 
+    text.
+
+    Right now the text can be bold, italic, underlined, code or custom (this one is special). Other states includes the background color, the text color
+    the size of the text, a link and so on.
+
+    ABOUT CUSTOM:
+    `is_custom` and `custom_value` are special cases here. They are contents that are handled by the domain that's using the rich text. What it means is that
+    we can have many types of custom values in the rich text. For a PDF templates for example we want to display the field variable in the middle of the text,
+    this is something managed entirely by the PDF Generator domain, and is not handled here. For other use cases for example we might want to tag users, tag
+    pages, and so on. That is why we use the custom. How the custom value is rendered in the page, is also handled in the domain. 
+    """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     uuid = models.UUIDField(default=uuid.uuid4, db_index=True)
@@ -120,6 +156,7 @@ class TextContent(models.Model):
     latex_equation = models.TextField(null=True, blank=True, default=None)
     marker_color = models.CharField(max_length=150, null=True, blank=True, default='')
     text_color = models.CharField(max_length=150, null=True, blank=True, default='')
+    text_size = models.IntegerField(default=12)
     link = models.TextField(blank=True, null=True, default='')
 
     class Meta:

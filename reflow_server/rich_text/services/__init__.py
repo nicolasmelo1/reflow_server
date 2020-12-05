@@ -86,6 +86,7 @@ class RichTextService:
                         'latex_equation': content.latex_equation,
                         'marker_color': content.marker_color,
                         'text_color': content.text_color,
+                        'text_size': content.text_size,
                         'link': content.link,
                     }
                 )

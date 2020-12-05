@@ -20,6 +20,8 @@ if ENV == 'development':
     configuration = config.DevelopmentConfig()
 elif ENV == 'server':
     configuration = config.ServerConfig()
+else:
+    configuration = config.DevelopmentConfig()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

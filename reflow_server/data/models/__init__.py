@@ -13,6 +13,7 @@ from reflow_server.listing.managers import FormValueListingManager, \
 from reflow_server.formulary.managers import FormValueFormularyManager
 from reflow_server.formula.managers import FormValueFormulaManager, \
     DynamicFormFormulaManager
+from reflow_server.pdf_generator.managers import FormValuePDFGeneratorManager
 
 
 class DynamicForm(models.Model):
@@ -93,6 +94,7 @@ class FormValue(AbstractFieldStates):
     formulary_ = FormValueFormularyManager()
     formula_ = FormValueFormulaManager()
     notification_ = FormValueNotificationManager()
+    pdf_generator_ = FormValuePDFGeneratorManager()
 
 
 class Attachments(models.Model):

@@ -5,7 +5,7 @@ import inspect
 
 class ContentData:
     def __init__(self, uuid, order, text, is_bold, is_italic, is_underline, is_code, 
-                 is_custom, custom_value, latex_equation, marker_color, text_color, link):
+                 is_custom, custom_value, latex_equation, marker_color, text_color, text_size, link):
         self.uuid = uuid
         self.order = order
         self.text = text
@@ -18,6 +18,7 @@ class ContentData:
         self.latex_equation = latex_equation
         self.marker_color = marker_color
         self.text_color = text_color
+        self.text_size = text_size
         self.link = link
 
 
@@ -71,7 +72,8 @@ class BlockData:
                 raise ValueError('For block of type `{}` you must set additional values using `.{}()` method.'.format(block_name, method_name))
 
     def add_content(self, uuid, text, is_bold, is_italic, is_underline, is_code, 
-                    is_custom, custom_value, latex_equation, marker_color, text_color, link):
+                    is_custom, custom_value, latex_equation, marker_color, text_color, 
+                    text_size, link):
         """
         Adds each content of the block. A content is an inline content. If the text is Bold, Italic, Underlined and so on you define it here. 
         The content is each inline configuration.
@@ -92,6 +94,7 @@ class BlockData:
                                   inside of reflow
             marker_color (str): The color of the background of this content
             text_color (str): The hex color of the text of this content
+            text_size (int): The size of the Text.
             link (str): If your text is a link you set the link here.
 
         Returns:
@@ -101,7 +104,8 @@ class BlockData:
         self.__validate_block_type_data()
         order = len(self.contents)
         content_data = ContentData(uuid, order, text, is_bold, is_italic, is_underline, is_code, 
-                                   is_custom, custom_value, latex_equation, marker_color, text_color, link)
+                                   is_custom, custom_value, latex_equation, marker_color, text_color, 
+                                   text_size, link)
         self.contents.append(content_data)
         return content_data
     

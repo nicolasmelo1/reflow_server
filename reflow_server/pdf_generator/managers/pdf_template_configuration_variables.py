@@ -8,6 +8,12 @@ class PDFTemplateConfigurationVariablesPDFGeneratorManager(models.Manager):
     def delete_pdf_template_configuration_variables_from_pdf_template_id_excluding_variable_ids(self, pdf_template_id, pdf_template_configuration_variable_ids):
         return self.get_queryset().filter(pdf_template_id=pdf_template_id).exclude(id__in=pdf_template_configuration_variable_ids).delete()
 
+    def pdf_template_configuration_variables_by_pdf_template_configuration_id(self, pdf_template_configuration_id):
+        return self.get_queryset().filter(pdf_template_id=pdf_template_configuration_id)
+
+    def field_ids_by_pdf_template_configuration_id(self, pdf_template_configuration_id):
+        return self.get_queryset().filter(pdf_template_id=pdf_template_configuration_id).values_list('field_id', flat=True)
+
     def update_or_create(self, field_id, pdf_template_id, pdf_template_configuration_variable_id=None):
         instance, __ = self.get_queryset().update_or_create(
             id=pdf_template_configuration_variable_id,

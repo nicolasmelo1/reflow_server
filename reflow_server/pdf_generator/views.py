@@ -6,7 +6,8 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.pdf_generator.serializers import PDFTemplateConfigurationSerializer, FormFieldOptionsSerializer
+from reflow_server.pdf_generator.serializers import PDFTemplateConfigurationSerializer, FormFieldOptionsSerializer, \
+    FieldValueSerializer
 from reflow_server.pdf_generator.models import PDFTemplateConfiguration
 from reflow_server.pdf_generator.services import PDFGeneratorService
 
@@ -57,7 +58,8 @@ class PDFTemplateConfigurationEditView(APIView):
 
     Methods:
         PUT: Updates a pdf template configuration id data.
-        DELETE: Removes a pdf template configuration id data.
+        DELETE: Removes a pdf template configuration id data. It's important to notice that when we remove a pdf we also want
+                to remove the PDF template it is bound to.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
@@ -77,6 +79,13 @@ class PDFTemplateConfigurationEditView(APIView):
                 'error': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, company_id, form, pdf_template_configuration_id):
+        pdf_generator_service = PDFGeneratorService(request.user.id, company_id, form)
+        pdf_generator_service.remove_pdf_template(pdf_template_configuration_id)
+        return Response({
+            'status': 'ok'
+        }, status=status.HTTP_200_OK)
+
 
 class PDFTemplatesFieldOptionsView(APIView):
     """
@@ -92,6 +101,17 @@ class PDFTemplatesFieldOptionsView(APIView):
         pdf_generator_service = PDFGeneratorService(request.user.id, company_id, form)
         instances = pdf_generator_service.form_options_to_use_on_template
         serializer = FormFieldOptionsSerializer(instances, many=True)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    
+class PDFTemplatesValuesOptionsView(APIView):
+    def get(self, request, company_id, form, pdf_template_configuration_id, dynamic_form_id):
+        pdf_generator_service = PDFGeneratorService(request.user.id, company_id, form)
+        instances = pdf_generator_service.field_values_to_use_on_template(pdf_template_configuration_id, dynamic_form_id)
+        serializer = FieldValueSerializer(instances, many=True)
         return Response({
             'status': 'ok',
             'data': serializer.data

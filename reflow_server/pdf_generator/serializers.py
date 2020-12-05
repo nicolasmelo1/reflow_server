@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from reflow_server.core.relations import ValueField
+from reflow_server.data.models import FormValue
 from reflow_server.formulary.models import Form
 from reflow_server.pdf_generator.models import PDFTemplateConfiguration
 from reflow_server.pdf_generator.relations import PDFTemplateConfigurationVariablesRelation, \
@@ -44,6 +46,7 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
                         content.get('latex_equation', None),
                         content.get('marker_color', None),
                         content.get('text_color', None),
+                        content.get('text_size', 12),
                         content.get('link', None)
                     )
         #PDF variable
@@ -71,3 +74,12 @@ class FormFieldOptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Form
         fields = ('id', 'label_name', 'form_name', 'form_fields')
+
+
+class FieldValueSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
+    value = ValueField(source='*')
+
+    class Meta:
+        model = FormValue
+        fields = ('id', 'value', 'field_id')

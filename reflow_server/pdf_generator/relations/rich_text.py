@@ -41,13 +41,14 @@ class ContentRelation(serializers.ModelSerializer):
     latex_equation = serializers.CharField(allow_null=True, allow_blank=True)
     marker_color = serializers.CharField(allow_null=True, allow_blank=True)
     text_color = serializers.CharField(allow_null=True, allow_blank=True)
+    text_size = serializers.IntegerField(default=12)
     link = serializers.CharField(allow_null=True, allow_blank=True)
 
     class Meta:
         model = TextContent
         fields = ('order', 'uuid', 'text', 'is_bold', 'is_italic', 'is_underline', 'is_code', 
                   'is_custom', 'custom_value', 'latex_equation', 'marker_color', 'text_color', 
-                  'link')
+                  'text_size', 'link')
 
 
 class BlockListSerializer(serializers.ListSerializer):
