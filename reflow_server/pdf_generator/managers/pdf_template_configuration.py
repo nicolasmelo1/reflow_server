@@ -10,7 +10,10 @@ class PDFTemplateConfigurationPDFGeneratorManager(models.Manager):
         return self.get_queryset().filter(id=pdf_template_configuration_id, company_id=company_id, form_id=form_id)
 
     def pdf_template_configurations_by_user_id_company_id_and_form_name(self, user_id, company_id, form_name):
-        return self.get_queryset().filter(user_id=user_id, company_id=company_id, form__form_name=form_name)
+        return self.pdf_template_configurations_by_user_id_company_id_and_form_name(company_id, form_name).filter(user_id=user_id)
+
+    def pdf_template_configurations_by_company_id_and_form_name(self, company_id, form_name):
+        return self.get_queryset().filter(company_id=company_id, form__form_name=form_name)
 
     def pdf_template_configuration_by_user_id_company_id_and_form_name_and_pdf_template_configuration_id(self, user_id, company_id, form_name, pdf_template_configuration_id):
         return self.pdf_template_configurations_by_user_id_company_id_and_form_name(user_id, company_id, form_name).filter(id=pdf_template_configuration_id).first()

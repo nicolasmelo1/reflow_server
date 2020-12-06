@@ -116,3 +116,16 @@ class PDFTemplatesValuesOptionsView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+
+
+class PDFTemplatesForReaderView(APIView):
+    def get(self, request, company_id, form):
+        instances = PDFTemplateConfiguration.pdf_generator_.pdf_template_configurations_by_company_id_and_form_name(
+            company_id, 
+            form
+        )
+        serializer = PDFTemplateConfigurationSerializer(instances, many=True)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
