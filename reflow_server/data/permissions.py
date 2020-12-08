@@ -35,7 +35,6 @@ class DataDefaultPermission:
                     self.company_id,
                     self.form
                 )
-            
             if dynamic_form and form:
                 if not DataPermissionsService.is_valid(request.request.user.id, self.company_id, form.id, dynamic_form.id):
                     raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)
