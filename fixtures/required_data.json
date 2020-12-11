@@ -289,7 +289,7 @@
             "name": "per_chart_user",
             "charge_group_name": "per_chart",
             "value": "1.00",
-            "default_quantity": 1,
+            "default_quantity": 2,
             "order": 3
         }
     },
@@ -302,7 +302,7 @@
             "name": "per_chart_company",
             "charge_group_name": "per_chart",
             "value": "1.00",
-            "default_quantity": 1,
+            "default_quantity": 2,
             "order": 4
         }
     },

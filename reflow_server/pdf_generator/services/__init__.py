@@ -14,7 +14,7 @@ class PDFGeneratorService:
     def __init__(self, user_id, company_id, form_name):
         self.user_id = user_id
         self.company_id = company_id
-        self.form = Form.pdf_generator_.formulary_id_by_company_id_and_form_name(company_id, form_name).first()
+        self.form = Form.pdf_generator_.formulary_by_company_id_and_form_name(company_id, form_name)
 
     @property
     def form_options_to_use_on_template(self):

@@ -24,7 +24,6 @@ class PDFTemplateConfigurationRichTextRelation(serializers.ModelSerializer):
 class FieldOptionListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         data = Field.pdf_generator_.fields_by_main_form_id(data.core_filters['form'].id)
-        #self.fields['rich_text_depends_on_blocks'] = BlockRelation(data, many=True)      
         return super(FieldOptionListSerializer, self).to_representation(data) 
 
 class FieldOptionRelation(serializers.ModelSerializer):

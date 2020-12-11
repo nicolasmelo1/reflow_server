@@ -108,6 +108,17 @@ class PDFTemplatesFieldOptionsView(APIView):
 
     
 class PDFTemplatesValuesOptionsView(APIView):
+    """
+    Responsible for retrieving the data of a formulary by it's dynamic_form_id and the pdf_template_configuration_id.
+    What we do is first get the variables of the template, with this we can save some resources when retriving
+    the data.
+    Then what this does is get the variables data of a template. (variables data is the actual data of the fields
+    selected as variables from the dynamic_form_id) 
+
+    Methods:
+        GET: Returns an array of objects, each object is a FormValue instance that holds the value for each field_id
+        that is used as variable.
+    """
     def get(self, request, company_id, form, pdf_template_configuration_id, dynamic_form_id):
         pdf_generator_service = PDFGeneratorService(request.user.id, company_id, form)
         instances = pdf_generator_service.field_values_to_use_on_template(pdf_template_configuration_id, dynamic_form_id)
@@ -119,6 +130,14 @@ class PDFTemplatesValuesOptionsView(APIView):
 
 
 class PDFTemplatesForReaderView(APIView):
+    """
+    Responsible for retrieving a list of templates from the formulary. It's important to understand
+    that the templates retrieved are from the company. And not from the user. All of the templates, are
+    for the hole company, they are never private.
+
+    Methods:
+        GET: Returns a list of templates bounded to a form and from a single company_id
+    """
     def get(self, request, company_id, form):
         instances = PDFTemplateConfiguration.pdf_generator_.pdf_template_configurations_by_company_id_and_form_name(
             company_id, 

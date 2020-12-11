@@ -12,13 +12,36 @@ from reflow_server.rich_text.services import ordered_list_from_serializer_data_f
 
 class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
     """
-    Gets the configuration of the template
+    The templates serializer, this holds the data needed for rendering pdf templates.
+    Two parts are important:
+    - The rich text data, which is not obligatory to create a pdf template.
+    - The template configuration variables, that holds the field_ids to use as variables inside
+    of the template.
+
+    This is used when editing a template but also when building the template for download.
     """
     id = serializers.IntegerField(allow_null=True)
     template_configuration_variables = PDFTemplateConfigurationVariablesRelation(many=True)
     pdf_template_rich_text = PDFTemplateConfigurationRichTextRelation()
 
     def save(self, user_id, company_id, form_name):
+        """
+        Be aware that we first need to convert the rich text data to a data used by the RichText service
+        and second we need to convert the PDFVariables to a object that will be used by the PDFTemplateConfigurationService.
+
+        Args:
+            user_id (int): The id of the UserExtended instance that is saving this template. Each template
+                           is bounded to a user, and him, and only him can edit this pdf template that he is creating.
+            company_id (int): When retrieving the templates. We retrieve the templates created by the hole company, and not only
+                              the user. This is different on how dashboards, notifications and kanban works. You don't set the 
+                              templates to public, but they are ALWAYS public here.
+            form_name (str): From which form is this template. Obviously each template is bounded
+                             to a form so we can use the fields of this form as variables for our template.
+
+        Returns:
+            reflow_server.pdf_generator.models.PDFTemplateConfiguration: The newly created or updated PDFTemplateConfiguration instance.
+            from the database.
+        """
         pdf_generator_service = PDFGeneratorService(user_id, company_id, form_name)
         page_data = None
 
@@ -69,6 +92,10 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
 
 
 class FormFieldOptionsSerializer(serializers.ModelSerializer):
+    """
+    This is the serializer used for showing the fields that you can use as variables
+    in the PDFTemplate. The fields are bounded to its formularies.
+    """
     form_fields = FieldOptionRelation(many=True)
 
     class Meta:
@@ -77,6 +104,10 @@ class FormFieldOptionsSerializer(serializers.ModelSerializer):
 
 
 class FieldValueSerializer(serializers.ModelSerializer):
+    """
+    Similar to FormFieldOptionsSerializer, except it is for showing the data values
+    of the fields of a form_id.
+    """
     id = serializers.IntegerField(required=False, allow_null=True)
     value = ValueField(source='*')
 
