@@ -4,8 +4,9 @@ from django.db import migrations, models
 def migrate_company_to_theme(apps, schema_editor):
     Theme = apps.get_model('theme', 'Theme')
     for theme in Theme.objects.all():
-        theme.company = theme.user.company
-        theme.save()
+        if hasattr(theme,'company'):
+            theme.company = theme.user.company
+            theme.save()
 
 
 class Migration(migrations.Migration):
