@@ -132,7 +132,7 @@ class ServerConfig(Config):
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
             'CONFIG': {
-                'host': os.environ.get('CHANNEL_REDIS_HOST', None),
+                'hosts': [os.environ.get('CHANNELS_REDIS_HOST', None), int(os.environ.get('CHANNELS_REDIS_PORT', None)) if os.environ.get('CHANNELS_REDIS_PORT', None) else None],
             },
         }
     }
