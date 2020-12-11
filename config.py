@@ -130,9 +130,9 @@ class ServerConfig(Config):
 
     CHANNEL_LAYERS = {
         'default': {
-            'BACKEND': 'channels_rabbitmq.core.RabbitmqChannelLayer',
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
             'CONFIG': {
-                'host': os.environ.get('CHANNEL_RABBITMQ_HOST', None),
+                'host': os.environ.get('CHANNEL_REDIS_HOST', None),
             },
         }
     }
