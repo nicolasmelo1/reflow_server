@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AnonymousUser
 
 from channels.db import database_sync_to_async
+from channels.middleware import BaseMiddleware
 
 from reflow_server.authentication.models import UserExtended
 from reflow_server.authentication.utils.jwt_auth import JWT
@@ -22,6 +23,11 @@ class AuthJWTMiddleware:
     It's important to understand that we handle authentication on the Django side, using custom middleware,
     not on DRF side. DRF can be quite complicated and create more code than neeeded. Following some default 
     django guidelines is a lot easier.
+
+    This AUTHENTICATE, and DOES NOT AUTHORIZATE. It means that with this we can append the user to the request.
+    We do not block him here from going further in the request.
+    The AUTHORIZATION is made through custom decorators using permissions. Check reflow_server.core.permissions
+    for further explanation on permissions.
     """
     def __init__(self, get_response):
         self.get_response = get_response
@@ -40,8 +46,16 @@ class AuthJWTMiddleware:
         response = self.get_response(request)
         return response
 
-
+"""
 class AuthWebsocketJWTMiddleware:
+    def __init__(self, inner):
+        self.inner = inner
+
+    def __call__(self, scope, receive, send):
+        return AuthWebsocketJWTMiddlewareInstance(scope, self)
+"""
+
+class AuthWebsocketJWTMiddleware(BaseMiddleware):
     """
     Okay, so this middleware is not straight forward, and have some undocummented
     really new features because of django 3.0.
@@ -57,22 +71,11 @@ class AuthWebsocketJWTMiddleware:
     def __init__(self, inner):
         self.inner = inner
 
-    def __call__(self, scope):
-        return AuthWebsocketJWTMiddlewareInstance(scope, self)
-
-
-class AuthWebsocketJWTMiddlewareInstance:
-    def __init__(self, scope, middleware):
-        self.middleware = middleware
-        self.scope = dict(scope)
-        self.inner = self.middleware.inner
-
-    async def __call__(self, receive, send):
+    async def __call__(self, scope, receive, send):
         user = AnonymousUser()
         jwt = JWT()
-        jwt.extract_jwt_from_scope(self.scope)
+        jwt.extract_jwt_from_scope(scope)
         if jwt.is_valid():
             payload = jwt.data
             user = await get_user(payload['id'])
-        inner = self.inner(dict(self.scope, user=user))
-        return await inner(receive, send) 
+        return await self.inner(dict(scope, user=user), receive, send)

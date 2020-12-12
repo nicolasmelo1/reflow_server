@@ -1,6 +1,6 @@
 from django.conf.urls import re_path, include
 
-from reflow_server.core.utils.routes import register_attachment_url
+from reflow_server.data.services.routes import register_attachment_url
 from reflow_server.core.decorators import validate_billing, authorize_external_response
 from reflow_server.data.views import FormularyDataView, FormularyDataEditView, DataView, DownloadFileView
 

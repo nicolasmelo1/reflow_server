@@ -1,7 +1,7 @@
 from django.conf.urls import re_path, include
 from django.conf import settings
 
-from reflow_server.core.utils.routes import register_admin_only_url
+from reflow_server.authentication.services.routes import register_admin_only_url
 from reflow_server.core.decorators import permission_required
 from reflow_server.billing.views import BillingSettingsView, TotalsView, \
     VindiWebhookExternalView, AddressOptionsView, CreditCardView

@@ -16,7 +16,6 @@ Including another URLconf
 from django.conf.urls import re_path
 
 from reflow_server.core.views import HealthCheckView, TypesView
-from reflow_server.core.utils.routes import register_admin_only_url
 
 urlpatterns = [
     re_path(r'^healthcheck/', HealthCheckView.as_view(), name='core_app_healthcheck'),

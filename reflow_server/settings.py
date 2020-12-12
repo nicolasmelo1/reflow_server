@@ -43,9 +43,7 @@ DEBUG = configuration.DEBUG
 
 ALLOWED_HOSTS = configuration.ALLOWED_HOSTS
 
-
 # Application definition
-
 INSTALLED_APPS = [
     'channels',
     'rest_framework',
@@ -102,7 +100,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'reflow_server.wsgi.application'
-ASGI_APPLICATION = 'reflow_server.routing.application'
+ASGI_APPLICATION = 'reflow_server.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -238,7 +236,8 @@ PERMISSIONS = {
     'BILLING': [
         'reflow_server.billing.permissions.BillingBillingPermission',
         'reflow_server.data.permissions.FileBillingPermission',
-        'reflow_server.dashboard.permissions.ChartsBillingPermission'
+        'reflow_server.dashboard.permissions.ChartsBillingPermission',
+        'reflow_server.pdf_generator.permissions.PDFGeneratorBillingPermission'
     ]
 }
 
@@ -305,7 +304,7 @@ AUTH_BEARER_PASSWORD = configuration.AUTH_BEARER_PASSWORD
 EXTERNAL_APPS = configuration.APPS
 
 # BILLING CONFIGURATION
-FREE_TRIAL_DAYS = 30
+FREE_TRIAL_DAYS = 15
 
 # VINDI CONFIG
 # check reflow_server.billing for explanation, we actually use vindi as our payment gateway on reflow

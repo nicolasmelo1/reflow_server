@@ -54,7 +54,7 @@ class BillingService:
             list(reflow_server.billing.models.CurrentCompanyCharge): This data is a list of the instances of the newly created CurrentCompanyCharge.
                                                                      each item on the list represents each row inserted on the database.
         """
-        charge_value_names = ['per_gb']
+        charge_value_names = ['per_gb', 'per_pdf_download']
 
         CompanyBilling.objects.create(company_id=self.company_id)
 

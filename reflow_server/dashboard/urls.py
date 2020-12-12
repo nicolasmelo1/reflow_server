@@ -1,6 +1,6 @@
 from django.conf.urls import re_path, include
 
-from reflow_server.core.utils.routes import register_dashbaord_settings_url
+from reflow_server.dashboard.services.routes import register_dashbaord_settings_url
 from reflow_server.core.decorators import validate_billing
 from reflow_server.dashboard.views import DashboardChartConfigurationView, DashboardChartConfigurationEditView, \
     DashboardFieldsView, DashboardChartsView, DashboardDataView

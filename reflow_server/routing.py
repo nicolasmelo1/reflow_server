@@ -1,13 +1,7 @@
-from channels.routing import ProtocolTypeRouter, URLRouter
 from django.urls import re_path
-from reflow_server.authentication.middleware import AuthWebsocketJWTMiddleware
+
 from reflow_server.core.consumers import UserConsumer
 
-application = ProtocolTypeRouter({
-    'websocket': AuthWebsocketJWTMiddleware(
-        URLRouter([
-            re_path(r'^websocket/', UserConsumer)
-        ])
-    )
-})
-
+websocket_urlpatterns = [
+    re_path(r'^websocket/', UserConsumer.as_asgi()),
+]

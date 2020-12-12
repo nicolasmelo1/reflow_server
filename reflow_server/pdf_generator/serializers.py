@@ -5,7 +5,8 @@ from reflow_server.data.models import FormValue
 from reflow_server.formulary.models import Form
 from reflow_server.pdf_generator.models import PDFTemplateConfiguration
 from reflow_server.pdf_generator.relations import PDFTemplateConfigurationVariablesRelation, \
-    PDFTemplateConfigurationRichTextRelation, FieldOptionRelation
+    FieldOptionRelation
+from reflow_server.pdf_generator.relations.rich_text import PageRelation
 from reflow_server.pdf_generator.services import PDFGeneratorService, PDFVariablesData
 from reflow_server.rich_text.services import ordered_list_from_serializer_data_for_page_data, PageData
 
@@ -22,7 +23,7 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
     """
     id = serializers.IntegerField(allow_null=True)
     template_configuration_variables = PDFTemplateConfigurationVariablesRelation(many=True)
-    pdf_template_rich_text = PDFTemplateConfigurationRichTextRelation()
+    rich_text_page = PageRelation()
 
     def save(self, user_id, company_id, form_name):
         """
@@ -46,9 +47,9 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
         page_data = None
 
         # just adds the rich text data to a reflow_server.rich_text.services.data.PageData object so we can use it further for saving.
-        if self.validated_data.get('pdf_template_rich_text', {}).get('rich_text', None): 
-            page_data = PageData(page_id=self.validated_data.get('pdf_template_rich_text', {}).get('rich_text', {}).get('id', None))
-            blocks_to_add = ordered_list_from_serializer_data_for_page_data(self.validated_data.get('pdf_template_rich_text', {}).get('rich_text'))
+        if self.validated_data.get('rich_text_page', None): 
+            page_data = PageData(page_id=self.validated_data.get('rich_text_page', {}).get('id', None))
+            blocks_to_add = ordered_list_from_serializer_data_for_page_data(self.validated_data.get('rich_text_page'))
         
             for block in blocks_to_add:
                 block_data = page_data.add_block(block['data']['uuid'], block['data']['block_type'].id, block['depends_on_uuid'])
@@ -88,7 +89,7 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PDFTemplateConfiguration
-        fields = ('id', 'name', 'template_configuration_variables', 'pdf_template_rich_text')
+        fields = ('id', 'name', 'template_configuration_variables', 'rich_text_page')
 
 
 class FormFieldOptionsSerializer(serializers.ModelSerializer):

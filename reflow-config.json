@@ -50,8 +50,6 @@
     }
   },
   "channels": {
-    "backend": "channels_redis.core.RedisChannelLayer",
-    "host": "redis",
-    "port": 6379
+    "backend": "channels.layers.InMemoryChannelLayer"
   }
 }

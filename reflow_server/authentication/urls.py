@@ -1,6 +1,6 @@
 from django.conf.urls import re_path, include
 
-from reflow_server.core.utils.routes import register_admin_only_url
+from reflow_server.authentication.services.routes import register_admin_only_url
 from reflow_server.core.decorators import jwt_required, validate_billing, permission_required
 from reflow_server.authentication.views import LoginView, TestTokenView, ForgotPasswordView, OnboardingView, \
     RefreshTokenView, ChangePasswordView, CompanyView, UserView, UserVisualizationTypeView

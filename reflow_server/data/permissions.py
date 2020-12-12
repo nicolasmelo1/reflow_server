@@ -51,7 +51,7 @@ class FileBillingPermission:
         self.company_id = company_id
 
     def __call__(self, request):
-        from reflow_server.core.utils.routes import attachment_url_names
+        from reflow_server.data.services.routes import attachment_url_names
 
         if request.url_name in attachment_url_names and request.method in ['PUT', 'POST']:
             if not DataPermissionsService.is_valid_file_upload(self.company_id, request.files):

@@ -31,7 +31,7 @@ class ChartsBillingPermission:
         self.dashboard_configuration_id = dashboard_configuration_id
 
     def __call__(self, request):
-        from reflow_server.core.utils.routes import dashboard_settings_url_names
+        from reflow_server.dashboard.services.routes import dashboard_settings_url_names
 
         if request.url_name in dashboard_settings_url_names and request.method in ['PUT', 'POST']:
 

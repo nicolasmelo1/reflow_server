@@ -6,6 +6,21 @@ class PDFTemplateConfigurationPDFGeneratorManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
+    def rich_text_page_id_by_pdf_template_configuration_id(self, pdf_template_configuration_id):
+        """
+        It's important to understand that it's not obligatory to use the RichText to create pdf templates.
+        At least for the long run it will not be obligatory. 
+        So this function is responsible for retriving the rich_te_idxt_page that a pdf_template_configuration_id 
+        is bounded to
+
+        Args:
+            pdf_template_configuration_id (int): A reflow_server.pdf_generator.models.PDFTemplateConfiguration instance id
+
+        Returns:
+            int: Returns a reflow_server.rich_text.models.TextPage instance id.
+        """
+        return self.get_queryset().filter(id=pdf_template_configuration_id).values_list('rich_text_page_id', flat=True).first()
+
     def pdf_template_configurations_by_user_id_company_id_and_form_name(self, user_id, company_id, form_name):
         """
         Gets a queryset of PDFTemplateConfiguration instances from a user_id, a company_id and that is bounded
@@ -68,7 +83,7 @@ class PDFTemplateConfigurationPDFGeneratorManager(models.Manager):
         """
         return self.get_queryset().filter(id=pdf_template_configuration_id, company_id=company_id, user_id=user_id).delete()
 
-    def update_or_create_pdf_template_configuration(self, name, company_id, user_id, form_id, pdf_template_configuration_id=None):
+    def update_or_create_pdf_template_configuration(self, name, company_id, user_id, form_id, pdf_template_configuration_id=None, rich_text_page_id=None):
         """
         Updates or creates a PDFTemplateConfiguration. If the pdf_template_configuration_id parameter is None we 
         will create a new template, otherwise we will update (if the id exists in the database.)
@@ -90,7 +105,8 @@ class PDFTemplateConfigurationPDFGeneratorManager(models.Manager):
                 'company_id': company_id,
                 'user_id': user_id,
                 'form_id': form_id,
-                'name': name
+                'name': name,
+                'rich_text_page_id': rich_text_page_id
             }
         )
         

@@ -57,10 +57,7 @@ class DevelopmentConfig(Config):
 
     CHANNEL_LAYERS = {
         'default': {
-            'BACKEND': config_file['channels']['backend'],
-            'CONFIG': {
-                'hosts': [(config_file['channels']['host'], config_file['channels']['port'])],
-            },
+            'BACKEND': config_file['channels']['backend']
         }
     }
 

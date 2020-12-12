@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFTemplateConfigurationRichText, \
+from reflow_server.pdf_generator.models import PDFTemplateConfiguration, \
     PDFTemplateConfigurationVariables
 from reflow_server.pdf_generator.services.data import PDFVariablesData
 from reflow_server.data.models import FormValue
@@ -52,7 +52,7 @@ class PDFGeneratorService:
         Returns:
             int: The number of PDFTemplateConfiguration instances removed, usually just one.
         """
-        rich_text_page_id = PDFTemplateConfigurationRichText.pdf_generator_.rich_text_page_id_by_pdf_template_configuration_id(pdf_template_id)
+        rich_text_page_id = PDFTemplateConfiguration.pdf_generator_.rich_text_page_id_by_pdf_template_configuration_id(pdf_template_id)
 
         if rich_text_page_id:
             TextPage.pdf_generator_.remove_text_page_by_rich_text_page_id_company_id_and_user_id(
@@ -67,13 +67,12 @@ class PDFGeneratorService:
     def save_pdf_template(self, name, pdf_variables_data, page_data=None, pdf_template_id=None):
         """
         This save can be quite tricky but it's not that difficult to grasp. 
-        - First we create the PDFTemplateConfiguration instance so we have an id to bound to stuff
+        - First we create the TextPage if the page_data parameter is defined and not None.
+        - Then we create the PDFTemplateConfiguration instance that we bound with the page if needed.
         - Then we save all of the variables (we save them so we can increase the performance when 
         retrieving the data needed for the reader, also the pdf functionality can have almost full control
         of the data flow without needing and depending much on the RichText)
-        - After inserting the variables we removed the unused ones.
-        - last but not least we create the RichText and merge the PDFTemplateConfiguration and the RichText 
-        together in the PDFTemplateConfigurationRichText model.
+        - After inserting the variables we remove the unused ones.
 
         (RichText is not obligatory because we want to offer some integrations so the users will not be locked on creating
         PDFTemplates using ONLY our RichText)
@@ -91,8 +90,14 @@ class PDFGeneratorService:
         Returns:
             reflow_server.pdf_generator.models.PDFTemplateConfiguration: the newly created PDFTemplateConfiguration instance.
         """
+        rich_text_page_id = None
+        if page_data:
+            rich_text_service = RichTextService(self.company_id, self.user_id)
+            rich_text_page_instance = rich_text_service.save_rich_text(page_data)
+            rich_text_page_id = rich_text_page_instance.id
+            
         pdt_template_configuration_instance = PDFTemplateConfiguration.pdf_generator_.update_or_create_pdf_template_configuration(
-            name, self.company_id, self.user_id, self.form.id, pdf_template_id
+            name, self.company_id, self.user_id, self.form.id, pdf_template_id, rich_text_page_id
         )
 
         # adds the variables and deletes the removed variables.
@@ -105,15 +110,7 @@ class PDFGeneratorService:
 
         PDFTemplateConfigurationVariables.pdf_generator_.delete_pdf_template_configuration_variables_from_pdf_template_id_excluding_variable_ids(
             pdt_template_configuration_instance.id, pdf_template_configuration_variable_ids
-        )
-
-        if page_data:
-            rich_text_service = RichTextService(self.company_id, self.user_id)
-            rich_text_page_instance = rich_text_service.save_rich_text(page_data)
-            PDFTemplateConfigurationRichText.pdf_generator_.update_or_create(
-                pdt_template_configuration_instance.id, rich_text_page_instance.id
-            )
-            
+        )   
 
         return pdt_template_configuration_instance
 

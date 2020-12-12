@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.pdf_generator.serializers import PDFTemplateConfigurationSerializer, FormFieldOptionsSerializer, \
     FieldValueSerializer
-from reflow_server.pdf_generator.models import PDFTemplateConfiguration
+from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFGenerated
 from reflow_server.pdf_generator.services import PDFGeneratorService
 
 
@@ -147,4 +147,24 @@ class PDFTemplatesForReaderView(APIView):
         return Response({
             'status': 'ok',
             'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
+
+class PDFGenerateView(APIView):
+    """
+    This view is only for billing, we check if the user can download pdf template before downloading.
+
+    Methods:
+        GET: Checks if the user can download or not the PDF template. This View is reponsible just for saving
+        what template_id was used for downloading the pdf, on what company and what user made the download. This way
+        we can control and analyse the downloads.
+    """
+    def get(self, request, company_id, form, pdf_template_configuration_id):
+        PDFGenerated.pdf_generator_.create(
+            company_id,
+            request.user.id,
+            pdf_template_configuration_id
+        )
+        return Response({
+            'status': 'ok'
         }, status=status.HTTP_200_OK)

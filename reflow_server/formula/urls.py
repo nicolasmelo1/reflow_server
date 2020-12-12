@@ -1,7 +1,7 @@
 from django.conf.urls import re_path
 
 from reflow_server.core.decorators import validate_billing
-from reflow_server.core.utils.routes import register_admin_only_url
+from reflow_server.authentication.services.routes import register_admin_only_url
 from reflow_server.formula.views import TestFormulaView
 
 adminonly_urlpatterns = [

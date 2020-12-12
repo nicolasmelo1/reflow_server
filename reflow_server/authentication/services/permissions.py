@@ -18,7 +18,7 @@ class AuthenticationPermissionsService:
         """
         Validates if the user is trying to access an admin only path
         """
-        from reflow_server.core.utils.routes import admin_only_url_names
+        from reflow_server.authentication.services.routes import admin_only_url_names
 
         if url_name in admin_only_url_names:
             if user.profile.name == 'admin':

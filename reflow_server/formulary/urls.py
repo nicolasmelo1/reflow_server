@@ -1,6 +1,6 @@
 from django.conf.urls import re_path, include
 
-from reflow_server.core.utils.routes import register_admin_only_url
+from reflow_server.authentication.services.routes import register_admin_only_url
 from reflow_server.core.decorators import validate_billing, authorize_external_response
 from reflow_server.formulary.views import GetFormularyView, GetGroupsView, UserFieldTypeOptionsView, \
     FormFieldTypeOptionsView
