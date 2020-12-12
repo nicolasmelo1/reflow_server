@@ -11,18 +11,18 @@ https://docs.djangoproject.com/en/3.1/howto/deployment/asgi/
 from django import setup
 from django.core.asgi import get_asgi_application
 
-from channels.routing import get_default_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 
-from reflow_server.authentication.middleware import AuthWebsocketJWTMiddleware
-
 import os
-from .routing import websocket_urlpatterns
 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "reflow_server.settings")
 
 setup()
+
+from reflow_server.authentication.middleware import AuthWebsocketJWTMiddleware
+
+from .routing import websocket_urlpatterns
 
 # Read here for reference: https://channels.readthedocs.io/en/stable/tutorial/part_2.html#write-your-first-consumer
 application = ProtocolTypeRouter({
