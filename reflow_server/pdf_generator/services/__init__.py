@@ -139,15 +139,16 @@ class PDFGeneratorService:
         forms_that_is_connected_to_form = []
         pdf_template_configuration_variables = PDFTemplateConfigurationVariables.pdf_generator_.pdf_template_configuration_variables_by_pdf_template_configuration_id(pdf_template_configuration_id)
         for pdf_template_configuration_variable in pdf_template_configuration_variables:
-            if pdf_template_configuration_variable.field.form.depends_on_id != self.form.id:
-                forms_that_is_connected_to_form.append(pdf_template_configuration_variable.field.form.depends_on_id)
+            if pdf_template_configuration_variable.field.form.depends_on_id != self.form.id and \
+                pdf_template_configuration_variable.field.form.depends_on_id not in forms_that_is_connected_to_form:
+                    forms_that_is_connected_to_form.append(pdf_template_configuration_variable.field.form.depends_on_id)
             field_ids.append(pdf_template_configuration_variable.field_id)
-
+            
         form_values = FormValue.pdf_generator_.form_values_by_field_ids_and_form_data_id_and_forms_connected_to(field_ids=field_ids, form_data_id=form_data_id, forms_connected_to=forms_that_is_connected_to_form)
         form_values_to_use = form_values_to_use + list(form_values)
         for form_value in form_values:
             # if the field_id retrieved is not in the field_ids list it is probably a connection field.
-            if form_value.field_id not in field_ids and form_value.field.form_field_as_option_id:
+            if form_value.field_type.type == 'form':
                 form_values = FormValue.pdf_generator_.form_values_by_field_ids_and_form_data_id_and_forms_connected_to(field_ids=field_ids, form_data_id=int(form_value.value))
                 form_values_to_use = form_values_to_use + list(form_values)
 
