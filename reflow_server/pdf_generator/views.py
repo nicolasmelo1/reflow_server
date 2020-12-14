@@ -99,8 +99,8 @@ class PDFTemplatesFieldOptionsView(APIView):
     """
     def get(self, request, company_id, form):
         pdf_generator_service = PDFGeneratorService(request.user.id, company_id, form)
-        instances = pdf_generator_service.form_options_to_use_on_template
-        serializer = FormFieldOptionsSerializer(instances, many=True)
+        instances, form_from_connected_field_helper = pdf_generator_service.form_options_to_use_on_template
+        serializer = FormFieldOptionsSerializer(instances, many=True, context={'form_from_connected_field_helper': form_from_connected_field_helper})
         return Response({
             'status': 'ok',
             'data': serializer.data
@@ -121,8 +121,8 @@ class PDFTemplatesValuesOptionsView(APIView):
     """
     def get(self, request, company_id, form, pdf_template_configuration_id, dynamic_form_id):
         pdf_generator_service = PDFGeneratorService(request.user.id, company_id, form)
-        instances = pdf_generator_service.field_values_to_use_on_template(pdf_template_configuration_id, dynamic_form_id)
-        serializer = FieldValueSerializer(instances, many=True)
+        instances, form_value_from_connected_field_helper = pdf_generator_service.field_values_to_use_on_template(pdf_template_configuration_id, dynamic_form_id)
+        serializer = FieldValueSerializer(instances, many=True, context={'form_value_from_connected_field_helper': form_value_from_connected_field_helper})
         return Response({
             'status': 'ok',
             'data': serializer.data

@@ -10,6 +10,8 @@ from reflow_server.pdf_generator.relations.rich_text import PageRelation
 from reflow_server.pdf_generator.services import PDFGeneratorService, PDFVariablesData
 from reflow_server.rich_text.services import ordered_list_from_serializer_data_for_page_data, PageData
 
+import re
+
 
 class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
     """
@@ -43,6 +45,7 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
             reflow_server.pdf_generator.models.PDFTemplateConfiguration: The newly created or updated PDFTemplateConfiguration instance.
             from the database.
         """
+        pdf_variables_data = PDFVariablesData(self.instance.id if self.instance else None)
         pdf_generator_service = PDFGeneratorService(user_id, company_id, form_name)
         page_data = None
 
@@ -58,6 +61,12 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
                     block_data.append_text_block_type_data(block['data']['text_option']['alignment_type'])
                 
                 for content in block['data'].get('rich_text_block_contents', []):
+                    # Adds the variables here, on front end it was causing problems
+                    if content.get('is_custom', False) and re.search('fieldVariable-\d+', content.get('custom_value', '')):
+                        variable_field_id = re.match('fieldVariable-\d+', content.get('custom_value', '')).group(0)
+                        variable_field_id = int(variable_field_id.replace('fieldVariable-', ''))
+                        pdf_variables_data.add_variable(variable_field_id)
+
                     block_data.add_content(
                         content['uuid'], 
                         content.get('text', ''), 
@@ -73,11 +82,6 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
                         content.get('text_size', 12),
                         content.get('link', None)
                     )
-        #PDF variable
-        pdf_variables_data = PDFVariablesData()
-        for variable in self.validated_data.get('template_configuration_variables', []):
-            if variable.get('field', None):
-                pdf_variables_data.add_variable(variable.get('id', None), variable['field'].id)
 
         return pdf_generator_service.save_pdf_template(
             name=self.validated_data['name'], 
@@ -98,10 +102,17 @@ class FormFieldOptionsSerializer(serializers.ModelSerializer):
     in the PDFTemplate. The fields are bounded to its formularies.
     """
     form_fields = FieldOptionRelation(many=True)
+    form_from_connected_field = serializers.SerializerMethodField()
+
+    def get_form_from_connected_field(self, obj):
+        if self.context['form_from_connected_field_helper'].get(obj.id, None):
+            return FieldOptionRelation(self.context['form_from_connected_field_helper'][obj.id]).data
+        else:
+            return None
 
     class Meta:
         model = Form
-        fields = ('id', 'label_name', 'form_name', 'form_fields')
+        fields = ('id', 'label_name', 'form_name', 'form_fields', 'form_from_connected_field')
 
 
 class FieldValueSerializer(serializers.ModelSerializer):
@@ -111,7 +122,14 @@ class FieldValueSerializer(serializers.ModelSerializer):
     """
     id = serializers.IntegerField(required=False, allow_null=True)
     value = ValueField(source='*')
+    form_value_from_connected_field = serializers.SerializerMethodField()
+
+    def get_form_value_from_connected_field(self, obj):
+        if self.context['form_value_from_connected_field_helper'].get(obj.id, None):
+            return FieldOptionRelation(self.context['form_value_from_connected_field_helper'][obj.id]).data
+        else:
+            return None
 
     class Meta:
         model = FormValue
-        fields = ('id', 'value', 'field_id')
+        fields = ('id', 'value', 'field_id', 'form_value_from_connected_field')

@@ -28,17 +28,24 @@ class PDFGeneratorService:
         as you might think to prevent recursion from happening. If we hadn't set a break to our platform it would explode. (not literally)
 
         Returns:
-            list(reflow_server.formulary.models.Form): List of Form instances so we can use it in our serializers.
+            tuple(
+                list(reflow_server.formulary.models.Form),
+                {
+                    reflow_server.formulary.models.Form.id: reflow_server.formulary.models.Field
+                }
+            ): List of Form instances so we can use it in our serializers.
         """
+        form_from_connected_field_helper = {}
         form_options = [self.form]
         formulary_service = FormularyService(self.user_id, self.company_id)
         form_ids_the_user_has_access_to = formulary_service.formulary_ids_the_user_has_access_to
-        form_fields = Field.pdf_generator_.form_fields_by_main_form_id_and_company_id(self.form.id, self.company_id)
-        for field in form_fields:
+        form_type_fields = Field.pdf_generator_.form_fields_by_main_form_id_and_company_id(self.form.id, self.company_id)
+        for field in form_type_fields:
             if field.form_field_as_option.form.depends_on_id in form_ids_the_user_has_access_to:
                 form_options.append(field.form_field_as_option.form.depends_on)
-        
-        return form_options
+                form_from_connected_field_helper[field.form_field_as_option.form.depends_on_id] = field
+
+        return form_options, form_from_connected_field_helper
 
     @transaction.atomic
     def remove_pdf_template(self, pdf_template_id):
@@ -96,23 +103,21 @@ class PDFGeneratorService:
             rich_text_page_instance = rich_text_service.save_rich_text(page_data)
             rich_text_page_id = rich_text_page_instance.id
             
-        pdt_template_configuration_instance = PDFTemplateConfiguration.pdf_generator_.update_or_create_pdf_template_configuration(
+        pdf_template_configuration_instance = PDFTemplateConfiguration.pdf_generator_.update_or_create_pdf_template_configuration(
             name, self.company_id, self.user_id, self.form.id, pdf_template_id, rich_text_page_id
         )
 
         # adds the variables and deletes the removed variables.
-        pdf_template_configuration_variable_ids = []
-        for pdf_variable in pdf_variables_data.variables: 
-            pdf_template_configuration_variable_instance = PDFTemplateConfigurationVariables.pdf_generator_.update_or_create(
-                pdf_variable.field_id, pdt_template_configuration_instance.id, pdf_variable.variable_id
+        field_ids_to_add, field_ids_to_exclude = pdf_variables_data.variables
+        PDFTemplateConfigurationVariables.pdf_generator_.delete_pdf_template_configuration_variables_from_pdf_template_id_and_field_ids(
+            pdf_template_configuration_instance.id, field_ids_to_exclude
+        )
+        for field_id in field_ids_to_add: 
+            PDFTemplateConfigurationVariables.pdf_generator_.update_or_create(
+                field_id, pdf_template_configuration_instance.id, None
             )
-            pdf_template_configuration_variable_ids.append(pdf_template_configuration_variable_instance.id)
 
-        PDFTemplateConfigurationVariables.pdf_generator_.delete_pdf_template_configuration_variables_from_pdf_template_id_excluding_variable_ids(
-            pdt_template_configuration_instance.id, pdf_template_configuration_variable_ids
-        )   
-
-        return pdt_template_configuration_instance
+        return pdf_template_configuration_instance
 
     def field_values_to_use_on_template(self, pdf_template_configuration_id, form_data_id):
         """
@@ -132,11 +137,17 @@ class PDFGeneratorService:
             form_data_id (int): The DynamicForm id that you want to get data from.
 
         Returns:
-            list(reflow_server.data.models.FormValue): The FormValues of the connected forms and the main form.
+            tuple(
+                list(reflow_server.data.models.FormValue),
+                {
+                    reflow_server.data.models.FormValue.id: reflow_server.formulary.models.Field
+                }
+            ): The FormValues of the connected forms and the main form.
         """
         form_values_to_use = []
         field_ids = []
         forms_that_is_connected_to_form = []
+        form_value_from_connected_field_helper = {}
         pdf_template_configuration_variables = PDFTemplateConfigurationVariables.pdf_generator_.pdf_template_configuration_variables_by_pdf_template_configuration_id(pdf_template_configuration_id)
         for pdf_template_configuration_variable in pdf_template_configuration_variables:
             if pdf_template_configuration_variable.field.form.depends_on_id != self.form.id and \
@@ -147,14 +158,16 @@ class PDFGeneratorService:
         form_values = FormValue.pdf_generator_.form_values_by_field_ids_and_form_data_id_and_forms_connected_to(field_ids=field_ids, form_data_id=form_data_id, forms_connected_to=forms_that_is_connected_to_form)
         form_values_to_use = form_values_to_use + list(form_values)
         for form_value in form_values:
-            # if the field_id retrieved is not in the field_ids list it is probably a connection field.
+            # if the form_value is a connection field get the values of the connected formulary/
             if form_value.field_type.type == 'form':
-                form_values = FormValue.pdf_generator_.form_values_by_field_ids_and_form_data_id_and_forms_connected_to(field_ids=field_ids, form_data_id=int(form_value.value))
-                form_values_to_use = form_values_to_use + list(form_values)
+                connected_form_values = FormValue.pdf_generator_.form_values_by_field_ids_and_form_data_id_and_forms_connected_to(field_ids=field_ids, form_data_id=int(form_value.value))
+                form_values_to_use = form_values_to_use + list(connected_form_values)
+                for connected_form_value in connected_form_values:
+                    form_value_from_connected_field_helper[connected_form_value.id] = form_value.field
 
         form_values = []
         for form_value_to_use in form_values_to_use:
             if form_value_to_use.field.id in field_ids:
                 form_values.append(form_value_to_use)
 
-        return form_values
+        return form_values, form_value_from_connected_field_helper

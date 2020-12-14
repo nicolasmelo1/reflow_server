@@ -5,20 +5,20 @@ class PDFTemplateConfigurationVariablesPDFGeneratorManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
-    def delete_pdf_template_configuration_variables_from_pdf_template_id_excluding_variable_ids(self, pdf_template_id, pdf_template_configuration_variable_ids):
+    def delete_pdf_template_configuration_variables_from_pdf_template_id_and_field_ids(self, pdf_template_id, field_ids):
         """
         Deletes the PDFTemplateConfigurationVariables of a pdf_template_id excluding a list of ids from the deletion.
 
         Args:
             pdf_template_id (int): A reflow_server.pdf_generator.models.PDFTemplateConfiguration instance id
-            pdf_template_configuration_variable_ids (list(int)): A list of reflow_server.pdf_generator.models.PDFTemplateConfigurationVariables instances
-                                                                 ids. We use this list to exclude them from the deletion. So we will remove
-                                                                 all of the ids that ARE NOT ON THIS LIST
+            field_ids (list(int)): A list of reflow_server.pdf_generator.models.Field instances
+                                   ids. We use this list to filter them on the deletion. So we will remove
+                                   all of the ids that ARE ON THIS LIST
 
         Returns:
             int: The number of removed PDFTemplateConfigurationVariables instances.
         """
-        return self.get_queryset().filter(pdf_template_id=pdf_template_id).exclude(id__in=pdf_template_configuration_variable_ids).delete()
+        return self.get_queryset().filter(pdf_template_id=pdf_template_id, field_id__in=field_ids).delete()
 
     def pdf_template_configuration_variables_by_pdf_template_configuration_id(self, pdf_template_configuration_id):
         """
