@@ -243,7 +243,7 @@ class DataService(DataSort, DataSearch):
     def __filter_by_profile_permissions(self, form_id):
         user = UserExtended.data_.user_by_user_id(self.user_id)
         if user.profile.name == 'simple_user':
-            main_forms = self._data.filter(user_id=self.user_id)
+            self._data = self._data.filter(user_id=self.user_id)
         else:
             field_options = FieldOptions.objects.filter(
                     field__form__depends_on__group__company_id=self.company_id,
