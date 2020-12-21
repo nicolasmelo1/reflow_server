@@ -59,3 +59,4 @@ class FormValueNotificationManager(models.Manager):
             ).filter(
                 value_as_date__gte=Now()
             ).values_list('value_as_date','form__depends_on_id')
+            
