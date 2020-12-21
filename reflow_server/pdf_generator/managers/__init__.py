@@ -4,4 +4,5 @@ from .pdf_generated import PDFGeneratedPDFGeneratorManager
 from .text_page import TextPagePDFGeneratorManager
 from .form import FormPDFGeneratorManager
 from .field import FieldPDFGeneratorManager
+from .dynamic_form import DynamicFormPDFGeneratorManager
 from .form_value import FormValuePDFGeneratorManager

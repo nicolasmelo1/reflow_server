@@ -13,7 +13,8 @@ from reflow_server.listing.managers import FormValueListingManager, \
 from reflow_server.formulary.managers import FormValueFormularyManager
 from reflow_server.formula.managers import FormValueFormulaManager, \
     DynamicFormFormulaManager
-from reflow_server.pdf_generator.managers import FormValuePDFGeneratorManager
+from reflow_server.pdf_generator.managers import FormValuePDFGeneratorManager, \
+    DynamicFormPDFGeneratorManager, pdf_generated
 
 
 class DynamicForm(models.Model):
@@ -55,7 +56,8 @@ class DynamicForm(models.Model):
     formula_ = DynamicFormFormulaManager()
     kanban_ = DynamicFormKanbanManager()
     listing_ = DynamicFormListingManager()
-    
+    pdf_generator_ = DynamicFormPDFGeneratorManager()
+
 
 class FormValue(AbstractFieldStates):
     """

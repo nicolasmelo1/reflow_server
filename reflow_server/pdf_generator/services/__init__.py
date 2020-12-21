@@ -3,7 +3,7 @@ from django.db import transaction
 from reflow_server.pdf_generator.models import PDFTemplateConfiguration, \
     PDFTemplateConfigurationVariables
 from reflow_server.pdf_generator.services.data import PDFVariablesData
-from reflow_server.data.models import FormValue
+from reflow_server.data.models import FormValue, DynamicForm
 from reflow_server.formulary.models import Form, Field
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.rich_text.models import TextPage
@@ -154,13 +154,18 @@ class PDFGeneratorService:
                 pdf_template_configuration_variable.field.form.depends_on_id not in forms_that_is_connected_to_form:
                     forms_that_is_connected_to_form.append(pdf_template_configuration_variable.field.form.depends_on_id)
             field_ids.append(pdf_template_configuration_variable.field_id)
-            
+    
         form_values = FormValue.pdf_generator_.form_values_by_field_ids_and_form_data_id_and_forms_connected_to(field_ids=field_ids, form_data_id=form_data_id, forms_connected_to=forms_that_is_connected_to_form)
         form_values_to_use = form_values_to_use + list(form_values)
         for form_value in form_values:
             # if the form_value is a connection field get the values of the connected formulary/
             if form_value.field_type.type == 'form':
-                connected_form_values = FormValue.pdf_generator_.form_values_by_field_ids_and_form_data_id_and_forms_connected_to(field_ids=field_ids, form_data_id=int(form_value.value))
+                # if recieves a section needs to get the main_form_id so we get all of the fields
+                main_form_data_id = DynamicForm.pdf_generator_.main_formulary_data_id_by_section_data_id(int(form_value.value))
+                connected_form_values = FormValue.pdf_generator_.form_values_by_field_ids_and_form_data_id_and_forms_connected_to(
+                    field_ids=field_ids, 
+                    form_data_id=main_form_data_id if main_form_data_id else int(form_value.value)
+                )
                 form_values_to_use = form_values_to_use + list(connected_form_values)
                 for connected_form_value in connected_form_values:
                     form_value_from_connected_field_helper[connected_form_value.id] = form_value.field

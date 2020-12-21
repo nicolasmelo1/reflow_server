@@ -7,12 +7,10 @@ class FormValuePDFGeneratorManager(models.Manager):
 
     def form_values_by_field_ids_and_form_data_id_and_forms_connected_to(self, field_ids, form_data_id, forms_connected_to=[]):
         """
-        This retrieves the FormValue instances that match 3 possible conditions:
+        This retrieves the FormValue instances that match 2 possible conditions:
         1º - When the connected form depends_on a DynamicForm instance id of the FormValue is one 
              and the id of the field is in a list of field ids
-        2º - When the connected form is of a DynamicForm instance id and and 
-             the id of the field is in a list of field ids
-        3º - When the form_field_as_option of the field is from a list of ids in forms_connected_to
+        2º - When the form_field_as_option of the field is from a list of ids in forms_connected_to
              and the form it is connected to depends on the `form_data_id`.
 
         Args:
@@ -27,7 +25,6 @@ class FormValuePDFGeneratorManager(models.Manager):
         """
         return self.get_queryset().filter(
             Q(form__depends_on_id=form_data_id, field_id__in=field_ids) | 
-            Q(form_id=form_data_id, field_id__in=field_ids) | 
             Q(field__form_field_as_option__form__depends_on_id__in=forms_connected_to, form__depends_on_id=form_data_id)
         )
     
