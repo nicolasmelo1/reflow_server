@@ -106,7 +106,7 @@ class FormFieldOptionsSerializer(serializers.ModelSerializer):
 
     def get_form_from_connected_field(self, obj):
         if self.context['form_from_connected_field_helper'].get(obj.id, None):
-            return FieldOptionRelation(self.context['form_from_connected_field_helper'][obj.id]).data
+            return FieldOptionRelation(self.context['form_from_connected_field_helper'][obj.id].pop()).data
         else:
             return None
 

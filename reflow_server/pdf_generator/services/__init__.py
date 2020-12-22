@@ -31,7 +31,7 @@ class PDFGeneratorService:
             tuple(
                 list(reflow_server.formulary.models.Form),
                 {
-                    reflow_server.formulary.models.Form.id: reflow_server.formulary.models.Field
+                    reflow_server.formulary.models.Form.id: [reflow_server.formulary.models.Field]
                 }
             ): List of Form instances so we can use it in our serializers.
         """
@@ -43,7 +43,9 @@ class PDFGeneratorService:
         for field in form_type_fields:
             if field.form_field_as_option.form.depends_on_id in form_ids_the_user_has_access_to:
                 form_options.append(field.form_field_as_option.form.depends_on)
-                form_from_connected_field_helper[field.form_field_as_option.form.depends_on_id] = field
+                # sometimes a field can be bounded to the same form, this way we can differentiate between each of them.
+                form_from_connected_field_helper[field.form_field_as_option.form.depends_on_id] = \
+                    form_from_connected_field_helper.get(field.form_field_as_option.form.depends_on_id, []) + [field]
 
         return form_options, form_from_connected_field_helper
 
