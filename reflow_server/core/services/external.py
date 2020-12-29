@@ -62,7 +62,7 @@ class ExternalService:
                     if response.status_code != 200:
                         raise Exception({'msg': 'something happened'})
                     else:
-                        return authorize_request()
+                        return ExternalService.authorize_request()
             else:
                 return {"Authorization": "Bearer {}".format(response.json()['access_token'])}
         else:
