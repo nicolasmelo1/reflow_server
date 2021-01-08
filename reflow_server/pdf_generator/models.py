@@ -43,8 +43,8 @@ class PDFTemplateConfigurationVariables(models.Model):
 
 class PDFGenerated(models.Model):
     """
-    Each generated PDF, this fired only when a the user downloads a pdf, so we can know which user, from
-    which company and which pdf template was selected for downloading. This is for billing, we usually bill the user
+    Each generated PDF, this is used to contain all of the downloads of a pdf from a user, so we can know which user, from
+    which company and which pdf template was selected for downloading. This is mostly for billing, we usually bill the user
     on PDFs by the number of downloads he makes, not on the number of templates that he has.
     """
     created_at = models.DateTimeField(auto_now_add=True)

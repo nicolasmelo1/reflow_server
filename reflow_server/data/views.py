@@ -1,24 +1,21 @@
 from django.shortcuts import redirect
-from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.core.utils.storage import Bucket, BucketUploadException
+from reflow_server.core.utils.storage import BucketUploadException
 from reflow_server.core.utils.pagination import Pagination
 from reflow_server.data.serializers import FormDataSerializer, DataSerializer
-from reflow_server.data.models import DynamicForm, Attachments
-from reflow_server.data.services.data import DataService
+from reflow_server.data.models import DynamicForm
+from reflow_server.data.services import DataService, AttachmentService
 from reflow_server.formulary.models import Form
 
-import urllib
 import json
-import math
 
 
 class DataView(APIView):
@@ -192,18 +189,7 @@ class DownloadFileView(APIView):
                   in a new tab for the user.
     """
     def get(self, request, company_id, form, dynamic_form_id, field_id, file_name):
-        attachment = Attachments.data_.attachment_by_dynamic_form_id_field_id_and_file_name(dynamic_form_id, field_id, file_name)
-        if attachment:
-            if attachment.file_url and len(attachment.file_url.split('/{}/'.format(attachment.file_attachments_path)))>1:
-                key = attachment.file_attachments_path + '/' + attachment.file_url.split('/{}/'.format(attachment.file_attachments_path))[1]
-                key = urllib.parse.unquote(key)
-            else:
-                key = '{file_attachments_path}/{id}/{field}/{file_name}'.format(
-                    id=attachment.form_id, field=attachment.field_id,
-                    file_attachments_path=attachment.file_attachments_path,
-                    file_name=attachment.file
-                )
-            bucket = Bucket(settings.S3_BUCKET)
-            url = bucket.get_temp_url(key)
+        attachment_service = AttachmentService()
+        url = attachment_service.get_attachment_url(dynamic_form_id, field_id, file_name)
+        if url:
             return redirect(url)
-            

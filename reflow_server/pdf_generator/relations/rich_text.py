@@ -23,10 +23,13 @@ class ListOptionRelation(serializers.ModelSerializer):
 
 
 class ImageOptionRelation(serializers.ModelSerializer):
+    link = serializers.CharField(allow_null=True, allow_blank=True)
+    file_name = serializers.CharField(allow_null=True, allow_blank=True)
+
     class Meta:
         model = TextImageOption
-        fields = '__all__'
-
+        fields = ('id', 'size_relative_to_view', 'link', 'file_name')
+        
 
 class ContentRelation(serializers.ModelSerializer):
     order = serializers.IntegerField()

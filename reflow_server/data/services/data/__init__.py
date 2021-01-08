@@ -241,6 +241,23 @@ class DataService(DataSort, DataSearch):
         return list(self._data.values_list('id', flat=True))
 
     def __filter_by_profile_permissions(self, form_id):
+        """
+        This is one of the key features of our platform that can be later changed by the more advanced `filter`.
+        A user can edit what another user sees from the options it have access to. To the formularies the user have access to.
+
+        For example. If a user is from financial, he cannot see stuff from sales, and vice versa. With permissions we can prevent
+        this from happening on formularies level.
+
+        But there is another edge case. Sometimes two users are from the operational team, but he needs to only see what is from operational
+        where the `city` is defined as Rio de Janeiro. Another guy does not take care of Rio de Janeiro, but from São Paulo so he can only see
+        what is from `São Paulo.` With our permissions options we can set what both can see based on the options of the formularies.
+
+        As default, when we create a new option, everyone can see it.
+
+        Args:
+            form_id (int): the reflow_server.formulary.models.Form instance id. So we can know for what formulary this permission
+            is for.
+        """
         user = UserExtended.data_.user_by_user_id(self.user_id)
         if user.profile.name == 'simple_user':
             self._data = self._data.filter(user_id=self.user_id)

@@ -14,7 +14,7 @@ from reflow_server.formulary.managers import FormValueFormularyManager
 from reflow_server.formula.managers import FormValueFormulaManager, \
     DynamicFormFormulaManager
 from reflow_server.pdf_generator.managers import FormValuePDFGeneratorManager, \
-    DynamicFormPDFGeneratorManager, pdf_generated
+    DynamicFormPDFGeneratorManager
 
 
 class DynamicForm(models.Model):

@@ -59,6 +59,13 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
                 
                 if block['data']['block_type'].name == 'text':
                     block_data.append_text_block_type_data(block['data']['text_option']['alignment_type'])
+                elif block['data']['block_type'].name == 'image':
+                    block_data.append_image_block_type_data(
+                        block['data']['image_option']['link'], 
+                        block['data']['image_option']['file_name'],
+                        block['data']['image_option']['size_relative_to_view']
+                    )
+
                 
                 for content in block['data'].get('rich_text_block_contents', []):
                     # Adds the variables here, on front end it was causing problems

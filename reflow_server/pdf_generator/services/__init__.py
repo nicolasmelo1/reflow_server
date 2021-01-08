@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.utils import IntegrityError
 
 from reflow_server.pdf_generator.models import PDFTemplateConfiguration, \
     PDFTemplateConfigurationVariables
@@ -115,10 +116,12 @@ class PDFGeneratorService:
             pdf_template_configuration_instance.id, field_ids_to_exclude
         )
         for field_id in field_ids_to_add: 
-            PDFTemplateConfigurationVariables.pdf_generator_.update_or_create(
-                field_id, pdf_template_configuration_instance.id, None
-            )
-
+            try:
+                PDFTemplateConfigurationVariables.pdf_generator_.update_or_create(
+                    field_id, pdf_template_configuration_instance.id, None
+                )
+            except IntegrityError as ie:
+                pass
         return pdf_template_configuration_instance
 
     def field_values_to_use_on_template(self, pdf_template_configuration_id, form_data_id):

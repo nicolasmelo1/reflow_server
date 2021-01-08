@@ -143,7 +143,7 @@ class JWT:
 
     def extract_jwt_from_request(self, request):
         """
-        Takes out the jwt token from the Django request
+        Takes out the jwt token from the Django request. The token can be either on a header or a GET parameter as `token`
 
         Arguments:
             request {django.Request} -- django request.

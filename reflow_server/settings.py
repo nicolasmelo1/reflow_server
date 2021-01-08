@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'reflow_server.core',
     'reflow_server.dashboard',
     'reflow_server.formula',
+    'reflow_server.draft',
     'reflow_server.data',
     'reflow_server.formulary',
     'reflow_server.notification',
@@ -290,6 +291,8 @@ LOCALSTACK_PORT = getattr(configuration, 'LOCALSTACK_PORT', '')
 # S3 CONFIGURATION
 # check core.utils.bucket file
 S3_REGION_NAME = configuration.S3_REGION_NAME
+S3_FILE_RICH_TEXT_IMAGE_PATH = configuration.S3_FILE_RICH_TEXT_IMAGE_PATH
+S3_FILE_DRAFT_PATH = configuration.S3_FILE_DRAFT_PATH
 S3_FILE_ATTACHMENTS_PATH = configuration.S3_FILE_ATTACHMENTS_PATH
 S3_COMPANY_LOGO_PATH = configuration.S3_COMPANY_LOGO_PATH
 S3_BUCKET = configuration.S3_BUCKET

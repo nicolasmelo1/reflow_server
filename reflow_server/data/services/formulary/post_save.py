@@ -5,6 +5,7 @@ from reflow_server.data.services.formulary.data import PostSaveData
 from reflow_server.data.models import FormValue, DynamicForm, Attachments
 from reflow_server.formulary.models import Field
 from reflow_server.formula.services import FormulaService
+from reflow_server.data.services.attachments import AttachmentService
 
 import json
 
@@ -94,68 +95,34 @@ class PostSave:
         
     def _post_process_attachment(self, process):
         if process.form_value_instance.value != '':
-            bucket = Bucket()
-
-            dynamic_form_attachment_instance = Attachments.data_.attachment_by_dynamic_form_id_field_id_and_file_name(
-                process.form_value_instance.form.id, process.form_value_instance.field.id, process.form_value_instance.value
-            )
-        
-            if not dynamic_form_attachment_instance:
-                dynamic_form_attachment_instance = Attachments()
-        
-            dynamic_form_attachment_instance.file = process.form_value_instance.value
-            dynamic_form_attachment_instance.field = process.form_value_instance.field
-            dynamic_form_attachment_instance.form = process.form_value_instance.form
-            dynamic_form_attachment_instance.save()
-
             files = [file_data for file_data in getattr(self, 'files', {}).get(process.form_value_instance.field.name, [])]
             file_data = None
             for file in files:
                 if file.name == process.form_value_instance.value:
                     file_data = file
-            #handles a simple insertion
-            if file_data:
-                url = bucket.upload(
-                    key="{file_attachments_path}/{id}/{field}/".format(
-                        id=str(process.form_value_instance.form.pk), 
-                        field=str(process.form_value_instance.field.id), 
-                        file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH) + str(process.form_value_instance.value),
-                    file=file_data)
 
-                dynamic_form_attachment_instance.file_url = url
-                dynamic_form_attachment_instance.file_size = file_data.size
-                dynamic_form_attachment_instance.save()
-            elif hasattr(self, 'duplicate_form_data_id'):
-                to_duplicate = Attachments.data_.attachment_by_dynamic_form_id_field_id_and_file_name(self.duplicate_form_data_id, process.form_value_instance.field.id, str(process.form_value_instance.value))
-                if to_duplicate:
-                    new_key = "{file_attachments_path}/{id}/{field}/".format(
-                        id=str(process.form_value_instance.form.id), 
-                        field=str(process.form_value_instance.field.id), 
-                        file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH
-                    ) + str(process.form_value_instance.value)
-                    try:
-                        bucket.copy(
-                            from_key="{file_attachments_path}/{id}/{field}/".format(
-                                id=str(to_duplicate.form.id), 
-                                field=str(to_duplicate.field.id), 
-                                file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH
-                            ) + str(to_duplicate.file),
-                            to_key=new_key
-                        )
-                    except:
-                        raise BucketUploadException(json.dumps({
-                            'detail': [process.form_value_instance.field.name], 
-                            'reason': ['could_not_upload'], 
-                            'data': [process.form_value_instance.value]
-                        }))
+            attachment_service = AttachmentService()
+            attachment_instance = attachment_service.save_attachment(
+                process.form_value_instance.form.id, 
+                process.form_value_instance.field.id, 
+                process.form_value_instance.value,
+                file_data
+            )
+            if hasattr(self, 'duplicate_form_data_id'):
+                attachment_instance = attachment_service.duplicate_attachment(
+                    attachment_instance,
+                    process.form_value_instance.form.id, 
+                    process.form_value_instance.field.id, 
+                    process.form_value_instance.value
+                )
+                if attachment_instance == None:
+                    raise BucketUploadException(json.dumps({
+                        'detail': [process.form_value_instance.field.name], 
+                        'reason': ['could_not_upload'], 
+                        'data': [process.form_value_instance.value]
+                    }))
 
-                    url = bucket.get_temp_url(new_key)
-
-                    dynamic_form_attachment_instance.file_url = url.split('?')[0]
-                    dynamic_form_attachment_instance.file_size = to_duplicate.file_size
-                    dynamic_form_attachment_instance.save()
-
-            if dynamic_form_attachment_instance.file_url in [None, '']:
+            if attachment_instance.file_url in [None, '']:
                 raise BucketUploadException(json.dumps({
                     'detail': [process.form_value_instance.field.name], 
                     'reason': ['could_not_upload'], 

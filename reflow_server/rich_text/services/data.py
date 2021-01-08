@@ -54,6 +54,19 @@ class BlockData:
         """
         self.alignment_type_id = alignment_type_id
 
+    def append_image_block_type_data(self, image_link='', image_file_name='', size_relative_to_view=1):
+        """
+        If the block type is of type `image`, you need to append this extra data.
+
+        Args:
+            image_link (str, optional): The link of the image, this is only needed if the image is from external source and not uploaded. Defaults to ''.
+            image_file_name (str, optional): The name of the file, can be a draft so we need to always check if it is or not a draft. Defaults to ''.
+            size_relative_to_view (int, optional): This is the size multiplied by the width of the view. Defaults to 1.
+        """
+        self.image_link = image_link
+        self.image_file_name = image_file_name
+        self.size_relative_to_view = size_relative_to_view
+
     def __validate_block_type_data(self):
         """
         This validates if the block has the data needed BEFORE adding the contents. This validates also the block types. 

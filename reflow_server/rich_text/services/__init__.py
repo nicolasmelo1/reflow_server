@@ -1,7 +1,17 @@
-from reflow_server.rich_text.services.utils import ordered_list_from_serializer_data_for_page_data
-from reflow_server.rich_text.services.data import PageData
+from django.conf import settings
 
-from reflow_server.rich_text.models import TextContent, TextPage, TextBlock, TextTextOption
+from reflow_server.draft.services import DraftService
+from reflow_server.draft.models import Draft
+
+from reflow_server.rich_text.services.data import PageData
+from reflow_server.rich_text.services.utils import ordered_list_from_serializer_data_for_page_data
+from reflow_server.rich_text.services.block import RichTextImageBlockService
+from reflow_server.rich_text.models import TextContent, TextPage, TextBlock, TextTextOption, \
+    TextImageOption
+
+
+class RichTextBlockException(NotImplementedError):
+    pass
 
 
 class RichTextService:
@@ -113,6 +123,11 @@ class RichTextService:
         handler = getattr(self, '_save_%s_block_type' % block_data.block_name, None)
         if handler:
             handler(block_instance, block_data)
+        else:
+            raise RichTextBlockException(
+                'We cannot handle to save this type of block, '
+                'make sure a `._save_<YourBlockTypeName>_block_type()` method exists in this class'
+            )
 
     def _save_text_block_type(self, block_instance, block_data):
         text_option_instance, __ = TextTextOption.objects.update_or_create(
@@ -122,6 +137,30 @@ class RichTextService:
             }
         )
         block_instance.text_option = text_option_instance
+        block_instance.save()
+        return True
+
+    def _save_image_block_type(self, block_instance, block_data):
+        """
+        If the block is of type image we save it by copying the contents from draft to the TextImageOption instance. 
+
+        Args:
+            block_instance (reflow_server.rich_text.models.Block): The Block instance saved.
+            block_data (reflow_server.rich_text.services.data.BlockData): This is a handy class so we do not need to work with serializers
+                                                                          or dict.
+
+        Returns:
+            bool: returns True indicating the file was saved
+        """
+        image_block_service = RichTextImageBlockService(block_instance.page_id, self.user_id, self.company_id)
+        text_image_option_instance = image_block_service.save_image_block(
+            block_instance.uuid, 
+            block_data.image_link, 
+            block_data.size_relative_to_view, 
+            block_data.image_file_name,
+            block_instance.image_option.id if block_instance.image_option else None
+        )
+        block_instance.image_option = text_image_option_instance
         block_instance.save()
         return True
         

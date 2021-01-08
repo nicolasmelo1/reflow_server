@@ -1,6 +1,8 @@
+from django.conf import settings
 from django.db import models
 
-from reflow_server.rich_text.managers import RichTextTextBlockTypeManager
+from reflow_server.rich_text.managers import RichTextTextBlockTypeManager, RichTextTextImageOptionManager, \
+    RichTextTextBlockManager
 from reflow_server.pdf_generator.managers import TextPagePDFGeneratorManager
 
 import uuid
@@ -88,11 +90,29 @@ class TextListOption(models.Model):
 
 
 class TextImageOption(models.Model):
-    size_relative_to_view = models.BigIntegerField(default=100)
-    
+    """
+    Those are the options for `image` block type specifically. If your block is an image you can use those options.
+    Be aware that `bucket`, `file_image_path` and even `file_url` should NEVER be sent to the front-end.
+
+    Images can be from sources like google images, or other urls and also from the user computer. If the file is from the
+    computer of a user, it should be private, so no one outside reflow should be able to see it. Otherwise it's a public
+    url so no need to protect it.
+
+    The `size_relative_to_view` can be 1 or 0, we multiply it by the percentage of the width of the page.
+    """
+    size_relative_to_view = models.BigIntegerField(default=1)
+    link = models.TextField(default=None, blank=True, null=True)
+    bucket = models.CharField(max_length=200, default=settings.S3_BUCKET, blank=True, null=True)
+    file_image_path = models.CharField(max_length=250, default=settings.S3_FILE_RICH_TEXT_IMAGE_PATH, blank=True, null=True)
+    file_url = models.CharField(max_length=1000, null=True, blank=True)
+    file_size = models.BigIntegerField(default=0, blank=True, null=True)
+    file_name = models.TextField(blank=True, null=True)
+
     class Meta:
         db_table = 'text_image_option'
 
+    rich_text_ = RichTextTextImageOptionManager()
+    
 
 class TextBlock(models.Model):
     """
@@ -124,6 +144,9 @@ class TextBlock(models.Model):
         db_table='text_block'
         ordering=('order',)
 
+    objects = models.Manager()
+    rich_text_ = RichTextTextBlockManager()
+    
 
 class TextContent(models.Model):
     """
