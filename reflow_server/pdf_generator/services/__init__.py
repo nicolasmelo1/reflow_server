@@ -65,9 +65,8 @@ class PDFGeneratorService:
         rich_text_page_id = PDFTemplateConfiguration.pdf_generator_.rich_text_page_id_by_pdf_template_configuration_id(pdf_template_id)
 
         if rich_text_page_id:
-            TextPage.pdf_generator_.remove_text_page_by_rich_text_page_id_company_id_and_user_id(
-                rich_text_page_id, self.company_id, self.user_id
-            )
+            rich_text_service = RichTextService(self.company_id, self.company_id)
+            rich_text_service.remove_page(rich_text_page_id)
 
         return PDFTemplateConfiguration.pdf_generator_.remove_pdf_template_configuration_by_template_configuration_id_company_id_and_user_id(
             pdf_template_id, self.company_id, self.user_id

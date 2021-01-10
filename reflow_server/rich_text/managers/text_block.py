@@ -22,3 +22,10 @@ class RichTextTextBlockManager(models.Manager):
             uuid = block_uuid,
             image_option__file_name=image_option_file_name
         ).first() 
+    
+    def text_blocks_by_page_id(self, page_id):
+        return self.get_queryset().filter(page_id=page_id)
+    
+    def text_blocks_by_page_id_excluding_block_ids(self, page_id, block_ids_to_exclude):
+        return self.text_blocks_by_page_id(page_id).exclude(id__in=block_ids_to_exclude)
+    

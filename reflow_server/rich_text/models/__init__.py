@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from reflow_server.rich_text.managers import RichTextTextBlockTypeManager, RichTextTextImageOptionManager, \
-    RichTextTextBlockManager
+    RichTextTextBlockManager, RichTextTextContentManager
 from reflow_server.pdf_generator.managers import TextPagePDFGeneratorManager
 
 import uuid
@@ -185,3 +185,6 @@ class TextContent(models.Model):
     class Meta:
         db_table='text_content'
         ordering=('order',)
+
+    objects = models.Manager()
+    rich_text_ = RichTextTextContentManager()

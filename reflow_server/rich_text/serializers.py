@@ -6,6 +6,7 @@ from reflow_server.rich_text.services.data import PageData
 from reflow_server.rich_text.services import RichTextService
 from reflow_server.rich_text.services import ordered_list_from_serializer_data_for_page_data
 
+
 class PageSerializer(serializers.ModelSerializer):
     raw_text = serializers.CharField(allow_blank=True, allow_null=True)
     rich_text_page_blocks = BlockRelation(many=True)

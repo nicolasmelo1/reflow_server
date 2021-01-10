@@ -1,13 +1,9 @@
-from django.conf import settings
-
-from reflow_server.draft.services import DraftService
-from reflow_server.draft.models import Draft
+from django.db import transaction
 
 from reflow_server.rich_text.services.data import PageData
 from reflow_server.rich_text.services.utils import ordered_list_from_serializer_data_for_page_data
 from reflow_server.rich_text.services.block import RichTextImageBlockService
-from reflow_server.rich_text.models import TextContent, TextPage, TextBlock, TextTextOption, \
-    TextImageOption
+from reflow_server.rich_text.models import TextContent, TextPage, TextBlock, TextTextOption
 
 
 class RichTextBlockException(NotImplementedError):
@@ -19,9 +15,32 @@ class RichTextService:
         self.company_id = company_id
         self.user_id = user_id
 
+    def _image_block_will_be_removed_handler(self, page_id, block):
+        """
+        Handles the deletion of `image` block types. This is needed because we need to remove the file 
+        from our storage service
+
+        Args:
+            page_id (int): The id of the page that is being removed.
+            block (reflow_server.rich_text.models.TextBlock): A rich text block instance that will be removed
+
+        Returns:
+            bool: returns True indicating everything went fine
+        """
+        rich_text_image_block_service = RichTextImageBlockService(page_id, self.user_id, self.company_id)
+        rich_text_image_block_service.remove_image_block(block)
+        return True
+    
+    def __block_will_be_removed_handler(self, page_id, block):
+        handler = getattr(self, '_%s_block_will_be_removed_handler' % block.block_type.name, None)
+        if handler:
+            handler(page_id, block)
+        return block
+
     def __remove_old_blocks_and_contents(self, page_instance, block_instances, content_instances):
         """
-        Removes the blocks and contents that were removed from the rich_text.
+        Removes the blocks and contents that were removed from the rich_text. It's important to notice that we 
+        loop through each block that will be removed so we can handle special use cases like delete files and such.
 
         Args:
             page_instance (reflow_server.rich_text.models.TextPage): The saved text_page instance we use this to filter the blocks from this page.
@@ -33,11 +52,26 @@ class RichTextService:
         Returns:
             bool: returns True to indicate everything was deleted.
         """
-        TextBlock.objects.filter(page=page_instance).exclude(id__in=[block_instance.id for block_instance in block_instances]).delete()
-        TextContent.objects.filter(block__in=block_instances)\
-            .exclude(id__in=[content_instance.id for content_instance in content_instances]).delete()
+        if block_instances:
+            will_be_removed_blocks = TextBlock.rich_text_.text_blocks_by_page_id_excluding_block_ids(page_instance.id, [block_instance.id for block_instance in block_instances])
+        else:
+            will_be_removed_blocks = TextBlock.rich_text_.text_blocks_by_page_id(page_id=page_instance.id)
+        
+        if will_be_removed_blocks:
+            for block in will_be_removed_blocks:
+                self.__block_will_be_removed_handler(page_instance.id, block)
+            will_be_removed_blocks.delete()
+
+        if content_instances:
+            will_be_removed_contents = TextContent.rich_text_.text_contents_by_page_id_excluding_content_ids(page_instance.id, [content_instance.id for content_instance in content_instances])
+        else: 
+            will_be_removed_contents = TextContent.rich_text_.text_contents_by_page_id(page_instance.id)
+        
+        if will_be_removed_contents:
+            will_be_removed_contents.delete()
         return True
 
+    @transaction.atomic
     def save_rich_text(self, page_data):
         """
         Method for saving the rich text page data in the database. Obviously first we create a page. Then we save each block (luckly we use
@@ -163,4 +197,26 @@ class RichTextService:
         block_instance.image_option = text_image_option_instance
         block_instance.save()
         return True
-        
+    
+    @transaction.atomic
+    def remove_page(self, page_id):
+        """
+        Removes a page from the rich text. We need this to guarantee that files and other appended
+        stuff are also removed when deleting the page. So please use this instead of updating the query
+        directly.
+
+        Args:
+            page_id (int): A TextPage instance id to be removed.
+
+        Returns:
+            bool: returns True indicating the page was removed succesfully
+        """
+        page_instance = TextPage.objects.filter(
+            id=page_id, 
+            company_id=self.company_id, 
+            user=self.user_id
+        ).first()
+        if page_instance:
+            self.__remove_old_blocks_and_contents(page_instance, [], [])
+            page_instance.delete()
+        return True

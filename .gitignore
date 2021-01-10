@@ -133,3 +133,6 @@ dmypy.json
 
 # mac stuff
 .DS_Store
+
+# Serverless directories
+.serverless

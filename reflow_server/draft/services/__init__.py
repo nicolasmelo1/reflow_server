@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db import transaction
 
 from reflow_server.core.utils.storage import Bucket
 from reflow_server.draft.models import Draft, DraftType
@@ -21,9 +22,11 @@ class DraftService:
                               still maintain the security of the draft that the users are saving.
             user_id (int): As said earlier, for securty reasons we bound every draft to a UserExtended instance.
         """
+        self.bucket = Bucket()
         self.company_id = company_id
         self.user_id = user_id
     
+    @transaction.atomic
     def save_new_draft(self, draft_file=None, draft_value=None, draft_id=None):
         """
         Method used for saving a draft. It can be a draft that already exists or some draft that does not exist yet. 
@@ -40,7 +43,7 @@ class DraftService:
             Defaults to None.
 
         Returns:
-            stri: A draft_string_id. This `draft_string_id` is not trivial, it's a base64 encoded string. And you might ask yourself why do this instead of
+            str: A draft_string_id. This `draft_string_id` is not trivial, it's a base64 encoded string. And you might ask yourself why do this instead of
             returning only the id of the saved draft. The reason is that we might use the draft before saving the real data, this means
             that when we save the actual data we need to check if the string recieved is a draft or not. If we use just an integer, this becomes
             kind of blurry. The odds to know if just an int is a draft are lower than to know if a special encoded string is a draft.
@@ -61,14 +64,13 @@ class DraftService:
         )
 
         if draft_file:
-            bucket = Bucket()
             # if you are updating a draft we need to delete the old draft and upload again.
             if instance.file_url and len(instance.file_url.split('/{}/'.format(instance.file_draft_path)))>1:
                 key = instance.file_draft_path + '/' + instance.file_url.split('/{}/'.format(instance.file_draft_path))[1]
                 key = urllib.parse.unquote(key)
-                bucket.delete(key)
+                self.bucket.delete(key)
                 
-            url = bucket.upload(
+            url = self.bucket.upload(
                 key="{file_draft_path}/{id}/".format(
                     id=str(instance.id), 
                     file_draft_path=settings.S3_FILE_DRAFT_PATH) + str(draft_file.name),
@@ -78,6 +80,7 @@ class DraftService:
 
         return base64.b64encode(draft_id_template.format(instance.id).encode('utf-8')).decode('utf-8')
 
+    @transaction.atomic
     def copy_file_from_draft_string_id_to_bucket_key(self, draft_string_id, bucket_key, delete_after_copy=True):
         """
         This function uses the `draft_string_id` to copy a file from the draft bucket to another bucket (refer to `save_new_draft()`
@@ -96,14 +99,13 @@ class DraftService:
         Returns:
             url: The new url of this new bucket location after the file has been copied from one place to another
         """
-        bucket = Bucket()
 
         draft_id = DraftService.draft_id_from_draft_string_id(draft_string_id)
         draft_instance = Draft.draft_.draft_file_by_draft_id_company_id_and_user_id(
             draft_id=draft_id, user_id=self.user_id, company_id=self.company_id
         )
         bucket_key = bucket_key + str(draft_instance.value)
-        bucket.copy(
+        self.bucket.copy(
             from_key="{file_draft_path}/{id}/".format(
                 id=str(draft_id), 
                 file_draft_path=settings.S3_FILE_DRAFT_PATH
@@ -111,13 +113,14 @@ class DraftService:
             to_key=bucket_key
         )
         if delete_after_copy:
-            bucket.delete(
+            self.bucket.delete(
                 "{file_draft_path}/{id}/".format(
                     id=str(draft_id), 
                     file_draft_path=settings.S3_FILE_DRAFT_PATH
                 ) + str(draft_instance.value)
             )
-        url = bucket.get_temp_url(bucket_key)
+            draft_instance.delete()
+        url = self.bucket.get_temp_url(bucket_key)
         url = url.split('?')[0]
         return url
 
@@ -149,7 +152,6 @@ class DraftService:
         Returns:
             str: returns a empty string if a the draft_id is not from a valid Draft instance. Otherwise return a url.
         """
-        bucket = Bucket()
         draft_instance = Draft.draft_.draft_file_by_draft_id_company_id_and_user_id(
             draft_id=draft_id, user_id=self.user_id, company_id=self.company_id
         )  
@@ -163,11 +165,42 @@ class DraftService:
                     file_draft_path=draft_instance.file_draft_path,
                     file_name=draft_instance.value
                 )
-            bucket = Bucket(settings.S3_BUCKET)
-            url = bucket.get_temp_url(key)
+            url = self.bucket.get_temp_url(key)
             return url
         else:
             return ''
+            
+    @transaction.atomic
+    def remove_draft_by_draft_id(self, draft_id):
+        """
+        Removes a draft by it's id (this is NOT the `draft_string_id`)
+
+        Args:
+            draft_id (int): The id of the Draft instance to remove, if it is a file
+                            we remove the file from the storage service.
+
+        Returns:
+            bool: returns True indicating everything went fine
+        """
+        draft_instance_to_remove = Draft.draft_.draft_file_by_draft_id_company_id_and_user_id(
+            draft_id=draft_id, user_id=self.user_id, company_id=self.company_id
+        )  
+        if draft_instance_to_remove:
+            if draft_instance_to_remove.file_url:
+                if draft_instance_to_remove.file_url and len(draft_instance_to_remove.file_url.split('/{}/'.format(draft_instance_to_remove.file_draft_path)))>1:
+                    key = draft_instance_to_remove.file_draft_path + '/' + draft_instance_to_remove.file_url.split('/{}/'.format(draft_instance_to_remove.file_draft_path))[1]
+                    key = urllib.parse.unquote(key)
+                else:
+                    key = '{file_draft_path}/{id}/{file_name}'.format(
+                        id=draft_instance_to_remove.id,
+                        file_draft_path=draft_instance_to_remove.file_draft_path,
+                        file_name=draft_instance_to_remove.value
+                    )
+                
+                self.bucket.delete(key)
+            draft_instance_to_remove.delete()
+        return True
+            
 
     @staticmethod
     def draft_id_from_draft_string_id(draft_string_id):
@@ -191,3 +224,5 @@ class DraftService:
                 return -1
         else:
             return - 1
+
+        

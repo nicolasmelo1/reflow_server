@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db import transaction
 
 from reflow_server.draft.services import DraftService
 from reflow_server.draft.models import Draft
@@ -52,6 +53,7 @@ class RichTextImageBlockService:
         else:
             return ''
 
+    @transaction.atomic
     def save_image_block(self, block_uuid, image_link=None, size_relative_to_view=1, image_file_name=None, image_option_id=None):
         """
         A helper method to save the `image` block type. If the user is uploading a file he needs to save this file to draft BEFORE saving. The draft_string_id will 
@@ -94,3 +96,21 @@ class RichTextImageBlockService:
             image_option_id,
         )
         return text_image_option_instance
+
+    def remove_image_block(self, block_instance):
+        if block_instance and \
+           block_instance.image_option and \
+           block_instance.image_option.file_name:
+            if block_instance.image_option.file_url:
+                if block_instance.image_option.file_url and len(block_instance.image_option.file_url.split('/{}/'.format(block_instance.image_option.file_image_path)))>1:
+                    key = block_instance.image_option.file_image_path + '/' + block_instance.image_option.file_url.split('/{}/'.format(block_instance.image_option.file_image_path))[1]
+                    key = urllib.parse.unquote(key)
+                else:
+                    key = '{file_rich_text_image_path}/{block_uuid}/{file_name}'.format(
+                        block_uuid=block_instance.uuid,
+                        file_rich_text_image_path=block_instance.image_option.file_image_path,
+                        file_name=block_instance.image_option.file_name
+                    )
+                
+                self.bucket.delete(key)
+        return True

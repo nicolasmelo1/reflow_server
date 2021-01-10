@@ -193,3 +193,7 @@ class DownloadFileView(APIView):
         url = attachment_service.get_attachment_url(dynamic_form_id, field_id, file_name)
         if url:
             return redirect(url)
+        else:
+            return Response({
+                'status': 'error'
+            })

@@ -1,4 +1,5 @@
 from .text_block import RichTextTextBlockManager
+from .text_content import RichTextTextContentManager
 from .text_block_type import RichTextTextBlockTypeManager
 from .draft import RichTextDraftManager
 from .text_image_option import RichTextTextImageOptionManager
