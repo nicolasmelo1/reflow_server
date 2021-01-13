@@ -50,7 +50,7 @@ class FormularyService(Settings):
 
     @property
     def formulary_names_the_user_has_access_to(self):
-        return FormAccessedBy.objects.filter(user_id=self.user_id, form__enabled=True)\
+        return FormAccessedBy.objects.filter(user_id=self.user_id, form__enabled=True, form__depends_on__isnull=True)\
             .order_by('form__order')\
             .values_list('form__form_name', flat=True)
 
