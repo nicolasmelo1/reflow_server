@@ -73,6 +73,14 @@ class RichTextImageBlockService:
         url = None
         file_name = None
         file_size = None
+        # if we are editing, does not set file_name, file_size and url to null, otherwise pick
+        # the instance you are updating and use those values already saved.
+        if image_option_id:
+            text_image_option_instance = TextImageOption.rich_text_.text_image_option_by_text_image_option_id(image_option_id)
+            url = text_image_option_instance.file_url
+            file_name = text_image_option_instance.file_name
+            file_size = text_image_option_instance.file_size
+
         if image_file_name not in ['',  None]:
             draft_id = DraftService.draft_id_from_draft_string_id(image_file_name)
             if DraftService.draft_id_from_draft_string_id(image_file_name) != -1:
@@ -98,6 +106,22 @@ class RichTextImageBlockService:
         return text_image_option_instance
 
     def remove_image_block(self, block_instance):
+        """
+        When the user deletes removes an image block and saves what we gotta do is delete the image
+        file from s3. Since we do not do this automatically we need to do this by hand. So what does we do
+        is that when a user removes a page or anything we go through all of the removed blocks and check
+        if any of them has special cases when the block is being deleted. Then we remove the block from the database.
+        
+        On image blocks, our special case is to remove the image from s3. And that's exactly
+        what we do in this method. It's nice to notice however, this is only needed if `file_name` is defined
+        in the TextImageOption instance. Because if this is not None, it means a file was saved and no link was used.
+
+        Args:
+            block_instance (reflow_server.rich_text.models.TextBlock): The TextBlock instance that will be removed.
+
+        Returns:
+            bool: returns True indicating that the file was deleted from s3 and can be safely deleted from the database.
+        """
         if block_instance and \
            block_instance.image_option and \
            block_instance.image_option.file_name:

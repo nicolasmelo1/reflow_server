@@ -15,6 +15,33 @@ class VindiExternal(externals.External):
                       address_city, address_state, address_country, 
                       company_name, company_email, company_registry_code,
                       emails=list()):
+        """
+        This creates the client in the Vindi payment gateway. Each client for us is the company 
+        (since we bill each company individually). So the company is bound to the vindi client.
+        The client holds information about the company so the address, following the zip_code the
+        neighborhood and so on. With this we also bound the email of who to send the invoice and so on.
+
+        Args:
+            address_street (str): The street of the company
+            address_number (int): The number of the company in the street
+            address_zip_code (str): The zip_code of the company, where it is located.
+            address_neighborhood (str): The neighborhood of where the company is located
+            address_city (str): The city of where the company is located
+            address_state (str): The state of the country of where the company is located. Should be in
+                                 the ISO 3166-2 format. Example: SP
+            address_country (str): The country where the company is located. This should be in ISO 3166-1 alpha-2
+                                   format. Example: BR 
+            company_name (str): The name of the company, this is used so we can diferentiate between 
+                                the clients in vindi.
+            company_email (str): This is the e-mail we want to send the invoice to
+            company_registry_code (str): The company CNPJ. In Brazil each company have a CNPJ and it is obligatory
+                                         for us to send the invoice to the user
+            emails (list(str), optional): Sometimes you want to send the invoice to more than just one user. So you send
+                                          a copy of the invoice e-mail to more users. Defaults to list().
+
+        Returns:
+            requests.Response: Reference on what it returns https://vindi.github.io/api-docs/dist/#/customers/postV1Customers
+        """
         serializer = VindiClientSerializer(
             address_street, address_number, address_zip_code, 
             address_neighborhood, address_city, address_state, 
@@ -28,6 +55,33 @@ class VindiExternal(externals.External):
                       address_city, address_state, address_country, 
                       company_name, company_email, company_registry_code,
                       emails=list()):
+        """
+        Same as `create_client`, except is that we update a client here. So we make a 
+        PUT request and also need the `vindi_client_id` which is a parameter not needed 
+        in the `create_client` method.
+
+        Args:
+            vindi_client_id (str): The client_id from vindi that we need to update.
+            address_street (str): The street of the company
+            address_number (int): The number of the company in the street
+            address_zip_code (str): The zip_code of the company, where it is located.
+            address_neighborhood (str): The neighborhood of where the company is located
+            address_city (str): The city of where the company is located
+            address_state (str): The state of the country of where the company is located. Should be in
+                                 the ISO 3166-2 format. Example: SP
+            address_country (str): The country where the company is located. This should be in ISO 3166-1 alpha-2
+                                   format. Example: BR 
+            company_name (str): The name of the company, this is used so we can diferentiate between 
+                                the clients in vindi.
+            company_email (str): This is the e-mail we want to send the invoice to
+            company_registry_code (str): The company CNPJ. In Brazil each company have a CNPJ and it is obligatory
+                                         for us to send the invoice to the user
+            emails (list(str), optional): Sometimes you want to send the invoice to more than just one user. So you send
+                                          a copy of the invoice e-mail to more users. Defaults to list().
+
+        Returns:
+            requests.Response: Reference on what it returns https://vindi.github.io/api-docs/dist/#/customers/putV1CustomersId
+        """
         serializer = VindiClientSerializer(
             address_street, address_number, address_zip_code, 
             address_neighborhood, address_city, address_state, 

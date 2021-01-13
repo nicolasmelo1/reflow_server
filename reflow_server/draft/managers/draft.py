@@ -73,3 +73,15 @@ class DraftDraftManager(models.Manager):
             int: number of updated instances, in this case, just 1.
         """
         return self.get_queryset().filter(id=draft_id).update(file_url=file_url)
+
+    def drafts_past_due_date(self, due_date):
+        """
+        Get the drafts that have passed a certain duedate
+
+        Args:
+            due_date (reflow_server.draft.models.Draft): [description]
+
+        Returns:
+            django.db.models.Queryset(reflow_server.draft.models.Draft): A queryset of drafts
+        """
+        return self.get_queryset().filter(created_at__lte=due_date)

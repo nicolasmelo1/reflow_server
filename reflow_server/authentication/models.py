@@ -10,6 +10,7 @@ from reflow_server.data.managers import UserExtendedDataManager
 from reflow_server.formulary.managers import UserExtendedFormularyManager
 from reflow_server.notification.managers import UserExtendedNotificationManager
 from reflow_server.theme.managers import UserExtendedThemeManager
+from reflow_server.draft.managers import UserExtendedDraftManager
 
 
 class VisualizationType(models.Model):
@@ -139,7 +140,8 @@ class UserExtended(AbstractUser):
     formulary_ = UserExtendedFormularyManager()
     notification_ = UserExtendedNotificationManager()
     theme_ = UserExtendedThemeManager()
-    
+    draft_ = UserExtendedDraftManager()
+
     def make_temporary_password(self):
         from reflow_server.authentication.utils.jwt_auth import JWT
         

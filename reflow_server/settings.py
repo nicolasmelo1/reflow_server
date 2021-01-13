@@ -218,7 +218,8 @@ CONSUMERS = {
         'reflow_server.notification.consumers.NotificationReadConsumer',
         'reflow_server.data.consumers.DataConsumer',
         'reflow_server.billing.consumers.BillingConsumer',
-        'reflow_server.authentication.consumers.AuthenticationConsumer'
+        'reflow_server.authentication.consumers.AuthenticationConsumer',
+        'reflow_server.draft.consumers.DraftConsumer'
     ]
 }
 

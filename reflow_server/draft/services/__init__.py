@@ -1,9 +1,11 @@
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 
 from reflow_server.core.utils.storage import Bucket
 from reflow_server.draft.models import Draft, DraftType
 
+from datetime import timedelta
 import base64
 import urllib
 
@@ -225,4 +227,27 @@ class DraftService:
         else:
             return - 1
 
+    @staticmethod
+    @transaction.atomic
+    def remove_old_drafts():
+        """
+        Removes drafts from our database and from s3 that passed 60 days after it's creation.
+        When we remove we notify the clients that the draft was removed so they can upload it again.
+
+        Returns:
+            bool: returns True to indicate everything went fine.
+        """
+        from reflow_server.draft.events import DraftEvents
         
+        draft_events = DraftEvents()
+
+        due_date_for_old_drafts = timezone.now() - timedelta(days=60)
+        drafts_to_remove = Draft.draft_.drafts_past_due_date(due_date_for_old_drafts)
+        for draft in drafts_to_remove:
+            draft_string_id = base64.b64encode(draft_id_template.format(draft.id).encode('utf-8')).decode('utf-8')
+
+            draft_events.send_removed_draft(draft.company_id, draft_string_id)
+
+        drafts_to_remove.delete()
+
+        return True

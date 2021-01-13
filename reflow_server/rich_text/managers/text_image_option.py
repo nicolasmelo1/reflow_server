@@ -5,6 +5,18 @@ class RichTextTextImageOptionManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
     
+    def text_image_option_by_text_image_option_id(self, text_image_option_id):
+        """
+        Returns a single TextImageOption instance by it's id.
+
+        Args:
+            text_image_option_id (str): A TextImageOption instance id
+
+        Returns:
+            reflow_server.rich_text.models.TextImageOption: The TextImageOption instance that matches the id.
+        """
+        return self.get_queryset().filter(id=text_image_option_id).first()
+
     def update_or_create(self, size_relative_to_view=1, link=None, file_url=None, file_size=None, file_name=None, text_image_option_id=None):
         """
         Updates or creates a TextImageOption instance in the database. If `text_image_option_id` is defined we update the instance, otherwise
