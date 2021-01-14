@@ -55,7 +55,7 @@ class DraftService:
             draft_type_id = DraftType.objects.filter(name='file').values_list('id', flat=True).first()
         else:
             draft_type_id = DraftType.objects.filter(name='value').values_list('id', flat=True).first()
-
+    
         instance = Draft.draft_.create_or_update_draft(
             draft_id=draft_id,
             value = draft_file.name if draft_file else draft_value,
@@ -66,19 +66,22 @@ class DraftService:
         )
 
         if draft_file:
+
             # if you are updating a draft we need to delete the old draft and upload again.
             if instance.file_url and len(instance.file_url.split('/{}/'.format(instance.file_draft_path)))>1:
                 key = instance.file_draft_path + '/' + instance.file_url.split('/{}/'.format(instance.file_draft_path))[1]
                 key = urllib.parse.unquote(key)
                 self.bucket.delete(key)
-                
+            
             url = self.bucket.upload(
                 key="{file_draft_path}/{id}/".format(
                     id=str(instance.id), 
                     file_draft_path=settings.S3_FILE_DRAFT_PATH) + str(draft_file.name),
                 file=draft_file
             )
+
             Draft.draft_.update_file_url_by_draft_id(instance.id, url)
+
 
         return base64.b64encode(draft_id_template.format(instance.id).encode('utf-8')).decode('utf-8')
 

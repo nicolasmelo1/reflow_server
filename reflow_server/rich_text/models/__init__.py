@@ -100,7 +100,7 @@ class TextImageOption(models.Model):
 
     The `size_relative_to_view` can be 1 or 0, we multiply it by the percentage of the width of the page.
     """
-    size_relative_to_view = models.BigIntegerField(default=1)
+    size_relative_to_view = models.DecimalField(default=1.00, max_digits=25, decimal_places=20)
     link = models.TextField(default=None, blank=True, null=True)
     bucket = models.CharField(max_length=200, default=settings.S3_BUCKET, blank=True, null=True)
     file_image_path = models.CharField(max_length=250, default=settings.S3_FILE_RICH_TEXT_IMAGE_PATH, blank=True, null=True)
