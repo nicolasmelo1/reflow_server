@@ -81,6 +81,19 @@ class DraftEditFileView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class DraftDuplicateView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def get(self, request, company_id, draft_string_id):
+        draft_service = DraftService(company_id=company_id, user_id=request.user.id)
+        draft_string_id = draft_service.save_draft_from_draft(DraftService.draft_id_from_draft_string_id(draft_string_id))
+        return Response({
+            'status': 'ok',
+            'data': {
+                'draft_id': draft_string_id
+            }
+        }, status=status.HTTP_200_OK)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class DraftSaveValueView(APIView):
     """

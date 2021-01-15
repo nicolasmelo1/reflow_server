@@ -7,6 +7,7 @@ from reflow_server.rich_text.models import TextBlock, TextImageOption
 from reflow_server.core.utils.storage import Bucket
 
 import urllib
+import uuid
 
 
 class RichTextImageBlockService:
@@ -26,25 +27,24 @@ class RichTextImageBlockService:
         self.user_id = user_id
         self.company_id = company_id
 
-    def get_image_url(self, block_uuid, file_name):
+    def get_image_url(self, file_image_uuid):
         """
         Returns a temporary url of the image from our storage directly to the client.
 
         Args:
-            block_uuid (str): The uuid of the block that holds the image you are trying to retrieve.
-            file_name (str): The name of the file you are trying to retrieve the url from
+            file_image_uuid (str): The uuid of the image file you have saved, we use this uuid so the user can duplicate freely the images.
 
         Returns:
             str: A temporary url for the file.
         """
-        block_instance = TextBlock.rich_text_.text_block_by_uuid_and_image_option_file_name(block_uuid, file_name) 
+        block_instance = TextBlock.rich_text_.text_block_by_file_image_uuid(file_image_uuid) 
         if block_instance:
             if block_instance.image_option.file_url and len(block_instance.image_option.file_url.split('/{}/'.format(block_instance.image_option.file_image_path)))>1:
                 key = block_instance.image_option.file_image_path + '/' + block_instance.image_option.file_url.split('/{}/'.format(block_instance.image_option.file_image_path))[1]
                 key = urllib.parse.unquote(key)
             else:
                 key = '{file_rich_text_image_path}/{block_uuid}/{file_name}'.format(
-                    id=block_uuid,
+                    id=block_instance.uuid,
                     file_rich_text_image_path=block_instance.image_option.file_image_path,
                     file_name=block_instance.image_option.file_name
                 )
@@ -54,13 +54,14 @@ class RichTextImageBlockService:
             return ''
 
     @transaction.atomic
-    def save_image_block(self, block_uuid, image_link=None, size_relative_to_view=1, image_file_name=None, image_option_id=None):
+    def save_image_block(self, block_uuid, image_uuid, image_link=None, size_relative_to_view=1, image_file_name=None, image_option_id=None):
         """
         A helper method to save the `image` block type. If the user is uploading a file he needs to save this file to draft BEFORE saving. The draft_string_id will 
         be appended to file_name, so we always need to check if the file_name is a draft. If it is we copy the contents of the draft to here.
 
         Args:
             block_uuid (str): The uuid of the block that will hold the image data.
+            image_uuid (str): The uuid of the image file you have saved, we use this uuid so the user can duplicate freely the images.
             image_link (str, optional): If the image is from an external source we need this to show on the user. If it's from an external source we DO NOT do any kind of protection. 
                                         Defaults to None.
             size_relative_to_view (int, optional): This is the size relative to view, 1 assumes it's the hole width, a 0.5 assumes it'll be half of the width. Defaults to 1.
@@ -83,7 +84,31 @@ class RichTextImageBlockService:
 
         if image_file_name not in ['',  None]:
             draft_id = DraftService.draft_id_from_draft_string_id(image_file_name)
-            if DraftService.draft_id_from_draft_string_id(image_file_name) != -1:
+            block_with_file = TextBlock.rich_text_.text_block_by_file_image_uuid(image_uuid)
+            if block_with_file: 
+                file_size = block_with_file.image_option.file_size
+                file_name = block_with_file.image_option.file_name
+                if block_with_file.image_option.file_url and len(block_with_file.image_option.file_url.split('/{}/'.format(block_with_file.image_option.file_image_path)))>1:
+                    key = block_with_file.image_option.file_image_path + '/' + block_with_file.image_option.file_url.split('/{}/'.format(block_with_file.image_option.file_image_path))[1]
+                    key = urllib.parse.unquote(key)
+                else:
+                    key = '{file_rich_text_image_path}/{block_uuid}/{file_name}'.format(
+                        block_uuid=block_with_file.uuid,
+                        file_rich_text_image_path=block_with_file.image_option.file_image_path,
+                        file_name=block_with_file.image_option.file_name
+                    )
+                copy_to_key = "{file_rich_text_image_path}/{block_uuid}/{file_name}".format(
+                    block_uuid=str(block_uuid), 
+                    file_rich_text_image_path=settings.S3_FILE_RICH_TEXT_IMAGE_PATH,
+                    file_name=block_with_file.image_option.file_name
+                )
+                if key != copy_to_key:
+                    self.bucket.copy(key, copy_to_key)
+                    url = self.bucket.get_temp_url(copy_to_key)
+                    url = url.split('?')[0]
+                    image_uuid = uuid.uuid4()
+
+            elif draft_id != -1:
                 draft_instance = Draft.rich_text_.draft_by_draft_id_user_id_and_company_id(draft_id, self.user_id, self.company_id)
                 file_size = draft_instance.file_size
                 file_name = draft_instance.value
@@ -96,6 +121,7 @@ class RichTextImageBlockService:
                 url = draft_service.copy_file_from_draft_string_id_to_bucket_key(image_file_name, bucket_key)
 
         text_image_option_instance = TextImageOption.rich_text_.update_or_create(
+            image_uuid,
             size_relative_to_view, 
             image_link, 
             url,

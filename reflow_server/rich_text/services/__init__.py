@@ -189,6 +189,7 @@ class RichTextService:
         image_block_service = RichTextImageBlockService(block_instance.page_id, self.user_id, self.company_id)
         text_image_option_instance = image_block_service.save_image_block(
             block_instance.uuid, 
+            block_data.image_file_uuid,
             block_data.image_link, 
             block_data.size_relative_to_view, 
             block_data.image_file_name,

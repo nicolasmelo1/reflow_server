@@ -30,7 +30,7 @@ class ImageOptionRelation(serializers.ModelSerializer):
 
     class Meta:
         model = TextImageOption
-        fields = ('id', 'size_relative_to_view', 'link', 'file_name')
+        fields = ('id', 'size_relative_to_view', 'file_image_uuid', 'link', 'file_name')
 
 
 class ContentRelation(serializers.ModelSerializer):

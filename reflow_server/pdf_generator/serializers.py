@@ -61,6 +61,7 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
                     block_data.append_text_block_type_data(block['data']['text_option']['alignment_type'])
                 elif block['data']['block_type'].name == 'image':
                     block_data.append_image_block_type_data(
+                        block['data']['image_option']['file_image_uuid'],
                         block['data']['image_option']['link'], 
                         block['data']['image_option']['file_name'],
                         block['data']['image_option']['size_relative_to_view']

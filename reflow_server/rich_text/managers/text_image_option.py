@@ -17,7 +17,7 @@ class RichTextTextImageOptionManager(models.Manager):
         """
         return self.get_queryset().filter(id=text_image_option_id).first()
 
-    def update_or_create(self, size_relative_to_view=1, link=None, file_url=None, file_size=None, file_name=None, text_image_option_id=None):
+    def update_or_create(self, file_image_uuid, size_relative_to_view=1, link=None, file_url=None, file_size=None, file_name=None, text_image_option_id=None):
         """
         Updates or creates a TextImageOption instance in the database. If `text_image_option_id` is defined we update the instance, otherwise
         we just create a new one.
@@ -37,6 +37,7 @@ class RichTextTextImageOptionManager(models.Manager):
         instance, __ = self.get_queryset().update_or_create(
             id=text_image_option_id,
             defaults={
+                'file_image_uuid': file_image_uuid,
                 'size_relative_to_view': size_relative_to_view,
                 'link': link,
                 'file_url': file_url,
