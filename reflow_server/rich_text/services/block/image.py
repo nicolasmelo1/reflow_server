@@ -85,6 +85,8 @@ class RichTextImageBlockService:
         if image_file_name not in ['',  None]:
             draft_id = DraftService.draft_id_from_draft_string_id(image_file_name)
             block_with_file = TextBlock.rich_text_.text_block_by_file_image_uuid(image_uuid)
+
+            # we check if a block already exists with the specific image_uuid, if it exists we copy the image of this block to the new block.
             if block_with_file: 
                 file_size = block_with_file.image_option.file_size
                 file_name = block_with_file.image_option.file_name
@@ -107,7 +109,7 @@ class RichTextImageBlockService:
                     url = self.bucket.get_temp_url(copy_to_key)
                     url = url.split('?')[0]
                     image_uuid = uuid.uuid4()
-
+            
             elif draft_id != -1:
                 draft_instance = Draft.rich_text_.draft_by_draft_id_user_id_and_company_id(draft_id, self.user_id, self.company_id)
                 file_size = draft_instance.file_size

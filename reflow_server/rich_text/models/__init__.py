@@ -99,6 +99,12 @@ class TextImageOption(models.Model):
     url so no need to protect it.
 
     The `size_relative_to_view` can be 1 or 0, we multiply it by the percentage of the width of the page.
+
+    The `file_image_uuid` is a unique id for each image. This way, when saving, if another block is using an uuid that already exists
+    we can just duplicate the image of this block instead of saving a new file. This make easier for us to duplicate blocks inside of
+    the rich text. Specially the ones that already exists. If we did not made this on the front-end we would need to download the file
+    from the url and then reupload it when saving. It is kinda a hacky and a clumbersome way to do this. 
+    Using `file_image_uuid` it becomes a lot easier for us to duplicate
     """
     size_relative_to_view = models.DecimalField(default=1.00, max_digits=25, decimal_places=20)
     link = models.TextField(default=None, blank=True, null=True)
