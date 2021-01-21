@@ -61,7 +61,6 @@ class OnboardingService(CompanyService):
         )
         
         # update billing information
-        BillingService.create_on_onboarding(company.id, user.id)
-        #company_billing.update_company()
+        BillingService.create_on_onboarding(company.id, user.id, partner)
 
         return user

@@ -4,7 +4,7 @@ from django.db.models import Q
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.billing.models import CurrentCompanyCharge, DiscountByIndividualValueQuantity, \
     IndividualChargeValueType, ChargeType, DiscountByIndividualNameForCompany, CompanyCharge, \
-    CompanyBilling
+    CompanyBilling, PartnerDefaultAndDiscounts
 from reflow_server.billing.services.data import TotalData
 from reflow_server.billing.services.vindi import VindiService
 
@@ -219,7 +219,15 @@ class ChargeService:
         
         # if quantity is not defined we use the quantity of the default quantity defined in IndividualChargeValueType
         if not quantity:
-            quantity = individual_charge_value_type.default_quantity
+            company = Company.billing_.company_by_company_id(self.company_id)
+            partner_default_and_discounts = PartnerDefaultAndDiscounts.billing_.partner_default_and_discount_by_partner_name_and_individual_charge_value_type_id(
+                company.partner,
+                individual_charge_value_type.id
+            )
+            if partner_default_and_discounts:
+                quantity = partner_default_and_discounts.default_quantity
+            else:
+                quantity = individual_charge_value_type.default_quantity
 
         discount = self.__get_discount_for_quantity(individual_charge_value_type.id, quantity)
         

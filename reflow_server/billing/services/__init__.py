@@ -2,7 +2,8 @@ from django.db import transaction
 from django.db.models import Q
 
 from reflow_server.authentication.models import Company, UserExtended
-from reflow_server.billing.models import IndividualChargeValueType, CurrentCompanyCharge, CompanyBilling
+from reflow_server.billing.models import DiscountByIndividualNameForCompany, IndividualChargeValueType, CurrentCompanyCharge, CompanyBilling, \
+    PartnerDefaultAndDiscounts
 from reflow_server.billing.services.data import CompanyChargeData
 from reflow_server.billing.services.charge import ChargeService
 from reflow_server.billing.services.payment import PaymentService
@@ -76,19 +77,27 @@ class BillingService:
         """
         created_company_charges = []
 
-        def get_quantity(user):
-            current_quantity_for_this_individual_value_type = CurrentCompanyCharge.objects.filter(company_id=self.company_id, individual_charge_value_type=individual_charge_value_type).values_list('quantity', flat=True).first()
-            if current_quantity_for_this_individual_value_type:
-                quantity = current_quantity_for_this_individual_value_type
+        def get_quantity():
+            company = Company.billing_.company_by_company_id(self.company_id)
+            partner_default_and_discounts = PartnerDefaultAndDiscounts.billing_.partner_default_and_discount_by_partner_name_and_individual_charge_value_type_id(
+                company.partner,
+                individual_charge_value_type.id
+            )
+            if partner_default_and_discounts:
+                quantity = partner_default_and_discounts.default_quantity
             else:
-                quantity = individual_charge_value_type.default_quantity if individual_charge_value_type.default_quantity else 0
+                current_quantity_for_this_individual_value_type = CurrentCompanyCharge.objects.filter(company_id=self.company_id, individual_charge_value_type=individual_charge_value_type).values_list('quantity', flat=True).first()
+                if current_quantity_for_this_individual_value_type:
+                    quantity = current_quantity_for_this_individual_value_type
+                else:
+                    quantity = individual_charge_value_type.default_quantity if individual_charge_value_type.default_quantity else 0
             return quantity
 
         if individual_charge_value_type.charge_type.name == 'user':
             for user in UserExtended.billing_.users_active_by_company_id(self.company_id):
-                created_company_charges.append(CompanyChargeData(individual_charge_value_type.name, get_quantity(user), user.id))
+                created_company_charges.append(CompanyChargeData(individual_charge_value_type.name, get_quantity(), user.id))
         else:
-            created_company_charges.append(CompanyChargeData(individual_charge_value_type.name, get_quantity(None)))
+            created_company_charges.append(CompanyChargeData(individual_charge_value_type.name, get_quantity()))
         return created_company_charges
 
     def validate_current_company_charges_and_create_new(self, current_company_charges):
@@ -136,6 +145,29 @@ class BillingService:
     
     def is_valid_company_invoice_emails(self, length_of_company_invoice_emails):
         return not (length_of_company_invoice_emails > 3 or length_of_company_invoice_emails < 1)
+
+    def create_discount_by_individual_name_for_company_by_partner_name(self, partner_name):
+        """
+        From the Partner defaults and discounts update the DiscountByIndividualNameForCompany
+        so we can use this discount on the company
+
+        Args:
+            partner_name (str): Be aware the name of the partner here must be the same defined in 
+                                reflow_server.authentication.models.Company `partner` column
+
+        Returns:
+            bool: returns True indicating everything went fine
+        """
+        if partner_name not in [None, '']:
+            partner_discounts = PartnerDefaultAndDiscounts.billing_.partner_default_and_discounts_by_partner_name(partner_name)
+            for partner_discount in partner_discounts:
+                DiscountByIndividualNameForCompany.billing_.create(
+                    partner_discount.individual_charge_value_type_id,
+                    partner_discount.discount_value,
+                    partner_name,
+                    self.company_id
+                )
+        return True
 
     def __send_update_billing_events(self):
         """
@@ -207,7 +239,7 @@ class BillingService:
         
     @classmethod
     @transaction.atomic
-    def create_on_onboarding(cls, company_id, user_id):
+    def create_on_onboarding(cls, company_id, user_id, partner_name=None):
         """
         Creates the company and the first user on the billing. This is for onboarding only.
 
@@ -221,5 +253,6 @@ class BillingService:
         billing_service = cls(company_id)
         billing_service.create_company()
         billing_service.create_user(user_id=user_id)
+        billing_service.create_discount_by_individual_name_for_company_by_partner_name(partner_name)
         return True
         

@@ -1,6 +1,7 @@
 from django.db import models
 
-from reflow_server.billing.managers import CompanyChargeBillingManager
+from reflow_server.billing.managers import CompanyChargeBillingManager, PartnerDefaultAndDiscountsBillingManager, \
+    DiscountByIndividualNameForCompanyBillingManager
 
 
 # Create your models here.
@@ -150,6 +151,25 @@ class DiscountByIndividualValueQuantity(models.Model):
         db_table = 'discount_by_individual_value_quantity'
 
 
+class PartnerDefaultAndDiscounts(models.Model):
+    """
+    If a company has come from a partner we use the partner defaults. With this we can set the discount value by each 
+    `individual_charge_value_type` we want to give discounts and also we can set a default quantity for each funcionality 
+    of our platform for the user.
+
+    IMPORTANT: notice that partner_name must comply with reflow_server.authentication.models.Company partner attribute.
+    """
+    partner_name = models.CharField(max_length=200)
+    individual_charge_value_type = models.ForeignKey('billing.IndividualChargeValueType', on_delete=models.CASCADE)
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2)
+    default_quantity = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'partner_default_and_discounts'
+
+    billing_ = PartnerDefaultAndDiscountsBillingManager()
+
+
 class DiscountByIndividualNameForCompany(models.Model):
     """
     This model is responsible for holding the discounts for each billing.IndividualChargeValueType but the difference here
@@ -165,6 +185,9 @@ class DiscountByIndividualNameForCompany(models.Model):
 
     class Meta:
         db_table = 'discount_by_individual_name_for_company'
+
+    objects = models.Manager()
+    billing_ = DiscountByIndividualNameForCompanyBillingManager()
 
 
 class DiscountCoupon(models.Model):

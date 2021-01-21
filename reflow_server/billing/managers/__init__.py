@@ -2,3 +2,5 @@ from .user_extended import UserExtendedBillingManager
 from .company import CompanyBillingManager
 from .address_helper import AddressHelperBillingManager
 from .company_charge import CompanyChargeBillingManager
+from .partner_default_and_discounts import PartnerDefaultAndDiscountsBillingManager
+from .discount_by_individual_name_for_company import DiscountByIndividualNameForCompanyBillingManager
