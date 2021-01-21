@@ -1,7 +1,7 @@
 from django.db import models
 
 from reflow_server.billing.managers import CompanyChargeBillingManager, PartnerDefaultAndDiscountsBillingManager, \
-    DiscountByIndividualNameForCompanyBillingManager
+    DiscountByIndividualNameForCompanyBillingManager, DiscountCouponBillingManager, CompanyCouponsBillingManager
 
 
 # Create your models here.
@@ -207,6 +207,8 @@ class DiscountCoupon(models.Model):
     class Meta:
         db_table = 'discount_coupon'
 
+    billing_ = DiscountCouponBillingManager()
+
 
 class CompanyCoupons(models.Model):
     """
@@ -219,6 +221,7 @@ class CompanyCoupons(models.Model):
     class Meta:
         db_table = 'company_coupon'
 
+    billing_ = CompanyCouponsBillingManager()
 
 class CompanyInvoiceMails(models.Model):
     """

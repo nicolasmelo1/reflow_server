@@ -3,7 +3,7 @@ from django.db.models import Q
 
 from reflow_server.authentication.models import Company, UserExtended
 from reflow_server.billing.models import DiscountByIndividualNameForCompany, IndividualChargeValueType, CurrentCompanyCharge, CompanyBilling, \
-    PartnerDefaultAndDiscounts
+    PartnerDefaultAndDiscounts, DiscountCoupon, CompanyCoupons
 from reflow_server.billing.services.data import CompanyChargeData
 from reflow_server.billing.services.charge import ChargeService
 from reflow_server.billing.services.payment import PaymentService
@@ -161,14 +161,27 @@ class BillingService:
         if partner_name not in [None, '']:
             partner_discounts = PartnerDefaultAndDiscounts.billing_.partner_default_and_discounts_by_partner_name(partner_name)
             for partner_discount in partner_discounts:
-                DiscountByIndividualNameForCompany.billing_.create(
-                    partner_discount.individual_charge_value_type_id,
-                    partner_discount.discount_value,
-                    partner_name,
-                    self.company_id
-                )
+                if partner_discount.discount_value:
+                    DiscountByIndividualNameForCompany.billing_.create(
+                        partner_discount.individual_charge_value_type_id,
+                        partner_discount.discount_value,
+                        partner_name,
+                        self.company_id
+                    )
         return True
 
+    def create_discount_coupon_for_company(self, discount_coupon_name):
+        """
+        Adds a new discount coupon to the company
+
+        Args:
+            discount_coupon_name (str): The name of the discount coupon
+        """
+        if discount_coupon_name:
+            discount_coupon_id = DiscountCoupon.billing_.discount_coupon_id_by_coupon_name(discount_coupon_name)
+            if discount_coupon_id:
+                CompanyCoupons.billing_.create(self.company_id, discount_coupon_id)
+            
     def __send_update_billing_events(self):
         """
         Sends the events to the users after the billing was updated. 
@@ -239,7 +252,7 @@ class BillingService:
         
     @classmethod
     @transaction.atomic
-    def create_on_onboarding(cls, company_id, user_id, partner_name=None):
+    def create_on_onboarding(cls, company_id, user_id, partner_name=None, discount_coupon_name=None):
         """
         Creates the company and the first user on the billing. This is for onboarding only.
 
@@ -254,5 +267,6 @@ class BillingService:
         billing_service.create_company()
         billing_service.create_user(user_id=user_id)
         billing_service.create_discount_by_individual_name_for_company_by_partner_name(partner_name)
+        billing_service.create_discount_coupon_for_company(discount_coupon_name)
         return True
         

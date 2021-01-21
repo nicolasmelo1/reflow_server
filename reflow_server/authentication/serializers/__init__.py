@@ -53,6 +53,7 @@ class OnboardingSerializer(serializers.Serializer):
     """
     shared_by = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     partner = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    discount_coupon = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     company_name = serializers.CharField(required=False, allow_blank=True)
     user_phone = serializers.CharField(required=True)
     user_first_name = serializers.CharField(required=True)
@@ -70,7 +71,8 @@ class OnboardingSerializer(serializers.Serializer):
             self.validated_data['user_phone'],
             self.validated_data.get('company_name', None),
             self.validated_data.get('shared_by', None),
-            self.validated_data.get('partner', None)
+            self.validated_data.get('partner', None),
+            self.validated_data.get('discount_coupon', None)
         )
         return user
 

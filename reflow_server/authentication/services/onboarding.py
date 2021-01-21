@@ -13,21 +13,22 @@ class OnboardingService(CompanyService):
     .onboard()
     """
     @transaction.atomic
-    def onboard(self, user_email, user_first_name, user_last_name, user_password, user_phone, company_name=None, shared_by=None, partner=None):
+    def onboard(self, user_email, user_first_name, user_last_name, user_password, user_phone, company_name=None, shared_by=None, partner=None, discount_coupon_name=None):
         """
         Onboards a new user and creates a new company (aswell as a new user). Updates the billing info on the fly.
 
         Arguments:
-            user_email {str} -- The user email
-            user_first_name {str} -- The first name of the user
-            user_last_name {str} -- the last name of the user you want to onboard
-            user_password {str} -- The new password of the user
-            user_phone {str} -- The phone number of the user
+            user_email (str): The user email
+            user_first_name (str): The first name of the user
+            user_last_name (str): the last name of the user you want to onboard
+            user_password (str): The new password of the user
+            user_phone (str): The phone number of the user
 
         Keyword Arguments:
-            company_name {str} -- the company name, if it has one (default: {None})
-            shared_by {str} -- the string of the company endpoint if it was shared by some other company (default: {None})
-            partner {str} -- The string of the partner if the user came from a partner. (default: {None})
+            company_name (str): the company name, if it has one (default: {None})
+            shared_by (str): the string of the company endpoint if it was shared by some other company (default: {None})
+            partner (str): The string of the partner if the user came from a partner. (default: {None})
+            discount_coupon (str): The string of the discount coupon to use.
 
         Returns:
             reflow_server.authentication.models.UserExtended -- returns the created user.
@@ -61,6 +62,6 @@ class OnboardingService(CompanyService):
         )
         
         # update billing information
-        BillingService.create_on_onboarding(company.id, user.id, partner)
+        BillingService.create_on_onboarding(company.id, user.id, partner, discount_coupon_name)
 
         return user

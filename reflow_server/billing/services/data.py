@@ -1,8 +1,7 @@
-from django.db.models import Q, Sum
+from django.db.models import Sum
 
-from reflow_server.billing.models import CompanyCoupons, DiscountCoupon
+from reflow_server.billing.models import CompanyCoupons
 
-from datetime import datetime
 import numpy
 import functools
 
@@ -48,10 +47,7 @@ class IndividualCompanyChargeData:
 class TotalData:
     def __init__(self, company_id):
         self.individual_value_charges_by_name = {}
-        self.discount_coupons = CompanyCoupons.objects.filter(
-            Q(company_id=company_id, discount_coupon__permanent=True) |
-            Q(company_id=company_id, discount_coupon__end_at__lte=datetime.now(), discount_coupon__start_at__gte=datetime.now())
-        )
+        self.discount_coupons = CompanyCoupons.billing_.company_coupons_by_company_id(company_id)
 
     def add_value(self, individual_value_charge_name, individual_value_charge, quantity, individual_discount=1):
         """
