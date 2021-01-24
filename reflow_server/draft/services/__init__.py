@@ -11,6 +11,7 @@ import urllib
 
 draft_id_template = 'draft-{}'
 
+
 class DraftService:
     def __init__(self, company_id, user_id):
         """
