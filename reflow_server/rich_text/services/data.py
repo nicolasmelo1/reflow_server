@@ -1,4 +1,5 @@
-from reflow_server.rich_text.models import TextBlockType
+from reflow_server.rich_text.models import TextBlockType, TextBlockTypeCanContainType
+from reflow_server.rich_text.services.exceptions import RichTextValidationException
 
 import inspect
 
@@ -43,6 +44,7 @@ class BlockData:
         self.depends_on_uuid = depends_on_uuid
         self.order = order
         self.contents = []
+        self.__is_valid_cache = False
         self.__block_type_id_name_reference = block_type_id_name_reference
 
     def append_text_block_type_data(self, alignment_type_id):
@@ -90,13 +92,17 @@ class BlockData:
             ValueError: If the type of the block needs some more data, than the data passed in the constructor returns an
             error.
         """
-        block_name = self.__block_type_id_name_reference[self.block_type_id]
-        method_name = 'append_%s_block_type_data' % block_name
-        handler = getattr(self, method_name, None)
-        # For reference on what i'm doing here https://stackoverflow.com/a/582193
-        for key in list(inspect.signature(handler).parameters):
-            if not hasattr(self, key):
-                raise ValueError('For block of type `{}` you must set additional values using `.{}()` method.'.format(block_name, method_name))
+        if self.__is_valid_cache:
+            return
+        else:
+            block_name = self.__block_type_id_name_reference[self.block_type_id]
+            method_name = 'append_%s_block_type_data' % block_name
+            handler = getattr(self, method_name, None)
+            # For reference on what i'm doing here https://stackoverflow.com/a/582193
+            for key in list(inspect.signature(handler).parameters):
+                if not hasattr(self, key):
+                    raise RichTextValidationException('For block of type `{}` you must set additional values using `.{}()` method.'.format(block_name, method_name))
+            self.__is_valid_cache = True
 
     def add_content(self, uuid, text, is_bold, is_italic, is_underline, is_code, 
                     is_custom, custom_value, latex_equation, marker_color, text_color, 
@@ -142,7 +148,7 @@ class BlockData:
 
 
 class PageData:
-    def __init__(self, page_id=None):
+    def __init__(self, page_id=None, allowed_blocks=[]):
         """
         This page data is what we use to handle the rich text data. We do not handle with serializers directly. Like formulary data
         we convert first everything to this python object so we can handle better in the services.
@@ -161,15 +167,31 @@ class PageData:
             page_id (int, optional): If you are editing a page, you should set this variable. Defaults to None.
         """
         self.page_id = page_id
+        self.__allowed_block_ids = allowed_blocks
         self.__blocks = []
+        self.__block_can_contain_blocks = {}
         self.block_type_id_name_reference = {text_block_type.id: text_block_type.name for text_block_type in TextBlockType.rich_text_.all_block_types()}
+        self.__depends_on_block_reference = {}
+        self.__block_uuid_types = {}
         self.__depends_on_sum_reference = {}
+
+        for block_type_can_contain_type in TextBlockTypeCanContainType.rich_text_.all_block_type_can_contain_types():
+            self.__block_can_contain_blocks[block_type_can_contain_type.block_id] = self.__block_can_contain_blocks.get(
+                block_type_can_contain_type.block_id, []
+            ) + [block_type_can_contain_type.contain_id]
 
     def add_block(self, uuid, block_type_id, depends_on_uuid=None):
         """
         This automagically ads everything in order. When a new block arrives we check if it is dependent, if it is we find the index of
         the uuid it depends on in the list. If the id it depends on was not inserted it raises an error telling you to add the block in 
         order.
+        It makes other 2 validations besides that: 
+        - We check if this block type is allowed to be saved in this current context (like for PDF_generator we might not want
+        some blocks to be valid)
+        - We check if the block type can contain a block type. We validate through the hole nesting, so in a case where a table is valid inside
+        a listing, and a listing inside of a table. If the user creates a table, and inside the table creates a listing and adds another table
+        we prevent this from happening, the user will ONLY be able to insert inside of the listing in the table block that is common for both
+        the listing and the table.
 
         So, you first need to add non-dependant blocks and AFTER you add the dependant blocks.
     
@@ -187,7 +209,14 @@ class PageData:
         Returns:
             reflow_server.rich_text.services.data.BlockData: The block object that exposes the `.add_content()` method.
         """
+        self.__block_uuid_types[uuid] = block_type_id
+        if self.__allowed_block_ids and block_type_id not in self.__allowed_block_ids:
+            raise RichTextValidationException('The block id `{}` is not a valid block. Please use one of the following: {}'.format(
+                str(block_type_id), 
+                ', '.join([str(allowed_block_id) for allowed_block_id in self.__allowed_block_ids])
+            ))
         if depends_on_uuid:
+            self.__depends_on_block_reference[uuid] = depends_on_uuid
             index_to_insert_block = None
             for index, block in enumerate(self.__blocks):
                 if str(depends_on_uuid) == str(block.uuid):
@@ -195,7 +224,17 @@ class PageData:
                     self.__depends_on_sum_reference[str(depends_on_uuid)] = self.__depends_on_sum_reference.get(str(depends_on_uuid), 1) + 1
                     break
             if index_to_insert_block == None:
-                raise AssertionError('You must add block with uuid `{}`, before the block with uuid `{}`'.format(depends_on_uuid, uuid))
+                raise RichTextValidationException('You must add block with uuid `{}`, before the block with uuid `{}`'.format(depends_on_uuid, uuid))
+            parent_block_uuid = depends_on_uuid
+            parent_block_can_have_block_types = self.__block_can_contain_blocks[self.__block_uuid_types[parent_block_uuid]]
+            while parent_block_uuid:
+                parent_block_uuid = self.__depends_on_block_reference.get(depends_on_uuid, None)
+                if parent_block_uuid:
+                    parent_block_can_have_block_types = [parent_block_can_have_type for parent_block_can_have_type in parent_block_can_have_block_types 
+                                                        if parent_block_can_have_type in self.__block_can_contain_blocks[self.__block_uuid_types[parent_block_uuid]]]
+                if block_type_id not in parent_block_can_have_block_types:
+                    raise RichTextValidationException('Non valid block_type id `{}` inside of block uuid `{}`'.format(str(block_type_id), str(depends_on_uuid)))
+
         else:
             index_to_insert_block = len(self.__blocks)
         

@@ -1,7 +1,20 @@
 from django.db import models
 
 from reflow_server.pdf_generator.managers import PDFTemplateConfigurationPDFGeneratorManager, \
-    PDFTemplateConfigurationVariablesPDFGeneratorManager, PDFGeneratedPDFGeneratorManager
+    PDFTemplateConfigurationVariablesPDFGeneratorManager, PDFGeneratedPDFGeneratorManager, \
+    PDFTemplateAllowedTextBlockPDFGeneratorManager
+
+
+class PDFTemplateAllowedTextBlock(models.Model):
+    """
+    These are the allowed blocks that can exist inside of the pdf. Other blocks are not permitted.
+    """
+    block = models.ForeignKey('rich_text.TextBlockType', models.CASCADE, db_index=True)
+
+    class Meta:
+        db_table = 'pdf_template_allowed_text_block'
+
+    pdf_generator_ = PDFTemplateAllowedTextBlockPDFGeneratorManager()
 
 
 class PDFTemplateConfiguration(models.Model):
@@ -57,3 +70,4 @@ class PDFGenerated(models.Model):
         db_table = 'pdf_generated'
 
     pdf_generator_ = PDFGeneratedPDFGeneratorManager()
+    

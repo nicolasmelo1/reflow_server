@@ -3,7 +3,7 @@ from rest_framework import serializers
 from reflow_server.core.relations import ValueField
 from reflow_server.data.models import FormValue
 from reflow_server.formulary.models import Form
-from reflow_server.pdf_generator.models import PDFTemplateConfiguration
+from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFTemplateAllowedTextBlock
 from reflow_server.pdf_generator.relations import PDFTemplateConfigurationVariablesRelation, \
     FieldOptionRelation
 from reflow_server.pdf_generator.relations.rich_text import PageRelation
@@ -45,13 +45,14 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
             reflow_server.pdf_generator.models.PDFTemplateConfiguration: The newly created or updated PDFTemplateConfiguration instance.
             from the database.
         """
+        allowed_block_ids_for_pdf = PDFTemplateAllowedTextBlock.pdf_generator_.all_pdf_template_allowed_text_block_ids()
         pdf_variables_data = PDFVariablesData(self.instance.id if self.instance else None)
         pdf_generator_service = PDFGeneratorService(user_id, company_id, form_name)
         page_data = None
 
         # just adds the rich text data to a reflow_server.rich_text.services.data.PageData object so we can use it further for saving.
         if self.validated_data.get('rich_text_page', None): 
-            page_data = PageData(page_id=self.validated_data.get('rich_text_page', {}).get('id', None))
+            page_data = PageData(page_id=self.validated_data.get('rich_text_page', {}).get('id', None), allowed_blocks=allowed_block_ids_for_pdf)
             blocks_to_add = ordered_list_from_serializer_data_for_page_data(self.validated_data.get('rich_text_page'))
         
             for block in blocks_to_add:
@@ -146,3 +147,13 @@ class FieldValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormValue
         fields = ('id', 'value', 'field_id', 'form_value_from_connected_field')
+
+
+class PDFTemplateAllowedTextBlockSerializer(serializers.ModelSerializer):
+    """
+    The serializer responsible for handling the allowed blocks of a PDF template. If a PDF template was built with the rich text
+    and the rich text contains any block outside this scope, the user will not be able to save.
+    """
+    class Meta:
+        model = PDFTemplateAllowedTextBlock
+        fields = ('block',)

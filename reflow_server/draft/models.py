@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from reflow_server.draft.managers import DraftDraftManager
-from reflow_server.rich_text.managers import RichTextDraftManager
+from reflow_server.rich_text.managers import DraftRichTextManager
 
 
 class DraftType(models.Model):
@@ -66,4 +66,4 @@ class Draft(models.Model):
         db_table = 'draft'
 
     draft_ = DraftDraftManager()
-    rich_text_ = RichTextDraftManager()
+    rich_text_ = DraftRichTextManager()

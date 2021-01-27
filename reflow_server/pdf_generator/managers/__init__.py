@@ -1,6 +1,7 @@
 from .pdf_template_configuration import PDFTemplateConfigurationPDFGeneratorManager
 from .pdf_template_configuration_variables import PDFTemplateConfigurationVariablesPDFGeneratorManager
 from .pdf_generated import PDFGeneratedPDFGeneratorManager
+from .pdf_template_allowed_text_block import PDFTemplateAllowedTextBlockPDFGeneratorManager
 from .text_page import TextPagePDFGeneratorManager
 from .form import FormPDFGeneratorManager
 from .field import FieldPDFGeneratorManager

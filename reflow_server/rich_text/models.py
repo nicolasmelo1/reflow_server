@@ -1,9 +1,10 @@
 from django.conf import settings
 from django.db import models
 
-from reflow_server.rich_text.managers import RichTextTextBlockTypeManager, RichTextTextImageOptionManager, \
-    RichTextTextBlockManager, RichTextTextContentManager, RichTextTextTableOptionManager, \
-    RichTextTextTableOptionColumnDimensionManager, RichTextTextTableOptionRowDimensionManager
+from reflow_server.rich_text.managers import TextBlockTypeRichTextManager, TextImageOptionRichTextManager, \
+    TextBlockRichTextManager, TextContentRichTextManager, TextTableOptionRichTextManager, \
+    TextTableOptionColumnDimensionRichTextManager, TextTableOptionRowDimensionRichTextManager, \
+    TextBlockTypeCanContainTypeRichTextManager
 from reflow_server.pdf_generator.managers import TextPagePDFGeneratorManager
 
 import uuid
@@ -18,7 +19,7 @@ class TextBlockType(models.Model):
         db_table = 'text_block_type'
         ordering = ('order',)
 
-    rich_text_ = RichTextTextBlockTypeManager()
+    rich_text_ = TextBlockTypeRichTextManager()
     objects = models.Manager()
     
 
@@ -28,6 +29,8 @@ class TextBlockTypeCanContainType(models.Model):
 
     class Meta:
         db_table = 'text_block_type_can_contain_type'
+
+    rich_text_ = TextBlockTypeCanContainTypeRichTextManager()
 
 
 class TextListType(models.Model):
@@ -82,7 +85,7 @@ class TextTableOptionRowDimension(models.Model):
         db_table = 'text_table_option_row_dimension'
         ordering = ('order',)
 
-    rich_text_ = RichTextTextTableOptionRowDimensionManager()
+    rich_text_ = TextTableOptionRowDimensionRichTextManager()
 
 
 class TextTableOptionColumnDimension(models.Model):
@@ -100,7 +103,7 @@ class TextTableOptionColumnDimension(models.Model):
         db_table = 'text_table_option_column_dimension'
         ordering = ('order',)
 
-    rich_text_ = RichTextTextTableOptionColumnDimensionManager()
+    rich_text_ = TextTableOptionColumnDimensionRichTextManager()
 
 
 class TextTableOption(models.Model):
@@ -122,7 +125,7 @@ class TextTableOption(models.Model):
     class Meta:
         db_table = 'text_table_option'
 
-    rich_text_ = RichTextTextTableOptionManager()
+    rich_text_ = TextTableOptionRichTextManager()
 
 
 class TextTextOption(models.Model):
@@ -168,7 +171,7 @@ class TextImageOption(models.Model):
     class Meta:
         db_table = 'text_image_option'
 
-    rich_text_ = RichTextTextImageOptionManager()
+    rich_text_ = TextImageOptionRichTextManager()
     
 
 class TextBlock(models.Model):
@@ -202,7 +205,7 @@ class TextBlock(models.Model):
         ordering=('order',)
 
     objects = models.Manager()
-    rich_text_ = RichTextTextBlockManager()
+    rich_text_ = TextBlockRichTextManager()
     
 
 class TextContent(models.Model):
@@ -244,4 +247,4 @@ class TextContent(models.Model):
         ordering=('order',)
 
     objects = models.Manager()
-    rich_text_ = RichTextTextContentManager()
+    rich_text_ = TextContentRichTextManager()

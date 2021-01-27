@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class RichTextDraftManager(models.Manager):
+class DraftRichTextManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 

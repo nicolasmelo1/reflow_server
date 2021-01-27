@@ -3,7 +3,8 @@ from django.conf.urls import re_path, include
 from reflow_server.core.decorators import validate_billing
 from reflow_server.pdf_generator.services.routes import register_pdf_generator_generate_url_name
 from reflow_server.pdf_generator.views import PDFTemplateConfigurationView, PDFTemplatesFieldOptionsView, \
-    PDFTemplateConfigurationEditView, PDFTemplatesValuesOptionsView, PDFTemplatesForReaderView, PDFGenerateView
+    PDFTemplateConfigurationEditView, PDFTemplatesValuesOptionsView, PDFTemplatesForReaderView, PDFGenerateView, \
+    PDFTemplateAllowedTextBlockView
 
 settings_urlpatterns = [
     re_path(r'^$', validate_billing(PDFTemplateConfigurationView.as_view()), name='pdf_generator_template_configuration'),
@@ -12,6 +13,7 @@ settings_urlpatterns = [
 ]
 
 urlpatterns = [
+    re_path(r'allowed_blocks/$', validate_billing(PDFTemplateAllowedTextBlockView.as_view()), name='pdf_generator_allowed_blocks'),
     re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/(?P<form>\w+)/', include([
         re_path(r'^$', validate_billing(PDFTemplatesForReaderView.as_view()), name='pdf_generator_reader_templates'),
         re_path(r'^(?P<pdf_template_configuration_id>\d+)/', include([

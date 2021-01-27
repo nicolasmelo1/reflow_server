@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class RichTextTextBlockManager(models.Manager):
+class TextBlockRichTextManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 

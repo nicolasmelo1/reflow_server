@@ -7,8 +7,8 @@ from rest_framework.response import Response
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.pdf_generator.serializers import PDFTemplateConfigurationSerializer, FormFieldOptionsSerializer, \
-    FieldValueSerializer
-from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFGenerated
+    FieldValueSerializer, PDFTemplateAllowedTextBlockSerializer
+from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFGenerated, PDFTemplateAllowedTextBlock
 from reflow_server.pdf_generator.services import PDFGeneratorService
 
 
@@ -167,4 +167,22 @@ class PDFGenerateView(APIView):
         )
         return Response({
             'status': 'ok'
+        }, status=status.HTTP_200_OK)
+
+
+class PDFTemplateAllowedTextBlockView(APIView):
+    """
+    View responsible for retrieving the allowed blocks that the PDF template can handle. Other block types
+    will not be supported. So when trying to save a PDFTemplate with an unsuported block type it will fail.
+
+    Methods:
+        GET: The allowed Text blocks that the PDF Template can handle, other block types will not be supported
+        so it will fail when saving the data.
+    """
+    def get(self, request):
+        instance = PDFTemplateAllowedTextBlock.pdf_generator_.all_pdf_template_allowed_text_blocks()
+        serializer = PDFTemplateAllowedTextBlockSerializer(instance=instance, many=True)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
         }, status=status.HTTP_200_OK)

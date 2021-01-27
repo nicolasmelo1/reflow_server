@@ -1,10 +1,7 @@
 from rest_framework import serializers
 
-from reflow_server.rich_text.models import TextPage
+from reflow_server.rich_text.models import TextPage, TextBlockTypeCanContainType
 from reflow_server.rich_text.relations import BlockRelation
-from reflow_server.rich_text.services.data import PageData
-from reflow_server.rich_text.services import RichTextService
-from reflow_server.rich_text.services import ordered_list_from_serializer_data_for_page_data
 
 
 class PageSerializer(serializers.ModelSerializer):
@@ -14,3 +11,13 @@ class PageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextPage
         fields = ('id', 'raw_text', 'rich_text_page_blocks')
+
+
+class TextBlockTypeCanContainTypeSerializer(serializers.ModelSerializer):
+    """
+    This serializer holds the relation of all the block_types another block type (that has children blocks) 
+    can contain.
+    """
+    class Meta:
+        model = TextBlockTypeCanContainType
+        fields = ('block_id', 'contain_id')

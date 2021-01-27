@@ -3,11 +3,8 @@ from django.db import transaction
 from reflow_server.rich_text.services.data import PageData
 from reflow_server.rich_text.services.utils import ordered_list_from_serializer_data_for_page_data
 from reflow_server.rich_text.services.block import RichTextImageBlockService, RichTextTableBlockService
+from reflow_server.rich_text.services.exceptions import RichTextBlockException
 from reflow_server.rich_text.models import TextContent, TextPage, TextBlock, TextTextOption
-
-
-class RichTextBlockException(NotImplementedError):
-    pass
 
 
 class RichTextService:

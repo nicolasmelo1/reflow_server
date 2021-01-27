@@ -1,7 +1,7 @@
 from django.db import models 
 
 
-class RichTextTextTableOptionRowDimensionManager(models.Manager):
+class TextTableOptionRowDimensionRichTextManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
