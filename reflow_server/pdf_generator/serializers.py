@@ -66,7 +66,12 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
                         block['data']['image_option']['file_name'],
                         block['data']['image_option']['size_relative_to_view']
                     )
-
+                elif block['data']['block_type'].name == 'table':
+                    block_data.append_table_block_type_data(
+                        block['data']['table_option']['border_color'],
+                        block['data']['table_option']['text_table_option_column_dimensions'],
+                        block['data']['table_option']['text_table_option_row_dimensions']
+                    )
                 
                 for content in block['data'].get('rich_text_block_contents', []):
                     # Adds the variables here, on front end it was causing problems

@@ -1,13 +1,33 @@
 from rest_framework import serializers
 
 from reflow_server.rich_text.models import TextPage, TextBlock, TextImageOption, TextListOption, \
-    TextTextOption, TextTableOption, TextContent
+    TextTextOption, TextTableOption, TextContent, TextTableOptionColumnDimension, TextTableOptionRowDimension
+
+
+class TableOptionRowDimension(serializers.ModelSerializer):
+    height = serializers.IntegerField(allow_null=True)
+
+    class Meta:
+        model = TextTableOptionRowDimension
+        fields = ('height',)
+
+
+class TableOptionColumnDimension(serializers.ModelSerializer):
+    width = serializers.IntegerField(allow_null=True)
+
+    class Meta:
+        model = TextTableOptionColumnDimension
+        fields = ('width',)
 
 
 class TableOptionRelation(serializers.ModelSerializer):
+    border_color = serializers.CharField(allow_null=True, allow_blank=True)
+    text_table_option_row_dimensions = TableOptionRowDimension(many=True)
+    text_table_option_column_dimensions = TableOptionColumnDimension(many=True)
+
     class Meta:
         model = TextTableOption
-        fields = '__all__'
+        fields = ('id', 'border_color', 'text_table_option_row_dimensions', 'text_table_option_column_dimensions')
 
 
 class TextOptionRelation(serializers.ModelSerializer):

@@ -2,7 +2,8 @@ from django.conf import settings
 from django.db import models
 
 from reflow_server.rich_text.managers import RichTextTextBlockTypeManager, RichTextTextImageOptionManager, \
-    RichTextTextBlockManager, RichTextTextContentManager
+    RichTextTextBlockManager, RichTextTextContentManager, RichTextTextTableOptionManager, \
+    RichTextTextTableOptionColumnDimensionManager, RichTextTextTableOptionRowDimensionManager
 from reflow_server.pdf_generator.managers import TextPagePDFGeneratorManager
 
 import uuid
@@ -66,13 +67,62 @@ class TextPage(models.Model):
     pdf_generator_ = TextPagePDFGeneratorManager()
 
 
-class TextTableOption(models.Model):
-    rows_num = models.BigIntegerField(default=1)
-    columns_num = models.BigIntegerField(default=1)
-    border_color = models.CharField(max_length=150, null=True, blank=True)
+class TextTableOptionRowDimension(models.Model):
+    """
+    This holds the height as px for each row in our table. Since this holds the height for EACH row this also holds the
+    number of rows of a table.
+
+    Each row is bounded to a `text_table_option` since this only for `table` blocks
+    """
+    height = models.BigIntegerField(default=None, null=True)
+    text_table_option = models.ForeignKey('rich_text.TextTableOption', models.CASCADE, db_index=True, related_name='text_table_option_row_dimensions')
+    order = models.BigIntegerField(default=1)
 
     class Meta:
+        db_table = 'text_table_option_row_dimension'
+        ordering = ('order',)
+
+    rich_text_ = RichTextTextTableOptionRowDimensionManager()
+
+
+class TextTableOptionColumnDimension(models.Model):
+    """
+    This holds the width as % for each column in our table. Since this holds the width for EACH column this also holds the
+    number of columns of a table.
+
+    Each column is bounded to a `text_table_option` since this only for `table` blocks
+    """
+    width = models.BigIntegerField(default=None, null=True)
+    text_table_option = models.ForeignKey('rich_text.TextTableOption', models.CASCADE, db_index=True, related_name='text_table_option_column_dimensions')
+    order = models.BigIntegerField(default=1)
+
+    class Meta:
+        db_table = 'text_table_option_column_dimension'
+        ordering = ('order',)
+
+    rich_text_ = RichTextTextTableOptionColumnDimensionManager()
+
+
+class TextTableOption(models.Model):
+    """
+    When saving table blocks we handle it a little bit differently from other block types, but not so much.
+    First things first: a table block is a block that has children blocks, differently from `text` and `image`
+    the `table` block type does not live by itself, it uses children blocks on its contents. To understand more about
+    children blocks read more on `TextBlock` to understand the recurssiveness of the blocks.
+
+    Okay, so how does this data here helps us creating table blocks? So this model as you can see is really simple, it just
+    saves the border_color. But we have auxiliary tables that are bounded to this model: TextTableOptionColumnDimension 
+    and TextTableOptionRowDimension. The first one holds the width as % of each column of the table, and since we hold 
+    the width of EACH column, counting it we have the number of columns of the table. Now to the second one TextTableOptionRowDimension,
+    as you might have guessed, this holds the height of each row, but here it's units are pixels. Same as the column one,
+    if you count this model you will have the number of rows of a table.
+    """
+    border_color = models.CharField(max_length=150, null=True, blank=True)
+    
+    class Meta:
         db_table = 'text_table_option'
+
+    rich_text_ = RichTextTextTableOptionManager()
 
 
 class TextTextOption(models.Model):

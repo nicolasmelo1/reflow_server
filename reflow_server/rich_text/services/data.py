@@ -68,6 +68,19 @@ class BlockData:
         self.image_file_name = image_file_name
         self.size_relative_to_view = size_relative_to_view
 
+    def append_table_block_type_data(self, border_color, column_dimensions, row_dimensions):
+        """
+        If the block type is of type `table`, you need to append this extra data.
+
+        Args:
+            border_color (str): The color of the border of the table
+            column_dimensions (list(dict) || list(int)): The list of the dimensions as % for each column.
+            row_dimensions (list(dict) || list(int)): The list of the dimensions as px for each row.
+        """
+        self.border_color = border_color
+        self.column_dimensions = [column_dimension if str(column_dimension).isdigit() else column_dimension['width'] for column_dimension in column_dimensions]
+        self.row_dimensions = [row_dimension if str(row_dimension).isdigit() else row_dimension['height'] for row_dimension in row_dimensions]
+
     def __validate_block_type_data(self):
         """
         This validates if the block has the data needed BEFORE adding the contents. This validates also the block types. 

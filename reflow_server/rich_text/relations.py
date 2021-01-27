@@ -1,15 +1,33 @@
 from rest_framework import serializers
 
 from reflow_server.rich_text.models import TextBlock, TextImageOption, TextListOption, \
-    TextTextOption, TextTableOption, TextContent
+    TextTextOption, TextTableOption, TextContent, TextTableOptionRowDimension, TextTableOptionColumnDimension
+
+
+class TableOptionRowDimension(serializers.ModelSerializer):
+    height = serializers.IntegerField(allow_null=True)
+
+    class Meta:
+        model = TextTableOptionRowDimension
+        fields = ('height',)
+
+
+class TableOptionColumnDimension(serializers.ModelSerializer):
+    width = serializers.IntegerField(allow_null=True)
+
+    class Meta:
+        model = TextTableOptionColumnDimension
+        fields = ('width',)
 
 
 class TableOptionRelation(serializers.ModelSerializer):
     border_color = serializers.CharField(allow_null=True, allow_blank=True)
+    text_table_option_row_dimensions = TableOptionRowDimension(many=True)
+    text_table_option_column_dimensions = TableOptionColumnDimension(many=True)
 
     class Meta:
         model = TextTableOption
-        fields = '__all__'
+        fields = ('id', 'border_color', 'text_table_option_row_dimensions', 'text_table_option_column_dimensions')
 
 
 class TextOptionRelation(serializers.ModelSerializer):
@@ -74,12 +92,14 @@ class BlockRelation(serializers.ModelSerializer):
     table_option = TableOptionRelation(allow_null=True)
     rich_text_block_contents = ContentRelation(many=True)
 
+    # this is for handling when the serializer recieves a data.
     def to_internal_value(self, data):
         if data.get('rich_text_depends_on_blocks', []):
             self.fields['rich_text_depends_on_blocks'] = BlockRelation(data, many=True)      
         return super(BlockRelation, self).to_internal_value(data) 
 
     # reference: https://stackoverflow.com/a/28947040
+    # this is for handling when the data is being served
     def to_representation(self, data):
         #Add any self-referencing fields here (if not already done)
         self.fields['rich_text_depends_on_blocks'] = BlockRelation(data, many=True)      

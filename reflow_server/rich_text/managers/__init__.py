@@ -3,3 +3,6 @@ from .text_content import RichTextTextContentManager
 from .text_block_type import RichTextTextBlockTypeManager
 from .draft import RichTextDraftManager
 from .text_image_option import RichTextTextImageOptionManager
+from .text_table_option import RichTextTextTableOptionManager
+from .text_table_option_column_dimension import RichTextTextTableOptionColumnDimensionManager
+from .text_table_option_row_dimension import RichTextTextTableOptionRowDimensionManager

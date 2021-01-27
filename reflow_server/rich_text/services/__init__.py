@@ -2,7 +2,7 @@ from django.db import transaction
 
 from reflow_server.rich_text.services.data import PageData
 from reflow_server.rich_text.services.utils import ordered_list_from_serializer_data_for_page_data
-from reflow_server.rich_text.services.block import RichTextImageBlockService
+from reflow_server.rich_text.services.block import RichTextImageBlockService, RichTextTableBlockService
 from reflow_server.rich_text.models import TextContent, TextPage, TextBlock, TextTextOption
 
 
@@ -164,6 +164,17 @@ class RichTextService:
             )
 
     def _save_text_block_type(self, block_instance, block_data):
+        """
+        For text blocks we just need the alignment type, really easy.
+
+        Args:
+            block_instance (reflow_server.rich_text.models.Block): The Block instance saved.
+            block_data (reflow_server.rich_text.services.data.BlockData): This is a handy class so we do not need to work with serializers
+                                                                          or dict.
+
+        Returns:
+            bool: returns True indicating the alignment of the text block was saved
+        """
         text_option_instance, __ = TextTextOption.objects.update_or_create(
             id=block_instance.text_option.id if block_instance.text_option else None,
             defaults={
@@ -199,6 +210,28 @@ class RichTextService:
         block_instance.save()
         return True
     
+    def _save_table_block_type(self, block_instance, block_data):
+        """
+        Handle saving the table block options if the block type is of type table.
+
+        Args:
+            block_instance (reflow_server.rich_text.models.Block): The Block instance saved.
+            block_data (reflow_server.rich_text.services.data.BlockData): This is a handy class so we do not need to work with serializers
+                                                                          or dict.
+
+        Returns:
+            bool: returns True indicating the table_option was saved
+        """
+        table_block_service = RichTextTableBlockService()
+        text_table_option_instance = table_block_service.save_table_block(
+            block_data.border_color,
+            block_data.row_dimensions,
+            block_data.column_dimensions
+        )
+        block_instance.table_option = text_table_option_instance
+        block_instance.save()
+        return True
+
     @transaction.atomic
     def remove_page(self, page_id):
         """
