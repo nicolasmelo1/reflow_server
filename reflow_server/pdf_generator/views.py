@@ -38,8 +38,8 @@ class PDFTemplateConfigurationView(APIView):
     
     def post(self, request, company_id, form):
         serializer = PDFTemplateConfigurationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(request.user.id, company_id, form)
+        if serializer.is_valid(request.user.id, company_id, form):
+            serializer.save()
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)
@@ -68,8 +68,8 @@ class PDFTemplateConfigurationEditView(APIView):
             request.user.id, company_id, form, pdf_template_configuration_id
         )
         serializer = PDFTemplateConfigurationSerializer(data=request.data, instance=instance)
-        if serializer.is_valid():
-            serializer.save(request.user.id, company_id, form)
+        if serializer.is_valid(request.user.id, company_id, form):
+            serializer.save()
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)
