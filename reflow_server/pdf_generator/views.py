@@ -149,13 +149,22 @@ class PDFTemplatesForReaderView(APIView):
         GET: Returns a list of templates bounded to a form and from a single company_id
     """
     def get(self, request, company_id, form):
+        pagination = Pagination.handle_pagination(
+            current_page=int(request.query_params.get('page', 1)),
+            items_per_page=5
+        )
         instances = PDFTemplateConfiguration.pdf_generator_.pdf_template_configurations_by_company_id_and_form_name(
             company_id, 
             form
         )
+        total_number_of_pages, instances = pagination.paginate_queryset(instances)
         serializer = PDFTemplateConfigurationSerializer(instances, many=True)
         return Response({
             'status': 'ok',
+            'pagination': {
+                'current': pagination.current_page,
+                'total': total_number_of_pages
+            },
             'data': serializer.data
         }, status=status.HTTP_200_OK)
 
