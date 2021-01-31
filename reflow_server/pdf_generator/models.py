@@ -34,6 +34,7 @@ class PDFTemplateConfiguration(models.Model):
 
     class Meta:
         db_table = 'pdf_template_configuration'
+        ordering = ('-updated_at',)
 
     pdf_generator_ = PDFTemplateConfigurationPDFGeneratorManager()
 

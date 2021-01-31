@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
+from reflow_server.core.utils.pagination import Pagination
 from reflow_server.pdf_generator.serializers import PDFTemplateConfigurationSerializer, FormFieldOptionsSerializer, \
     FieldValueSerializer, PDFTemplateAllowedTextBlockSerializer
 from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFGenerated, PDFTemplateAllowedTextBlock
@@ -25,14 +26,23 @@ class PDFTemplateConfigurationView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id, form):
+        pagination = Pagination.handle_pagination(
+            current_page=int(request.query_params.get('page', 1)),
+            items_per_page=5
+        )    
         instances = PDFTemplateConfiguration.pdf_generator_.pdf_template_configurations_by_user_id_company_id_and_form_name(
             request.user.id, 
             company_id, 
             form
         )
+        total_number_of_pages, instances = pagination.paginate_queryset(instances)
         serializer = PDFTemplateConfigurationSerializer(instances, many=True)
         return Response({
             'status': 'ok',
+            'pagination': {
+                'current': pagination.current_page,
+                'total': total_number_of_pages
+            },
             'data': serializer.data
         }, status=status.HTTP_200_OK)
     
