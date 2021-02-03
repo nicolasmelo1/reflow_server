@@ -1,10 +1,7 @@
 from django.conf import settings
 from django.db import models
-from django.db.models import Q, Case, When, Func, F, ExpressionWrapper, \
-    Value, CharField, FloatField, IntegerField, DateTimeField
-from django.db.models.functions import NullIf, Coalesce, Cast, Now
-
-from datetime import datetime, timedelta
+from django.db.models import Q, Case, When, Value, CharField, FloatField, IntegerField
+from django.db.models.functions import NullIf, Coalesce, Cast
 
 
 class FormValueDataManager(models.Manager):
@@ -73,6 +70,20 @@ class FormValueDataManager(models.Manager):
         )
         return instance
     
+    def form_values_by_main_form_ids_company_id(self, main_form_ids, company_id):
+        """
+        Gets the form_values from a list of main_form_ids (those are not section ids) and from a company_id
+
+        Args:
+            main_form_ids (list(int)): a list of DynamicForm instance ids where depends_on IS NULL.
+            company_id (int): a Company instance id.
+
+        Returns:
+            django.db.models.QuerySet(reflow_server.data.models.FormValue): Returns a queryset of FormValue instances from the parameters
+            recieved
+        """
+        return self.get_queryset().filter(form__depends_on_id__in=main_form_ids, company_id=company_id)
+
     def form_values_by_value_field_id_and_section_id(self, value, field_id, section_id):
         """
         Gets FormValue instances by the value, field_id and section_id of this FormValue
@@ -110,38 +121,6 @@ class FormValueDataManager(models.Manager):
             reflow_server.data.models.FormValue: The single FormValue instance
         """
         return self.get_queryset().filter(id=form_value_id).values_list('value', flat=True).first()
-
-    def form_values_by_company_id_and_form_ids(self, company_id, form_ids):
-        """
-        Gets form values based on the company_id and the form_ids it is from. 
-        form_ids in this case are section_ids of the DynamicForm. So DynamicForm where where depends_on is not None.
-
-        Args:
-            company_id (int): The company id from where you want to retrieve the FormValue. We use this to affunilate the search
-            and to prevent any errors from retrieving FormValues of another company.
-            form_ids (list(int)): From which section_ids you want to retrieve the FormValues
-
-        Returns:
-            django.db.models.QuerySet(reflow_server.data.models.FormValue): A queryset of FormValues based on the parameters
-        """
-        return self.get_queryset().filter(company_id=company_id, form_id__in=form_ids)
-    
-    def form_values_by_company_id_and_form_ids_and_field_ids_ordered(self, company_id, form_ids, field_ids):
-        """
-        Gets a queryset of FormValues ORDERED by the field_ids. So, for every field_id it recieves in a list, it orders them.
-
-        Args:
-            company_id (int): The company id from where you want to retrieve the FormValue. We use this to affunilate the search
-            and to prevent any errors from retrieving FormValues of another company.
-            form_ids (list(int)): From which section_ids you want to retrieve the FormValues
-            field_ids (list(int)): This list are two things, first and most important is the field_ids of the FormValues to filter, and
-            second it is the how you want to order the queryset.
-
-        Returns:
-            django.db.models.QuerySet(reflow_server.data.models.FormValue): A ordered queryset of FormValues based on the parameters recieved
-        """
-        order = Case(*[When(field_id=value, then=pos) for pos, value in enumerate(field_ids)])
-        return self.form_values_by_company_id_and_form_ids(company_id, form_ids).filter(field_id__in=field_ids).order_by(order)
     
     def value_field_type_and_form_field_as_option_id_by_form_id_and_field_id(self, form_id, field_id):
         """
@@ -442,7 +421,7 @@ class FormValueDataManager(models.Manager):
             the `form__depends_on` being the first element of the tuple and the `value` being the second element of each tuple.
         """
         form_value_order = self.get_queryset().filter(
-                company_id=self.company_id, 
+                company_id=company_id, 
                 field_id=form_field_as_option_id
             ) \
             .order_by(order_by_value) \

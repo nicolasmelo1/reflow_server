@@ -1,6 +1,9 @@
 from rest_framework import serializers
+
 from django.utils.translation import gettext_lazy as _
 
+
+representation_service_cache = {}
 
 class ValueField(serializers.Field):
     default_error_messages = {
@@ -49,14 +52,32 @@ class ValueField(serializers.Field):
         if obj and obj.value != '':
             if self.load_ids and obj.field_type.type == 'form' and obj.field.type.type != 'form':
                 self.load_ids = False
-
-            representation = RepresentationService(
+            
+            cache_key = '{};{};{};{};{}'.format(
                 obj.field_type.type, 
-                obj.date_configuration_date_format_type, 
-                obj.number_configuration_number_format_type, 
-                obj.form_field_as_option, 
+                obj.date_configuration_date_format_type_id, 
+                obj.number_configuration_number_format_type_id, 
+                obj.form_field_as_option_id,
                 self.load_ids
             )
-            return representation.representation(obj.value)
+            if representation_service_cache.get(cache_key):
+                representation = representation_service_cache.get(cache_key)
+            else:
+                representation = RepresentationService(
+                    obj.field_type.type, 
+                    obj.date_configuration_date_format_type, 
+                    obj.number_configuration_number_format_type, 
+                    obj.form_field_as_option, 
+                    self.load_ids
+                )
+                representation_service_cache[cache_key] = representation
+                
+            represented_value = representation.representation(obj.value)
+
+            # we need to reset the cache now and then so it doesn't take much space in our memory
+            if representation_service_cache.__sizeof__() > 100000:
+                representation_service_cache.clear()
+
+            return represented_value
         else:
             return ''

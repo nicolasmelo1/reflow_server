@@ -161,7 +161,6 @@ class PDFGeneratorService:
     
         form_values = FormValue.pdf_generator_.form_values_by_field_ids_and_form_data_id_and_forms_connected_to(field_ids=field_ids, form_data_id=form_data_id, forms_connected_to=forms_that_is_connected_to_form)
         form_values_to_use = form_values_to_use + list(form_values)
-        print(form_values)
         for form_value in form_values:
             # if the form_value is a connection field get the values of the connected formulary/
             if form_value.field_type.type == 'form':

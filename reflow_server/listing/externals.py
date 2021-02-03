@@ -1,7 +1,7 @@
 from django.conf import settings
 
 from reflow_server.core import externals
-from reflow_server.data.models import DynamicForm
+from reflow_server.data.models import DynamicForm, FormValue
 from reflow_server.formulary.models import Form
 from reflow_server.listing.serializers import ExtractFormDataSerializer, ExtractFormSerializer
 
@@ -41,9 +41,25 @@ class ExtractDataWorkerExternal(externals.External):
         )
         
         form_serializer = ExtractFormSerializer(instance=form)
+
+        form_values_reference = dict()
+        form_values = FormValue.data_.form_values_by_main_form_ids_company_id(
+            dynamic_forms.values_list('id', flat=True),
+            company_id
+        )
+        for form_value in form_values:
+            form_value_by_field_id = {}
+            form_value_by_field_id[form_value.field_id] = form_values_reference.get(form_value.form.depends_on_id, dict()).get(form_value.field_id, []) + [form_value]
+            if form_values_reference.get(form_value.form.depends_on_id):
+                form_values_reference[form_value.form.depends_on_id].update(form_value_by_field_id)
+            else:
+                form_values_reference[form_value.form.depends_on_id] = form_value_by_field_id
+        
+
         form_data_serializer = ExtractFormDataSerializer(instance=dynamic_forms, many=True, context={
             'company_id': company_id, 
-            'fields': field_ids
+            'fields': field_ids,
+            'form_values_reference': form_values_reference
         })
         return self.post(url, data={
             'file_id': file_id,

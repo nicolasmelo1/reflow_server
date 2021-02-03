@@ -43,21 +43,17 @@ class SectionDataRelation(serializers.ModelSerializer):
 
 class FilteredFormularyValueListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        sections = list(DynamicForm.data_.dynamic_form_ids_by_depends_on_id_and_company_id(
-            data.core_filters['form'].id,
-            self.context['company_id']
-        ))
         if self.context.get('fields', None):
-            data = FormValue.data_.form_values_by_company_id_and_form_ids_and_field_ids_ordered(self.context['company_id'], sections, self.context['fields'])
+            data = [form_value for field_id in self.context.get('fields') for form_value in self.context['form_values_reference'][data.core_filters['form'].id].get(int(field_id), [])]
         else:
-            data = FormValue.data_.form_values_by_company_id_and_form_ids(self.context['company_id'], sections)
+            data = [form_value for field_values in self.context['form_values_reference'][data.core_filters['form'].id].values() for form_value in field_values]
         return super(FilteredFormularyValueListSerializer, self).to_representation(data)
 
 
 class FormularyValueRelation(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False, allow_null=True)
     field_name = serializers.CharField(source='field.name')
-    value = ValueField(source='*')
+    value = ValueField(source="*")
 
     class Meta:
         model = FormValue
