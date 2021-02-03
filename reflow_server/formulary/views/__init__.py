@@ -54,13 +54,19 @@ class FormFieldTypeOptionsView(APIView):
     """
     def get(self, request, company_id, form, field_id):
         search = request.query_params.get('search', None)
-        form_value_id = request.query_params.get('value_id', None)
+        section_id = request.query_params.get('value_id', None)
+        
         pagination = Pagination.handle_pagination(
             current_page=int(request.query_params.get('page', 1)),
             items_per_page=15
         )        
         form_field = Field.objects.filter(id=field_id).first()
-        instances = FormValue.formulary_.form_values_by_company_id_field_id_search_value_and_form_id(company_id=company_id, field_id=form_field.form_field_as_option, search=search, form_value_id=form_value_id)
+        instances = FormValue.formulary_.form_values_by_company_id_field_id_search_value_and_form_id(
+            company_id=company_id, 
+            field_id=form_field.form_field_as_option, 
+            search=search, 
+            section_id=section_id
+        )
         total_number_of_pages, instances = pagination.paginate_queryset(instances)
         serializer = FormFieldTypeOptionsSerializer(instance=instances, many=True)
         return Response({
