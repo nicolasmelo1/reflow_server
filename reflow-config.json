@@ -53,5 +53,8 @@
   },
   "channels": {
     "backend": "channels.layers.InMemoryChannelLayer"
+  },
+  "sentry": {
+    "dsn": "https://2ab3489ea5e446aebcfdeae4b3a785b2@o515498.ingest.sentry.io/5620403"
   }
 }

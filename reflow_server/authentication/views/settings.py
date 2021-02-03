@@ -104,24 +104,33 @@ class UserSettingsEditView(APIView):
     def put(self, request, company_id, user_id):
         instance = UserExtended.authentication_.user_active_by_user_id_and_company_id(user_id, company_id)
         serializer = UserSettingsSerializer(data=request.data, instance=instance)
-        if not UsersService.is_self(int(user_id), int(request.user.id)) and serializer.is_valid():
-            serializer.save(company_id)
-            return Response({
-                'status': 'ok'
-            }, status=status.HTTP_200_OK)
-        elif UsersService.is_self(int(user_id), int(request.user.id)):
+        is_self = UsersService.is_self(int(user_id), int(request.user.id))
+        if not is_self and serializer.is_valid():
+            try:
+                serializer.save(company_id)
+                return Response({
+                    'status': 'ok'
+                }, status=status.HTTP_200_OK)
+            except ConnectionError as ce:
+                return Response({
+                    'status': 'error',
+                    'error': {
+                        'detail': ['failed_to_update_payment_gateway']
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST)
+        elif is_self:
             return Response({
                 'status': 'error',
                 'error': {
                     'detail': ['cannot_edit_itself']
                 }
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response({
             'status': 'error',
             'error': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
-
+            
     def delete(self, request, company_id, user_id):
         if not UsersService.is_self(int(user_id), int(request.user.id)):
             UserExtended.authentication_.remove_user_by_user_id_and_company_id(user_id, company_id)

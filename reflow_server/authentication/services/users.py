@@ -14,6 +14,8 @@ class UsersService:
     def is_self(user_id, request_user_id):
         """
         This is used to check if the user that is being edited is itself or not. The user cannot update itself.
+        This method is kinda dumb if you think about it. But it exposes a business rule that a user
+        cannot edit itself.
         """
         return request_user_id == user_id
 

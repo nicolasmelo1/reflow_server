@@ -81,7 +81,7 @@ class VindiService:
                 response = self.vindi_external.update_client(
                     self.vindi_client_id, self.company_billing.street, self.company_billing.number, 
                     self.company_billing.zip_code, self.company_billing.neighborhood, 
-                    self.company_billing.city, 'SP', self.company_billing.country, 
+                    self.company_billing.city, self.company_billing.state, self.company_billing.country, 
                     self.company.name, emails[0].email, self.company_billing.cnpj,
                     [email.email for email in emails[1:]]
                 )
@@ -93,7 +93,6 @@ class VindiService:
                     self.company.name, emails[0].email, self.company_billing.cnpj,
                     [email.email for email in emails[1:]]
                 )
-
         status_code = response.status_code if response and response.status_code else None
         self.vindi_client_id = response.json().get('customer', {}).get('id', self.vindi_client_id) if response else self.vindi_client_id
         return (status_code, self.vindi_client_id)
