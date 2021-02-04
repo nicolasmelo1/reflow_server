@@ -2,10 +2,11 @@ from django.contrib.auth.models import AnonymousUser
 
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
+from django.http.response import JsonResponse
 
 from reflow_server.authentication.models import UserExtended
 from reflow_server.authentication.utils.jwt_auth import JWT
-
+from reflow_server.core.utils.rate_limiting import RateLimiting
 
 @database_sync_to_async
 def get_user(user_id):
@@ -33,6 +34,11 @@ class AuthJWTMiddleware:
         self.get_response = get_response
 
     def __call__(self, request): 
+        rate_limiting = RateLimiting(request)
+
+        if rate_limiting.is_rate_limited():
+            return JsonResponse({'status': 'error', 'reason': 'rate_limited'})
+
         jwt = JWT()
         jwt.extract_jwt_from_request(request)
         if jwt.is_valid():
@@ -44,6 +50,8 @@ class AuthJWTMiddleware:
             request.user = AnonymousUser()
 
         response = self.get_response(request)
+        
+        rate_limiting.clean()
         return response
 
 """
