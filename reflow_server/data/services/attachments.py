@@ -1,18 +1,23 @@
+from reflow_server.authentication.managers import company
 from django.conf import settings
 
+from reflow_server.draft.models import Draft
 from reflow_server.data.models import Attachments
 from reflow_server.core.utils.storage import Bucket
+from reflow_server.draft.services import DraftService
 
 import urllib
 
 
 class AttachmentService:
-    def __init__(self):
+    def __init__(self, company_id, user_id):
         """Service responsible for working with attachments in this application, most of the attachments logic should be found here
         """
+        self.user_id = user_id
+        self.company_id = company_id
         self.bucket = Bucket()
 
-    def duplicate_attachment(self, duplicated_attachment_instance, to_duplicate_form_id, to_duplicate_field_id, to_duplicate_file_name):
+    def duplicate_attachment(self, duplicated_attachment_instance, to_duplicate_form_id, to_duplicate_field_id, to_duplicate_file_name, to_form_id, to_field_id):
         """
         This method duplicates the data from one attachment to the other. We need the duplicated attachment instance also
         so we can set the data like file_size and the url to the file.
@@ -23,6 +28,8 @@ class AttachmentService:
             to_duplicate_form_id (int): The DynamicForm instance id you want to duplicate the attachment from.
             to_duplicate_field_id (int): The Field instance id that you want to duplicate the attachmente from
             to_duplicate_file_name (str): The actual file name that you want to duplicate for the other key.
+            to_form_id (int): The new DynamicForm instance id of the attachment
+            to_field_id (int):  The new Field instance id of the attachment
 
         Returns:
             reflow_server.data.models.Attachment: Returns the `duplicated_attachment_instance` already updated with the
@@ -36,8 +43,8 @@ class AttachmentService:
         )
         if to_duplicate:
             new_key = "{file_attachments_path}/{id}/{field}/".format(
-                id=str(to_duplicate_form_id), 
-                field=str(to_duplicate_field_id), 
+                id=str(to_form_id), 
+                field=str(to_field_id), 
                 file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH
             ) + str(to_duplicate_file_name)
             try:
@@ -60,7 +67,7 @@ class AttachmentService:
         return duplicated_attachment_instance
 
 
-    def save_attachment(self, form_id, field_id, file_name, file_data=None):
+    def save_attachment(self, form_id, field_id, file_name):
         """
         Saves a new attachment based on the following parameters: `form_id`, `field_id` and `file_name`
         if an attachment have all of this criteria we will made an update, otherwise if no Attachment can be found 
@@ -92,20 +99,28 @@ class AttachmentService:
         attachment_instance.file = file_name
         attachment_instance.field_id = field_id
         attachment_instance.form_id = form_id
-        attachment_instance.save()
 
         #handles a simple insertion
-        if file_data:
-            url = self.bucket.upload(
-                key="{file_attachments_path}/{id}/{field}/".format(
-                    id=str(form_id), 
-                    field=str(field_id), 
-                    file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH) + str(file_name),
-                file=file_data)
+        draft_id = DraftService.draft_id_from_draft_string_id(file_name)
+        if draft_id != -1:
+            draft_instance = Draft.data_.draft_by_draft_id_user_id_and_company_id(draft_id, self.user_id, self.company_id)
+            file_size = draft_instance.file_size
+            real_file_name = draft_instance.value
+            bucket_key = "{file_attachments_path}/{id}/{field}/".format(
+                id=str(form_id), 
+                field=str(field_id), 
+                file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH
+            )
 
+            draft_service = DraftService(self.company_id, self.user_id)
+            url = draft_service.copy_file_from_draft_string_id_to_bucket_key(file_name, bucket_key)
+
+            attachment_instance.file = real_file_name
             attachment_instance.file_url = url
-            attachment_instance.file_size = file_data.size
-            attachment_instance.save()
+            attachment_instance.file_size = file_size
+
+        attachment_instance.save()
+
         return attachment_instance
 
     def get_attachment_url(self, dynamic_form_id, field_id, file_name):

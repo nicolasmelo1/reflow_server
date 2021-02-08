@@ -39,7 +39,7 @@ class FormDataSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(detail=self.formulary_service.errors)
         
     def save(self, files={}):
-        instance = self.formulary_service.save(files)
+        instance = self.formulary_service.save()
         return instance
     
     class Meta:

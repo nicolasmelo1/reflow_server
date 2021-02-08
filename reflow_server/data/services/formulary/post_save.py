@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from reflow_server.core.utils.storage import Bucket, BucketUploadException
+from reflow_server.draft.services import DraftService
 from reflow_server.data.services.formulary.data import PostSaveData
 from reflow_server.data.models import FormValue, DynamicForm, Attachments
 from reflow_server.formulary.models import Field
@@ -95,25 +96,22 @@ class PostSave:
         
     def _post_process_attachment(self, process):
         if process.form_value_instance.value != '':
-            files = [file_data for file_data in getattr(self, 'files', {}).get(process.form_value_instance.field.name, [])]
-            file_data = None
-            for file in files:
-                if file.name == process.form_value_instance.value:
-                    file_data = file
-
-            attachment_service = AttachmentService()
+            attachment_service = AttachmentService(user_id=self.user_id, company_id=self.company_id)
+            
             attachment_instance = attachment_service.save_attachment(
                 process.form_value_instance.form.id, 
                 process.form_value_instance.field.id, 
-                process.form_value_instance.value,
-                file_data
+                process.form_value_instance.value
             )
+
             if hasattr(self, 'duplicate_form_data_id'):
                 attachment_instance = attachment_service.duplicate_attachment(
                     attachment_instance,
-                    process.form_value_instance.form.id, 
+                    self.duplicate_form_data_id,
                     process.form_value_instance.field.id, 
-                    process.form_value_instance.value
+                    process.form_value_instance.value,
+                    process.form_value_instance.form.id,
+                    process.form_value_instance.field.id
                 )
                 if attachment_instance == None:
                     raise BucketUploadException(json.dumps({
@@ -121,11 +119,13 @@ class PostSave:
                         'reason': ['could_not_upload'], 
                         'data': [process.form_value_instance.value]
                     }))
-
             if attachment_instance.file_url in [None, '']:
                 raise BucketUploadException(json.dumps({
                     'detail': [process.form_value_instance.field.name], 
                     'reason': ['could_not_upload'], 
                     'data': [process.form_value_instance.value]
                 }))
+
+            process.form_value_instance.value = attachment_instance.file
+            process.form_value_instance.save()
         return process

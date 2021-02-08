@@ -21,18 +21,15 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "reflow_server.settings")
 setup()
 
 from reflow_server.authentication.middleware import AuthWebsocketJWTMiddleware
-from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
 from .routing import websocket_urlpatterns
 
 # Read here for reference: https://channels.readthedocs.io/en/stable/tutorial/part_2.html#write-your-first-consumer
-application = SentryAsgiMiddleware(
-    ProtocolTypeRouter({
-        'http': get_asgi_application(),
-        'websocket': AuthWebsocketJWTMiddleware(
-            URLRouter(websocket_urlpatterns)
-        )
-    })
-)
+application = ProtocolTypeRouter({
+    'http': get_asgi_application(),
+    'websocket': AuthWebsocketJWTMiddleware(
+        URLRouter(websocket_urlpatterns)
+    )
+})
 
 

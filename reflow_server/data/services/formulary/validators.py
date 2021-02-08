@@ -36,16 +36,6 @@ class Validator:
                 return False
         return True
 
-    def __validate_attachments(self, field, field_values):
-        if field.type.type == 'attachment' and field.id in field_values:
-            for field_value in field_values[field.id]:
-                attachment_file_format = field_value.value.split('.').pop()
-                if field_value.value != '' and attachment_file_format.lower() not in ['doc','docx', 'jpeg', 'jpg', 'pdf', 'png',
-                'wav', 'xls', 'xlsx', 'zip']:
-                    self._errors = {'detail': field.name, 'reason': 'invalid_file', 'data': field_value.value}
-                    return False
-        return True
-
     def __validate_unique_fields(self, field, field_values):
         if field.is_unique and field.id in field_values: 
             for field_value in field_values[field.id]:
@@ -72,9 +62,6 @@ class Validator:
         
         for field in self.fields:
             if not self.__validate_unique_fields(field, field_values):
-                return False
-
-            if not self.__validate_attachments(field, field_values):
                 return False
 
             if not self.__validate_required_field(field, field_values):

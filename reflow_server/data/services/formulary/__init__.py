@@ -112,7 +112,7 @@ class FormularyDataService(PreSave, PostSave):
         return self.formulary_data_is_valid(self.formulary_data)        
 
     @transaction.atomic
-    def save(self, files={}):
+    def save(self):
         """
         This method should be called after calling `.add_formulary_data()` and `.is_valid()`. This
         method effectively saves the data present on FormularyData. While it saves the data from each field
@@ -123,11 +123,7 @@ class FormularyDataService(PreSave, PostSave):
         After that the formulary is basically saved, then we call PreNotificationService to update the pre_notifications
         of the company with the new data. And then we return the instance of the created or updated FORMULARY (not 
         Sections or FormValue).
-
-        Args:
-            files (dict(list(TemporaryUploadedFile)))): A dict containing keys with lists with TemporaryUploadedFiles 
-                                                        to upload to S3
-
+        
         Raises:
             AssertionError: You should call `.is_valid()` method before trying to save the data.' 
 
@@ -139,8 +135,6 @@ class FormularyDataService(PreSave, PostSave):
         if not hasattr(self, 'validated'):
             raise AssertionError('You should call `.is_valid()` method before trying to save the data.')
         
-        self.files = files
-
         formulary_instance = DynamicForm.data_.create_or_update_main_form_instance(
             self.form.id,
             self.user_id,

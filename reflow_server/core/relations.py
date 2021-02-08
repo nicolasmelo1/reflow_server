@@ -75,7 +75,7 @@ class ValueField(serializers.Field):
             represented_value = representation.representation(obj.value)
 
             # we need to reset the cache now and then so it doesn't take much space in our memory
-            if representation_service_cache.__sizeof__() > 100000:
+            if len(representation_service_cache.keys()) > 300:
                 representation_service_cache.clear()
 
             return represented_value

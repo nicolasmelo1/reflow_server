@@ -97,14 +97,12 @@ class FormularyDataView(APIView):
         POST: saves a new data to a specific form_name
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
-    parser_classes = [FormParser, MultiPartParser]
 
     def post(self, request, company_id, form):
-        files = {key:request.data.getlist(key) for key in request.data.keys() if key != 'data'}
-        serializer = FormDataSerializer(user_id=request.user.id, company_id=company_id, form_name=form, data=json.loads(request.data.get('data', '\{\}')))
+        serializer = FormDataSerializer(user_id=request.user.id, company_id=company_id, form_name=form, data=request.data)
         if serializer.is_valid():
             try:
-                serializer.save(files=files)
+                serializer.save([])
                 return Response({
                     'status': 'ok'
                 }, status=status.HTTP_200_OK)
@@ -132,7 +130,6 @@ class FormularyDataEditView(APIView):
         DELETE: deletes the data of a form_data_id
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
-    parser_classes = [FormParser, MultiPartParser]
 
     def get(self, request, company_id, form, dynamic_form_id):
         instance = DynamicForm.data_.dynamic_form_by_dynamic_form_id_and_company_id(
@@ -154,18 +151,17 @@ class FormularyDataEditView(APIView):
 
     def post(self, request, company_id, form, dynamic_form_id):
         duplicate = 'duplicate' in request.query_params
-        files = {key:request.data.getlist(key) for key in request.data.keys() if key != 'data'}
         serializer = FormDataSerializer(
             user_id=request.user.id, 
             company_id=company_id, 
             form_name=form,
             form_data_id=dynamic_form_id,
             duplicate=duplicate,
-            data=json.loads(request.data.get('data', '\{\}'))
+            data=request.data
         )
         if serializer.is_valid():
             try:
-                serializer.save(files=files)
+                serializer.save(files=[])
                 return Response({
                     'status': 'ok'
                 }, status=status.HTTP_200_OK)
@@ -204,7 +200,7 @@ class DownloadFileView(APIView):
                   in a new tab for the user.
     """
     def get(self, request, company_id, form, dynamic_form_id, field_id, file_name):
-        attachment_service = AttachmentService()
+        attachment_service = AttachmentService(company_id=company_id, user_id=request.user.id)
         url = attachment_service.get_attachment_url(dynamic_form_id, field_id, file_name)
         if url:
             return redirect(url)

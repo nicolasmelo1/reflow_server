@@ -39,6 +39,7 @@ class Cors:
         response[self.ACCESS_CONTROL_MAX_AGE] = self.DEFAULT_CORS_PREFLIGHT_MAX_AGE
         response[self.ACCESS_CONTROL_ALLOW_METHODS] = ', '.join(self.DEFAULT_ACCEPTED_METHODS)
         response[self.ACCESS_CONTROL_ALLOW_HEADERS] = ', '.join(self.DEFAULT_ACCEPTED_HEADERS)
+        response[self.ACCESS_CONTROL_ALLOW_CREDENTIALS] = "true"
         response = self.add_allow_origin_to_response(request, response)
         return response
 
