@@ -22,7 +22,7 @@ class FormValueFormularyManager(models.Manager):
         """
         if search:
             return self.get_queryset().filter(company_id=company_id, field_id=field_id, value__icontains=search)
-        elif section_id: 
+        elif section_id and str(section_id).isdigit(): 
             return self.get_queryset().filter(company_id=company_id, field_id=field_id, form_id=int(section_id))
         else:
             return self.get_queryset().filter(company_id=company_id, field_id=field_id)
