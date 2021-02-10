@@ -13,7 +13,7 @@ class TableOptionRowDimension(serializers.ModelSerializer):
 
 
 class TableOptionColumnDimension(serializers.ModelSerializer):
-    width = serializers.IntegerField(allow_null=True)
+    width = serializers.FloatField(allow_null=True)
 
     class Meta:
         model = TextTableOptionColumnDimension

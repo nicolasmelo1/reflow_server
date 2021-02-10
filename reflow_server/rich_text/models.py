@@ -95,7 +95,7 @@ class TextTableOptionColumnDimension(models.Model):
 
     Each column is bounded to a `text_table_option` since this only for `table` blocks
     """
-    width = models.BigIntegerField(default=None, null=True)
+    width = models.FloatField(default=None, null=True)
     text_table_option = models.ForeignKey('rich_text.TextTableOption', models.CASCADE, db_index=True, related_name='text_table_option_column_dimensions')
     order = models.BigIntegerField(default=1)
 
