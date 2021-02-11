@@ -31,7 +31,7 @@ class FieldOptionRelation(serializers.ModelSerializer):
 
 class FieldTypeOptionOnlyListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        data = Field.objects.filter(form__depends_on=data.core_filters['form'], type__type='option')
+        data = Field.objects.filter(form__depends_on=data.core_filters['form'], type__type__in=['option', 'multi_option'])
         return super(FieldTypeOptionOnlyListSerializer, self).to_representation(data)
 
 
