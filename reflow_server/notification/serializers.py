@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from reflow_server.core.utils.asynchronous import RunAsyncFunction
 from reflow_server.notification.models import UserNotification, NotificationConfiguration, PreNotification, Notification
 from reflow_server.notification.relations import NotificationConfigurationVariableRelation, NotificationFormValueVariableDataForBuildRelation, \
     NotificationConfigurationFieldsRelation
@@ -10,7 +11,7 @@ from reflow_server.notification.services.notification import NotificationService
 from reflow_server.formulary.models import Field
 
 import re
-
+import time
 
 class UnreadAndReadNotificationSerializer(serializers.ModelSerializer):
     notification_id = serializers.IntegerField()
@@ -18,7 +19,7 @@ class UnreadAndReadNotificationSerializer(serializers.ModelSerializer):
     Serializer used for updating when the user reads a new notification.
     """
     def save(self):
-        user_notification = UserNotification.objects.filter(
+        UserNotification.objects.filter(
             user_id=self.context['user_id'], 
             id=self.validated_data['notification_id']
         ).update(
@@ -150,10 +151,9 @@ class PreNotificationSerializer(serializers.ModelSerializer):
     notification_configuration_id = serializers.IntegerField(allow_null=True)
 
     def save(self, *args):
-        pre_notification_service = PreNotificationService()
-        pre_notification_service.update_from_request(
-            self.context['company']
-        )
+        pre_notification_service = PreNotificationService()     
+        async_task = RunAsyncFunction(pre_notification_service.update_from_request)
+        async_task.delay(company_id=self.context['company'])
 
     class Meta:
         model = PreNotification
