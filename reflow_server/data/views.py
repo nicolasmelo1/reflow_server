@@ -114,7 +114,7 @@ class FormularyDataView(APIView):
         serializer = FormDataSerializer(user_id=request.user.id, company_id=company_id, form_name=form, data=request.data)
         if serializer.is_valid():
             try:
-                serializer.save([])
+                serializer.save()
                 return Response({
                     'status': 'ok'
                 }, status=status.HTTP_200_OK)
