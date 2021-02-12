@@ -129,7 +129,10 @@ class UserExtended(AbstractUser):
     is_admin = models.BooleanField(default=False)
     data_type = models.ForeignKey('authentication.VisualizationType', on_delete=models.CASCADE, default=None, null=True)
     temp_password = models.CharField(max_length=250, default=None, null=True, blank=True)
-    
+    #public_key = models.UUIDField(default=None, null=True, blank=True)
+    #public_pass_key = models.CharField(max_length=128, default=None, null=True, blank=True)
+    #hashed_public_pass_key = models.CharField(max_length=128, default=None, null=True, blank=True)
+
     class Meta:
         db_table = 'users'
 

@@ -16,9 +16,6 @@ Including another URLconf
 from django.urls import re_path, include
 from django.contrib import admin
 
-def error(request):
-    division_by_zero = 1 / 0
-
 urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^core/', include('reflow_server.core.urls'), name='core_app'),
@@ -36,6 +33,4 @@ urlpatterns = [
     re_path(r'^rich_text/', include('reflow_server.rich_text.urls'), name='rich_text_app'),
     re_path(r'^draft/', include('reflow_server.draft.urls'), name='draft_app'),
     re_path(r'^pdf_generator/', include('reflow_server.pdf_generator.urls'), name='pdf_generator_app'),
-    re_path(r'^sentry-debug/', error),
-
 ]

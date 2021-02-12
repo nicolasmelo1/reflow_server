@@ -6,6 +6,8 @@ from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.authentication.models import UserExtended
 
 from datetime import datetime, timedelta
+import time
+
 
 class DataService(DataSort, DataSearch):
     def __init__(self, user_id, company_id):
@@ -187,6 +189,7 @@ class DataService(DataSort, DataSearch):
         Returns:
             list(int) -- Returns a list of all of the dynamic_form_ids that the user has access to from a single form_id.
         """
+        start_time = time.time()
 
         self._fields = Field.objects.filter(
             form__company_id=self.company_id,
@@ -203,6 +206,8 @@ class DataService(DataSort, DataSearch):
             } for field in self._fields
         }
 
+        print('---get_user_form_data_ids_from_form_id until fields took {} seconds'.format(time.time() - start_time))
+
         if from_date and to_date:
             self._data = DynamicForm.data_.dynamic_forms_by_company_id_form_id_between_updated_at_range_ordered_by_updated_at(
                 self.company_id, 
@@ -216,6 +221,8 @@ class DataService(DataSort, DataSearch):
                 self.company_id, 
                 form_id
             )
+
+        print('---get_user_form_data_ids_from_form_id until search took {} seconds'.format(time.time() - start_time))
 
         if search_keys:
             if type(search_keys) != list or any([type(search) != dict for search in search_keys]) or any([type(list(search.values())[0]) != tuple for search in search_keys]):
@@ -236,8 +243,11 @@ class DataService(DataSort, DataSearch):
                                      '\n'
                                       'You can use the .convert_sort_query_parameters() staticmethod of DataService class to convert from query parameters to this format.')
             self._sort(sort_keys)
+        
+        print('---get_user_form_data_ids_from_form_id after search and sort took {} seconds'.format(time.time() - start_time))
 
         self.__filter_by_profile_permissions(form_id)
+        print('---get_user_form_data_ids_from_form_id after filtering took {} seconds'.format(time.time() - start_time))
         return list(self._data.values_list('id', flat=True))
 
     def __filter_by_profile_permissions(self, form_id):

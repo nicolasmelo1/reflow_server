@@ -16,6 +16,7 @@ from reflow_server.data.services import DataService, AttachmentService
 from reflow_server.formulary.models import Form
 
 import json
+import time
 
 
 class DataView(APIView):
@@ -35,7 +36,11 @@ class DataView(APIView):
         return fields_query_param
 
     def get(self, request, company_id, form):
+        start_time = time.time()
+
         formulary_instance = Form.objects.filter(group__company_id=company_id, form_name=form).first()
+        print('---get data until formulary_instance took {} seconds'.format(time.time() - start_time))
+
         if formulary_instance:
             pagination = Pagination.handle_pagination(
                 current_page=int(request.query_params.get('page', 1)),
@@ -43,6 +48,7 @@ class DataView(APIView):
             )        
 
             fields = self.__extact_fields_from_request_query_params(request.query_params)
+            print('---get data until __extact_fields_from_request_query_params took {} seconds'.format(time.time() - start_time))
 
             form_id = formulary_instance.id
             form_data_accessed_by_user = DataService.get_user_form_data_ids_from_query_params(
@@ -51,9 +57,11 @@ class DataView(APIView):
                 company_id=company_id,
                 form_id=form_id
             )
-            
+            print('---get data until form_data_accessed_by_user took {} seconds'.format(time.time() - start_time))
+
             total_number_of_pages, instances = pagination.paginate_queryset(DynamicForm.data_.dynamic_forms_by_dynamic_form_ids_ordered(form_data_accessed_by_user))
-            
+            print('---get data until pagination took {} seconds'.format(time.time() - start_time))
+
             form_values_reference = dict()
             form_values = FormValue.data_.form_values_by_main_form_ids_company_id(
                 instances.values_list('id', flat=True),
@@ -66,22 +74,26 @@ class DataView(APIView):
                     form_values_reference[form_value.form.depends_on_id].update(form_value_by_field_id)
                 else:
                     form_values_reference[form_value.form.depends_on_id] = form_value_by_field_id
-            
+            print('---get data until form_reference took {} seconds'.format(time.time() - start_time))
+
             serializer = DataSerializer(instance=instances, many=True, context={
                 'fields': fields,
                 'company_id': company_id,
                 'form_values_reference': form_values_reference
             })
-            
+            data = serializer.data
+            print('---get data took {} seconds'.format(time.time() - start_time))
             return Response({
                 'status': 'ok',
                 'pagination': {
                     'current': pagination.current_page,
                     'total': total_number_of_pages
                 },
-                'data': serializer.data
+                'data': data
             }, status=status.HTTP_200_OK)
         else:
+            print('---get data took {} seconds'.format(time.time() - start_time))
+
             return Response({
                 'status': 'error',
                 'reason': 'form_name_does_not_exist'
@@ -149,7 +161,7 @@ class FormularyDataEditView(APIView):
             'data': serializer.data
         }, status=status.HTTP_200_OK)
 
-    def post(self, request, company_id, form, dynamic_form_id):
+    def put(self, request, company_id, form, dynamic_form_id):
         duplicate = 'duplicate' in request.query_params
         serializer = FormDataSerializer(
             user_id=request.user.id, 
@@ -161,7 +173,7 @@ class FormularyDataEditView(APIView):
         )
         if serializer.is_valid():
             try:
-                serializer.save(files=[])
+                serializer.save()
                 return Response({
                     'status': 'ok'
                 }, status=status.HTTP_200_OK)
@@ -186,7 +198,6 @@ class FormularyDataEditView(APIView):
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
-
 
 
 class DownloadFileView(APIView):

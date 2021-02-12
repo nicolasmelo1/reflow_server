@@ -38,7 +38,7 @@ class FormDataSerializer(serializers.ModelSerializer):
         else:
             raise serializers.ValidationError(detail=self.formulary_service.errors)
         
-    def save(self, files={}):
+    def save(self):
         instance = self.formulary_service.save()
         return instance
     
