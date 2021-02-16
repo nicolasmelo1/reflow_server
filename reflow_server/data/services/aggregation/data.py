@@ -2,7 +2,7 @@ class AggregationData:
     def __init__(self):
         """
         This class is responsible for holding the aggregation data.
-        This aggregation data is a dict where each key is a DynamicFormId, and contains another dict.
+        This aggregation data is a dict where each key is a DynamicFormId, and contains another dict of keys and values
         """
         self.data_dict = dict()
 

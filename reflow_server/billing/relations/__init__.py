@@ -6,7 +6,7 @@ from reflow_server.billing.models import CompanyInvoiceMails
 class TotalsByNameRelation(serializers.Serializer):
     name = serializers.CharField()
     total = serializers.CharField()
-
+    quantity = serializers.IntegerField()
 
 class CompanyInvoiceMailsRelation(serializers.ModelSerializer):
     email = serializers.CharField(error_messages={ 'null': 'blank', 'blank': 'blank' })

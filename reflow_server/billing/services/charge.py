@@ -1,11 +1,10 @@
 from django.db import transaction
-from django.db.models import Q
 
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.billing.models import CurrentCompanyCharge, DiscountByIndividualValueQuantity, \
-    IndividualChargeValueType, ChargeType, DiscountByIndividualNameForCompany, CompanyCharge, \
+    IndividualChargeValueType, DiscountByIndividualNameForCompany, CompanyCharge, \
     CompanyBilling, PartnerDefaultAndDiscounts
-from reflow_server.billing.services.data import TotalData
+from reflow_server.billing.services.data import TotalData, CompanyChargeData
 from reflow_server.billing.services.vindi import VindiService
 
 from datetime import datetime, timedelta
@@ -39,70 +38,46 @@ class ChargeService:
         if not self.company_billing.is_supercompany and self.company_billing.is_paying_company:
             vindi_service = VindiService(self.company_id)
             vindi_service.create_or_update()
-    
-    def remove_charge_values_from_removed_users(self):
-        """
-        Removes all of the CurrentCompanyCharges that are bound to a removed user. Obviously, doesn't consider the ones that are for the
-        company, so with user_id set to None
-        """
-        company_users = UserExtended.billing_.users_active_by_company_id(self.company_id)
-        CurrentCompanyCharge.objects.filter(company_id=self.company_id).exclude(Q(user_id__isnull=True) | Q(user_id__in=company_users)).delete()
-        return True
 
-    def remove(self, charge_value_name, user_id=None, push_updates=True):
+    def validate_current_company_charges_and_create_new(self, current_company_charges):
         """
-        Removes a charge from the company based on the charge_value_name of this charge, this way you can remove users, storage capacity and other 
-        charge data.
+        This is used for two things, it validates the current_company_charges. So if the user access directly the API and tries to not add
+        a company charge we will automatically add it for him guaranteeing that all of the existing IndividualValueChargeType are created
+        for a specific company. The nice thing to this is that automatically we can add the CurrentCompanyCharge data, so by
+        sending an empty list you will end up with the actual `current_company_charges` list with `reflow_server.billing.services.data.CompanyChargeData`
+        objects to be used when saving the data or retrieving the totals.
+
+        Important:
+        You will notice we always consider 'per_user' was not added, this is because we can prevent the user for setting any value for this special case
+        and set it directly here on the backend.
 
         Args:
-           charge_value_names (str): A string containing the name of a single individual_charge_type to be removed
-                                     for this particular company. Check reflow_server.billing.models.IndividualChargeValueType 
-                                     table in our database for the possible values.
-            user_id (int, optional): The id of the user, this is only required when changing individualChargeValueType that is based
-                                     on the user, not the company itself. Defaults to None.
-            push_updates (bool, optional): set this to True if you want to push this update to our payment gateway. 
-                                           If set to false it saves in our database but doesn't update the payment gateway with the
-                                           new information. Defaults to True
-        """
-        if user_id:
-            to_delete = CurrentCompanyCharge.objects.filter(company_id=self.company_id, user_id=user_id, individual_charge_value_type__name=charge_value_name)
-        else:
-            to_delete = CurrentCompanyCharge.objects.filter(company_id=self.company_id, user__isnull=True, individual_charge_value_type__name=charge_value_name)
-        if to_delete:
-            to_delete.delete()
-            if push_updates:
-                self.push_updates()
-            return True
-        else:
-            return False
-
-    def create(self, charge_value_names, user_id=None, push_updates=True):
-        """
-        Creates a new charge for the company for a particular individual_charge_type. Could be a new user being
-        created, a new storage capacity or a new dashboard for the company and so on.
-
-        Args:
-            charge_value_names (list): A list containing the names of each individual_charge_type to be created
-                                       for this particular company. Check reflow_server.billing.models.IndividualChargeValueType 
-                                       for reference
-            user_id (int, optional): The id of the user, this is only required when changing individualChargeValueType that is based
-                                     on the user, not the company itself. Defaults to None.
-            push_updates (bool, optional): set this to True if you want to push this update to our payment gateway. 
-                                           If set to false it saves in our database but doesn't update the payment gateway with the
-                                           new information. Defaults to True 
+            current_company_charges (list(reflow_server.billing.services.data.CompanyChargeData)): List of CompanyChargeData to verify and check if is complete
+            if any `IndividualValueChargeType` is left out, we actually add it to the list. 
 
         Returns:
-            list: list of reflow_server.billing.models.CurrentCompanyCharge, returns each model that was created in the database.
+            list(reflow_server.billing.services.data.CompanyChargeData): returns the new list of `CompanyChargeData` objects
+            to be used when saving or retrieivng totals
         """
-        self.company_billing = CompanyBilling.objects.filter(company_id=self.company_id).first()
+        # first we need to filter all of the current_company_charge that are not 'per_user' and then we need to add only
+        # the individual_charge_value_type_name to the existing_company_charge_names list so we  get the individual_charges
+        # that we need to add
+        new_curent_company_charges = []
+        existing_company_charge_names = []
+        for current_company_charge in current_company_charges:
+            if current_company_charge.individual_value_charge_name != 'per_user':
+                new_curent_company_charges.append(current_company_charge)
+                existing_company_charge_names.append(current_company_charge.individual_value_charge_name)
+        individual_charges_to_add = IndividualChargeValueType.objects.exclude(name__in=existing_company_charge_names)
 
-        created = list()
-        for charge_value_name in charge_value_names:
-            created.append(
-                self.update_or_create(charge_value_name, user_id=user_id, push_updates=push_updates)
-            )
-        return created
+        for individual_charge_value_type in individual_charges_to_add:
+            quantity = individual_charge_value_type.default_quantity
+            if individual_charge_value_type.name == 'per_user':
+                quantity = UserExtended.billing_.users_active_by_company_id(company_id=self.company_id).count()
+            new_curent_company_charges.append(CompanyChargeData(individual_charge_value_type.name, quantity))
 
+        return new_curent_company_charges
+        
     def get_total_data_from_custom_charge_quantity(self, current_company_charges):
         """
         Gets the totals based on a custom value that is not saved in our database. We usually need and use this so the user can have 
@@ -115,11 +90,14 @@ class ChargeService:
             reflow_server.billing.services.data.TotalData: Totals object with handy functions.
         """
         total_data = TotalData(company_id=self.company_id)
+        current_company_charges = self.validate_current_company_charges_and_create_new(current_company_charges)
+
         for company_charge in current_company_charges:
-            individual_charge_value = IndividualChargeValueType.objects.filter(name=company_charge.charge_name).first()
+            individual_charge_value = IndividualChargeValueType.objects.filter(name=company_charge.individual_value_charge_name).first()
             if individual_charge_value:
-                discount_from_quantity = self.__get_discount_for_quantity(individual_charge_value.id, company_charge.quantity)
+                discount_from_quantity = self.get_discount_for_quantity(individual_charge_value.id, company_charge.quantity)
                 discount_from_quantity = discount_from_quantity.value if discount_from_quantity else 1
+                
                 discount_by_individual_charge_type_for_company = self.__get_discount_for_company_from_a_individual_charge_value_type(individual_charge_value.id)
                 discount_by_individual_charge_type_for_company = discount_by_individual_charge_type_for_company.value \
                     if discount_by_individual_charge_type_for_company else 1
@@ -127,34 +105,14 @@ class ChargeService:
                 discount_percentage = discount_from_quantity * discount_by_individual_charge_type_for_company
                 value = individual_charge_value.value
                 quantity = company_charge.quantity
-                total_data.add_value(company_charge.charge_name, value, quantity, discount_percentage)
-        return total_data
-
-    @property
-    def get_total_data(self):
-        """
-        Returns a TotalData object, this object is a handy object for retriving totals in many possible ways.
-        You can retrieve the totals in the most simple way, but this object also can retrieve totals from each 
-        individual charge name, discounts, coupon discounts and so on. That's why it's preferrable to retrieve 
-        an object in this case instead of a simple value.
-
-        Returns:
-            reflow_server.billing.services.data.TotalData: Object with handy functions.
-        """
-        total_data = TotalData(company_id=self.company_id)
-        for current_company_charge in CurrentCompanyCharge.objects.filter(company_id=self.company_id):
-            discount_by_individual_charge_type_for_company = self.__get_discount_for_company_from_a_individual_charge_value_type(
-                current_company_charge.individual_charge_value_type.id
-            )
-            discount_percentage_by_quantity = current_company_charge.discount_by_individual_value.value if current_company_charge.discount_by_individual_value else 1
-            discount_by_individual_charge_type_for_company = discount_by_individual_charge_type_for_company.value \
-                if discount_by_individual_charge_type_for_company else 1
-
-            discount_percentage = discount_percentage_by_quantity * discount_by_individual_charge_type_for_company
-            value = current_company_charge.individual_charge_value_type.value
-            quantity = current_company_charge.quantity
-            total_data.add_value(current_company_charge.individual_charge_value_type.name, value, quantity, discount_percentage)
-
+                
+                total_data.add_value(
+                    company_charge.individual_value_charge_name, 
+                    company_charge.charge_type_name, 
+                    value, 
+                    quantity, 
+                    discount_percentage
+                )
         return total_data
     
     def __get_discount_for_company_from_a_individual_charge_value_type(self, individual_charge_value_type_id):
@@ -167,7 +125,7 @@ class ChargeService:
             individual_charge_value_type_id=individual_charge_value_type_id
         ).first()
 
-    def __get_discount_for_quantity(self, individual_charge_value_type_id, quantity):
+    def get_discount_for_quantity(self, individual_charge_value_type_id, quantity):
         """
         Gets the discount for a particular individual_charge_value_type and based on a specific quantity.
 
@@ -184,7 +142,7 @@ class ChargeService:
         ).order_by('-quantity').first()
 
     @transaction.atomic
-    def update_or_create(self, charge_value_name, user_id=None, quantity=None, push_updates=True):
+    def update_or_create(self, charge_value_name, quantity=None, push_updates=True):
         """
         This updates or creates a specific reflow_server.billing.models.CurrentCompanyCharge in our database. This model
         is responsible for holding the current state of our payment, it's how much we must charge right now on this exact moment even if we are not 
@@ -193,7 +151,6 @@ class ChargeService:
         Args:
             charge_value_name (str): You always update a unique and specific IndividualChargeValueType name. 
                                      You can check the possible options in our database.
-            user_id (int, optional): If you are updating the charge of a specific user you must set the user_id, refer to ChargeType. Defaults to None.
             quantity (int, optional): The quantity of the items that you are trying to update, it's like putting fruits in a basket. Defaults to None.
             push_updates (bool, optional): Set to False if you don't want to push the updates to our Payment Gateway. Defaults to True.
 
@@ -204,18 +161,14 @@ class ChargeService:
         Returns:
             reflow_server.billing.models.CurrentCompanyCharge: The added or updated CurrentCompanyCharge.
         """
-        charge_type = ChargeType.objects.filter(name='user' if user_id else 'company').first()
-        individual_charge_value_type = IndividualChargeValueType.objects.filter(name=charge_value_name, charge_type=charge_type).first()
+        individual_charge_value_type = IndividualChargeValueType.objects.filter(name=charge_value_name).first()
         
         if not individual_charge_value_type:
-            if IndividualChargeValueType.objects.filter(name=charge_value_name, charge_type__name='user').exists():
-                raise AssertionError('`user_id` parameter is obligatory for the `{}` charge value name'.format(charge_value_name))
-            else:
-                raise KeyError(
-                    'Your `charge_value_name` parameter must be one of the following options: {}'.format(
-                        ', '.join(list(IndividualChargeValueType.objects.all().values_list('name', flat=True)))
-                    )
+            raise KeyError(
+                'Your `charge_value_name` parameter must be one of the following options: {}'.format(
+                    ', '.join(list(IndividualChargeValueType.objects.all().values_list('name', flat=True)))
                 )
+            )
         
         # if quantity is not defined we use the quantity of the default quantity defined in IndividualChargeValueType
         if not quantity:
@@ -229,12 +182,11 @@ class ChargeService:
             else:
                 quantity = individual_charge_value_type.default_quantity
 
-        discount = self.__get_discount_for_quantity(individual_charge_value_type.id, quantity)
+        discount = self.get_discount_for_quantity(individual_charge_value_type.id, quantity)
         
         charge_instance, __ = CurrentCompanyCharge.objects.update_or_create(
             individual_charge_value_type=individual_charge_value_type, 
             company_id=self.company_id, 
-            user_id=user_id,
             defaults={
                 'discount_by_individual_value': discount,
                 'quantity': quantity

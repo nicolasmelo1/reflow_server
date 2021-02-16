@@ -21,9 +21,9 @@ class UsersService:
 
     def remove_user(self):
         """
-        When we remove a user we just need to update the billing information, actually, just the payment gateway
+        When we remove a user we just need to update the billing information
         """
-        BillingService(self.company.id).charge_service.push_updates()
+        BillingService(self.company.id).update_charge()
 
     @transaction.atomic
     def create(self, email, first_name, last_name, profile, field_option_ids_accessed_by, form_ids_accessed_by, change_password_url):
@@ -109,7 +109,7 @@ class UsersService:
         """
         password = instance.make_temporary_password()
 
-        BillingService(self.company.id).create_user(user_id=instance.id)
+        BillingService(self.company.id).update_charge()
         NotifyService.send_welcome_mail(instance.email, password, self.company.name, change_password_url.replace(r'{}', password))
 
         return True

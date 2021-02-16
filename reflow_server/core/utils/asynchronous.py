@@ -2,7 +2,8 @@ import threading
 from django.conf import settings
 
 semaphore = threading.BoundedSemaphore(
-    value=settings.ASYNC_RESPONSE_MAXIMUM_CONCURRENCY_THREADS)
+    value=settings.ASYNC_RESPONSE_MAXIMUM_CONCURRENCY_THREADS
+)
 
 
 class RunAsyncFunction(threading.Thread):

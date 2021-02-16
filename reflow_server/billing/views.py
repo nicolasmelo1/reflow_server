@@ -38,24 +38,9 @@ class TotalsView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request, company_id):
-        instance = CompanyBilling.objects.filter(company_id=company_id).first()
-        serializer = CurrentCompanyChargeSerializer(data=request.data, many=True)
+        serializer = CurrentCompanyChargeSerializer(data=request.data, context={'company_id': company_id}, many=True)
         if serializer.is_valid():
-            charge_service = ChargeService(company_id, instance)
-            current_company_charges = [
-                CompanyChargeData(
-                    individual_value_charge_name=current_company_charge['name'], 
-                    quantity=current_company_charge['quantity'], 
-                    user_id=current_company_charge['user_id']
-                ) 
-                for current_company_charge in serializer.initial_data
-            ]
-            total_data = charge_service.get_total_data_from_custom_charge_quantity(current_company_charges)
-            data = {
-                'total': total_data.total,
-                'discounts': total_data.total_coupons_discounts,
-                'total_by_name': [{'name': key, 'total': value} for key, value in total_data.total_by_charge_name.items()]
-            }
+            data = serializer.save()
             serializer = TotalsSerializer(data=data)
             return Response({
                 'status': 'ok',

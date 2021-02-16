@@ -249,7 +249,6 @@ class CurrentCompanyCharge(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, related_name='current_company_charges')
-    user = models.ForeignKey('authentication.UserExtended', on_delete=models.CASCADE, null=True, blank=True)
     individual_charge_value_type = models.ForeignKey('billing.IndividualChargeValueType', on_delete=models.CASCADE)
     discount_by_individual_value = models.ForeignKey('billing.DiscountByIndividualValueQuantity', on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.IntegerField()

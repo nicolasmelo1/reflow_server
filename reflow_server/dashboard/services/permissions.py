@@ -81,7 +81,7 @@ class DashboardPermissionsService:
         Returns:
             bool: True if it is valid, and false if it is invalid.
         """
-        charts_quantity_permission = CurrentCompanyCharge.objects.filter(company_id=company_id, user_id=user_id)
+        charts_quantity_permission = CurrentCompanyCharge.objects.filter(company_id=company_id)
         charts_quantity_permission_for_company = charts_quantity_permission\
                                                 .filter(individual_charge_value_type__name='per_chart_company')\
                                                 .order_by('-quantity')\

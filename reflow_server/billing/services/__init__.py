@@ -1,8 +1,6 @@
 from django.db import transaction
-from django.db.models import Q
 
-from reflow_server.authentication.models import Company, UserExtended
-from reflow_server.billing.models import DiscountByIndividualNameForCompany, IndividualChargeValueType, CurrentCompanyCharge, CompanyBilling, \
+from reflow_server.billing.models import DiscountByIndividualNameForCompany, CurrentCompanyCharge, CompanyBilling, \
     PartnerDefaultAndDiscounts, DiscountCoupon, CompanyCoupons
 from reflow_server.billing.services.data import CompanyChargeData
 from reflow_server.billing.services.charge import ChargeService
@@ -29,119 +27,36 @@ class BillingService:
         return VindiService(self.company_id).delete_payment_profile()
 
     @transaction.atomic
-    def create_user(self, user_id):
+    def update_charge(self, company_charge_data=[]):
         """
-        Used for when creating a new user only, when updating you should use `.update_user()` method.
-        It just loops for each 'charge_value_names' passing only the name as parameter, this way we always force to use the defauld value.
+        Update only the charge information and update the billing, if no `current_company_charge` this means we are probably
+        updating the charge information outside of the billing so we need to add it and push the updates to vindi. 
 
-        Args:
-            user_id (int): Id of the newly created user.
+        When we are updating from the outside what we do is loop through all of the CurrentCompanyCharge and create a `CompanyChargeData`
+        from each CurrentCompanyCharge instance. Then we use `validate_current_company_charges_and_create_new` function to create all of
+        the missing `CompanyChargeData`. Last but not least we push the updates to vindi
 
-        Returns:
-            list(reflow_server.billing.models.CurrentCompanyCharge): This data is a list of the instances of the newly created CurrentCompanyCharge.
-                                                                     each item on the list represents each row inserted on the database for this user.
+        When updating from the inside what we do not loop the `CurrentCompanyCharge` instances and we do not push the updates
+        to vindi.
         """
-        charge_value_names = ['per_user', 'per_chart_company', 'per_chart_user']
-        self.charge_service.create(charge_value_names, user_id=user_id, push_updates=False)
-        return self.charge_service.push_updates()
-
-    @transaction.atomic
-    def create_company(self):
-        """
-        Used for when creating a new company only, when updating you should use `.update()` method directly.
-        It just loops for each 'charge_value_names' passing only the name as parameter, this way we always force to use the defauld value.
-
-        Returns:
-            list(reflow_server.billing.models.CurrentCompanyCharge): This data is a list of the instances of the newly created CurrentCompanyCharge.
-                                                                     each item on the list represents each row inserted on the database.
-        """
-        charge_value_names = ['per_gb', 'per_pdf_download']
-
-        CompanyBilling.objects.create(company_id=self.company_id)
-
-        self.charge_service.create(charge_value_names, push_updates=False)
-        return self.charge_service.push_updates()
-
-    def create_new_charge_value_for_a_individual_charge_type(self, individual_charge_value_type):
-        """
-        This is used in conjunction with `validate_current_company_charges_and_create_new` function.
-        When we validate, if the condition is not set we create a new charge to the user.
-
-        Args:
-            individual_charge_value_type (reflow_server.billing.models.IndividualChargeValueType): The individual
-            charge to be created, this way we can know if it is a user type or a company type. And can handle it
-            accordingly.
-
-        Returns:
-            list(reflow_server.billing.services.data.CompanyChargeData): a list of CompanyChargeData created.
-        """
-        created_company_charges = []
-
-        def get_quantity():
-            company = Company.billing_.company_by_company_id(self.company_id)
-            partner_default_and_discounts = PartnerDefaultAndDiscounts.billing_.partner_default_and_discount_by_partner_name_and_individual_charge_value_type_id(
-                company.partner,
-                individual_charge_value_type.id
+        current_company_charge_data = company_charge_data
+        if len(company_charge_data) == 0:
+            for current_company_charge in CurrentCompanyCharge.objects.filter(company_id=self.company_id):
+                current_company_charge_data.append(
+                    CompanyChargeData(
+                        current_company_charge.individual_charge_value_type.name,
+                        current_company_charge.quantity
+                    )
+                )
+        current_company_charges_from_request = self.charge_service.validate_current_company_charges_and_create_new(current_company_charge_data)
+        for current_company_charge in current_company_charges_from_request:
+            self.charge_service.update_or_create(
+                current_company_charge.individual_value_charge_name, 
+                current_company_charge.quantity, 
+                push_updates=False
             )
-            if partner_default_and_discounts:
-                quantity = partner_default_and_discounts.default_quantity
-            else:
-                current_quantity_for_this_individual_value_type = CurrentCompanyCharge.objects.filter(company_id=self.company_id, individual_charge_value_type=individual_charge_value_type).values_list('quantity', flat=True).first()
-                if current_quantity_for_this_individual_value_type:
-                    quantity = current_quantity_for_this_individual_value_type
-                else:
-                    quantity = individual_charge_value_type.default_quantity if individual_charge_value_type.default_quantity else 0
-            return quantity
-
-        if individual_charge_value_type.charge_type.name == 'user':
-            for user in UserExtended.billing_.users_active_by_company_id(self.company_id):
-                created_company_charges.append(CompanyChargeData(individual_charge_value_type.name, get_quantity(), user.id))
-        else:
-            created_company_charges.append(CompanyChargeData(individual_charge_value_type.name, get_quantity()))
-        return created_company_charges
-
-    def validate_current_company_charges_and_create_new(self, current_company_charges):
-        """
-        This function is used to prevent frauds if the user opens the console and tries to insert company_charges not by the front-end
-        but directly by the api.
-
-        current_company_charges is usually an list, what happens is that on the front end we actually can prevent the user from some unwanted behaviour
-        but on the backend we can't prevent it.
-
-        What we are trying to prevent is: if for some reason a individual_charge_value_type is not created for a particular user or for the company
-        we need to force its creation.
-
-        Args:
-            current_company_charges (list(reflow_server.billing.services.data.CompanyChargeData)): A list of CompanyChargeData
-
-        Returns:
-            list(reflow_server.billing.services.data.CompanyChargeData): A new list of CompanyChargeData
-        """
-        new_current_company_charges = []
-        validate_current_company_charges = {}
-        all_individual_charge_value_types = IndividualChargeValueType.objects.all()
-        for current_company_charge in current_company_charges:
-            validate_current_company_charges[current_company_charge.charge_name] = validate_current_company_charges.get(current_company_charge.charge_name, []) + [current_company_charge.user_id]
-        # gets the difference of what was defined on the request and all of the others.
-        difference_between_charge_value_types_defined_and_existent = list(set(all_individual_charge_value_types.values_list('name', flat=True)).difference(list(validate_current_company_charges.keys())))
-        users_in_company = list(UserExtended.billing_.user_ids_active_by_company_id(self.company_id))
-
-        # we loop though each individual_charge_value type and check for three conditions: 
-        # 1 - The value of individual_charge_value_type.name was not defined on the current_company_charges list
-        # 2 - The number of active users and the user_ids defined in each individual_charge_value_type.name doesn't match
-        # 3 - We filter the current_company_charges of this individual_charge_value_type.name and use it
-        for individual_charge_value_type in all_individual_charge_value_types:
-            if individual_charge_value_type.name in difference_between_charge_value_types_defined_and_existent:    
-                new_current_company_charges = new_current_company_charges + self.create_new_charge_value_for_a_individual_charge_type(individual_charge_value_type)
-            elif individual_charge_value_type.charge_type.name == 'user' and \
-                [user_in_company for user_in_company in users_in_company if user_in_company not in validate_current_company_charges.get(individual_charge_value_type.name, [])]:
-                new_current_company_charges = new_current_company_charges + self.create_new_charge_value_for_a_individual_charge_type(individual_charge_value_type)
-            else:
-                new_current_company_charges = new_current_company_charges + \
-                    [current_company_charge for current_company_charge in current_company_charges 
-                    if current_company_charge.charge_name == individual_charge_value_type.name]
-
-        return new_current_company_charges
+        if len(company_charge_data) == 0:
+            self.charge_service.push_updates()
     
     def is_valid_company_invoice_emails(self, length_of_company_invoice_emails):
         return not (length_of_company_invoice_emails > 3 or length_of_company_invoice_emails < 1)
@@ -192,9 +107,9 @@ class BillingService:
         BillingEvents().send_updated_billing(self.company_id)
 
     @transaction.atomic
-    def update_billing(self, payment_method_type_id, invoice_date_type_id, emails, 
-                       current_company_charges, cnpj, zip_code, street, state, 
-                       number, neighborhood, country, city, additional_details=None, gateway_token=None):
+    def update_billing_information(self, payment_method_type_id, invoice_date_type_id, emails, 
+                                    current_company_charges, cnpj, zip_code, street, state, 
+                                    number, neighborhood, country, city, additional_details=None, gateway_token=None):
         """
         Updates billing, so this is a factory method that automatically updates the payment data and also the charge data and pushes it
         to the payment gateway.
@@ -232,16 +147,7 @@ class BillingService:
         # when internationalizing the platform
         country = country if country else 'BR'
 
-        current_company_charges_from_request = self.validate_current_company_charges_and_create_new(current_company_charges)
-        for current_company_charge in current_company_charges_from_request:
-            self.charge_service.update_or_create(
-                current_company_charge.charge_name, 
-                current_company_charge.user_id, 
-                current_company_charge.quantity, 
-                push_updates=False
-            )
-        self.charge_service.remove_charge_values_from_removed_users()
-        
+        self.update_charge(current_company_charges)
         self.payment_service.update_address_and_company_info(
             cnpj, zip_code, street, state, number, neighborhood, country, 
             city, additional_details, push_updates=False
@@ -264,9 +170,10 @@ class BillingService:
             bool: returns True to show everything went alright
         """
         billing_service = cls(company_id)
-        billing_service.create_company()
-        billing_service.create_user(user_id=user_id)
+        billing_service.company_billing = CompanyBilling.objects.create(company_id=company_id)
+        billing_service.charge_service = ChargeService(company_id, billing_service.company_billing)
         billing_service.create_discount_by_individual_name_for_company_by_partner_name(partner_name)
         billing_service.create_discount_coupon_for_company(discount_coupon_name)
+        billing_service.update_charge()
         return True
         

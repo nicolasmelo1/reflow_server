@@ -192,8 +192,10 @@ class ThemeUpdateService:
                 self.theme_reference.get_field_reference(conditional_reference['reference_id']).id
             )
 
+        print(form_field_type_fields)
         for field in form_field_type_fields:
             theme_field = form_field_as_option_reference[field.id]
+            print(field.form_field_as_option_id)
             ThemeField.theme_.update_theme_field_form_field_as_option(theme_field.id, self.theme_reference.get_field_reference(field.form_field_as_option_id).id)
 
         for field in formula_fields:
@@ -259,6 +261,8 @@ class ThemeUpdateService:
         Returns:
             bool: return True to indicate everything has been created
         """
+        print('BREAKPOINT')
+        print(form_ids)
         for notification_configuration in NotificationConfiguration.theme_.notification_configurations_for_company_by_user_id_company_id_and_main_form_ids(user_id, company_id, form_ids):
             theme_notification_configuration = ThemeNotificationConfiguration.theme_.create_theme_notification_configuration(
                 field_id=self.theme_reference.get_field_reference(notification_configuration.field.id).id,
@@ -338,7 +342,12 @@ class ThemeUpdateService:
         if not theme_id and not form_ids:
             raise AttributeError('Looks like you are not updating a template and have not set the `form_ids` parameter, '
                                  'the `form_ids` attribute cannot be empty when creating templates.')
+        cleaned_form_ids = []
+        for form_id in form_ids:
+            if form_id not in cleaned_form_ids and form_id != None:
+                cleaned_form_ids.append(form_id)
 
+        dependable_forms = Field.objects.filter(form__depends_on_id__in=cleaned_form_ids, form_field_as_option__isnull=False).values_list('form__depends_on_id', 'form_field_as_option__form__depends_on_id')
         # if we are updating a theme and it has form_ids to set we delete the theme and create everything again, this way
         # we keep all of the theme data "written in stone"
         if theme_id and len(form_ids) > 0:
@@ -347,11 +356,11 @@ class ThemeUpdateService:
         # we only create the formulary and the fields and so on if the theme has just been created. otherwise we NEVER update the formularies.
         # this way we can actually edit the theme description, name and set if is public or not but without touching the coontent of the theme.
         if has_created_theme:
-            self.__create_theme_forms(theme_instance, form_ids, company_id)
-            self.__create_theme_sections(theme_instance, form_ids, company_id)
-            self.__create_theme_fields(form_ids, company_id)
+            self.__create_theme_forms(theme_instance, cleaned_form_ids, company_id)
+            self.__create_theme_sections(theme_instance, cleaned_form_ids, company_id)
+            self.__create_theme_fields(cleaned_form_ids, company_id)
 
-            self.__create_theme_kanban(theme_instance, form_ids, company_id, user_id)
-            self.__create_theme_notification(theme_instance, form_ids, company_id, user_id)
-            self.__create_theme_dashboard(theme_instance, form_ids, company_id, user_id)
+            self.__create_theme_kanban(theme_instance, cleaned_form_ids, company_id, user_id)
+            self.__create_theme_notification(theme_instance, cleaned_form_ids, company_id, user_id)
+            self.__create_theme_dashboard(theme_instance, cleaned_form_ids, company_id, user_id)
         return theme_instance
