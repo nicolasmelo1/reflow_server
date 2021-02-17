@@ -150,17 +150,17 @@ class KanbanDimensionOrderView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id, form, field_id):
+        """"
         instances = FieldOptions.kanban_.field_options_by_dimension_id_main_form_name_and_company_id(
             field_id,
             form,
             company_id
         )
         serializer = KanbanDimensionSerializer(instance=instances, many=True)
-
-        """kanban_service = KanbanService(user_id=request.user.id, company_id=company_id, form_name=form)
+        """
+        kanban_service = KanbanService(user_id=request.user.id, company_id=company_id, form_name=form)
         kanban_dimension_orders = kanban_service.get_create_or_update_kanban_dimension_order(field_id)
         serializer = KanbanDimensionOrderSerializer(kanban_dimension_orders, many=True)
-        """
         return Response({
             'status': 'ok',
             'data': serializer.data
