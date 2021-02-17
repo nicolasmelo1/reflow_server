@@ -1,2 +1,3 @@
 from .form_value import FormValueKanbanManager
 from .dynamic_form import DynamicFormKanbanManager
+from .field_options import FieldOptionsKanbanManager

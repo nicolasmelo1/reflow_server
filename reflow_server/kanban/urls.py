@@ -1,14 +1,17 @@
 from django.conf.urls import re_path, include
-from django.conf import settings
 
 from reflow_server.core.decorators import validate_billing
+from reflow_server.authentication.services.routes import register_admin_only_url
 from reflow_server.kanban.views import GetKanbanView, KanbanCardsView, KanbanCardsEditView, KanbanSetDefaultsView, \
-    KanbanDimensionOrderView, ChangeKanbanCardBetweenDimensionsView
+    KanbanDimensionOrderView, ChangeKanbanCardBetweenDimensionsView, KanbanChangeDimensionOrderView
 
 settings_urlpatterns = [
     re_path(r'^card/$', validate_billing(KanbanCardsView.as_view()), name='kanban_kanban_cards'),
     re_path(r'^card/(?P<kanban_card_id>\d+)/$', validate_billing(KanbanCardsEditView.as_view()), name='kanban_edit_kanban_cards'),
     re_path(r'^defaults/$', validate_billing(KanbanSetDefaultsView.as_view()), name='kanban_set_defaults'),
+    register_admin_only_url(
+        re_path(r'^dimension/(?P<field_id>\w+)/$', validate_billing(KanbanChangeDimensionOrderView.as_view()), name='kanban_change_dimension_order')
+    )
 ]
 
 urlpatterns = [

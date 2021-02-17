@@ -33,26 +33,29 @@ class FieldOptionsService:
                 
         return True
 
-    def create_new_field_options(self, field, field_options):
+    def create_new_field_options(self, field, field_options_data):
         """
         Creates new field_options for a specific field
 
         Args:
             field (reflow_server.formulary.models.Field): A field instance to create
             the options for.
-            field_options (list(str)): The options to set on the field instance.
+            field_options_data (reflow_server.formulary.services.data.FieldOptionsData): A class used to
+            hold all of the field options so we don't need to use serializers
 
         Returns:
             bool: returns True to indicate everything went fine.
         """
         created_field_options=list()
-        FieldOptions.objects.exclude(option__in=field_options).filter(field=field).delete()
-        for field_option_index, field_option in enumerate(field_options):
-            option, created = FieldOptions.objects.update_or_create(option=field_option,
-                                                                    field=field,
-                                                                    defaults={
-                                                                        'order': field_option_index
-                                                                    })
+        FieldOptions.objects.exclude(id__in=field_options_data.field_options_ids).filter(field=field).delete()
+        for field_option_index, field_option_data in enumerate(field_options_data.field_options):
+            option, created = FieldOptions.objects.update_or_create(
+                id=field_option_data.field_option_id,
+                field=field,
+                defaults={
+                    'option': field_option_data.option,
+                    'order': field_option_index
+                })
             
             if created:
                 created_field_options.append(option)

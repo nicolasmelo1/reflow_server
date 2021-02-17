@@ -10,6 +10,7 @@ from reflow_server.kanban.models import KanbanDimensionOrder, KanbanCard
 from reflow_server.formulary.models import Field, Form
 from reflow_server.dashboard.models import DashboardChartConfiguration
 
+from reflow_server.formulary.services.data import FieldOptionsData
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.sections import SectionService
@@ -128,13 +129,14 @@ class ThemeSelectService:
         formula_fields = []
 
         for theme_field in ThemeField.theme_.theme_fields_by_theme_id(self.theme.id):
-            field_options = []
+            field_options_data = FieldOptionsData()
 
             # if the field is of type `option` or `multi_option` we get the options of the theme to add on the field.
-            # initially the `field_options` variable is just an empty list, but if it is from both types we use the
+            # initially the `field_options_data` holds just an empty list, but if it is from both types we use the
             # options saved.
             if theme_field.type.type in ['option', 'multi_option']:
-                field_options = list(ThemeFieldOptions.theme_.options_by_theme_field_id(theme_field_id=theme_field.id))
+                for option in ThemeFieldOptions.theme_.options_by_theme_field_id(theme_field_id=theme_field.id):
+                    field_options_data.add_field_option(option)
             
             field_service = FieldService(
                 user_id=self.user_id, 
@@ -147,7 +149,7 @@ class ThemeSelectService:
                 theme_field.label_is_hidden, theme_field.placeholder, theme_field.required, self.theme_reference.get_formulary_reference(theme_field.form_id),
                 None, theme_field.formula_configuration, theme_field.date_configuration_auto_create, theme_field.date_configuration_auto_update,
                 theme_field.number_configuration_number_format_type, theme_field.date_configuration_date_format_type, 
-                theme_field.period_configuration_period_interval_type, theme_field.type, field_options
+                theme_field.period_configuration_period_interval_type, theme_field.type, field_options_data
             )
 
             self.theme_reference.add_field_reference(theme_field.id, field)

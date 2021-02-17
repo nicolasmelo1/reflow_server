@@ -3,8 +3,26 @@ from django.db import models
 from reflow_server.kanban.models.abstract import AbstractKanbanDimensionOrder, AbstractKanbanCardField, AbstractKanbanCard
 from reflow_server.theme.managers import KanbanDimensionOrderThemeManager, KanbanCardThemeManager, \
     KanbanCardFieldThemeManager
+    
+"""
+class KanbanDefault(models.Model):
+    form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True)
+    user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
+    kanban_card = models.ForeignKey('kanban.KanbanCard', models.CASCADE, blank=True, null=True, db_index=True)
+    kanban_dimension = models.ForeignKey('formulary.Field', models.CASCADE, blank=True, null=True, db_index=True)
+
+    class Meta:
+        db_table = 'kanban_default'
 
 
+class KanbanCollapsedOption(models.Model):
+    user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
+    options = models.ForeignKey('formulary.FieldOptions', models.CASCADE, db_index=True)    
+
+    class Meta:
+        db_table = 'kanban_collapsed_option'
+"""
+        
 class KanbanCard(AbstractKanbanCard):
     """
     For further explanation refer to `reflow_server.kanban.models.abstract.AbstractKanbanCard`

@@ -24,15 +24,7 @@ class CurrentCompanyChargeListSerializer(serializers.ListSerializer):
             instance = CompanyBilling.objects.filter(company_id=data.instance.id).first()
             charge_service = ChargeService(data.instance.id, instance)
             current_company_charges = []
-            current_company_charges_data = []
-            for current_company_charge in CurrentCompanyCharge.objects.filter(company_id=data.instance.id):
-                current_company_charges_data.append(
-                    CompanyChargeData(
-                        individual_value_charge_name=current_company_charge.individual_charge_value_type.name, 
-                        quantity=current_company_charge.quantity
-                    )
-                )
-            current_company_charges_data = charge_service.validate_current_company_charges_and_create_new(current_company_charges_data)
+            current_company_charges_data = charge_service.validate_current_company_charges_and_create_new([])
             for current_company_charge in current_company_charges_data:
                 current_company_charges.append(
                     CurrentCompanyCharge(

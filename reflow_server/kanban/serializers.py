@@ -2,6 +2,11 @@ from django.db import transaction
 
 from rest_framework import serializers
 
+from reflow_server.formulary.models import FieldOptions, Field
+from reflow_server.formulary.services.fields import FieldService
+from reflow_server.formulary.services.data import FieldOptionsData
+
+
 from reflow_server.kanban.models import KanbanCard, KanbanCardField, KanbanDimensionOrder
 from reflow_server.kanban.services import KanbanService
 from reflow_server.kanban.relations import GetKanbanFieldsRelation, KanbanCardFieldRelation
@@ -116,6 +121,52 @@ class KanbanDimensionOrderSerializer(serializers.ModelSerializer):
         model = KanbanDimensionOrder
         list_serializer_class = KanbanDimensionOrderListSerializer
         fields = ('options',)
+
+
+class KanbanDimensionListSerializer(serializers.ListSerializer):
+    @transaction.atomic
+    def update(self, instances, validated_data):
+        field_instance = Field.objects.filter(id=self.context['field_id']).first()
+        field_service = FieldService(
+            user_id=self.context['user_id'], 
+            company_id=self.context['company_id'], 
+            form_id=field_instance.form.depends_on_id
+        )
+        field_options_data = FieldOptionsData()
+        for field_option in validated_data:
+            field_options_data.add_field_option(field_option['option'], field_option['id'])
+        
+        field_service.save_field(
+            enabled=field_instance.enabled,
+            label_name=field_instance.label_name,
+            order=field_instance.order,
+            is_unique=field_instance.is_unique,
+            field_is_hidden=field_instance.field_is_hidden,
+            label_is_hidden=field_instance.label_is_hidden,
+            placeholder=field_instance.placeholder,
+            required=field_instance.required,
+            section=field_instance.form,
+            form_field_as_option=field_instance.form_field_as_option,
+            formula_configuration=field_instance.formula_configuration,
+            date_configuration_auto_create=field_instance.date_configuration_auto_create,
+            date_configuration_auto_update=field_instance.date_configuration_auto_update,
+            number_configuration_number_format_type=field_instance.number_configuration_number_format_type,
+            date_configuration_date_format_type=field_instance.date_configuration_date_format_type,
+            period_configuration_period_interval_type=field_instance.period_configuration_period_interval_type,
+            field_type=field_instance.type,
+            field_options_data=field_options_data,
+            instance=field_instance
+        )
+
+        return instances
+
+class KanbanDimensionSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
+    class Meta:
+        model = FieldOptions
+        list_serializer_class = KanbanDimensionListSerializer
+        fields = ('id','option')
 
 
 class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):

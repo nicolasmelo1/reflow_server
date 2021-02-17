@@ -3,15 +3,13 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.response import Response
-from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework.views import APIView
 from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.authentication.models import Company, AddressHelper
+from reflow_server.authentication.models import AddressHelper
 from reflow_server.billing.models import CompanyBilling
-from reflow_server.billing.services.data import CompanyChargeData
-from reflow_server.billing.services import VindiService, BillingService, ChargeService
+from reflow_server.billing.services import VindiService, BillingService
 from reflow_server.billing.serializers import CurrentCompanyChargeSerializer, PaymentSerializer, \
     AddressOptionsSerializer, TotalsSerializer
 

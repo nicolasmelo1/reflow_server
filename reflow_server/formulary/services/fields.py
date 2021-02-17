@@ -18,7 +18,7 @@ class FieldService(Settings):
                    label_is_hidden, placeholder, required, section, form_field_as_option, 
                    formula_configuration, date_configuration_auto_create, date_configuration_auto_update,
                    number_configuration_number_format_type, date_configuration_date_format_type,
-                   period_configuration_period_interval_type, field_type, field_options=list(), instance=None):
+                   period_configuration_period_interval_type, field_type, field_options_data=None, instance=None):
         if instance == None:
             instance = Field()
                    
@@ -61,7 +61,7 @@ class FieldService(Settings):
         PreNotificationService.update(self.company_id)
         
         if instance.type.type in ['option', 'multi_option']:
-            field_options_service.create_new_field_options(instance, field_options)
+            field_options_service.create_new_field_options(instance, field_options_data)
 
         # We don't access directly the id of the field option, only the values, we use this to delete or add a field Option
         elif FieldOptions.objects.filter(field=instance).exists():

@@ -3,13 +3,14 @@ from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
+from rest_framework import serializers, status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.kanban.serializers import GetKanbanSerializer, KanbanCardsSerializer, KanbanDefaultsSerializer, \
-    KanbanDimensionOrderSerializer, ChangeKanbanCardBetweenDimensionsSerializer
+    KanbanDimensionOrderSerializer, ChangeKanbanCardBetweenDimensionsSerializer, KanbanDimensionSerializer
 from reflow_server.kanban.services import KanbanService
 from reflow_server.kanban.models import KanbanCard, KanbanDimensionOrder
+from reflow_server.formulary.models import FieldOptions
 
 
 class GetKanbanView(APIView):
@@ -149,9 +150,17 @@ class KanbanDimensionOrderView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request, company_id, form, field_id):
-        kanban_service = KanbanService(user_id=request.user.id, company_id=company_id, form_name=form)
+        instances = FieldOptions.kanban_.field_options_by_dimension_id_main_form_name_and_company_id(
+            field_id,
+            form,
+            company_id
+        )
+        serializer = KanbanDimensionSerializer(instance=instances, many=True)
+
+        """kanban_service = KanbanService(user_id=request.user.id, company_id=company_id, form_name=form)
         kanban_dimension_orders = kanban_service.get_create_or_update_kanban_dimension_order(field_id)
         serializer = KanbanDimensionOrderSerializer(kanban_dimension_orders, many=True)
+        """
         return Response({
             'status': 'ok',
             'data': serializer.data
@@ -168,6 +177,32 @@ class KanbanDimensionOrderView(APIView):
         return Response({
             'status': 'error'
         }, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class KanbanChangeDimensionOrderView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def put(self, request, company_id, form, field_id):
+        instances = FieldOptions.kanban_.field_options_by_dimension_id_main_form_name_and_company_id(
+            field_id,
+            form,
+            company_id
+        )
+        serializer = KanbanDimensionSerializer(instance=instances, data=request.data, many=True, context={
+            'field_id': field_id,
+            'user_id': request.user.id,
+            'company_id': company_id
+        })
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'ok'
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'error',
+            'error': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 @method_decorator(csrf_exempt, name='dispatch')

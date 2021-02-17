@@ -7,6 +7,7 @@ from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
+from reflow_server.formulary.services.data import FieldOptionsData
 
 
 class FieldOptionSerializer(serializers.ModelSerializer):
@@ -76,7 +77,10 @@ class FieldSerializer(serializers.ModelSerializer):
         else:
             form_field_as_option = None
 
+        field_options_data = FieldOptionsData()
         formula_configuration = self.validated_data['formula_configuration'] if self.validated_data.get('formula_configuration', None) not in [None, ''] else None 
+        for field_option in self.validated_data.get('field_option', list()):
+            field_options_data.add_field_option(field_option['option'], field_option['id'])
 
         field_service = FieldService(
             user_id=self.context['user_id'], 
@@ -101,7 +105,7 @@ class FieldSerializer(serializers.ModelSerializer):
             date_configuration_date_format_type=self.validated_data.get('date_configuration_date_format_type', None),
             period_configuration_period_interval_type=self.validated_data.get('period_configuration_period_interval_type', None),
             field_type=self.validated_data['type'],
-            field_options=[field_option['option'] for field_option in self.validated_data.get('field_option', list())],
+            field_options_data=field_options_data,
             instance=instance
         )
         return instance

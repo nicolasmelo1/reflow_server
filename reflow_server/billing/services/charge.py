@@ -51,6 +51,10 @@ class ChargeService:
         You will notice we always consider 'per_user' was not added, this is because we can prevent the user for setting any value for this special case
         and set it directly here on the backend.
 
+        IMPORTANT:
+        If a current_company_charge instance exists for a particular individual_charge_value_type we will use this quantity instead of the individual_charge_value_type
+        default quantity
+
         Args:
             current_company_charges (list(reflow_server.billing.services.data.CompanyChargeData)): List of CompanyChargeData to verify and check if is complete
             if any `IndividualValueChargeType` is left out, we actually add it to the list. 
@@ -71,21 +75,28 @@ class ChargeService:
         individual_charges_to_add = IndividualChargeValueType.objects.exclude(name__in=existing_company_charge_names)
 
         for individual_charge_value_type in individual_charges_to_add:
+            current_company_charge = CurrentCompanyCharge.objects.filter(individual_charge_value_type=individual_charge_value_type, company_id=self.company_id).first()
             quantity = individual_charge_value_type.default_quantity
+            if current_company_charge:
+                quantity = current_company_charge.quantity
             if individual_charge_value_type.name == 'per_user':
                 quantity = UserExtended.billing_.users_active_by_company_id(company_id=self.company_id).count()
             new_curent_company_charges.append(CompanyChargeData(individual_charge_value_type.name, quantity))
 
         return new_curent_company_charges
         
-    def get_total_data_from_custom_charge_quantity(self, current_company_charges):
+    def get_total_data_from_custom_charge_quantity(self, current_company_charges=[]):
         """
         Gets the totals based on a custom value that is not saved in our database. We usually need and use this so the user can have 
         a feedback while changing the quantity values while updating the billing information.
 
+        If you set the current_company_charges as and empty list we will create a fresh TotalData
+
         Args:
             individual_charge_value_types (list(reflow_server.billing.services.data.CompanyChargeData)): The list of charges for this function
-                                                                                                         to calculate
+                                                                                                         to calculate. If set to empty we will retrieve
+                                                                                                         a fresh TotalData fully validated, respecting the existing data.
+                                                                                                         Defaults to []
         Returns:
             reflow_server.billing.services.data.TotalData: Totals object with handy functions.
         """

@@ -50,7 +50,7 @@ class VindiService:
         if hasattr(self, '_cache_total'):
             return self._cache_total
         else:
-            self._cache_total = self.charge_service.get_total_data.total
+            self._cache_total = self.charge_service.get_total_data_from_custom_charge_quantity().total
             return self._cache_total
 
     def __get_correct_payment_method_type(self, payment_method):
