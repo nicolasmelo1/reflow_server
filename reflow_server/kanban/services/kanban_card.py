@@ -33,6 +33,6 @@ class KanbanCardService:
             }
         )
 
-        for field_id in field_ids:
-            KanbanCardField.objects.create(kanban_card=instance, field_id=field_id)
+        for index, field_id in enumerate(field_ids):
+            KanbanCardField.objects.create(kanban_card=instance, field_id=field_id, order=index)
         return instance

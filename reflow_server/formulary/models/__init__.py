@@ -4,7 +4,7 @@ from django.db import models
 from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldOptions
 from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, FormAccessedByThemeManager
 from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
-from reflow_server.kanban.managers import FieldOptionsKanbanManager
+from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
 
 
 class SectionType(models.Model):
@@ -337,6 +337,8 @@ class OptionAccessedBy(models.Model):
         db_table = 'option_accessed_by'
         app_label = 'formulary'
 
+    objects = models.Manager()
+    kanban_ = OptionAccessedByKanbanManager()
 
 class FormAccessedBy(models.Model):
     """

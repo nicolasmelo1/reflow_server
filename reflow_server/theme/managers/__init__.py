@@ -1,6 +1,6 @@
 from .user_extended import UserExtendedThemeManager
-from .kanban_dimension_order import KanbanDimensionOrderThemeManager
 from .kanban_card import KanbanCardThemeManager
+from .kanban_default import KanbanDimensionThemeManager
 from .kanban_card_field import KanbanCardFieldThemeManager
 from .dashboard_chart_configuration import DashboardChartConfigurationThemeManager
 from .form import FormThemeManager
@@ -14,7 +14,7 @@ from .theme_type import ThemeTypeThemeManager
 from .theme_form import ThemeFormThemeManager
 from .theme_field import ThemeFieldThemeManager
 from .theme_field_option import ThemeFieldOptionThemeManager
-from .theme_kanban_dimension_order import ThemeKanbanDimensionOrderThemeManager
+from .theme_kanban_default import ThemeKanbanDefaultManager
 from .theme_kanban_card import ThemeKanbanCardThemeManager
 from .theme_kanban_card_field import ThemeKanbanCardFieldThemeManager
 from .theme_notification_configuration import ThemeNotificationConfigurationThemeManager

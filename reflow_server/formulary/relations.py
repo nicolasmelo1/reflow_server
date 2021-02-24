@@ -6,7 +6,7 @@ from reflow_server.formulary.models import Form, Field, OptionAccessedBy, FieldO
 class FilteredFieldOptionListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         data = data.filter(id__in=OptionAccessedBy.objects.filter(user_id=self.context['user_id']) \
-                                   .values_list('field_option_id', flat=True)).order_by('id')
+                                   .values_list('field_option_id', flat=True)).order_by('order')
         return super(FilteredFieldOptionListSerializer, self).to_representation(data)
 
 

@@ -1,14 +1,12 @@
+from reflow_server.theme.managers import theme
 from django.db import transaction
 
-from reflow_server.theme.models import Theme, ThemeForm, ThemeField, ThemeFieldOptions, \
-    ThemeKanbanDimensionOrder, ThemeKanbanCard, ThemeKanbanCardField, \
-    ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable, \
+from reflow_server.theme.models import Theme, ThemeForm, ThemeField, ThemeFieldOptions, ThemeKanbanDefault, \
+    ThemeKanbanCard, ThemeKanbanCardField, ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable, \
     ThemeDashboardChartConfiguration
 from reflow_server.theme.services.data import ThemeReference
 from reflow_server.authentication.models import UserExtended
-from reflow_server.kanban.models import KanbanDimensionOrder, KanbanCard
 from reflow_server.formulary.models import Field, Form
-from reflow_server.dashboard.models import DashboardChartConfiguration
 
 from reflow_server.formulary.services.data import FieldOptionsData
 from reflow_server.formulary.services.group import GroupService
@@ -207,21 +205,11 @@ class ThemeSelectService:
         Returns:
             bool: Return True to indicate everything went fine.
         """
-        theme_kanban_dimension_orders = ThemeKanbanDimensionOrder.theme_.theme_kanban_dimension_order_by_theme_id_ordered(self.theme.id)
         theme_kanban_cards = ThemeKanbanCard.theme_.theme_kanban_cards_by_theme_id(self.theme.id)
-
+        theme_kanban_defaults = ThemeKanbanDefault.theme_.theme_kanban_defaults_by_theme_id(self.theme.id)
         for user in self.company_users:
             kanban_card_service = KanbanCardService(user_id=user.id)
-
-            for theme_kanban_dimension in theme_kanban_dimension_orders:
-                KanbanDimensionOrder.theme_.create_kanban_dimension_order(
-                    dimension_id=self.theme_reference.get_field_reference(theme_kanban_dimension.dimension.id).id,
-                    order=theme_kanban_dimension.order, 
-                    default=theme_kanban_dimension.default, 
-                    user_id=user.id, 
-                    option=theme_kanban_dimension.options
-                )
-
+           
             for theme_kanban_card in theme_kanban_cards:
                 theme_kanban_card_field_ids = ThemeKanbanCardField.theme_.theme_field_ids_by_theme_kanban_card_id(theme_kanban_card.id)
                 kanban_card_field_ids = [self.theme_reference.get_field_reference(theme_kanban_card_field_id).id 
@@ -230,8 +218,16 @@ class ThemeSelectService:
                 # we create a new kanban card with it's fields, and then we set the default of the instance created
                 # to be equal the theme_kanban_card default
                 kanban_card_instance = kanban_card_service.save_kanban_card(kanban_card_field_ids)
-                KanbanCard.theme_.update_kanban_card_default(kanban_card_instance.id, theme_kanban_card.default)
-
+                self.theme_reference.add_kanban_card_reference(theme_kanban_card.id, kanban_card_instance)
+            
+            # Adds all of the defaults for all of the users of the company
+            for theme_kanban_default in theme_kanban_defaults:
+                kanban_service = KanbanService(user.id, self.company_id, form=self.theme_reference.get_formulary_reference(theme_kanban_default.form.id))
+                default_kanban_card_id = self.theme_reference.get_kanban_card_reference(theme_kanban_default.kanban_card.id).id
+                default_kanban_dimension_id = self.theme_reference.get_field_reference(theme_kanban_default.kanban_dimension.id).id
+                
+                if kanban_service.are_defaults_valid(default_kanban_card_id, default_kanban_dimension_id):
+                    kanban_service.save_defaults(default_kanban_card_id, default_kanban_dimension_id)
         return True
 
     def __create_notification(self):

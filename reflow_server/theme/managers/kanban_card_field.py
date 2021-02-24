@@ -5,10 +5,9 @@ class KanbanCardFieldThemeManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
-    def kanban_card_fields_by_kanban_card_id_ordered_by_id(self, kanban_card_id):
+    def kanban_card_fields_by_kanban_card_id(self, kanban_card_id):
         """
         Returns a queryset of KanbanCardField instances ordered by id and that are bound to a single KanbanCardId.
-        We order by id since KanbanCardField does not have an ordering, the ordering is the id.
 
         Args:
             kanban_card_id (int): A kanbanCard instance id to filter the KanbanCardFields
@@ -17,7 +16,7 @@ class KanbanCardFieldThemeManager(models.Manager):
             django.db.models.QuerySet(reflow_server.kanban.models.KanbanCardField): A queryset of KanbanCardField ordered by id
                                                                              and filtered by the kanban_card_id.
         """
-        return self.get_queryset().filter(kanban_card_id=kanban_card_id).order_by('id')
+        return self.get_queryset().filter(kanban_card_id=kanban_card_id)
 
     def kanban_card_ids_by_user_id_company_id_and_main_form_ids(self, user_id, company_id, main_form_ids):
         """

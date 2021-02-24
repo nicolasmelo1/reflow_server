@@ -1,7 +1,7 @@
 import json
 
 
-class DataConsumer:
+class FormularyConsumer:
     """
     Refer to `reflow_server.core.consumers.py` for proper explanation on why
     and how we write consumers.
@@ -9,5 +9,5 @@ class DataConsumer:
     It's important to also read django channels documentation https://channels.readthedocs.io/en/latest/
     for further explanation.
     """
-    async def send_formulary_data_added_or_updated(self, event):
+    async def send_formulary_created_or_updated(self, event):
         await self.send(text_data=json.dumps(event))

@@ -2,24 +2,22 @@ from django.db import transaction
 
 from rest_framework import serializers
 
-from reflow_server.formulary.models import FieldOptions, Field
+from reflow_server.formulary.models import FieldOptions, Field, OptionAccessedBy
 from reflow_server.formulary.services.fields import FieldService
 from reflow_server.formulary.services.data import FieldOptionsData
 
 
-from reflow_server.kanban.models import KanbanCard, KanbanCardField, KanbanDimensionOrder
+from reflow_server.kanban.models import KanbanCard, KanbanCardField, KanbanDefault, KanbanDimensionOrder
 from reflow_server.kanban.services import KanbanService
-from reflow_server.kanban.relations import GetKanbanFieldsRelation, KanbanCardFieldRelation
+from reflow_server.kanban.relations import KanbanFieldsRelation, KanbanCardFieldRelation
 from reflow_server.data.models import DynamicForm, FormValue
 from reflow_server.data.services.formulary import FormularyDataService
 from reflow_server.data.services.representation import RepresentationService
 
 
-class GetKanbanSerializer(serializers.Serializer):
-    default_kanban_card_id = serializers.IntegerField()
-    default_dimension_field_id = serializers.IntegerField()
-    dimension_fields = GetKanbanFieldsRelation(many=True)
-    fields = GetKanbanFieldsRelation(many=True)
+class KanbanFieldsSerializer(serializers.Serializer):
+    dimension_fields = KanbanFieldsRelation(many=True)
+    fields = KanbanFieldsRelation(many=True)
 
     def __init__(self, user_id, company_id, form_name, *args, **kwargs):
         """
@@ -33,32 +31,22 @@ class GetKanbanSerializer(serializers.Serializer):
             form_name (str): Kanban visualization is always bound to a formulary, you could not have a kanban visualization
             for multiple forms at the same time.
         """
-        self.kanban_service = KanbanService(user_id, company_id, form_name)
+        self.kanban_service = KanbanService(user_id, company_id, form_name=form_name)
 
         kwargs['data'] = {
-            'default_kanban_card_id': self.get_default_kanban_card_id,
-            'default_dimension_field_id': self.get_default_dimension_field_id,
             'dimension_fields': self.get_dimension_fields,
             'fields': self.get_filter_fields
         }
-        super(GetKanbanSerializer, self).__init__(**kwargs)
+        super(KanbanFieldsSerializer, self).__init__(**kwargs)
         self.is_valid()
     
     @property
-    def get_default_kanban_card_id(self):
-        return self.kanban_service.get_default_kanban_card_id
-    
-    @property
-    def get_default_dimension_field_id(self):
-        return self.kanban_service.get_default_dimension_field_id
-
-    @property
     def get_filter_fields(self):
-        return GetKanbanFieldsRelation(instance=self.kanban_service.get_fields, many=True).data
+        return KanbanFieldsRelation(instance=self.kanban_service.get_fields, many=True).data
     
     @property
     def get_dimension_fields(self):
-        return GetKanbanFieldsRelation(instance=self.kanban_service.get_possible_dimension_fields, many=True).data
+        return KanbanFieldsRelation(instance=self.kanban_service.get_possible_dimension_fields, many=True).data
 
 
 class KanbanCardsSerializer(serializers.ModelSerializer):
@@ -70,7 +58,7 @@ class KanbanCardsSerializer(serializers.ModelSerializer):
     kanban_card_fields = KanbanCardFieldRelation(many=True)
 
     def save(self, user_id, company_id, form_name, **kwargs):
-        self.kanban_service = KanbanService(user_id, company_id, form_name)
+        self.kanban_service = KanbanService(user_id, company_id, form_name=form_name)
         return super(KanbanCardsSerializer, self).save(**kwargs)
 
     def create(self, validated_data):
@@ -88,17 +76,27 @@ class KanbanCardsSerializer(serializers.ModelSerializer):
         fields = ('id', 'kanban_card_fields')
 
 
-class KanbanDefaultsSerializer(serializers.Serializer):
+class KanbanDefaultSerializer(serializers.ModelSerializer):
+    kanban_card = KanbanCardsSerializer()
+    kanban_dimension = KanbanFieldsRelation()
+
+    def validate(self, data):
+        self.kanban_service = KanbanService(user_id=self.context['user_id'], company_id=self.context['company_id'], form_name=self.context['form_name'])
+        self.kanban_service.are_defaults_valid(data['kanban_card']['id'], data['kanban_dimension']['id'])
+
+        return data
+
     """
     This serializer is responsible for saving the default kanban_card_id to be retrieved when the user
     opens the kanban again. So when the user opens the kanban in a particular company and for a particular
     form, the kanban is `automagically` loaded for him.
     """
-    default_kanban_card_id = serializers.IntegerField()
+    def save(self):
+        self.kanban_service.save_defaults(self.validated_data['kanban_card']['id'], self.validated_data['kanban_dimension']['id'])
 
-    def save(self, user_id, company_id, form_name):
-        kanban_service = KanbanService(user_id=user_id, company_id=company_id, form_name=form_name)
-        kanban_service.save_defaults(self.validated_data['default_kanban_card_id'])
+    class Meta:
+        model = KanbanDefault
+        fields = ('kanban_card', 'kanban_dimension')
 
 
 class KanbanDimensionOrderListSerializer(serializers.ListSerializer):
@@ -109,18 +107,6 @@ class KanbanDimensionOrderListSerializer(serializers.ListSerializer):
             element.order = index
             element.save()
         return instance
-
-
-class KanbanDimensionOrderSerializer(serializers.ModelSerializer):
-    """
-    This serializer is used to display dimensionOrders and also updating the order of each KanbanDimensionOrder
-    """
-    options = serializers.CharField()
-
-    class Meta:
-        model = KanbanDimensionOrder
-        list_serializer_class = KanbanDimensionOrderListSerializer
-        fields = ('options',)
 
 
 class KanbanDimensionListSerializer(serializers.ListSerializer):
@@ -161,7 +147,7 @@ class KanbanDimensionListSerializer(serializers.ListSerializer):
         return instances
 
 class KanbanDimensionSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = FieldOptions

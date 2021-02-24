@@ -1,7 +1,8 @@
 class ThemeReference:
     __FORMULARY_REFERENCE_ERROR_MESSAGE = 'The `formulary_reference` does not exist yet, try adding references with `add_formulary_reference` method.'
     __FIELD_REFERENCE_ERROR_MESSAGE = 'The `field_reference` does not exist yet, try adding references with `add_field_reference` method.'
-
+    __KANBAN_REFERENCE_ERROR_MESSAGE = 'The `kanban_card_reference` does not exist yet, try adding references with `add_kanban_card_reference` method.'
+    
     def add_formulary_reference(self, reference_id, instance):
         """
         Adds a new formulary reference. Formulary reference is a dict that holds the reference_id
@@ -73,6 +74,20 @@ class ThemeReference:
                 return self.section_conditionals_reference
             else:
                 return []
+
+    def add_kanban_card_reference(self, reference_id, instance):
+        self.kanban_card_reference = getattr(self, 'kanban_card_reference', {})
+        self.kanban_card_reference[reference_id] = instance
+
+    def get_kanban_card_reference(self, reference_id):
+        if not hasattr(self, 'kanban_card_reference'):
+            raise AssertionError(self.__KANBAN_REFERENCE_ERROR_MESSAGE)
+        elif not hasattr(self, 'formulary_reference'):
+            raise AttributeError(self.__FORMULARY_REFERENCE_ERROR_MESSAGE)
+        elif not hasattr(self, 'field_reference'):
+            raise AttributeError(self.__FIELD_REFERENCE_ERROR_MESSAGE)
+        
+        return self.kanban_card_reference[reference_id]
 
     def add_field_reference(self, reference_id, instance):
         """

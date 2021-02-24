@@ -1,18 +1,17 @@
 from django.db import transaction
 
 from reflow_server.notification.services.pre_notification import PreNotificationService
-from reflow_server.authentication.models import UserExtended
 from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.formulary.services.utils import Settings
-from reflow_server.formulary.models import Form, Field, FieldOptions, OptionAccessedBy
+from reflow_server.formulary.models import Form, Field, FieldOptions
 
 
 class FieldService(Settings):
     def __init__(self, user_id, company_id, form_id):
         self.user_id = user_id
         self.company_id = company_id
-        self.form_id = form_id
-    
+        self.form = Form.objects.filter(id=form_id).first()
+
     @transaction.atomic
     def save_field(self, enabled, label_name, order, is_unique, field_is_hidden, 
                    label_is_hidden, placeholder, required, section, form_field_as_option, 
@@ -24,17 +23,15 @@ class FieldService(Settings):
                    
         field_options_service = FieldOptionsService(self.user_id, self.company_id)
 
-
         existing_fields = Field.objects.filter(
             form=section, 
             form__depends_on__group__company_id=self.company_id, 
-            form__depends_on_id=self.form_id
+            form__depends_on_id=self.form.id
         ).exclude(
             id=instance.id if instance else None
         ).order_by('form__order', 'order')
         
         self.update_order(existing_fields, order)          
-
 
         instance.enabled = enabled
         instance.label_name = label_name
@@ -66,5 +63,9 @@ class FieldService(Settings):
         # We don't access directly the id of the field option, only the values, we use this to delete or add a field Option
         elif FieldOptions.objects.filter(field=instance).exists():
             field_options_service.remove_field_options_from_field(instance.id)
+
+        from reflow_server.formulary.events import FormularyEvents
+
+        FormularyEvents.send_updated_formulary(self.company_id, self.form.id, self.form.form_name)
 
         return instance

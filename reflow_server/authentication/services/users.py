@@ -5,10 +5,13 @@ from reflow_server.billing.services import BillingService
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.notify.services import NotifyService
+from reflow_server.kanban.services import KanbanService
+
 
 class UsersService:
-    def __init__(self, company_id):
+    def __init__(self, company_id, user_id):
         self.company = Company.authentication_.company_by_company_id(company_id)
+        self.user_id = user_id
     
     @staticmethod
     def is_self(user_id, request_user_id):
@@ -58,7 +61,7 @@ class UsersService:
         )
 
         self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)
-        self.__create_new_user_notify_and_update_billing(instance, change_password_url)
+        self.__create_new_user_notify_update_billing_and_add_kanban_defaults(instance, change_password_url)
     
         return instance
 
@@ -96,7 +99,7 @@ class UsersService:
 
         return instance
 
-    def __create_new_user_notify_and_update_billing(self, instance, change_password_url):
+    def __create_new_user_notify_update_billing_and_add_kanban_defaults(self, instance, change_password_url):
         """
         This function notifies a new user with an email with his new password but also creates the billing information. Of this user.
 
@@ -111,7 +114,7 @@ class UsersService:
 
         BillingService(self.company.id).update_charge()
         NotifyService.send_welcome_mail(instance.email, password, self.company.name, change_password_url.replace(r'{}', password))
-
+        KanbanService.copy_defaults_to_company_user(self.company.id, self.user_id, instance.id)
         return True
 
     def __update_user_formularies_and_options_permissions(self, user_id, form_ids_accessed_by, field_option_ids_accessed_by):

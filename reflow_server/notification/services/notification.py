@@ -113,14 +113,3 @@ class NotificationService:
         )
         return user_notifications_response
     
-    #TODO: deprecate
-    @staticmethod
-    def change_notification_field_names(old_field_name, new_field_name, company_id):
-        """
-        TODO: deprecate, we don't need it anymore
-        """
-        if old_field_name != new_field_name:
-            for notification in  NotificationConfiguration.objects.filter(form__group__company_id=company_id, text__icontains='{{' + old_field_name + '}}'):
-                notification.text = notification.text.replace('{{' + old_field_name + '}}', '{{' + new_field_name + '}}')
-                notification.save()
-    

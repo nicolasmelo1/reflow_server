@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class AbstractKanbanCard(models.Model):
     """
     This abstract holds the kanban Card Data. The Kanban Card itself is really simple. It is just an id to be used for the
@@ -25,10 +26,12 @@ class AbstractKanbanCardField(models.Model):
     """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    order = models.IntegerField(default=0)
+    
     class Meta:
         abstract = True
         app_label = 'kanban'
+        ordering = ('order',)
 
 
 class AbstractKanbanDimensionOrder(models.Model):

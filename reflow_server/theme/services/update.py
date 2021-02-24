@@ -1,13 +1,13 @@
 from django.db import transaction
 
 from reflow_server.theme.models import Theme, ThemeType, ThemeForm, \
-    ThemeField, ThemeFieldOptions, ThemeKanbanDimensionOrder, ThemeKanbanCard, \
+    ThemeField, ThemeFieldOptions, ThemeKanbanDefault, ThemeKanbanCard, \
     ThemeKanbanCardField, ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable, \
     ThemeDashboardChartConfiguration
 from reflow_server.theme.services.data import ThemeReference
 
 from reflow_server.formulary.models import Form, Field, FieldOptions
-from reflow_server.kanban.models import KanbanDimensionOrder, KanbanCard, KanbanCardField
+from reflow_server.kanban.models import KanbanDefault, KanbanCard, KanbanCardField
 from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable
 from reflow_server.dashboard.models import DashboardChartConfiguration
 
@@ -192,10 +192,8 @@ class ThemeUpdateService:
                 self.theme_reference.get_field_reference(conditional_reference['reference_id']).id
             )
 
-        print(form_field_type_fields)
         for field in form_field_type_fields:
             theme_field = form_field_as_option_reference[field.id]
-            print(field.form_field_as_option_id)
             ThemeField.theme_.update_theme_field_form_field_as_option(theme_field.id, self.theme_reference.get_field_reference(field.form_field_as_option_id).id)
 
         for field in formula_fields:
@@ -216,8 +214,6 @@ class ThemeUpdateService:
     def __create_theme_kanban(self, theme_instance, form_ids, company_id, user_id):
         """
         Responsible for creating the kanban configuration for this template, this uses the user default configuration.
-        This function creates the ThemeKanbanDimensionOrder with the dimension and the order of the columns, and also 
-        the ThemeKanbanCard with its respective fields ordered.
 
         Args:
             theme_instance (reflow_server.theme.models.Theme): The Theme instance you have created to be used here
@@ -229,22 +225,31 @@ class ThemeUpdateService:
             bool: return True to indicate everything has been created
         """
         kanban_card_ids = KanbanCardField.theme_.kanban_card_ids_by_user_id_company_id_and_main_form_ids(user_id, company_id, form_ids)
-        kanban_dimension_orders = KanbanDimensionOrder.theme_.kanban_dimension_order_by_user_id_company_id_and_main_form_ids(user_id, company_id, form_ids)
+        kanban_defaults = KanbanDefault.theme_.kanban_default_by_user_id_company_id_and_main_form_ids(user_id, company_id, form_ids)
         kanban_cards = KanbanCard.theme_.kanban_cards_by_kanban_card_ids(kanban_card_ids)
-
-        for kanban_dimension_order in kanban_dimension_orders:
-            ThemeKanbanDimensionOrder.theme_.create_theme_kanban_dimension_order(
-                theme_instance, self.theme_reference.get_field_reference(kanban_dimension_order.dimension.id).id, 
-                kanban_dimension_order.options, kanban_dimension_order.order, kanban_dimension_order.default
-            )
 
         for kanban_card in kanban_cards:
             theme_kanban_card = ThemeKanbanCard.theme_.create_theme_kanban_card(
                 theme_instance, kanban_card.default
             )
 
-            for kanban_card_field in KanbanCardField.theme_.kanban_card_fields_by_kanban_card_id_ordered_by_id(kanban_card.id):
-                ThemeKanbanCardField.theme_.create_theme_kanban_card_field(theme_kanban_card.id, self.theme_reference.get_field_reference(kanban_card_field.field.id).id)
+            self.theme_reference.add_kanban_card_reference(kanban_card.id, theme_kanban_card)
+
+            for kanban_card_field in KanbanCardField.theme_.kanban_card_fields_by_kanban_card_id(kanban_card.id):
+                ThemeKanbanCardField.theme_.create_theme_kanban_card_field(
+                    theme_kanban_card.id, 
+                    self.theme_reference.get_field_reference(kanban_card_field.field.id).id,
+                    kanban_card_field.order
+                )
+        
+        for kanban_default in kanban_defaults:
+            ThemeKanbanDefault.theme_.create_theme_kanban_default(
+                theme_instance, 
+                default_kanban_dimension_id=self.theme_reference.get_field_reference(kanban_default.kanban_dimension.id).id, 
+                default_kanban_card_id=self.theme_reference.get_kanban_card_reference(kanban_default.kanban_card.id).id,
+                theme_form_id=self.theme_reference.get_formulary_reference(kanban_default.form.id).id
+            )
+        
         return True
 
     def __create_theme_notification(self, theme_instance, form_ids, company_id, user_id):
@@ -261,8 +266,6 @@ class ThemeUpdateService:
         Returns:
             bool: return True to indicate everything has been created
         """
-        print('BREAKPOINT')
-        print(form_ids)
         for notification_configuration in NotificationConfiguration.theme_.notification_configurations_for_company_by_user_id_company_id_and_main_form_ids(user_id, company_id, form_ids):
             theme_notification_configuration = ThemeNotificationConfiguration.theme_.create_theme_notification_configuration(
                 field_id=self.theme_reference.get_field_reference(notification_configuration.field.id).id,
@@ -296,7 +299,7 @@ class ThemeUpdateService:
             bool: return True to indicate everything has been created
         """
         for dashboard_chart_configuration in DashboardChartConfiguration.theme_.dashboard_chart_configurations_by_company_id_main_form_ids_user_id_for_hole_company_ordered(company_id, form_ids, user_id):
-            theme_dashboard_chart_configuration = ThemeDashboardChartConfiguration.theme_.create_theme_dashboard_chart_configuration(
+            ThemeDashboardChartConfiguration.theme_.create_theme_dashboard_chart_configuration(
                 dashboard_chart_configuration.name,
                 dashboard_chart_configuration.for_company,
                 self.theme_reference.get_field_reference(dashboard_chart_configuration.value_field.id).id,

@@ -5,20 +5,19 @@ from asgiref.sync import async_to_sync
 from reflow_server.authentication.models import UserExtended
 
 
-class DataEvents:
+class FormularyEvents:
     """
-    This class is used for sending real time events for the client about this service
+    This class is used for sending real time events for the client about Formularies
     """
     @staticmethod 
-    def send_updated_formulary(company_id, dynamic_form_id, form_name, form_id, updated_user_id):
+    def send_updated_formulary(company_id, form_id, form_name):
         """
-        This event sends to all of the clients of a company that a formulary data have been updated or inserted
+        This event sends to all of the clients of a company that a formulary have been updated
 
         Arguments:
             company_id {int} -- What company updated the formulary
-            dynamic_form_id {int} -- the id of the formulary data added or updated
             form_id {int} -- the id of the formulary/page updated
-            updated_user_id {int} -- what user id updated the formulary
+            form_name {str} --  The name of the updated formulary
         """
         channel_layer = get_channel_layer()
 
@@ -27,12 +26,10 @@ class DataEvents:
             async_to_sync(channel_layer.group_send)(
                 '{}'.format(group_name),
                 {
-                    'type': 'send_formulary_data_added_or_updated',
+                    'type': 'send_formulary_created_or_updated',
                     'data': {
-                        'dynamic_form_id': dynamic_form_id,
-                        'form_id': form_id,
                         'form_name': form_name,
-                        'user_id': updated_user_id,
+                        'form_id': form_id,
                         'company_id': company_id
                     }
                 }

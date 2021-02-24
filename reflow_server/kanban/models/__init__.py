@@ -1,12 +1,17 @@
 from django.db import models
 
 from reflow_server.kanban.models.abstract import AbstractKanbanDimensionOrder, AbstractKanbanCardField, AbstractKanbanCard
-from reflow_server.theme.managers import KanbanDimensionOrderThemeManager, KanbanCardThemeManager, \
+from reflow_server.theme.managers import KanbanDimensionThemeManager, KanbanCardThemeManager, \
     KanbanCardFieldThemeManager
     
-"""
+
 class KanbanDefault(models.Model):
+    """
+    Sets the default data of the kanban. This sets the default dimension to be used and also the default kanban card to be used.
+    With this, when the user opens the kanban on a particular formulary we automatically build the kanban for him
+    """
     form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True)
+    company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True)
     user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
     kanban_card = models.ForeignKey('kanban.KanbanCard', models.CASCADE, blank=True, null=True, db_index=True)
     kanban_dimension = models.ForeignKey('formulary.Field', models.CASCADE, blank=True, null=True, db_index=True)
@@ -14,14 +19,18 @@ class KanbanDefault(models.Model):
     class Meta:
         db_table = 'kanban_default'
 
+    objects = models.Manager()
+    theme_ = KanbanDimensionThemeManager()
+
 
 class KanbanCollapsedOption(models.Model):
     user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
+    company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True)
     options = models.ForeignKey('formulary.FieldOptions', models.CASCADE, db_index=True)    
 
     class Meta:
         db_table = 'kanban_collapsed_option'
-"""
+
         
 class KanbanCard(AbstractKanbanCard):
     """
@@ -31,6 +40,8 @@ class KanbanCard(AbstractKanbanCard):
     kanban card for each dimension.
     """
     user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
+    company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True, null=True, default=None)
+    form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True, null=True, default=None)
 
     class Meta:
         db_table = 'kanban_card'
@@ -61,6 +72,7 @@ class KanbanCardField(AbstractKanbanCardField):
 
 class KanbanDimensionOrder(AbstractKanbanDimensionOrder):
     """
+    TODO: DEPRECATED
     For further explanation refer to `reflow_server.kanban.models.abstract.AbstractKanbanDimensionOrder`
 
     Also the same as kanban card, we define the order for each dimension on the user level, not company level
@@ -77,4 +89,3 @@ class KanbanDimensionOrder(AbstractKanbanDimensionOrder):
         app_label = 'kanban'
 
     objects = models.Manager()
-    theme_ = KanbanDimensionOrderThemeManager()

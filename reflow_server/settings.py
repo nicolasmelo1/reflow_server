@@ -221,7 +221,8 @@ CONSUMERS = {
         'reflow_server.data.consumers.DataConsumer',
         'reflow_server.billing.consumers.BillingConsumer',
         'reflow_server.authentication.consumers.AuthenticationConsumer',
-        'reflow_server.draft.consumers.DraftConsumer'
+        'reflow_server.draft.consumers.DraftConsumer',
+        'reflow_server.formulary.consumers.FormularyConsumer'
     ]
 }
 

@@ -59,12 +59,13 @@ class UserSettingsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(detail={'detail': 'profile', 'reason': 'invalid_profile'})
         return data
 
-    def save(self, company_id):
+    def save(self, company_id, user_id):
         self.company_id = company_id
+        self.user_id = user_id
         super(UserSettingsSerializer, self).save()
 
     def create(self, validated_data):
-        users_service = UsersService(self.company_id)   
+        users_service = UsersService(self.company_id, self.user_id)   
         return users_service.create( 
             validated_data.get('email'),
             validated_data.get('first_name'),
@@ -76,7 +77,7 @@ class UserSettingsSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        users_service = UsersService(self.company_id)
+        users_service = UsersService(self.company_id, self.user_id)
         return users_service.update(
             instance.id, 
             validated_data.get('email'),

@@ -32,7 +32,7 @@ class FieldOptionsService:
                 OptionAccessedBy.objects.create(user_id=self.user_id, field_option_id=field_option_id)
                 
         return True
-
+    
     def create_new_field_options(self, field, field_options_data):
         """
         Creates new field_options for a specific field
@@ -56,7 +56,6 @@ class FieldOptionsService:
                     'option': field_option_data.option,
                     'order': field_option_index
                 })
-            
             if created:
                 created_field_options.append(option)
         
@@ -68,7 +67,6 @@ class FieldOptionsService:
             OptionAccessedBy(field_option=created_field_option, user_id=company_user_id)
             for created_field_option in created_field_options for company_user_id in company_user_ids
         ])
-        
         return True
 
     def remove_field_options_from_field(self, field_id):

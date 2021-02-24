@@ -1,9 +1,10 @@
 from django.db import models
 
 from reflow_server.theme.managers import ThemeThemeManager, ThemeFormThemeManager, ThemeFieldThemeManager, \
-    ThemeFieldOptionThemeManager, ThemeKanbanDimensionOrderThemeManager, ThemeKanbanCardThemeManager, \
+    ThemeFieldOptionThemeManager, ThemeKanbanCardThemeManager, \
     ThemeKanbanCardFieldThemeManager, ThemeNotificationConfigurationThemeManager, \
-    ThemeNotificationConfigurationVariableThemeManager, ThemeTypeThemeManager, ThemeDashboardChartConfigurationThemeManager
+    ThemeNotificationConfigurationVariableThemeManager, ThemeTypeThemeManager, ThemeDashboardChartConfigurationThemeManager, \
+    ThemeKanbanDefaultManager
 from reflow_server.formulary.models.abstract import AbstractField, AbstractFieldOptions, AbstractForm
 from reflow_server.notification.models.abstract import AbstractNotificationConfiguration 
 from reflow_server.kanban.models.abstract import AbstractKanbanCard, AbstractKanbanCardField, AbstractKanbanDimensionOrder
@@ -90,6 +91,7 @@ class ThemeForm(AbstractForm):
         db_table = 'theme_form'
         ordering = ('order',)
 
+    objects = models.Manager()
     theme_ = ThemeFormThemeManager()
 
 
@@ -106,6 +108,7 @@ class ThemeField(AbstractField):
         db_table = 'theme_field'
         ordering = ('order',)
 
+    objects = models.Manager()
     theme_ = ThemeFieldThemeManager()
 
 
@@ -120,7 +123,24 @@ class ThemeFieldOptions(AbstractFieldOptions):
     class Meta:
         db_table = 'theme_field_options'
 
+    objects = models.Manager()
     theme_ = ThemeFieldOptionThemeManager()
+
+
+class ThemeKanbanDefault(models.Model):
+    """
+    See `reflow_server.theme.models.Theme` and `reflow_server.kanban.models.KanbanDefault` for reference
+    """
+    form = models.ForeignKey('theme.ThemeForm', models.CASCADE, db_index=True)
+    theme = models.ForeignKey('theme.Theme', models.CASCADE, db_index=True)
+    kanban_card = models.ForeignKey('theme.ThemeKanbanCard', models.CASCADE, blank=True, null=True, db_index=True)
+    kanban_dimension = models.ForeignKey('theme.ThemeField', models.CASCADE, blank=True, null=True, db_index=True)
+
+    class Meta:
+        db_table = 'theme_kanban_default'
+    
+    objects = models.Manager()
+    theme_ = ThemeKanbanDefaultManager()
 
 
 class ThemeKanbanCard(AbstractKanbanCard):
@@ -133,6 +153,7 @@ class ThemeKanbanCard(AbstractKanbanCard):
     class Meta:
         db_table = 'theme_kanban_card'
 
+    objects = models.Manager()
     theme_ = ThemeKanbanCardThemeManager()
 
 
@@ -148,11 +169,13 @@ class ThemeKanbanCardField(AbstractKanbanCardField):
     class Meta:
         db_table = 'theme_kanban_card_field'
 
+    objects = models.Manager()
     theme_ = ThemeKanbanCardFieldThemeManager()
 
 
 class ThemeKanbanDimensionOrder(AbstractKanbanDimensionOrder):
     """
+    # TODO: DEPRECATED
     See `reflow_server.theme.models.Theme`, `reflow_server.kanban.models.abstract.AbstractKanbanDimensionOrder` 
     and `reflow_server.kanban.models.KanbanDimensionOrder` for reference
     """
@@ -163,7 +186,7 @@ class ThemeKanbanDimensionOrder(AbstractKanbanDimensionOrder):
         db_table = 'theme_kanban_dimension_order'
         ordering = ('order',)
 
-    theme_ = ThemeKanbanDimensionOrderThemeManager()
+    objects = models.Manager()
     
 
 class ThemeNotificationConfiguration(AbstractNotificationConfiguration):

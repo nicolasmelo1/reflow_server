@@ -76,5 +76,9 @@ class FormularyService(Settings):
 
         if is_new:
             FormAccessedBy.objects.create(form=instance, user_id=self.user_id)
+
+        from reflow_server.formulary.events import FormularyEvents
+
+        FormularyEvents.send_updated_formulary(self.company_id, instance.id, instance.form_name)
         return instance
     

@@ -79,7 +79,7 @@ class UserSettingsView(APIView):
     def post(self, request, company_id):
         serializer = UserSettingsSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(company_id)
+            serializer.save(company_id, request.user.id)
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)
@@ -107,7 +107,7 @@ class UserSettingsEditView(APIView):
         is_self = UsersService.is_self(int(user_id), int(request.user.id))
         if not is_self and serializer.is_valid():
             try:
-                serializer.save(company_id)
+                serializer.save(company_id, request.user.id)
                 return Response({
                     'status': 'ok'
                 }, status=status.HTTP_200_OK)
@@ -134,7 +134,7 @@ class UserSettingsEditView(APIView):
     def delete(self, request, company_id, user_id):
         if not UsersService.is_self(int(user_id), int(request.user.id)):
             UserExtended.authentication_.remove_user_by_user_id_and_company_id(user_id, company_id)
-            UsersService(company_id).remove_user()
+            UsersService(company_id, request.user.id).remove_user()
         if UsersService.is_self(int(user_id), int(request.user.id)):
             return Response({
                 'status': 'error',
