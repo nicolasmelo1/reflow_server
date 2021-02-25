@@ -101,8 +101,10 @@ class UsersService:
 
     def __create_new_user_notify_update_billing_and_add_kanban_defaults(self, instance, change_password_url):
         """
-        This function notifies a new user with an email with his new password but also creates the billing information. Of this user.
-
+        This function notifies a new user with an email with his new password but also creates the billing information of this user.
+        This also sets the kanban defaults for the user, this means we cop the kanban_defaults of a user and passes it to the newly created
+        user.
+        
         Args:
             instance (reflow_server.authentication.models.UserExtended): The newly created instance of the user
             change_password_url (str): The url to change the password

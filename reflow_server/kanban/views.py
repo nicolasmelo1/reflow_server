@@ -10,7 +10,6 @@ from reflow_server.kanban.serializers import KanbanFieldsSerializer, KanbanCards
     ChangeKanbanCardBetweenDimensionsSerializer, KanbanDimensionSerializer
 from reflow_server.kanban.services import KanbanService
 from reflow_server.kanban.models import KanbanCard, KanbanDefault
-from reflow_server.formulary.models import FieldOptions, OptionAccessedBy
 
 
 class KanbanFieldsView(APIView):
@@ -101,6 +100,13 @@ class KanbanCardsEditView(APIView):
 
 
 class KanbanDefaultView(APIView):
+    """
+    Responsible for retrieving the defaults of the user for this particular formulary and for this particular company,
+    with this we can build the kanban when the user opens the kanban.
+
+    Methods:
+        GET: Retrieve the kanban defaults to the user on the first load of the formulary
+    """
     def get(self, request, company_id, form):
         instance = KanbanDefault.objects.filter(user=request.user.id, company_id=company_id, form__form_name=form).first()
         serializer = KanbanDefaultSerializer(instance=instance)
@@ -134,14 +140,13 @@ class KanbanEditDefaultView(APIView):
             return Response({
                 'status': 'ok'
             }, status=status.HTTP_200_OK)
-        print(serializer.errors)
         return Response({
             'status': 'error'
         }, status=status.HTTP_502_BAD_GATEWAY)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class KanbanDimensionOrderView(APIView):
+class KanbanDimensionPhaseView(APIView):
     """
     This view is responsible for retrieve each phase of a particular dimension.
 
@@ -163,7 +168,24 @@ class KanbanDimensionOrderView(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class KanbanChangeDimensionOrderView(APIView):
+class KanbanCollapsedDimensionPhasesView(APIView):
+    def get(self, request, company_id, form, field_id):
+        pass
+
+    def post(self, request, company_id, form, field_id):
+        pass
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class KanbanChangeDimensionPhasesView(APIView):
+    """
+    Adds, removes, edit and create new dimension phases (new field_options). In a specific dimension.
+    This is basically changing a field_id
+
+    Methods:
+        PUT: This is a single method to remove, reorder, edit and create new dimension phases in the kanban. We recieve a list
+        here and the ordering is extremely important since that's how we organize the ordering
+    """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def put(self, request, company_id, form, field_id):

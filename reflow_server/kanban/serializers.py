@@ -2,12 +2,12 @@ from django.db import transaction
 
 from rest_framework import serializers
 
-from reflow_server.formulary.models import FieldOptions, Field, OptionAccessedBy
+from reflow_server.formulary.models import FieldOptions, Field
 from reflow_server.formulary.services.fields import FieldService
 from reflow_server.formulary.services.data import FieldOptionsData
 
 
-from reflow_server.kanban.models import KanbanCard, KanbanCardField, KanbanDefault, KanbanDimensionOrder
+from reflow_server.kanban.models import KanbanCard, KanbanDefault, KanbanCollapsedOption
 from reflow_server.kanban.services import KanbanService
 from reflow_server.kanban.relations import KanbanFieldsRelation, KanbanCardFieldRelation
 from reflow_server.data.models import DynamicForm, FormValue
@@ -51,7 +51,7 @@ class KanbanFieldsSerializer(serializers.Serializer):
 
 class KanbanCardsSerializer(serializers.ModelSerializer):
     """
-    This view handles kanban_cards data, you should note that these kanban cards are the cards to build the kanban, 
+    This serializer handles kanban_cards data, you should note that these kanban cards are the cards to build the kanban, 
     not the actual data that is displayed to the user.
     """
     id = serializers.IntegerField(allow_null=True, required=False)
@@ -77,6 +77,11 @@ class KanbanCardsSerializer(serializers.ModelSerializer):
 
 
 class KanbanDefaultSerializer(serializers.ModelSerializer):
+    """
+    This serializer is responsible for saving the default kanban_card_id to be retrieved when the user
+    opens the kanban again. So when the user opens the kanban in a particular company and for a particular
+    form, the kanban is `automagically` loaded for him.
+    """
     kanban_card = KanbanCardsSerializer()
     kanban_dimension = KanbanFieldsRelation()
 
@@ -86,27 +91,12 @@ class KanbanDefaultSerializer(serializers.ModelSerializer):
 
         return data
 
-    """
-    This serializer is responsible for saving the default kanban_card_id to be retrieved when the user
-    opens the kanban again. So when the user opens the kanban in a particular company and for a particular
-    form, the kanban is `automagically` loaded for him.
-    """
     def save(self):
         self.kanban_service.save_defaults(self.validated_data['kanban_card']['id'], self.validated_data['kanban_dimension']['id'])
 
     class Meta:
         model = KanbanDefault
         fields = ('kanban_card', 'kanban_dimension')
-
-
-class KanbanDimensionOrderListSerializer(serializers.ListSerializer):
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        for index, element in enumerate(instance):
-            element.options = validated_data[index]['options']
-            element.order = index
-            element.save()
-        return instance
 
 
 class KanbanDimensionListSerializer(serializers.ListSerializer):
@@ -146,13 +136,29 @@ class KanbanDimensionListSerializer(serializers.ListSerializer):
 
         return instances
 
+
 class KanbanDimensionSerializer(serializers.ModelSerializer):
+    """
+    Serializer used for loading the dimension phases to the user. Dimension phases is just a fancy word for FieldOption
+    """
     id = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = FieldOptions
         list_serializer_class = KanbanDimensionListSerializer
         fields = ('id','option')
+
+
+class KanbanCollapsedDimensionListSerializer(serializers.ListSerializer):
+    def update(self, instance, validated_data):
+        return instance
+
+
+class KanbanCollapsedDimensionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KanbanCollapsedOption
+        list_serializer_class = KanbanCollapsedDimensionListSerializer
+        fields = ('option',)
 
 
 class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
