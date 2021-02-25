@@ -26,7 +26,7 @@ class KanbanDefault(models.Model):
 class KanbanCollapsedOption(models.Model):
     user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
     company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True)
-    options = models.ForeignKey('formulary.FieldOptions', models.CASCADE, db_index=True)    
+    field_option = models.ForeignKey('formulary.FieldOptions', models.CASCADE, db_index=True)    
 
     class Meta:
         db_table = 'kanban_collapsed_option'

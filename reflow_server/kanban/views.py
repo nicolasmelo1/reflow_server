@@ -7,9 +7,9 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.kanban.serializers import KanbanFieldsSerializer, KanbanCardsSerializer, KanbanDefaultSerializer, \
-    ChangeKanbanCardBetweenDimensionsSerializer, KanbanDimensionSerializer
+    ChangeKanbanCardBetweenDimensionsSerializer, KanbanDimensionSerializer, KanbanCollapsedDimensionSerializer
 from reflow_server.kanban.services import KanbanService
-from reflow_server.kanban.models import KanbanCard, KanbanDefault
+from reflow_server.kanban.models import KanbanCard, KanbanDefault, KanbanCollapsedOption
 
 
 class KanbanFieldsView(APIView):
@@ -169,11 +169,37 @@ class KanbanDimensionPhaseView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class KanbanCollapsedDimensionPhasesView(APIView):
+    """
+    This is for retrieving and for updating the collapsed dimension phase. Collapse dimension phases are dimension phases (or field_options)
+    that are not shown to the user when he opens the kanban.
+    This is also for saving the collapsed kanban dimensions.
+
+    Methods:
+        GET: Retrieve the collapsed dimension phases
+        POST: Update the collapsed dimension phases
+    """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
     def get(self, request, company_id, form, field_id):
-        pass
+        instances = KanbanCollapsedOption.objects.filter(user_id=request.user.id, company_id=company_id, field_option__field_id=field_id)
+        serializer = KanbanCollapsedDimensionSerializer(instance=instances, many=True)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
 
     def post(self, request, company_id, form, field_id):
-        pass
+        instances = KanbanCollapsedOption.objects.filter(user_id=request.user.id, company_id=company_id, field_option__field_id=field_id)
+        serializer = KanbanCollapsedDimensionSerializer(data=request.data, instance=instances, many=True, context={
+            'user_id': request.user.id, 
+            'company_id': company_id, 
+            'form_name': form
+        })
+        if serializer.is_valid():
+            serializer.save()
+        return Response({
+            'status': 'ok',
+        }, status=status.HTTP_200_OK)
 
 
 @method_decorator(csrf_exempt, name='dispatch')

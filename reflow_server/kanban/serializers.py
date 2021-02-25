@@ -1,3 +1,4 @@
+from reflow_server.kanban.managers import field_options
 from django.db import transaction
 
 from rest_framework import serializers
@@ -151,14 +152,20 @@ class KanbanDimensionSerializer(serializers.ModelSerializer):
 
 class KanbanCollapsedDimensionListSerializer(serializers.ListSerializer):
     def update(self, instance, validated_data):
+        print(validated_data)
+        collapsed_field_option_ids = [kanban_collapsed_dimension.get('field_option_id') for kanban_collapsed_dimension in validated_data]
+        kanban_service = KanbanService(user_id=self.context['user_id'], company_id=self.context['company_id'], form_name=self.context['form_name'])
+        kanban_service.save_collapsed_dimension_phases(collapsed_field_option_ids)
         return instance
 
 
 class KanbanCollapsedDimensionSerializer(serializers.ModelSerializer):
+    field_option_id = serializers.IntegerField()
+    
     class Meta:
         model = KanbanCollapsedOption
         list_serializer_class = KanbanCollapsedDimensionListSerializer
-        fields = ('option',)
+        fields = ('field_option_id',)
 
 
 class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):

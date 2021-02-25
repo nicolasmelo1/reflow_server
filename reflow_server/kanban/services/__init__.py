@@ -1,8 +1,9 @@
+from reflow_server.kanban.managers import field_options
 from django.db import transaction
 
 from reflow_server.formulary.models import Field, FieldOptions, Form, OptionAccessedBy
 from reflow_server.kanban.services.kanban_card import KanbanCardService
-from reflow_server.kanban.models import KanbanCard, KanbanCardField, KanbanDefault
+from reflow_server.kanban.models import KanbanCard, KanbanCardField, KanbanDefault, KanbanCollapsedOption
 
 
 class KanbanValidationError(AttributeError):
@@ -122,6 +123,22 @@ class KanbanService(KanbanCardService):
         )
 
         return instance
+
+    @transaction.atomic
+    def save_collapsed_dimension_phases(self, collapsed_field_option_ids):
+        all_kanban_collapsed_option_instances = KanbanCollapsedOption.objects.filter(user_id=self.user_id, company_id=self.company_id, field_option__field__form__depends_on=self.form)
+        all_kanban_collapsed_option_instances.exclude(field_option_id__in=collapsed_field_option_ids).delete()
+
+        already_existing_field_option_ids = all_kanban_collapsed_option_instances.values_list('field_option_id', flat=True)
+        new_field_option_ids = [collapsed_field_opion_id for collapsed_field_opion_id in collapsed_field_option_ids if collapsed_field_opion_id not in already_existing_field_option_ids]
+        for new_field_option_id in new_field_option_ids:
+            KanbanCollapsedOption.objects.create(
+                user_id=self.user_id, 
+                company_id=self.company_id,
+                field_option_id=new_field_option_id
+            )
+
+        return True
 
     @property
     def get_fields(self):
