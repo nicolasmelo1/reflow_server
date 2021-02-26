@@ -111,7 +111,7 @@ class KanbanDimensionListSerializer(serializers.ListSerializer):
         )
         field_options_data = FieldOptionsData()
         for field_option in validated_data:
-            field_options_data.add_field_option(field_option['option'], field_option['id'])
+            field_options_data.add_field_option(field_option['option'], field_option['uuid'], field_option.get('id', None))
         
         field_service.save_field(
             enabled=field_instance.enabled,
@@ -147,12 +147,11 @@ class KanbanDimensionSerializer(serializers.ModelSerializer):
     class Meta:
         model = FieldOptions
         list_serializer_class = KanbanDimensionListSerializer
-        fields = ('id','option')
+        fields = ('id', 'uuid', 'option')
 
 
 class KanbanCollapsedDimensionListSerializer(serializers.ListSerializer):
     def update(self, instance, validated_data):
-        print(validated_data)
         collapsed_field_option_ids = [kanban_collapsed_dimension.get('field_option_id') for kanban_collapsed_dimension in validated_data]
         kanban_service = KanbanService(user_id=self.context['user_id'], company_id=self.context['company_id'], form_name=self.context['form_name'])
         kanban_service.save_collapsed_dimension_phases(collapsed_field_option_ids)
@@ -160,8 +159,12 @@ class KanbanCollapsedDimensionListSerializer(serializers.ListSerializer):
 
 
 class KanbanCollapsedDimensionSerializer(serializers.ModelSerializer):
+    """
+    Serializer used for retrieving and updating the collapsed dimension phases of the kanban, collapsed dimension phases are phases that
+    are not shown to the user in the front-end, they-re literrally collapsed sideways.
+    """
     field_option_id = serializers.IntegerField()
-    
+
     class Meta:
         model = KanbanCollapsedOption
         list_serializer_class = KanbanCollapsedDimensionListSerializer

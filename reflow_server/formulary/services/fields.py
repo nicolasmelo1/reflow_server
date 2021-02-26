@@ -21,7 +21,7 @@ class FieldService(Settings):
         if instance == None:
             instance = Field()
                    
-        field_options_service = FieldOptionsService(self.user_id, self.company_id)
+        field_options_service = FieldOptionsService(self.company_id)
 
         existing_fields = Field.objects.filter(
             form=section, 

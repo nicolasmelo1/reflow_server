@@ -15,7 +15,7 @@ class FieldOptionSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = FieldOptions
-        fields = ('id', 'option',)
+        fields = ('id', 'uuid', 'option',)
 
 
 class FieldAsOptionSerializer(serializers.ModelSerializer):
@@ -80,7 +80,7 @@ class FieldSerializer(serializers.ModelSerializer):
         field_options_data = FieldOptionsData()
         formula_configuration = self.validated_data['formula_configuration'] if self.validated_data.get('formula_configuration', None) not in [None, ''] else None 
         for field_option in self.validated_data.get('field_option', list()):
-            field_options_data.add_field_option(field_option['option'], field_option['id'])
+            field_options_data.add_field_option(field_option['option'], field_option['uuid'], field_option['id'])
 
         field_service = FieldService(
             user_id=self.context['user_id'], 

@@ -24,6 +24,9 @@ class KanbanDefault(models.Model):
 
 
 class KanbanCollapsedOption(models.Model):
+    """
+    Collapsed option means that the kanban dimension phase is collapsed, in other words, it's contents are not shown to the user.
+    """
     user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
     company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True)
     field_option = models.ForeignKey('formulary.FieldOptions', models.CASCADE, db_index=True)    

@@ -1,5 +1,7 @@
 from django.db import models
 
+import uuid
+
 
 class AbstractForm(models.Model):
     """
@@ -117,7 +119,7 @@ class AbstractFieldOptions(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     option = models.CharField(max_length=500, db_index=True)
     order = models.BigIntegerField()
+    uuid = models.UUIDField(default=uuid.uuid4)
 
     class Meta:
         abstract = True
-        app_label = 'formulary'
