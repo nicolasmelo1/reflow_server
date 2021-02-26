@@ -1,5 +1,7 @@
 from django.db import models
 
+import uuid
+
 
 class ThemeFieldOptionThemeManager(models.Manager):
     def get_queryset(self):
@@ -35,5 +37,6 @@ class ThemeFieldOptionThemeManager(models.Manager):
         return self.get_queryset().create(
             field=theme_field_instance,
             option=option,
+            uuid=uuid.uuid4(),
             order=order
         )
