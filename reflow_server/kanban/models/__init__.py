@@ -68,7 +68,8 @@ class KanbanCardField(AbstractKanbanCardField):
     class Meta:
         db_table = 'kanban_card_field'
         app_label = 'kanban'
-    
+        ordering = ('order',)
+        
     objects = models.Manager()
     theme_ = KanbanCardFieldThemeManager()
 
