@@ -2,6 +2,7 @@ from django.db import transaction
 
 from reflow_server.authentication.models import UserExtended, Company, VisualizationType
 from reflow_server.billing.services import BillingService
+from reflow_server.formulary.models import Field
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.notify.services import NotifyService
@@ -136,6 +137,6 @@ class UsersService:
             bool: returns True to show everything went fine
         """
         FormularyService(user_id, self.company.id).update_formulary_ids_the_user_has_access_to(form_ids_accessed_by)
-        FieldOptionsService(self.company.id).update_fields_options_accessed_by_user(user_id, field_option_ids_accessed_by)
+        FieldOptionsService(self.company.id).update_all_at_once_field_options_accessed_by_user(user_id, field_option_ids_accessed_by)
 
         return True
