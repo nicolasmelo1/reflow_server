@@ -32,6 +32,8 @@ class KanbanService(KanbanCardService):
         ).first() if form_name != None else form
 
         print('BREAKPOINT')
+        print(form_name)
+        print(company_id)
         print(self.form)
         
         self.__fields = Field.objects.filter(
