@@ -137,6 +137,6 @@ class UsersService:
             bool: returns True to show everything went fine
         """
         FormularyService(user_id, self.company.id).update_formulary_ids_the_user_has_access_to(form_ids_accessed_by)
-        FieldOptionsService(self.company.id).update_all_at_once_field_options_accessed_by_user(user_id, field_option_ids_accessed_by)
+        FieldOptionsService(self.company.id).update_fields_options_accessed_by_user(user_id, field_option_ids_accessed_by)
 
         return True

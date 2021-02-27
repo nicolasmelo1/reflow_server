@@ -10,31 +10,21 @@ class FieldOptionsService:
     def __init__(self, company_id):
         self.company_id = company_id
 
-    def update_all_at_once_field_options_accessed_by_user(self, user_id, field_option_ids):
-        """
-        Updates all of the field options that a user have access to at once, this is useful when editing or adding a new user
-
-        Args:
-            user_id (int): A UserExtended intance id. This is the id of the user you are inserting.
-            field_option_ids (list(int)): A list of FieldOption instance ids
-        """
-        for field_id in Field.objects.filter(form__depends_on__group__company_id=self.company.id, type__type__in=['option', 'multi_option']).values_list('id', flat=True):
-            self.update_fields_options_accessed_by_user(user_id, field_id, field_option_ids)
-
     @transaction.atomic
-    def update_fields_options_accessed_by_user(self, user_id, field_id, field_option_ids):
+    def update_fields_options_accessed_by_user(self, user_id, field_option_ids):
         """
         This method is used to update the options the user have access to in the formularies.
         This filter is used so we can filter the data the user can access and the data the user cannot access.
 
         Args:
+            user_id (int): A UserExtended instance id. This is the user you are adding or updating.
             field_option_ids (list(int)): A list of field_option_ids, this list are the field_option_ids the user has access to. 
                                           The ones that are not in this list are removed from the user.
 
         Returns:
             bool: returns True to show everything went fine.
         """
-        OptionAccessedBy.objects.filter(user_id=user_id, field_option__field_id=field_id).exclude(field_option__in=field_option_ids).delete()
+        OptionAccessedBy.objects.filter(user_id=user_id).exclude(field_option__in=field_option_ids).delete()
         already_existing_field_option_ids_the_user_can_access = OptionAccessedBy.objects.filter(
             user_id=user_id, 
             field_option__in=field_option_ids
@@ -42,7 +32,23 @@ class FieldOptionsService:
         for field_option_id in field_option_ids:
             if field_option_id not in already_existing_field_option_ids_the_user_can_access:
                 OptionAccessedBy.objects.create(user_id=user_id, field_option_id=field_option_id)
-    
+                
+    def __give_access_for_field_option_created_for_all_users_of_company(self, created_field_options):
+        """
+        When you create new field_options we automatically give all of the users of the company the access to it.
+        So this way when the user creates a field_option we automatically give the users of the company access to it.
+
+        Args:
+            created_field_options (list(reflow_server.formulary.models.FieldOption)): List of created FieldOption instances.
+        """
+        company_user_ids = UserExtended.formulary_.user_ids_active_by_company_id(self.company_id)
+
+        OptionAccessedBy.objects.bulk_create([
+            OptionAccessedBy(field_option=created_field_option, user_id=company_user_id)
+            for created_field_option in created_field_options for company_user_id in company_user_ids
+        ])       
+        
+    @transaction.atomic
     def create_new_field_options(self, field, field_options_data):
         """
         Creates new field_options for a specific field
@@ -56,25 +62,20 @@ class FieldOptionsService:
         Returns:
             bool: returns True to indicate everything went fine.
         """
-        created_or_updated_field_option_ids=list()
+        created_or_updated_field_options=list()
         FieldOptions.objects.exclude(uuid__in=[uuid.UUID(field_option_uuid) for field_option_uuid in field_options_data.field_options_uuids]).filter(field=field).delete()
         for field_option_index, field_option_data in enumerate(field_options_data.field_options):
-            option, __ = FieldOptions.objects.update_or_create(
+            option, created = FieldOptions.objects.update_or_create(
                 uuid=field_option_data.field_option_uuid,
                 field=field,
                 defaults={
                     'option': field_option_data.option,
                     'order': field_option_index
                 })
-            created_or_updated_field_option_ids.append(option.id)
+            if created:
+                created_or_updated_field_options.append(option)
         
-        # when you create a new field option, all of the users have access to this option
-        # automatically
-        company_user_ids = UserExtended.formulary_.user_ids_active_by_company_id(self.company_id)
-
-        for user_id in company_user_ids:
-            self.update_fields_options_accessed_by_user(user_id, field.id, created_or_updated_field_option_ids)
-    
+        self.__give_access_for_field_option_created_for_all_users_of_company(created_or_updated_field_options)
         return True
 
     def remove_field_options_from_field(self, field_id):
