@@ -19,12 +19,13 @@ class FieldOptionsData:
         self.field_options_uuids = []
         self.field_options_ids = []
     
-    def add_field_option(self, option, field_option_uuid=uuid.uuid4(), field_option_id=None):
-        field_option_uuid = str(field_option_uuid)
+    def add_field_option(self, option, field_option_uuid=None, field_option_id=None):
+        field_option_uuid = str(field_option_uuid) if field_option_uuid else str(uuid.uuid4())
         if field_option_uuid not in self.field_options_uuids:
             field_option_data = self.FieldOptionData(option, field_option_uuid, field_option_id)
             self.field_options.append(field_option_data)
             self.field_options_ids.append(field_option_id)
             self.field_options_uuids.append(field_option_uuid)
-            
-        return field_option_data
+
+            return field_option_data
+        return None
