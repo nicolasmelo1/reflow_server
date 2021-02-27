@@ -2,6 +2,7 @@ from django.db import transaction
 
 from reflow_server.authentication.models import UserExtended, Company, VisualizationType
 from reflow_server.billing.services import BillingService
+from reflow_server.formulary.models import Field
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.notify.services import NotifyService
