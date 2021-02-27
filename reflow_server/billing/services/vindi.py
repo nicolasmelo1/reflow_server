@@ -351,5 +351,8 @@ class VindiService:
 
                 vindi_customer_id = data.get('customer', {}).get('id', None)
                 total_value = data.get('amount', 0)
-                attempt_count = data.get('charges', [{}])[0].get('attempt_count', 0)
+                attempt_count = 0
+                charges = data.get('charges', [{}])
+                if isinstance(charges, list) and len(charges) > 0:
+                    attempt_count = charges[0].get('attempt_count', 0)
                 ChargeService.add_new_company_charge(vindi_customer_id, total_value, attempt_count)
