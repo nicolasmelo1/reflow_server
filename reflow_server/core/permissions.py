@@ -18,6 +18,17 @@ class PermissionsError(Exception):
         self.status = status
 
 
+class PublicPermissionIsValidError(Exception):
+    def __init__(self, detail):
+        """
+        This class is used for exception handling. Inside of permission classes.
+
+        Args:
+            detail (str): The detail of the error, this will usually be shown to the user in the response
+        """
+        self.detail = detail
+
+
 class Request:
     def get_json_data_from_request(self, request):
         try:

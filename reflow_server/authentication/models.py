@@ -12,6 +12,8 @@ from reflow_server.notification.managers import UserExtendedNotificationManager
 from reflow_server.theme.managers import UserExtendedThemeManager
 from reflow_server.draft.managers import UserExtendedDraftManager
 
+import uuid
+
 
 class VisualizationType(models.Model):
     name = models.CharField(max_length=250)
@@ -152,3 +154,12 @@ class UserExtended(AbstractUser):
         self.temp_password = password
         self.save()
         return password
+
+
+class PublicAccess(models.Model):
+    user = models.OneToOneField('authentication.UserExtended', on_delete=models.CASCADE, db_index=True)
+    company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, db_index=True)
+    public_key = models.UUIDField(default=uuid.uuid4, null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = 'public_access'

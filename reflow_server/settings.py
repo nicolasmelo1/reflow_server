@@ -81,7 +81,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'reflow_server.authentication.middleware.AuthJWTMiddleware'
+    'reflow_server.authentication.middleware.AuthJWTMiddleware',
+    'reflow_server.authentication.middleware.AuthPublicMiddleware'
 ]
 
 ROOT_URLCONF = 'reflow_server.urls'
@@ -237,6 +238,9 @@ PERMISSIONS = {
         'reflow_server.formulary.permissions.FormularyDefaultPermission',
         'reflow_server.notification.permissions.NotificationDefaultPermission',
         'reflow_server.theme.permissions.ThemeDefaultPermission'
+    ],
+    'PUBLIC': [
+        'reflow_server.formulary.permissions.FormularyPublicPermission'
     ],
     'BILLING': [
         'reflow_server.billing.permissions.BillingBillingPermission',

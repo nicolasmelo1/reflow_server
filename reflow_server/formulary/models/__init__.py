@@ -340,6 +340,7 @@ class OptionAccessedBy(models.Model):
     objects = models.Manager()
     kanban_ = OptionAccessedByKanbanManager()
 
+
 class FormAccessedBy(models.Model):
     """
     This works the same way as reflow_server.formulary.models.OptionAccessedBy but on formulary level.
@@ -361,3 +362,20 @@ class FormAccessedBy(models.Model):
 
     objects = models.Manager()
     theme_ = FormAccessedByThemeManager()
+
+
+class PublicAccessForm(models.Model):
+    form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True)
+    public_access = models.ForeignKey('authentication.PublicAccess', models.CASCADE, db_index=True)
+
+    class Meta:
+        db_table = 'public_form'   
+
+
+class PublicAccessField(models.Model):
+    public_form = models.ForeignKey('formulary.PublicAccessForm', models.CASCADE, db_index=True)
+    form = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True)
+    public_access = models.ForeignKey('authentication.PublicAccess', models.CASCADE, db_index=True)
+
+    class Meta:
+        db_table = 'public_field'   

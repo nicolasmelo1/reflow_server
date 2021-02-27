@@ -1,8 +1,9 @@
+from reflow_server.billing.decorators import validate_billing
 from rest_framework import status
 
 from reflow_server.formulary.services.permissions import FormularyPermissionsService
-from reflow_server.formulary.models import Field, Form
-from reflow_server.core.permissions import PermissionsError
+from reflow_server.formulary.models import Field, Form, PublicAccessForm
+from reflow_server.core.permissions import PermissionsError, PublicPermissionIsValidError
 
 
 class FormularyDefaultPermission:
@@ -33,3 +34,18 @@ class FormularyDefaultPermission:
 
         if self.form_id and not FormularyPermissionsService.is_valid_form(request.request.user.id, self.company_id, self.form_id):
             raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)
+
+
+class FormularyPublicPermission:
+    def __init__(self, company_id=None, section_id=None, field_id=None, form_id=None, form=None):
+        self.company_id = company_id
+        self.form_id = form_id
+        self.field_id = field_id
+        self.section_id = section_id
+        self.form = form
+
+    def __call__(self, request):
+        if self.form:
+            if PublicAccessForm.objects.filter(public_access__user_id=request.request.user.id, form__form_name=self.form).exists():
+                raise PublicPermissionIsValidError(detail='valid')
+        

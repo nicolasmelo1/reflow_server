@@ -2,9 +2,8 @@ from django.contrib.auth.models import AnonymousUser
 
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
-from django.http.response import JsonResponse
 
-from reflow_server.authentication.models import UserExtended
+from reflow_server.authentication.models import UserExtended, PublicAccess
 from reflow_server.authentication.utils.jwt_auth import JWT
 
 
@@ -48,14 +47,21 @@ class AuthJWTMiddleware:
 
         return response
 
-"""
-class AuthWebsocketJWTMiddleware:
-    def __init__(self, inner):
-        self.inner = inner
 
-    def __call__(self, scope, receive, send):
-        return AuthWebsocketJWTMiddlewareInstance(scope, self)
-"""
+class AuthPublicMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request): 
+        if 'public_key' in request.GET and isinstance(request.user, AnonymousUser):
+            request.is_public = True
+            public_access = PublicAccess.objects.filter(public_key=request.GET.get('public_key')).first()
+            request.user = public_access.user
+        else:
+            request.is_public = False
+        response = self.get_response(request)
+        return response
+
 
 class AuthWebsocketJWTMiddleware(BaseMiddleware):
     """
