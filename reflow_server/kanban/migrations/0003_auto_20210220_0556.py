@@ -65,8 +65,11 @@ def add_defaults_and_reorder_field_options(apps):
     # loop on all companies
     for company in Company.objects.all():
         # get user to use as reference for the defaults, this user is the first admin created of a specific company
-        admin_user_to_use_as_reference = UserExtended.objects.filter(profile__name='admin', company=company, is_active=True).earliest('date_joined')
-
+        try:
+            admin_user_to_use_as_reference = UserExtended.objects.filter(profile__name='admin', company=company, is_active=True).earliest('date_joined')
+        except:
+            admin_user_to_use_as_reference = UserExtended.objects.filter(profile__name='admin', company=company).first()
+        
         for user in UserExtended.objects.filter(company=company):
             for form_accessed_by in FormAccessedBy.objects.filter(user=user):
                 default_kanban_card_id = get_default_kanban_card_of_user_by_form_id(apps, user.id, company.id, form_accessed_by.form.id)
@@ -80,8 +83,9 @@ def add_defaults_and_reorder_field_options(apps):
                         kanban_card_id=default_kanban_card_id,
                         kanban_dimension_id=default_kanban_dimension_id
                     )
-                
-        reorder_field_options(apps, admin_user_to_use_as_reference)
+        
+        if admin_user_to_use_as_reference:
+            reorder_field_options(apps, admin_user_to_use_as_reference)
             
 @transaction.atomic
 def migrate_kanban_to_new_tables_and_add_columns_to_kanban_card(apps, schema_editor):
