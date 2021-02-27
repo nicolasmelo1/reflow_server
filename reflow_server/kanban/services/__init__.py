@@ -35,6 +35,19 @@ class KanbanService(KanbanCardService):
         print(form_name)
         print(company_id)
         print(self.form)
+        print(Form.objects.filter(
+            depends_on__group__company_id=company_id,
+            form_name=form_name, 
+            depends_on__isnull=True
+        ).first())
+        print(Form.objects.filter(
+            depends_on__group__company_id=company_id,
+            form_name=form_name 
+        ))
+        print(Form.objects.filter(
+            company_id=company_id,
+            form_name=form_name 
+        ))
         
         self.__fields = Field.objects.filter(
             form__depends_on__group__company_id=company_id,
