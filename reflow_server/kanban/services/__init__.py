@@ -26,7 +26,7 @@ class KanbanService(KanbanCardService):
         self.user_id = user_id
         self.company_id = company_id
         self.form = Form.objects.filter(
-            depends_on__group__company_id=company_id,
+            group__company_id=company_id,
             form_name=form_name, 
             depends_on__isnull=True
         ).first() if form_name != None else form
@@ -36,12 +36,12 @@ class KanbanService(KanbanCardService):
         print(company_id)
         print(self.form)
         print(Form.objects.filter(
-            depends_on__group__company_id=company_id,
+            group__company_id=company_id,
             form_name=form_name, 
             depends_on__isnull=True
         ).first())
         print(Form.objects.filter(
-            depends_on__group__company_id=company_id,
+            group__company_id=company_id,
             form_name=form_name 
         ))
         print(Form.objects.filter(
