@@ -30,32 +30,12 @@ class KanbanService(KanbanCardService):
             form_name=form_name, 
             depends_on__isnull=True
         ).first() if form_name != None else form
-
-        print('BREAKPOINT')
-        print(form_name)
-        print(company_id)
-        print(self.form)
-        print(Form.objects.filter(
-            group__company_id=company_id,
-            form_name=form_name, 
-            depends_on__isnull=True
-        ).first())
-        print(Form.objects.filter(
-            group__company_id=company_id,
-            form_name=form_name 
-        ))
-        print(Form.objects.filter(
-            company_id=company_id,
-            form_name=form_name 
-        ))
         
         self.__fields = Field.objects.filter(
             form__depends_on__group__company_id=company_id,
             form__depends_on=self.form,
         ).order_by('order')
 
-        print('BREAKPOINT')
-        print(self.__fields)
     @staticmethod
     def copy_defaults_to_company_user(company_id, from_user_id, to_user_id):
         """
