@@ -2,7 +2,6 @@ from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -16,7 +15,6 @@ from reflow_server.data.services import DataService, AttachmentService
 from reflow_server.formulary.models import Form
 
 import json
-import time
 
 
 class DataView(APIView):

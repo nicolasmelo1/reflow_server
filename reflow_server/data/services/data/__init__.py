@@ -188,8 +188,6 @@ class DataService(DataSort, DataSearch):
         Returns:
             list(int) -- Returns a list of all of the dynamic_form_ids that the user has access to from a single form_id.
         """
-        start_time = time.time()
-
         self._fields = Field.objects.filter(
             form__company_id=self.company_id,
             form__depends_on_id=form_id

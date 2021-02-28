@@ -51,6 +51,7 @@ class DataSearch:
 
         form_ids_to_filter = list(self._data.values_list('id', flat=True))
         for to_search in search_data:
+
             if to_search.field_name in self._fields:
                 field_data = self._fields[to_search.field_name]
 
