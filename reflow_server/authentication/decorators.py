@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.http import JsonResponse
 
 from rest_framework import status
@@ -9,7 +8,7 @@ from reflow_server.authentication.utils.jwt_auth import JWT
 
 from functools import wraps
 
-
+# ------------------------------------------------------------------------------------------
 def jwt_required(function):
     """
     Decorator used for validating if a user is logged in and authenticated or not.
@@ -33,8 +32,7 @@ def jwt_required(function):
             }, status=status.HTTP_403_FORBIDDEN)
 
     return jwt_required_wrap
-
-
+# ------------------------------------------------------------------------------------------
 def get_company_id_as_int(function):
     """
     This decorator automatically decrypts the company_id for you, so you don't have to care about it in you views.
@@ -46,8 +44,41 @@ def get_company_id_as_int(function):
         return function(request, *args, **kwargs)
 
     return get_company_id_as_int_wrap
+# ------------------------------------------------------------------------------------------
+def logged_in_user_permission_required(function):
+    @wraps(function)
+    @jwt_required
+    @get_company_id_as_int
+    def logged_in_user_permission_required_wrap(request, *args, **kwargs):
+        try:
+            validate_permissions_from_request(request, 'default', **kwargs)
+        except PermissionsError as pe:
+            return JsonResponse({
+                'status': 'error',
+                'reason': pe.detail
+            }, status=pe.status)
 
-
+        return function(request, *args, **kwargs)
+    
+    return logged_in_user_permission_required_wrap
+# ------------------------------------------------------------------------------------------
+def public_access_permissions(function):
+    @wraps(function)
+    @get_company_id_as_int
+    def public_access_permissions_wrap(request, *args, **kwargs):
+        try:
+            validate_permissions_from_request(request, 'public', **kwargs)
+        except PermissionsError as pe:
+            pass
+        except PublicPermissionIsValidError as ppiv:
+            return function(request, *args, **kwargs)
+        return JsonResponse({
+            'status': 'error',
+            'reason': 'api_is_not_public'
+        }, status=400)
+    
+    return public_access_permissions_wrap
+# ------------------------------------------------------------------------------------------
 def permission_required(function):
     """
     Validates all of the permission of a user while validating if the user is logged or not.
@@ -58,26 +89,12 @@ def permission_required(function):
     This decorator uses `validate_permissions_from_request` function, so you might want to read it before trying to understand this.
     """
     @wraps(function)
-    @get_company_id_as_int
     def permission_required_wrap(request, *args, **kwargs):
-        if request.is_public:
-            try:
-                validate_permissions_from_request(request, 'public', **kwargs)
-            except PublicPermissionIsValidError as ppiv:
-                return function(request, *args, **kwargs)
-            return JsonResponse({
-                'status': 'error',
-                'reason': 'api_is_not_public'
-            }, status=400)
+        if getattr(request, 'is_public', False):
+            decorated = public_access_permissions(function)
+            return decorated(request, *args, **kwargs)
         else:
-            try:
-                validate_permissions_from_request(request, 'default', **kwargs)
-            except PermissionsError as pe:
-                return JsonResponse({
-                    'status': 'error',
-                    'reason': pe.detail
-                }, status=pe.status)
-
-            return jwt_required(function(request, *args, **kwargs))
+            decorated = logged_in_user_permission_required(function)
+            return decorated(request, *args, **kwargs)
         
     return permission_required_wrap

@@ -240,6 +240,7 @@ PERMISSIONS = {
         'reflow_server.theme.permissions.ThemeDefaultPermission'
     ],
     'PUBLIC': [
+        'reflow_server.authentication.permissions.AuthenticationPublicPermission',
         'reflow_server.formulary.permissions.FormularyPublicPermission'
     ],
     'BILLING': [

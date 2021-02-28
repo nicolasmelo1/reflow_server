@@ -11,7 +11,7 @@ class FieldService(Settings):
         self.user_id = user_id
         self.company_id = company_id
         self.form = Form.objects.filter(id=form_id).first()
-
+    # ------------------------------------------------------------------------------------------
     @transaction.atomic
     def save_field(self, enabled, label_name, order, is_unique, field_is_hidden, 
                    label_is_hidden, placeholder, required, section, form_field_as_option, 

@@ -13,15 +13,14 @@ class DataService(DataSort, DataSearch):
     def __init__(self, user_id, company_id):
         self.user_id = user_id
         self.company_id = company_id
-    
+    # ------------------------------------------------------------------------------------------
     @staticmethod
     def validate_and_extract_date_from_string(date):
         try:
             return datetime.strptime(date, '%d/%m/%Y')
         except ValueError as ve:
             return None
-        return None
-
+    # ------------------------------------------------------------------------------------------
     @classmethod
     def get_user_form_data_ids_from_query_params(cls, query_params, user_id, company_id, form_id):
         """
@@ -50,7 +49,7 @@ class DataService(DataSort, DataSearch):
         converted_sort_data = data_service.convert_sort_query_parameters(params['sort']['field'], params['sort']['value'])
         form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data, from_date=from_date, to_date=to_date)
         return form_data_accessed_by_user
-
+    # ------------------------------------------------------------------------------------------
     @staticmethod
     def extract_query_parameters_from_request(query_params):
         if all([value in query_params for value in ['search_field', 'search_value', 'search_exact']]):
@@ -80,7 +79,7 @@ class DataService(DataSort, DataSearch):
                 'field': sort_field_query_param
             }
         }
-
+    # ------------------------------------------------------------------------------------------
     @staticmethod
     def convert_sort_query_parameters(sort_field_names_list, sort_values_list):
         """
@@ -109,7 +108,7 @@ class DataService(DataSort, DataSearch):
             } for index in range(0, len(sort_values_list))]
 
         return formatted_sort
-
+    # ------------------------------------------------------------------------------------------
     @staticmethod
     def convert_search_query_parameters(search_field_names_list, search_values_list, search_exact_list):
         """
@@ -143,7 +142,7 @@ class DataService(DataSort, DataSearch):
         ]
 
         return formatted_search
-
+    # ------------------------------------------------------------------------------------------
     def all_form_data_a_user_has_access_to(self):
         """
         Extremally slow function for retrieving all of the forms a user has access to, don't use it,
@@ -160,7 +159,7 @@ class DataService(DataSort, DataSearch):
             all_dynamic_form_ids_a_user_has_access_to = all_dynamic_form_ids_a_user_has_access_to + forms_data
 
         return all_dynamic_form_ids_a_user_has_access_to
-
+    # ------------------------------------------------------------------------------------------
     def get_user_form_data_ids_from_form_id(self, form_id, search_keys=[], sort_keys=[], from_date=None, to_date=None):
         """
         Retrieves all of the data of a formulary that a user has access to. This function already handles search, and sort.
@@ -242,7 +241,7 @@ class DataService(DataSort, DataSearch):
         
         self.__filter_by_profile_permissions(form_id)
         return list(self._data.values_list('id', flat=True))
-
+    # ------------------------------------------------------------------------------------------
     def __filter_by_profile_permissions(self, form_id):
         """
         This is one of the key features of our platform that can be later changed by the more advanced `filter`.

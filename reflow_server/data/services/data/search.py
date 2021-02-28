@@ -9,7 +9,7 @@ class SearchItem:
         self.field_name = field_name
         self.value = value
         self.exact = exact == "1"
-
+    # ------------------------------------------------------------------------------------------
     @staticmethod
     def convert_search_data(serach_data):
         search_objects = list()
@@ -20,6 +20,7 @@ class SearchItem:
 
 
 class DataSearch:
+    # ------------------------------------------------------------------------------------------
     def __search_exact(self, search_item):
         # Searchs for the exact value or parcial value, parcial also ignores the case
         if search_item.exact:
@@ -30,7 +31,7 @@ class DataSearch:
             return {
                 'value__icontains': search_item.value
             }
-    
+    # ------------------------------------------------------------------------------------------
     def _search(self, search_keys):
         """
         Used for searching the keys in the forms, it's a loop so all the filters are satisfied.
@@ -68,7 +69,7 @@ class DataSearch:
                     )
 
         self._data = self._data.filter(company_id=self.company_id, id__in=form_ids_to_filter)
-
+    # ------------------------------------------------------------------------------------------
     def _search_date(self, search_item, field_data, form_ids_to_filter):
         """
         When the user is trying to filter dates, if he types 06/08/2020 - 06/08/2020
@@ -95,7 +96,7 @@ class DataSearch:
                     end_date=end_date
                 )
             )
-    
+    # ------------------------------------------------------------------------------------------
     def _search_form(self, search_item, field_data, form_ids_to_filter):
         return list(
             FormValue.data_.form_depends_on_ids_for_search_form_field_types(
@@ -107,7 +108,7 @@ class DataSearch:
                 search_value_dict=self.__search_exact(search_item)
             )
         )
-        
+    # ------------------------------------------------------------------------------------------
     def _search_user(self, search_item, field_data, form_ids_to_filter):
         first_name = search_item.value.split(' ')[0]
         last_name = search_item.value.split(' ')[1] if len(search_item.value.split(' ')) > 1 else None
