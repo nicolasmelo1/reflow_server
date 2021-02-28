@@ -50,7 +50,7 @@ class FieldService(Settings):
         instance.date_configuration_date_format_type = date_configuration_date_format_type
         instance.period_configuration_period_interval_type = period_configuration_period_interval_type
         instance.type = field_type
-        instance.name = self.format_name('field', instance.id, instance.name, label_name)
+        instance.name = instance.name if instance.name else self.format_name('field', instance.id, instance.name, label_name)
         instance.save()
         
 
