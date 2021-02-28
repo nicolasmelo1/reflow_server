@@ -48,8 +48,6 @@ class DataService(DataSort, DataSearch):
         # get the correct data to pass as parameters
         converted_search_data = data_service.convert_search_query_parameters(params['search']['field'], params['search']['value'], params['search']['exact'])
         converted_sort_data = data_service.convert_sort_query_parameters(params['sort']['field'], params['sort']['value'])
-        print('converted_search_data')
-        print(converted_search_data)
         form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data, from_date=from_date, to_date=to_date)
         return form_data_accessed_by_user
 
@@ -219,8 +217,7 @@ class DataService(DataSort, DataSearch):
                 self.company_id, 
                 form_id
             )
-        print('search_keys')
-        print(search_keys)
+
         if search_keys:
             if type(search_keys) != list or any([type(search) != dict for search in search_keys]) or any([type(list(search.values())[0]) != tuple for search in search_keys]):
                 raise AssertionError('Your list of dicts must follow the following formatting: \n'

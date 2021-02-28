@@ -35,7 +35,7 @@ class DataView(APIView):
 
     def get(self, request, company_id, form):
         formulary_instance = Form.objects.filter(group__company_id=company_id, form_name=form).first()
-        print('BREAKPOINT')
+
         if formulary_instance:
             pagination = Pagination.handle_pagination(
                 current_page=int(request.query_params.get('page', 1)),
