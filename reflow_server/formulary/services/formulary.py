@@ -71,7 +71,7 @@ class FormularyService(Settings):
         instance.order = order
         instance.group = group
         instance.type = SectionType.objects.filter(type='form').first()
-        instance.form_name = instance.form_name if instance.form_name else self.format_name('form', instance.id, instance.form_name, label_name)
+        instance.form_name = self.format_name('form', instance.id, instance.form_name, label_name)
         instance.save()
 
         if is_new:

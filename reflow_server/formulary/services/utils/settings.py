@@ -51,8 +51,12 @@ class Settings:
                             .encode('ascii', 'ignore').decode('utf-8').translate(
                         str.maketrans('', '', string.punctuation))
                     )
-       
-        return self.__check_if_name_exists(form_or_field, instance_id, new_name)
+        # if the label name of the field hasn't changed, there is no need to recreate it.
+        is_new_name_equal_to_old_name = old_name != None and new_name == old_name.split('_')[0]
+        if is_new_name_equal_to_old_name:
+            return old_name
+        else:
+            return self.__check_if_name_exists(form_or_field, instance_id, new_name)
 
     def __check_if_name_exists(self, form_or_field, instance_id, name):
         name = replace_dumb_characters_from_str(
@@ -64,7 +68,6 @@ class Settings:
             name = name + '_'
         if not instance_id:
             instance_id = None
-        
         new_name = name
         while self._has_form_or_field_with_name(form_or_field, new_name, instance_id):
             number = random.randint(1,1000)
