@@ -31,7 +31,6 @@ class AbstractKanbanCardField(models.Model):
     class Meta:
         abstract = True
         app_label = 'kanban'
-        ordering = ('order',)
 
 
 class AbstractKanbanDimensionOrder(models.Model):

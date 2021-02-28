@@ -44,7 +44,15 @@ class SectionDataRelation(serializers.ModelSerializer):
 class FilteredFormularyValueListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         if self.context.get('fields', None):
-            data = [form_value for field_id in self.context.get('fields') for form_value in self.context['form_values_reference'][data.core_filters['form'].id].get(int(field_id), [])]
+            # this prevents us from retrieving the same form_value_id twice
+            new_data = []
+            retrieved_form_value_ids = []
+            for field_id in self.context.get('fields'):
+                for form_value in self.context['form_values_reference'][data.core_filters['form'].id].get(int(field_id), []):
+                    if form_value.id not in retrieved_form_value_ids:
+                        retrieved_form_value_ids.append(form_value.id)
+                        new_data.append(form_value)
+            data = new_data
         else:
             data = [form_value for field_values in self.context['form_values_reference'][data.core_filters['form'].id].values() for form_value in field_values]
         return super(FilteredFormularyValueListSerializer, self).to_representation(data)
