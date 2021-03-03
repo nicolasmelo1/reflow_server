@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from reflow_server.formulary.models import Form, Field, OptionAccessedBy, FieldOptions, FormAccessedBy
+from reflow_server.formulary.services.sections import SectionService
+from reflow_server.formulary.services.fields import FieldService
 
 
 class FilteredFieldOptionListSerializer(serializers.ListSerializer):
@@ -27,6 +29,11 @@ class FormFieldAsOptionRelation(serializers.ModelSerializer):
 
 class FilteredFieldsListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
+        if self.context.get('public_access_key', None):
+            form_id = data.core_filters['form'].depends_on_id
+
+            field_service = FieldService(self.context['user_id'], self.context['company_id'], form_id)
+            data = field_service.get_public_fields(self.context['public_access_key'])
         data = data.filter(enabled=True).order_by('order')
         return super(FilteredFieldsListSerializer, self).to_representation(data)
 
@@ -43,6 +50,10 @@ class FormFieldRelation(serializers.ModelSerializer):
 
 class FilteredSectionListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
+        if self.context.get('public_access_key', None):
+            form_id = data.core_filters['depends_on'].id
+            section_service = SectionService(self.context['user_id'], self.context['company_id'], form_id)
+            data = section_service.get_public_sections(self.context['public_access_key'])
         data = data.filter(enabled=True).order_by('order')
         return super(FilteredSectionListSerializer, self).to_representation(data)
 

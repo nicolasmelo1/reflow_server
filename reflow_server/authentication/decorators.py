@@ -46,6 +46,16 @@ def get_company_id_as_int(function):
     return get_company_id_as_int_wrap
 # ------------------------------------------------------------------------------------------
 def logged_in_user_permission_required(function):
+    """
+    This is used to validating all of the permissions of the user. Does the user have access to it, or not. 
+    By default the users have permission FOR EVERYTHING you need to block what he can and what he can't acess
+    creating custom permission classes inside of the apps.
+
+    Permissions are not default to django, we've created it the same way as Django Rest Framework adds the `serializers.py` files
+    we add the `permissions.py` files. To understand how permissions work read 
+    `reflow_server.core.permissions.validate_permissions_from_request` to understand how to create permissions and 
+    to validate if the users have an access or not.
+    """
     @wraps(function)
     @jwt_required
     @get_company_id_as_int
@@ -63,6 +73,20 @@ def logged_in_user_permission_required(function):
     return logged_in_user_permission_required_wrap
 # ------------------------------------------------------------------------------------------
 def public_access_permissions(function):
+    """
+    THIS IS HIGHLY SENSITIVE, AND CAN BRING LEGAL ISSUES IF DONE WRONG, SO BE AWARE OF THIS WHEN MAKING CHANGES
+
+    This validates if an Unauthenticated user can access some content or not. By default, THE USER CANNOT ACCESS ANYTHING UNAUTHENTICATED.
+    So you need to throw an error in your permission class, allowing the user to access some content. I know that this might seem counter
+    intuitive, but we need to make it this way. Be aware that this can expose sensitive information about the user to the public,
+    so make a lot of tests to guarantee you are not exposing any sensitive information of the user. And that also you are NOT allowing the public
+    to make any changes to the user data WITHOUT the user consent.
+
+    Permissions are not default to django, we've created it the same way as Django Rest Framework adds the `serializers.py` files
+    we add the `permissions.py` files. To understand how permissions work read 
+    `reflow_server.core.permissions.validate_permissions_from_request` to understand how to create permissions and 
+    to validate if the users have an access or not.
+    """
     @wraps(function)
     @get_company_id_as_int
     def public_access_permissions_wrap(request, *args, **kwargs):
@@ -81,12 +105,13 @@ def public_access_permissions(function):
 # ------------------------------------------------------------------------------------------
 def permission_required(function):
     """
-    Validates all of the permission of a user while validating if the user is logged or not.
-    This decorator is used primarly on view functions. So in order to render a response to a user it first needs
-    to check if the user is accessing the data that he has access to.  If the user is not valid in some of these validations, since he
-    is logged in, we render a dumb 404 face in the content with menus on top so he can navigate in our website.
+    Simple middleware that validates the permissions of the users
 
-    This decorator uses `validate_permissions_from_request` function, so you might want to read it before trying to understand this.
+    Args:
+        function ([type]): [description]
+
+    Returns:
+        [type]: [description]
     """
     @wraps(function)
     def permission_required_wrap(request, *args, **kwargs):

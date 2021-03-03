@@ -17,8 +17,10 @@ class SearchItem:
             [(field_name, (field_value, search_exact))] = search.items()
             search_objects.append(SearchItem(field_name, field_value, search_exact))
         return search_objects
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
 class DataSearch:
     # ------------------------------------------------------------------------------------------
     def __search_exact(self, search_item):
@@ -153,3 +155,4 @@ class DataSearch:
                 search_user_ids=search_values
             )
         )
+    # ------------------------------------------------------------------------------------------

@@ -16,6 +16,7 @@ def get_user(user_id):
         return AnonymousUser()
 
 
+############################################################################################
 # HTTP Auth JWT middleware
 class AuthJWTMiddleware:
     """
@@ -31,6 +32,7 @@ class AuthJWTMiddleware:
     """
     def __init__(self, get_response):
         self.get_response = get_response
+    # ------------------------------------------------------------------------------------------
 
     def __call__(self, request): 
         jwt = JWT()
@@ -46,12 +48,36 @@ class AuthJWTMiddleware:
         response = self.get_response(request)
 
         return response
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
+# HTTP AUTH public middleware
 class AuthPublicMiddleware:
+    """
+    THIS IS HIGHLY SENSITIVE, AND CAN BRING LEGAL ISSUES IF DONE WRONG, SO BE AWARE OF THIS WHEN MAKING CHANGES
+
+    This is where things can get a little shady.
+    This custom Middleware is responsible for validating and appending if the request you are making is public.
+    WHAT?
+
+    So what happens is: we have many urls in this application, one is for getting the data to build the formulary, another is for 
+    retrieving the data to build the kanban and so on. What if the user wants to share a kanban card, or a formulary with another people,
+    but these people are not logged users from reflow?
+
+    What most people would think of is: Okay, so let's create some public urls that doesn't require login. And this is a valid approach but 
+    it makes us need to write the same logic more times, not only on the backend, but also on the front-end.
+
+    The Solution:
+    > So, to make everything simpler, i decided to create a unique public_access_key for each user in our platform, this public_access_key
+    is a simple uuid. Then we create tables in each app to check what data can be public and what data CAN'T be public.
+    What this middleware does is check if the request has a `public_key` query param. If it has than our only job is to get the user bounded to
+    this `public_key` and append to the request and also append to the request the `is_public` param, signaling our views and middleware that
+    this request is coming from an Unauthenticated user.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
-
+    # ------------------------------------------------------------------------------------------
     def __call__(self, request): 
         if 'public_key' in request.GET and isinstance(request.user, AnonymousUser):
             request.is_public = True
@@ -61,8 +87,10 @@ class AuthPublicMiddleware:
             request.is_public = False
         response = self.get_response(request)
         return response
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
 class AuthWebsocketJWTMiddleware(BaseMiddleware):
     """
     Okay, so this middleware is not straight forward, and have some undocummented
@@ -78,7 +106,7 @@ class AuthWebsocketJWTMiddleware(BaseMiddleware):
     """
     def __init__(self, inner):
         self.inner = inner
-
+    # ------------------------------------------------------------------------------------------
     async def __call__(self, scope, receive, send):
         user = AnonymousUser()
         jwt = JWT()
@@ -87,3 +115,4 @@ class AuthWebsocketJWTMiddleware(BaseMiddleware):
             payload = jwt.data
             user = await get_user(payload['id'])
         return await self.inner(dict(scope, user=user), receive, send)
+    # ------------------------------------------------------------------------------------------

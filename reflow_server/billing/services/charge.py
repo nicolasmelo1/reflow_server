@@ -79,8 +79,9 @@ class ChargeService:
             quantity = individual_charge_value_type.default_quantity
             if current_company_charge:
                 quantity = current_company_charge.quantity
+            # when it's per_user we always count the number of active users in our company
             if individual_charge_value_type.name == 'per_user':
-                quantity = UserExtended.billing_.users_active_by_company_id(company_id=self.company_id).count()
+                quantity = UserExtended.billing_.users_active_by_company_id(company_id=self.company_id).count() 
             new_curent_company_charges.append(CompanyChargeData(individual_charge_value_type.name, quantity))
 
         return new_curent_company_charges

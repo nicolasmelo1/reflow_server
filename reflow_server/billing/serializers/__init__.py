@@ -46,7 +46,7 @@ class CurrentCompanyChargeListSerializer(serializers.ListSerializer):
         current_company_charges = [
             CompanyChargeData(
                 individual_value_charge_name=current_company_charge['individual_charge_value_type']['name'], 
-                quantity=current_company_charge['quantity'] 
+                quantity=current_company_charge['quantity']
             ) 
             for current_company_charge in validated_data
         ]
@@ -60,6 +60,7 @@ class CurrentCompanyChargeListSerializer(serializers.ListSerializer):
                 'total': value['value']
             } for key, value in total_data.total_by_charge_name.items()]
         }
+        print(data)
         return data
 
 class CurrentCompanyChargeSerializer(serializers.ModelSerializer):

@@ -271,7 +271,7 @@
         "model": "billing.individualchargevaluetype",
         "pk": 2,
         "fields": {
-            "charge_type": 1,
+            "charge_type": 2,
             "charge_frequency_type": 1,
             "name": "per_user",
             "charge_group_name": "per_user",

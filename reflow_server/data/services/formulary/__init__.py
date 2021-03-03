@@ -12,7 +12,7 @@ from datetime import datetime
 
 
 class FormularyDataService(PreSave, PostSave):
-    def __init__(self, user_id, company_id, form_name):
+    def __init__(self, user_id, company_id, form_name, public_access_key=None):
         """
         This object handles the save and update of the data of a single form.
 
@@ -25,8 +25,9 @@ class FormularyDataService(PreSave, PostSave):
         self.user_id = user_id
         self.company_id = company_id
         self.form_name = form_name
+        self.public_access_key = public_access_key
         self.post_save_process = list()
-
+    # ------------------------------------------------------------------------------------------
     def add_formulary_data(self, form_data_id=None, duplicate=False):
         """
         This function is meant to be run inside a loop of insertion. it's important to 
@@ -58,7 +59,7 @@ class FormularyDataService(PreSave, PostSave):
             form_data_id = None
         self.formulary_data = FormularyData(form_data_id)
         return self.formulary_data
-
+    # ------------------------------------------------------------------------------------------
     def __send_events_post_save(self, formulary_instance_id): 
         """
         Sends all of the events it has to send for the users of the company AFTER the formulary has been saved.
@@ -72,13 +73,21 @@ class FormularyDataService(PreSave, PostSave):
 
         # updates the pre_notifications
         PreNotificationService.update(self.company_id)
-
+    # ------------------------------------------------------------------------------------------
+    @property
+    def __fields_to_use_in_formulary(self):
+        pass
+    # ------------------------------------------------------------------------------------------
+    @property
+    def __sections_to_use_in_formulary(self):
+        return Form.data_.sections_enabled_by_main_form_name_and_company_id(self.form_name, self.company_id)
+    # ------------------------------------------------------------------------------------------
     @property
     def __check_formulary_data(self):
         if not hasattr(self, 'formulary_data'):
             raise AssertionError('You should call `.add_formulary_data()` method before calling '
                                  'the method you are trying to call')
-
+    # ------------------------------------------------------------------------------------------
     def is_valid(self):
         """
         Cleans the data (the internal data, not outside, we don't clean the data on your serializer or whatever directly)
@@ -94,11 +103,7 @@ class FormularyDataService(PreSave, PostSave):
             form_name=self.form_name, 
             group__company_id=self.company_id
         ).first()
-        self.sections = Form.objects.filter(
-            depends_on__form_name= self.form_name, 
-            depends_on__group__company_id=self.company_id, 
-            enabled=True
-        )
+        self.sections = self.__sections_to_use_in_formulary
         self.fields = Field.objects.filter(
             form__depends_on__form_name= self.form_name,
             form__id__in=self.sections,
@@ -110,7 +115,7 @@ class FormularyDataService(PreSave, PostSave):
 
         self.validated = True
         return self.formulary_data_is_valid(self.formulary_data)        
-
+    # ------------------------------------------------------------------------------------------
     @transaction.atomic
     def save(self):
         """
@@ -181,3 +186,4 @@ class FormularyDataService(PreSave, PostSave):
         self.__send_events_post_save(formulary_instance.id)
 
         return formulary_instance
+    # ------------------------------------------------------------------------------------------

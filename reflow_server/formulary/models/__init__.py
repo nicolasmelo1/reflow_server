@@ -5,6 +5,8 @@ from reflow_server.formulary.models.abstract import AbstractForm, AbstractField,
 from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, FormAccessedByThemeManager
 from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
+from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager
+from reflow_server.data.managers import FormDataManager
 
 
 class SectionType(models.Model):
@@ -247,8 +249,10 @@ class Form(AbstractForm):
         ordering = ('order',)
 
     objects = models.Manager()
+    formulary_ = FormFormularyManager()
     theme_ = FormThemeManager()
     pdf_generator_ = FormPDFGeneratorManager()
+    data_ = FormDataManager()
 
 
 class Field(AbstractField):
@@ -369,13 +373,16 @@ class PublicAccessForm(models.Model):
     public_access = models.ForeignKey('authentication.PublicAccess', models.CASCADE, db_index=True)
 
     class Meta:
-        db_table = 'public_form'   
+        db_table = 'public_access_form'   
 
 
 class PublicAccessField(models.Model):
     public_form = models.ForeignKey('formulary.PublicAccessForm', models.CASCADE, db_index=True)
-    form = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True)
+    field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True)
     public_access = models.ForeignKey('authentication.PublicAccess', models.CASCADE, db_index=True)
 
     class Meta:
-        db_table = 'public_field'   
+        db_table = 'public_access_field'   
+    
+    objects = models.Manager()
+    formulary_ = PublicAccessFieldFormularyManager()

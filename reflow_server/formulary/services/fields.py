@@ -3,7 +3,7 @@ from django.db import transaction
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.formulary.services.utils import Settings
-from reflow_server.formulary.models import Form, Field, FieldOptions
+from reflow_server.formulary.models import Form, Field, FieldOptions, PublicAccessField
 
 
 class FieldService(Settings):
@@ -11,6 +11,16 @@ class FieldService(Settings):
         self.user_id = user_id
         self.company_id = company_id
         self.form = Form.objects.filter(id=form_id).first()
+    # ------------------------------------------------------------------------------------------
+    def get_public_fields(self, public_access_key):
+        """
+        Retrieve all of the fields that are public and accessible by unauthenticated users
+
+        Args:
+            public_access_key ([type]): [description]
+        """
+        field_ids = PublicAccessField.formulary_.field_ids_by_public_access_key(public_access_key)
+        return Field.objects.filter(id__in=field_ids, form__depends_on=self.form, form__depends_on__group__company_id=self.company_id)
     # ------------------------------------------------------------------------------------------
     @transaction.atomic
     def save_field(self, enabled, label_name, order, is_unique, field_is_hidden, 
@@ -64,8 +74,7 @@ class FieldService(Settings):
         elif FieldOptions.objects.filter(field=instance).exists():
             field_options_service.remove_field_options_from_field(instance.id)
 
-        from reflow_server.formulary.events import FormularyEvents
-
+        from reflow_server.formulary.events import FormularyEvents        
         FormularyEvents.send_updated_formulary(self.company_id, self.form.id, self.form.form_name)
 
         return instance

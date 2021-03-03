@@ -37,7 +37,11 @@ class GetFormularyView(APIView):
     """
     def get(self, request, company_id, form):
         instance = Form.objects.filter(form_name=form, company_id=company_id, depends_on__isnull=True).first()
-        serializer = GetFormSerializer(user_id=request.user.id, instance=instance)
+        serializer = GetFormSerializer(instance=instance, context={
+            'company_id': company_id,
+            'public_access_key': request.query_params.get('public_key', None),
+            'user_id': request.user.id
+        })
         return Response({
             'status': 'ok',
             'data': serializer.data

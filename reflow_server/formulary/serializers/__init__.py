@@ -12,16 +12,11 @@ class GetFormSerializer(serializers.ModelSerializer):
     Retrives the data of a particular formulary with all of its fields, this data
     is used to build the formulary.
 
-    Args:
+    Context Args:
         user_id (int): The id of the user for who you are trying to retrieve the form to
+        public_access_key(str): The public access key used by unauthenticated users
     """
     depends_on_form = SectionRelation(many=True)
-
-    def __init__(self, user_id, **kwargs):
-        kwargs['context'] = {
-            'user_id': user_id
-        }
-        super(GetFormSerializer, self).__init__(**kwargs)
 
     class Meta:
         model = Form
