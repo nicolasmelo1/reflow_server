@@ -161,8 +161,8 @@ class TotalData:
             float: The total the user has to pay with discounts
         """
         total = self.total_without_discounts
-        discount_coupon = float(self.total_coupons_discounts)
+        discount_coupon = self.total_coupons_discounts
 
-        total = (total * discount_coupon['percentage']) - discount_coupon['full']
+        total = (total * float(discount_coupon['percentage'])) - float(discount_coupon['full'])
         total = 0 if total < 0 else total
         return total
