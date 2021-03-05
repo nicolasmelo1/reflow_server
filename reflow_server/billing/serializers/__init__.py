@@ -53,7 +53,7 @@ class CurrentCompanyChargeListSerializer(serializers.ListSerializer):
         total_data = charge_service.get_total_data_from_custom_charge_quantity(current_company_charges)
         data = {
             'total': total_data.total,
-            'discounts': total_data.total_coupons_discounts,
+            'discounts': total_data.total_without_discounts - total_data.total,
             'total_by_name': [{
                 'name': key, 
                 'quantity': value['quantity'],

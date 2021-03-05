@@ -99,11 +99,26 @@ class TotalData:
         Gets the total of the discounts by company coupons, we can send coupons to companies so they can have
         discounts while using our platform. This gets the total of the discount coupons so we can subtract from the total.
 
+        IMPORTANT: The coupons can be a percentage or can be full. If percentage, this means we give X% discount for companies. If full
+        this means we give $X discount for companies.
+
         Returns:
-            float: a float with the total of discounts
+            dict(): {
+                full: float - The full value the user have as discount.
+                percentage: float - The percentage the user have as discount.
+            }
         """
-        discounts_aggregate_result = self.discount_coupons.aggregate(total_coupons_discount=Sum('discount_coupon__value')).get('total_coupons_discount', 0)
-        return float(discounts_aggregate_result) if discounts_aggregate_result else 0
+        # These are the full values, like $25 in discount
+        discounts_aggregate_sum_result = self.discount_coupons.filter(discount_coupon__value__gte=1).aggregate(total_coupons_discount=Sum('discount_coupon__value')).get('total_coupons_discount', 0)
+        # These are the percentage discount values, like 10% of discount.
+        discount_percentages = self.discount_coupons.filter(discount_coupon__value__lt=1)
+        discounts_aggregate_multiply_result = 1
+        for discount_percentage in discount_percentages:
+            discounts_aggregate_multiply_result = discounts_aggregate_multiply_result * discount_percentage.value
+        return {
+            'full': float(discounts_aggregate_sum_result) if discounts_aggregate_sum_result else 0,
+            'percentage': discounts_aggregate_multiply_result
+        }
 
     @property
     def total_by_charge_name(self):
@@ -123,11 +138,31 @@ class TotalData:
         return total_by_charge_name
 
     @property
-    def total(self):
+    def total_without_discounts(self):
+        """
+        Retrieves the totals without any discount on the total value. If the total is less than 0 then it's 0.
+
+        Returns:
+            float: The total the user has to pay without discounts
+        """
         total = 0
         totals = [value['value'] for value in self.total_by_charge_name.values()]
         if len(totals) > 0:
             total = functools.reduce(lambda x, y: float(x) + float(y), numpy.asarray(totals))
-        total = total - float(self.total_coupons_discounts)
+        total = 0 if total < 0 else total
+        return total
+
+    @property
+    def total(self):
+        """
+        This gives the total that the company has to pay without discounts. If the total is less than 0 then it's 0.
+
+        Returns:
+            float: The total the user has to pay with discounts
+        """
+        total = self.total_without_discounts
+        discount_coupon = float(self.total_coupons_discounts)
+
+        total = (total * discount_coupon['percentage']) - discount_coupon['full']
         total = 0 if total < 0 else total
         return total
