@@ -111,10 +111,10 @@ class TotalData:
         # These are the full values, like $25 in discount
         discounts_aggregate_sum_result = self.discount_coupons.filter(discount_coupon__value__gte=1).aggregate(total_coupons_discount=Sum('discount_coupon__value')).get('total_coupons_discount', 0)
         # These are the percentage discount values, like 10% of discount.
-        discount_percentages = self.discount_coupons.filter(discount_coupon__value__lt=1)
+        company_discount_coupons_percentages = self.discount_coupons.filter(discount_coupon__value__lt=1)
         discounts_aggregate_multiply_result = 1
-        for discount_percentage in discount_percentages:
-            discounts_aggregate_multiply_result = discounts_aggregate_multiply_result * discount_percentage.value
+        for company_discount_coupon in company_discount_coupons_percentages:
+            discounts_aggregate_multiply_result = discounts_aggregate_multiply_result * company_discount_coupon.discount_coupon.value
         return {
             'full': float(discounts_aggregate_sum_result) if discounts_aggregate_sum_result else 0,
             'percentage': discounts_aggregate_multiply_result
