@@ -22,10 +22,10 @@ class FormDataSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(allow_null=True, required=False)
     depends_on_dynamic_form = SectionDataRelation(many=True)
 
-    def __init__(self, user_id, company_id, form_name, form_data_id=None, duplicate=False, **kwargs):
+    def __init__(self, user_id, company_id, form_name, form_data_id=None, duplicate=False, public_access_key=None, **kwargs):
         self.form_data_id = form_data_id
         self.duplicate = duplicate
-        self.formulary_service = FormularyDataService(user_id, company_id, form_name)
+        self.formulary_service = FormularyDataService(user_id, company_id, form_name, public_access_key=public_access_key)
         super(FormDataSerializer, self).__init__(**kwargs)
     # ------------------------------------------------------------------------------------------
     def validate(self, data):

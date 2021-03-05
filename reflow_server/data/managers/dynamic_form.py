@@ -6,7 +6,7 @@ from datetime import datetime
 
 class DynamicFormDataManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().all()
+        return super().get_queryset()
 
     def create_or_update_main_form_instance(self, form_id, user_id, company_id, main_form_instance_id=None):
         """

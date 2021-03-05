@@ -4,7 +4,7 @@ from django.db.models import Q, Sum
 
 class AttachmentsDataManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().all()
+        return super().get_queryset()
     
     def company_aggregated_file_sizes(self, company_id):
         """

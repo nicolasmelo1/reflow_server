@@ -6,8 +6,8 @@ from django.db.models.functions import NullIf, Coalesce, Cast
 
 class FormValueDataManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().all()
-    
+        return super().get_queryset()
+    # ------------------------------------------------------------------------------------------
     def create_or_update(self, field, field_type, company_id, date_configuration_date_format_type, 
                         period_configuration_period_interval_type, number_configuration_number_format_type,
                         formula_configuration, form_field_as_option, value, section, form_value_id=None):
@@ -69,7 +69,7 @@ class FormValueDataManager(models.Manager):
             }
         )
         return instance
-    
+    # ------------------------------------------------------------------------------------------
     def form_values_by_main_form_ids_company_id(self, main_form_ids, company_id):
         """
         Gets the form_values from a list of main_form_ids (those are not section ids) and from a company_id
@@ -83,7 +83,7 @@ class FormValueDataManager(models.Manager):
             recieved
         """
         return self.get_queryset().filter(form__depends_on_id__in=main_form_ids, company_id=company_id)
-
+    # ------------------------------------------------------------------------------------------
     def form_values_by_value_field_id_and_section_id(self, value, field_id, section_id):
         """
         Gets FormValue instances by the value, field_id and section_id of this FormValue
@@ -97,7 +97,7 @@ class FormValueDataManager(models.Manager):
             django.db.models.QuerySet(reflow_server.data.models.FormValue): A queryset of FormValues based on the parameters
         """
         return self.get_queryset().filter(value=value, field_id=field_id, form__form_id=section_id)
-    
+    # ------------------------------------------------------------------------------------------
     def form_value_by_form_value_id(self, form_value_id):
         """
         Gets a single instance based on a FormValue instance id
@@ -109,7 +109,7 @@ class FormValueDataManager(models.Manager):
             reflow_server.data.models.FormValue: The FormValue instance
         """
         return self.get_queryset().filter(id=form_value_id).first()
-
+    # ------------------------------------------------------------------------------------------
     def value_by_form_value_id(self, form_value_id):
         """
         Gets a single value based on a FormValue instance id
@@ -121,7 +121,7 @@ class FormValueDataManager(models.Manager):
             reflow_server.data.models.FormValue: The single FormValue instance
         """
         return self.get_queryset().filter(id=form_value_id).values_list('value', flat=True).first()
-    
+    # ------------------------------------------------------------------------------------------   
     def value_field_type_and_form_field_as_option_id_by_form_id_and_field_id(self, form_id, field_id):
         """
         Returns a single dict based on a FormValue containing the following keys: `value`, `field_type__type`, `form_field_as_option_id`
@@ -134,7 +134,7 @@ class FormValueDataManager(models.Manager):
             dict: This data is based on a FormValue, the dict will contain the keys: `value`, `field_type__type`, `form_field_as_option_id`
         """
         return self.get_queryset().filter(form_id=form_id, field_id=field_id).values('value', 'field_type__type', 'form_field_as_option_id').first()
-
+    # ------------------------------------------------------------------------------------------
     def value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(self, depends_on_ids, field_type_id, field_id):
         """
         Gets a QuerySet from tuples where the first index of the tuple contains the value, and the second index is the form_id it is from.
@@ -157,7 +157,7 @@ class FormValueDataManager(models.Manager):
         ).exclude(
             Q(value='') | Q(value__isnull=True)
         ).values_list('value', 'form__depends_on_id')
-
+    # ------------------------------------------------------------------------------------------
     def distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty_ordered(self, depends_on_ids, field_type_id, field_id, order=[]):
         """
         It is basically the same as `value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty` method, except it gives us
@@ -180,7 +180,7 @@ class FormValueDataManager(models.Manager):
             order = Case(*[When(value=str(value), then=pos) for pos, value in enumerate(order)])
             data = data.order_by(order)
         return data
-    
+    # ------------------------------------------------------------------------------------------
     def form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(self,company_id, depends_on_forms, field_ids, field_types):
         """
         Gets a queryset of FormValues based on a list of main forms, the company_id that you want to retrieve, a list of field_ids and a list 
@@ -199,7 +199,7 @@ class FormValueDataManager(models.Manager):
             django.db.models.QuerySet(reflow_server.data.models.FormValue): A queryset of FormValues based on the parameters
         """
         return self.get_queryset().filter(form__depends_on__in=depends_on_forms, field__in=field_ids, field_type__type__in=field_types, company_id=company_id)
-
+    # ------------------------------------------------------------------------------------------
     def form_depends_on_ids_for_search_all_field_types(self, company_id, depends_on_forms, field_id, field_type, search_value_dict):
         """
         This is similar from the `form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id` method. But here we also filter the values
@@ -235,7 +235,7 @@ class FormValueDataManager(models.Manager):
         return self.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(company_id, depends_on_forms, [field_id], [field_type])\
             .filter(**search_value_dict)\
             .values_list('form__depends_on__id', flat=True)
-
+    # ------------------------------------------------------------------------------------------
     def form_depends_on_ids_for_search_date_field_types(self, company_id, depends_on_forms, field_id, field_type, start_date, end_date):
         """
         Similar of `form_depends_on_ids_for_search_all_field_types` method but only used for `date` field types
@@ -255,7 +255,7 @@ class FormValueDataManager(models.Manager):
         return self.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(company_id, depends_on_forms, [field_id], [field_type])\
             .filter(value__range=(start_date, end_date))\
             .values_list('form__depends_on__id', flat=True)
-    
+    # ------------------------------------------------------------------------------------------
     def form_depends_on_ids_for_search_form_field_types(self, company_id, depends_on_forms, field_id, field_type, form_field_as_option_id, search_value_dict):
         """
         Similar of `form_depends_on_ids_for_search_all_field_types` method but only used for `form` field types. Here we make two queries.
@@ -292,7 +292,7 @@ class FormValueDataManager(models.Manager):
         return self.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(company_id, depends_on_forms, [field_id], [field_type])\
             .filter(value__in=real_search_values)\
             .values_list('form__depends_on__id', flat=True)
-    
+    # ------------------------------------------------------------------------------------------
     def form_depends_on_ids_for_search_user_field_types(self, company_id, depends_on_forms, field_id, field_type, search_user_ids):
         """
         Similar of `form_depends_on_ids_for_search_all_field_types` method but only used for `user` field types
@@ -311,7 +311,7 @@ class FormValueDataManager(models.Manager):
         return self.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(company_id, depends_on_forms, [field_id], [field_type])\
             .filter(value__in=search_user_ids)\
             .values_list('form__depends_on__id', flat=True)
-
+    # ------------------------------------------------------------------------------------------
     def form_depends_on_and_values_for_sort_all_field_types(self, company_id, depends_on_forms, field_id, order_by_value):
         """
         This method is used to sort the form_depends_on and values of FormValue model for all field types. 
@@ -341,7 +341,7 @@ class FormValueDataManager(models.Manager):
         )\
         .order_by(order_by_value)\
         .values('form__depends_on', 'value')
-
+    # ------------------------------------------------------------------------------------------
     def form_depends_on_and_values_for_sort_date_field_types(self, company_id, depends_on_forms, field_id, field_type, order_by_value):
         """
         This is similar to `form_depends_on_and_values_for_sort_all_field_types` method. Excepts that it is specifically for 
@@ -366,7 +366,7 @@ class FormValueDataManager(models.Manager):
             .extra(select={'date': "to_timestamp(value, '{}')".format(settings.DEFAULT_PSQL_DATE_FIELD_FORMAT)}) \
             .extra(order_by=[order_by_value.replace('value', 'date')]) \
             .values('form__depends_on', 'value')
-    
+    # ------------------------------------------------------------------------------------------
     def form_depends_on_and_values_for_sort_user_field_types(self, company_id, depends_on_forms, field_id, field_type, user_ids_ordered):
         """
         This is similar to `form_depends_on_and_values_for_sort_all_field_types` method. Excepts that it is specifically for 
@@ -394,7 +394,7 @@ class FormValueDataManager(models.Manager):
             .filter(value__in=user_ids_ordered)\
             .order_by(order) \
             .values('form__depends_on', 'value')
-
+    # ------------------------------------------------------------------------------------------
     def form_depends_on_and_values_for_sort_form_field_types(self, company_id, depends_on_forms, field_id, field_type, form_field_as_option_id, order_by_value):
         """
         This is similar to `form_depends_on_and_values_for_sort_all_field_types` method. Excepts that it is specifically for 
@@ -433,7 +433,7 @@ class FormValueDataManager(models.Manager):
             .filter(value__in=list(form_value_order)) \
             .order_by(order) \
             .values('form__depends_on', 'value')
-
+    # ------------------------------------------------------------------------------------------
     def form_depends_on_and_values_for_sort_number_field_types(self, company_id, depends_on_forms, field_id, field_type, order_by_value):
         """
         This is similar to `form_depends_on_and_values_for_sort_all_field_types` method. Excepts that it is specifically for 
@@ -463,7 +463,7 @@ class FormValueDataManager(models.Manager):
             .annotate(value_as_float=Cast(Coalesce(NullIf('value_without_na_or_error', Value('')), Value('0')), FloatField())) \
             .order_by(order_by_value.replace('value', 'value_as_float')) \
             .values('form__depends_on', 'value')
-
+    # ------------------------------------------------------------------------------------------
     def attachment_form_values_by_main_form_id_excluding_form_value_ids_and_disabled_fields(self, dynamic_form_id, form_value_ids):
         """
         Gets all FormValue instances that are from the `attachment` field_type.
@@ -480,7 +480,7 @@ class FormValueDataManager(models.Manager):
         .exclude(
             Q(id__in=form_value_ids) | Q(field__enabled=False) | Q(field__form__enabled=False)
         )
-
+    # ------------------------------------------------------------------------------------------
     def delete_form_values_by_main_form_id_excluding_form_value_ids_and_disabled_fields(self, dynamic_form_id, form_value_ids):
         """
         Really similar to `attachment_form_values_by_main_form_id_excluding_form_value_ids_and_disabled_fields` method
@@ -499,7 +499,7 @@ class FormValueDataManager(models.Manager):
         .exclude(
             Q(id__in=form_value_ids) | Q(field__enabled=False) | Q(field__form__enabled=False)
         ).delete()
-
+    # ------------------------------------------------------------------------------------------
     def last_saved_value_of_id_field_type(self, section_id, field_type_id, field_id):
         """
         Gets the biggest saved value of an id field_type, we use this to create a new when we save a new value of type `id`.
@@ -523,7 +523,7 @@ class FormValueDataManager(models.Manager):
         .order_by('-value_as_int')\
         .values_list('value_as_int', flat=True)\
         .first()
-
+    # ------------------------------------------------------------------------------------------
     def exists_form_value_by_value_field_id_and_section_id(self, value, field_id, section_id):
         """
         Verifies if a value of a field_id and of a section_id exists or not.
@@ -537,7 +537,7 @@ class FormValueDataManager(models.Manager):
             bool: True or false if it exists or not
         """
         return self.form_values_by_value_field_id_and_section_id(value, field_id, section_id).exists()
-
+    # ------------------------------------------------------------------------------------------
     def exists_form_value_by_value_field_id_and_section_id_excluding_form_value_id(self, value, field_id, section_id, form_value_id):
         """
         Really similar to `exists_form_value_by_value_field_id_and_section_id` method, excepts
@@ -553,3 +553,5 @@ class FormValueDataManager(models.Manager):
             bool: True or false if it exists or not
         """
         return self.form_values_by_value_field_id_and_section_id(value, field_id, section_id).exclude(id=form_value_id).exists()
+    # ------------------------------------------------------------------------------------------
+    

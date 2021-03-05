@@ -35,7 +35,8 @@ class SectionData:
             None: Just a default return statement but is not needed for anything
         """
         # validates if self.formulary_data_id is defined, if it is, it means we are duplicating the value
-        # so we ignore the field_value_data_id recievied and set it to None
+        # so we ignore the field_value_data_id recievied and set it to None.
+        # this also prevents the user forcing to update the formulary directly by the api
         field_value_data_id = field_value_data_id if self.formulary_data_id else None
 
         # we only add values that are not empty strings or none

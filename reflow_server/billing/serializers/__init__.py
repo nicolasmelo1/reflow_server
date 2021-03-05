@@ -60,7 +60,6 @@ class CurrentCompanyChargeListSerializer(serializers.ListSerializer):
                 'total': value['value']
             } for key, value in total_data.total_by_charge_name.items()]
         }
-        print(data)
         return data
 
 class CurrentCompanyChargeSerializer(serializers.ModelSerializer):

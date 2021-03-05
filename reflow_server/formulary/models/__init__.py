@@ -6,7 +6,7 @@ from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeMana
 from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
 from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager
-from reflow_server.data.managers import FormDataManager
+from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager
 
 
 class SectionType(models.Model):
@@ -286,6 +286,7 @@ class Field(AbstractField):
     objects = models.Manager()
     theme_ = FieldThemeManager()
     pdf_generator_ = FieldPDFGeneratorManager()
+    data_ = FieldDataManager()
 
 
 class FieldOptions(AbstractFieldOptions):
@@ -386,3 +387,4 @@ class PublicAccessField(models.Model):
     
     objects = models.Manager()
     formulary_ = PublicAccessFieldFormularyManager()
+    data_ = PublicAccessFieldDataManager()

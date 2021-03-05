@@ -2,13 +2,11 @@ from django.db import transaction
 
 from reflow_server.authentication.models import UserExtended
 from reflow_server.notification.services.pre_notification import PreNotificationService
-from reflow_server.formulary.models import Form, Field
+from reflow_server.formulary.models import Form, Field, PublicAccessField
 from reflow_server.data.models import FormValue, DynamicForm
 from reflow_server.data.services.formulary.data import FormularyData
 from reflow_server.data.services.formulary.pre_save import PreSave
 from reflow_server.data.services.formulary.post_save import PostSave
-
-from datetime import datetime
 
 
 class FormularyDataService(PreSave, PostSave):
@@ -76,11 +74,41 @@ class FormularyDataService(PreSave, PostSave):
     # ------------------------------------------------------------------------------------------
     @property
     def __fields_to_use_in_formulary(self):
-        pass
+        """
+        Retrieves the fields we should use when validating the formulary, if it's a public access, we use only the fields that the original user
+        set to public.
+
+        Raises:
+            AssertionError: The sections to use should be retrieved first than the fields. We use those sections to filter the fields we should use
+
+        Returns:
+            django.db.models.QuerySet(reflow_server.formulary.models.Field): A queryset of Field instances to use when saving the data.
+        """
+        if hasattr(self, 'sections'):
+            fields = Field.data_.fields_enabled_ordered_by_form_and_order_by_main_form_name_and_sections(self.form_name, self.sections)
+            if self.public_access_key:
+                field_ids = PublicAccessField.data_.field_ids_by_public_access_key(self.public_access_key)
+                fields = fields.filter(id__in=field_ids)
+            return fields
+        else:
+            raise AssertionError('You should call `.__sections_to_use_in_formulary()` property before calling this `.__fields_to_use_in_formulary()` property')
     # ------------------------------------------------------------------------------------------
     @property
     def __sections_to_use_in_formulary(self):
-        return Form.data_.sections_enabled_by_main_form_name_and_company_id(self.form_name, self.company_id)
+        """
+        Retrieves the sections to use to validate the formulary data on. We validate the conditionals and everything else based on the sections retrieves here.
+        We need this in a separate function because of public access. When an unauthenticated user tries to save a data we need to validate the data based on the 
+        sections the user set a public access.
+
+        Returns:
+            django.db.models.QuerySet(reflow_server.formulary.models.Form): A queryset of Form instance to use to validate the data on.
+            Those Form instances have `depends_on` as NOT NULL.
+        """
+        sections = Form.data_.sections_enabled_by_main_form_name_and_company_id(self.form_name, self.company_id)
+        if self.public_access_key:
+            sections_ids = PublicAccessField.data_.section_ids_by_public_access_key(self.public_access_key)
+            sections = sections.filter(id__in=sections_ids)
+        return sections
     # ------------------------------------------------------------------------------------------
     @property
     def __check_formulary_data(self):
@@ -104,12 +132,7 @@ class FormularyDataService(PreSave, PostSave):
             group__company_id=self.company_id
         ).first()
         self.sections = self.__sections_to_use_in_formulary
-        self.fields = Field.objects.filter(
-            form__depends_on__form_name= self.form_name,
-            form__id__in=self.sections,
-            form__enabled=True,
-            enabled=True
-        ).order_by('form__order', 'order')
+        self.fields = self.__fields_to_use_in_formulary
 
         self.formulary_data = self.clean_data(self.formulary_data)
 
