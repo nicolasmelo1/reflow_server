@@ -8,11 +8,13 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.formulary.serializers.settings import GroupSerializer, FormularySerializer, \
-    SectionSerializer, FieldSerializer
-from reflow_server.formulary.models import Group, Form, Field
+    SectionSerializer, FieldSerializer, PublicAccessFormSerializer
+from reflow_server.formulary.models import Group, Form, Field, PublicAccessForm
 
 
+############################################################################################
 class GroupSettingsView(APIView):
+    # ------------------------------------------------------------------------------------------
     def get(self, request, company_id):
         instances = Group.objects.filter(company=company_id)
         serializer = GroupSerializer(instance=instances, many=True, context={
@@ -23,8 +25,10 @@ class GroupSettingsView(APIView):
             'status': 'ok',
             'data': serializer.data
         })
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class GroupEditSettingsView(APIView):
     """
@@ -35,7 +39,7 @@ class GroupEditSettingsView(APIView):
         DELETE: deletes an existing group
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
-
+    # ------------------------------------------------------------------------------------------
     def put(self, request, company_id, group_id):
         instance = Group.objects.filter(company_id=company_id, id=group_id).first()
         serializer = GroupSerializer(instance=instance, data=request.data, context={
@@ -57,7 +61,7 @@ class GroupEditSettingsView(APIView):
                 'status': 'ok',
                 'data': None
             }, status=status.HTTP_502_BAD_GATEWAY)
-
+    # ------------------------------------------------------------------------------------------
     def delete(self, request, company_id, group_id):
         instance = Group.objects.filter(id=group_id, company_id=company_id).first()
         if instance:
@@ -65,12 +69,13 @@ class GroupEditSettingsView(APIView):
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
+    # ------------------------------------------------------------------------------------------
 
-
+############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class FormularySettingsView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
-
+    # ------------------------------------------------------------------------------------------
     def post(self, request, company_id):
         serializer = FormularySerializer(data=request.data, context={
             'user_id': request.user.id,
@@ -91,8 +96,10 @@ class FormularySettingsView(APIView):
                 'status': 'ok',
                 'data': None
             }, status=status.HTTP_502_BAD_GATEWAY)
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class FormularySettingsEditView(APIView):
     """
@@ -105,7 +112,7 @@ class FormularySettingsEditView(APIView):
         DELETE: deletes a single formulary id
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
-    
+    # ------------------------------------------------------------------------------------------
     def get(self, request, company_id, form_id):
         instance = Form.objects.filter(id=form_id, group__company_id=company_id, depends_on__isnull=True).first()
         serializer = FormularySerializer(instance=instance, is_loading_sections=True, context={
@@ -116,7 +123,7 @@ class FormularySettingsEditView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
-
+    # ------------------------------------------------------------------------------------------
     def put(self, request, company_id, form_id):
         instance = Form.objects.filter(id=form_id, group__company_id=company_id, depends_on__isnull=True).first()
         serializer = FormularySerializer(instance=instance, data=request.data, context={
@@ -138,7 +145,7 @@ class FormularySettingsEditView(APIView):
             'status': 'ok',
             'data': None
         }, status=status.HTTP_502_BAD_GATEWAY)
-
+    # ------------------------------------------------------------------------------------------
     def delete(self, request, company_id, form_id):
         instance = Form.objects.filter(id=form_id, group__company_id=company_id, depends_on__isnull=True).first()
         if instance:
@@ -146,8 +153,10 @@ class FormularySettingsEditView(APIView):
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class SectionSettingsView(APIView):
     """
@@ -157,7 +166,7 @@ class SectionSettingsView(APIView):
         POST: creates a new section instance
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
-
+    # ------------------------------------------------------------------------------------------
     def post(self, request, company_id, form_id):
         serializer = SectionSerializer(data=request.data, context={
             'user_id': request.user.id,
@@ -180,8 +189,10 @@ class SectionSettingsView(APIView):
                 'status': 'ok',
                 'data': None
             }, status=status.HTTP_502_BAD_GATEWAY)
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class SectionSettingsEditView(APIView):
     """
@@ -192,7 +203,7 @@ class SectionSettingsEditView(APIView):
         DELETE: deletes a section instance
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
-
+    # ------------------------------------------------------------------------------------------
     def put(self, request, company_id, form_id, section_id):
         instance = Form.objects.filter(
             id=section_id, 
@@ -220,7 +231,7 @@ class SectionSettingsEditView(APIView):
                 'status': 'ok',
                 'data': None
             }, status=status.HTTP_502_BAD_GATEWAY)
-
+    # ------------------------------------------------------------------------------------------
     def delete(self, request, company_id, form_id, section_id):
         instance = Form.objects.filter(
             id=section_id, 
@@ -233,8 +244,10 @@ class SectionSettingsEditView(APIView):
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class FieldSettingsView(APIView):
     """
@@ -244,7 +257,7 @@ class FieldSettingsView(APIView):
         POST: Creates a new Field instance
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
-
+    # ------------------------------------------------------------------------------------------
     def post(self, request, company_id, form_id):
         serializer = FieldSerializer(data=request.data, context={
             'user_id': request.user.id,
@@ -267,8 +280,10 @@ class FieldSettingsView(APIView):
                 'status': 'ok',
                 'data': None
             }, status=status.HTTP_502_BAD_GATEWAY)
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class FieldSettingsEditView(APIView):
     """
@@ -279,7 +294,7 @@ class FieldSettingsEditView(APIView):
         DELETE: Deletes a field instance
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
-
+    # ------------------------------------------------------------------------------------------
     def put(self, request, company_id, form_id, field_id):
         instance = Field.objects.filter(
             id=field_id, 
@@ -307,7 +322,7 @@ class FieldSettingsEditView(APIView):
                 'status': 'ok',
                 'data': None
             }, status=status.HTTP_502_BAD_GATEWAY)
-
+    # ------------------------------------------------------------------------------------------
     def delete(self, request, company_id, form_id, field_id):
         instance = Field.objects.filter(
             id=field_id, 
@@ -320,9 +335,18 @@ class FieldSettingsEditView(APIView):
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
 class FieldOptionsView(APIView):
+    """
+    View responsible for retrieving all of the fields that can be used in connections.
+
+    Methods:
+        GET: Retrieves all of the fields that can be user in connections.
+    """
+    # ------------------------------------------------------------------------------------------
     def get(self, request, company_id, form_id):
         instances = Field.objects.filter(
                 form__depends_on_id=form_id, form__depends_on__group__company_id=company_id
@@ -334,4 +358,18 @@ class FieldOptionsView(APIView):
             'status': 'ok',
             'data': serializer.data
         })
+    # ------------------------------------------------------------------------------------------
 
+
+############################################################################################
+@method_decorator(csrf_exempt, name='dispatch')
+class PublicFormSettingsView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def get(self, request, company_id, form_id):
+        instance = PublicAccessForm.objects.filter(public_access__user_id=request.user.id, form_id=form_id).first()
+        serializer = PublicAccessFormSerializer(instance=instance)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        })

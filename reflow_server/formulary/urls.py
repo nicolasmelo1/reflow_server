@@ -6,10 +6,11 @@ from reflow_server.formulary.views import GetFormularyView, GetGroupsView, UserF
     FormFieldTypeOptionsView
 from reflow_server.formulary.views.settings import GroupSettingsView, GroupEditSettingsView, FormularySettingsView, \
     FormularySettingsEditView, SectionSettingsView, SectionSettingsEditView, FieldSettingsView, FieldSettingsEditView, \
-    FieldOptionsView
+    FieldOptionsView, PublicFormSettingsView
 
 
 settings_urlpatterns = [
+    re_path(r'(?P<form_id>\d+)/public/$', validate_billing(PublicFormSettingsView.as_view()), name='formulary_public_form_settings'),
     re_path(r'(?P<form_id>\d+)/field_options/$', validate_billing(FieldOptionsView.as_view()), name='formulary_field_options'),
     re_path(r'^groups/', include([
         re_path(r'^$', validate_billing(GroupSettingsView.as_view()), name='formulary_settings_groups'),

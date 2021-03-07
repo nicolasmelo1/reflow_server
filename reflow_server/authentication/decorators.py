@@ -105,13 +105,7 @@ def public_access_permissions(function):
 # ------------------------------------------------------------------------------------------
 def permission_required(function):
     """
-    Simple middleware that validates the permissions of the users
-
-    Args:
-        function ([type]): [description]
-
-    Returns:
-        [type]: [description]
+    Simple middleware that validates the permissions of the users.
     """
     @wraps(function)
     def permission_required_wrap(request, *args, **kwargs):

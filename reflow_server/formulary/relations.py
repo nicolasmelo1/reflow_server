@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from reflow_server.formulary.models import Form, Field, OptionAccessedBy, FieldOptions, FormAccessedBy
+from reflow_server.formulary.models import Form, Field, OptionAccessedBy, FieldOptions, FormAccessedBy, PublicAccessField
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
 
@@ -88,3 +88,9 @@ class FormRelation(serializers.ModelSerializer):
         model = Form
         list_serializer_class = FormListSerializer
         exclude = ('conditional_value', 'conditional_type', 'conditional_on_field', 'depends_on')
+
+
+class PublicAccessFieldRelation(serializers.ModelSerializer):
+    class Meta:
+        model = PublicAccessField
+        fields = ('id', 'field_id')

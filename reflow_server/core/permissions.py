@@ -23,6 +23,10 @@ class PublicPermissionIsValidError(Exception):
         """
         This class is used for exception handling. Inside of permission classes.
 
+        As counterintuitive as it might be, you need to throw this error in order to validate public permissions.
+        By default, unauthenticated users cannot see anything, so you need to throw this error informing that the user
+        can actually see the content.
+        
         Args:
             detail (str): The detail of the error, this will usually be shown to the user in the response
         """
@@ -38,6 +42,7 @@ class Request:
 
     def __init__(self, request):
         self.url_name = resolve(request.path_info).url_name
+        self.public_access_key = request.GET.get('public_key', None)
         self.request = request
         self.data = self.get_json_data_from_request(request)
         self.files = request.FILES

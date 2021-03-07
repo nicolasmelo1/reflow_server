@@ -5,7 +5,8 @@ from reflow_server.formulary.models.abstract import AbstractForm, AbstractField,
 from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, FormAccessedByThemeManager
 from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
-from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager
+from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager, \
+    PublicAccessFormFormularyManager
 from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager
 
 
@@ -372,13 +373,16 @@ class FormAccessedBy(models.Model):
 class PublicAccessForm(models.Model):
     form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True)
     public_access = models.ForeignKey('authentication.PublicAccess', models.CASCADE, db_index=True)
-
+    
     class Meta:
         db_table = 'public_access_form'   
+        
+    objects = models.Manager()
+    formulary_ = PublicAccessFormFormularyManager()
 
 
 class PublicAccessField(models.Model):
-    public_form = models.ForeignKey('formulary.PublicAccessForm', models.CASCADE, db_index=True)
+    public_form = models.ForeignKey('formulary.PublicAccessForm', models.CASCADE, db_index=True, related_name='public_access_form_public_access_fields')
     field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True)
     public_access = models.ForeignKey('authentication.PublicAccess', models.CASCADE, db_index=True)
 
