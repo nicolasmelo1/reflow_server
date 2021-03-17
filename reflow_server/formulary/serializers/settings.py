@@ -8,6 +8,7 @@ from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
 from reflow_server.formulary.services.data import FieldOptionsData
+from reflow_server.formulary.services.public import PublicFormularyService
 from reflow_server.formulary.relations import PublicAccessFieldRelation
 
 
@@ -238,8 +239,18 @@ class GroupSerializer(serializers.ModelSerializer):
 
 ############################################################################################
 class PublicAccessFormSerializer(serializers.ModelSerializer):
+    public_access_key = serializers.CharField(source='public_access.public_key', required=False)
     public_access_form_public_access_fields = PublicAccessFieldRelation(many=True)
+
+    def save(self, form_id, company_id, user_id):
+        field_ids = [public_access_field['field_id'] for public_access_field in self.validated_data.get('public_access_form_public_access_fields', [])]
+        return PublicFormularyService.update_public_formulary(
+            company_id, 
+            user_id, 
+            form_id, 
+            field_ids
+        )
 
     class Meta:
         model = PublicAccessForm
-        fields = ('id', 'form_id', 'public_access_form_public_access_fields')
+        fields =('form_id', 'public_access_key', 'public_access_form_public_access_fields')

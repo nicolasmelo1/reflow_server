@@ -6,10 +6,11 @@ from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeMana
 from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
 from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager, \
-    PublicAccessFormFormularyManager
+    PublicAccessFormFormularyManager, FormAccessedByFormularyManager
 from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager
 
 
+############################################################################################
 class SectionType(models.Model):
     """
     This model is a `type` so it contains required data used for this program to work. This holds each type of the form
@@ -43,6 +44,7 @@ class SectionType(models.Model):
         ordering = ('order',)
 
 
+############################################################################################
 class FieldPeriodIntervalType(models.Model):
     """
     This model is a `type` so it contains required data used for this program to work. This model contains data that is used
@@ -64,6 +66,7 @@ class FieldPeriodIntervalType(models.Model):
         ordering = ('order',)
 
 
+############################################################################################
 class FieldNumberFormatType(models.Model):
     """
     This model is a `type` so it contains required data used for this program to work. This model contains data that is used
@@ -116,6 +119,7 @@ class FieldNumberFormatType(models.Model):
         app_label = 'formulary'
 
 
+############################################################################################
 class FieldDateFormatType(models.Model):
     """
     This model is a `type` so it contains required data used for this program to work. This model contains data that is used
@@ -150,6 +154,7 @@ class FieldDateFormatType(models.Model):
         app_label = 'formulary'
 
 
+############################################################################################
 class ConditionalType(models.Model):
     """
     This model is a `type` so it contains required data used for this program to work. This model holds the default data used for conditional sections
@@ -171,6 +176,7 @@ class ConditionalType(models.Model):
         app_label = 'formulary'
 
 
+############################################################################################
 class FieldType(models.Model):
     """
     This model is a `type` so it contains required data used for this program to work. I think it doesn't need much explaining, 
@@ -199,7 +205,7 @@ class FieldType(models.Model):
 # FORMULARY #
 #           #
 #############
-
+############################################################################################
 class Group(models.Model):
     """
     This might be tricky if you are user hahaha. Okay, so groups are called templates for the user, for us, developers,
@@ -225,6 +231,7 @@ class Group(models.Model):
         db_table = 'group'
 
 
+############################################################################################
 class Form(AbstractForm):
     #TODO: Create a section model, for sections
     """
@@ -256,6 +263,7 @@ class Form(AbstractForm):
     data_ = FormDataManager()
 
 
+############################################################################################
 class Field(AbstractField):
     """
     Check reflow_server.formulary.models.abstract.AbstractField for further explanation.
@@ -290,6 +298,7 @@ class Field(AbstractField):
     data_ = FieldDataManager()
 
 
+############################################################################################
 class FieldOptions(AbstractFieldOptions):
     """
     Check reflow_server.formulary.models.abstract.AbstractFieldOptions for further explanation.
@@ -309,6 +318,7 @@ class FieldOptions(AbstractFieldOptions):
     kanban_ = FieldOptionsKanbanManager()
     
 
+############################################################################################
 class OptionAccessedBy(models.Model):
     """
     This model is used to filter the options defined in reflow_server.formulary.models.FieldOptions that a user have access to
@@ -347,6 +357,7 @@ class OptionAccessedBy(models.Model):
     kanban_ = OptionAccessedByKanbanManager()
 
 
+############################################################################################
 class FormAccessedBy(models.Model):
     """
     This works the same way as reflow_server.formulary.models.OptionAccessedBy but on formulary level.
@@ -368,10 +379,15 @@ class FormAccessedBy(models.Model):
 
     objects = models.Manager()
     theme_ = FormAccessedByThemeManager()
+    formulary_ = FormAccessedByFormularyManager()
 
 
+############################################################################################
 class PublicAccessForm(models.Model):
     form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True)
+    greetings_message = models.TextField(default=None, null=True, blank=True)
+    description_message = models.TextField(default=None, null=True, blank=True)
+    is_to_submit_another_response_button = models.BooleanField(default=False)
     public_access = models.ForeignKey('authentication.PublicAccess', models.CASCADE, db_index=True)
     
     class Meta:
@@ -381,7 +397,17 @@ class PublicAccessForm(models.Model):
     formulary_ = PublicAccessFormFormularyManager()
 
 
+############################################################################################
 class PublicAccessField(models.Model):
+    """
+    This model is used to store the fields that are publicaly accessible by a public_key. This means that, those fields
+    can be loaded and some of it's contents can be loaded using a public access key. When a field is not publically accessible
+    it is like those fields are deactivated for unauthenticated users, those fields will not exist for the unauthenticated user, and
+    those unauthenticated users will not be able to see the contents of this field by any mean.
+
+    It's important to notice that this stores fields that are publicaly accessible FOR THE FORMULARY, for making kanban public, or listing or even
+    dashboard you might want to create another table for storing public fields.
+    """
     public_form = models.ForeignKey('formulary.PublicAccessForm', models.CASCADE, db_index=True, related_name='public_access_form_public_access_fields')
     field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True)
     public_access = models.ForeignKey('authentication.PublicAccess', models.CASCADE, db_index=True)

@@ -1,5 +1,4 @@
 from reflow_server.formulary.services.formulary import FormularyService
-from reflow_server.formulary.models import PublicAccessForm
 
 
 class FormularyPermissionsService:

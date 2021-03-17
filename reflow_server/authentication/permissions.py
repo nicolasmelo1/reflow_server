@@ -44,8 +44,5 @@ class AuthenticationPublicPermission:
             if not AuthenticationPermissionsService.is_valid_compay(company) or not AuthenticationPermissionsService.is_valid_user_company(company, user):
                 raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)
 
-        if AuthenticationPermissionsService.is_valid_public_path(request.url_name):
-            raise PublicPermissionIsValidError(detail='is_valid_public_url')
-        else:
+        if not AuthenticationPermissionsService.is_valid_public_path(request.url_name):
             raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)
-

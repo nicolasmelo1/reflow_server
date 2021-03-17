@@ -6,7 +6,6 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework import status
 
-from reflow_server.core.utils.encrypt import Encrypt
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.authentication.serializers.settings import CompanySettingsSerializer, UserSettingsSerializer, \
     FormularyAndFieldOptionsSerializer
@@ -15,7 +14,6 @@ from reflow_server.authentication.services.users import UsersService
 from reflow_server.formulary.models import Group
 
 import json
-import base64
 
 
 @method_decorator(csrf_exempt, name='dispatch')

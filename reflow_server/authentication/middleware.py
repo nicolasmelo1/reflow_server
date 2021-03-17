@@ -5,6 +5,7 @@ from channels.middleware import BaseMiddleware
 
 from reflow_server.authentication.models import UserExtended, PublicAccess
 from reflow_server.authentication.utils.jwt_auth import JWT
+from reflow_server.authentication.utils import is_valid_uuid
 
 
 @database_sync_to_async
@@ -79,16 +80,17 @@ class AuthPublicMiddleware:
         self.get_response = get_response
     # ------------------------------------------------------------------------------------------
     def __call__(self, request): 
-        if 'public_key' in request.GET and isinstance(request.user, AnonymousUser):
+        if 'public_key' in request.GET:
             request.is_public = True
-            public_access = PublicAccess.objects.filter(public_key=request.GET.get('public_key')).first()
-            request.user = public_access.user
+            if isinstance(request.user, AnonymousUser) and is_valid_uuid(request.GET.get('public_key')):
+                public_access = PublicAccess.objects.filter(public_key=request.GET.get('public_key')).first()
+                request.user = public_access.user
         else:
             request.is_public = False
         response = self.get_response(request)
         return response
     # ------------------------------------------------------------------------------------------
-
+    
 
 ############################################################################################
 class AuthWebsocketJWTMiddleware(BaseMiddleware):

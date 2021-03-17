@@ -33,15 +33,11 @@ class FormularyService(Settings):
 
     @property
     def formulary_ids_the_user_has_access_to(self):
-        return FormAccessedBy.objects.filter(user_id=self.user_id, form__enabled=True)\
-            .order_by('form__order')\
-            .values_list('form_id', flat=True)
+        return FormAccessedBy.formulary_.main_form_ids_accessed_by_user_id_and_enabled_ordered_by_order(self.user_id)
 
     @property
     def formulary_names_the_user_has_access_to(self):
-        return FormAccessedBy.objects.filter(user_id=self.user_id, form__enabled=True, form__depends_on__isnull=True)\
-            .order_by('form__order')\
-            .values_list('form__form_name', flat=True)
+        return FormAccessedBy.formulary_.main_form_names_accessed_by_user_id_and_enabled_ordered_by_order(self.user_id)
 
     def save_formulary(self, enabled, label_name, order, group, instance=None):
         if instance == None:

@@ -12,15 +12,16 @@ class FieldService(Settings):
         self.company_id = company_id
         self.form = Form.objects.filter(id=form_id).first()
     # ------------------------------------------------------------------------------------------
-    def get_public_fields(self, public_access_key):
+    def get_public_fields_from_section(self, public_access_key, section_id):
         """
         Retrieve all of the fields that are public and accessible by unauthenticated users
 
         Args:
-            public_access_key ([type]): [description]
+            public_access_key (str): [description]
+            section_id (int): A Form instance id with depends_on as NOT NULL
         """
         field_ids = PublicAccessField.formulary_.field_ids_by_public_access_key(public_access_key)
-        return Field.objects.filter(id__in=field_ids, form__depends_on=self.form, form__depends_on__group__company_id=self.company_id)
+        return Field.objects.filter(id__in=field_ids, form_id=section_id, form__depends_on=self.form, form__depends_on__group__company_id=self.company_id)
     # ------------------------------------------------------------------------------------------
     @transaction.atomic
     def save_field(self, enabled, label_name, order, is_unique, field_is_hidden, 

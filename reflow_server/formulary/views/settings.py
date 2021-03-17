@@ -1,3 +1,4 @@
+from reflow_server.authentication.managers import public_access
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -364,12 +365,35 @@ class FieldOptionsView(APIView):
 ############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class PublicFormSettingsView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    """
+    View used for editing and loading the public formulary data, with this we can set the what fields
+    are public and which of them are not public.
 
+    Methods:
+        GET: Loads the public formulary data, so the user can edit
+        POST: Creates a new public formulary.
+    """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    # ------------------------------------------------------------------------------------------
     def get(self, request, company_id, form_id):
         instance = PublicAccessForm.objects.filter(public_access__user_id=request.user.id, form_id=form_id).first()
         serializer = PublicAccessFormSerializer(instance=instance)
         return Response({
             'status': 'ok',
             'data': serializer.data
-        })
+        }, status=status.HTTP_200_OK)
+    # ------------------------------------------------------------------------------------------
+    def post(self, request, company_id, form_id):
+        serializer = PublicAccessFormSerializer(data=request.data)
+        if serializer.is_valid():
+            public_access_key = serializer.save(form_id, company_id, request.user.id)
+            return Response({
+            'status': 'ok',
+            'data': {
+                'public_access_key': public_access_key
+            }
+        }, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'error'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    # ------------------------------------------------------------------------------------------

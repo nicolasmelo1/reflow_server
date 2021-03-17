@@ -3,3 +3,4 @@ from .user_extended import UserExtendedFormularyManager
 from .public_access_field import PublicAccessFieldFormularyManager
 from .public_access_form import PublicAccessFormFormularyManager
 from .form import FormFormularyManager
+from .form_accessed_by import FormAccessedByFormularyManager

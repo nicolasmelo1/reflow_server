@@ -4,7 +4,7 @@ from reflow_server.formulary.models import Form, Field, OptionAccessedBy, FieldO
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
 
-
+############################################################################################
 class FilteredFieldOptionListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         data = data.filter(id__in=OptionAccessedBy.objects.filter(user_id=self.context['user_id']) \
@@ -19,6 +19,7 @@ class FieldOptionRelation(serializers.ModelSerializer):
         fields = ('option',)
 
 
+############################################################################################
 class FormFieldAsOptionRelation(serializers.ModelSerializer):
     form_name = serializers.CharField(source='form.depends_on.form_name')
 
@@ -27,13 +28,14 @@ class FormFieldAsOptionRelation(serializers.ModelSerializer):
         fields = ('form_name',)
 
 
+############################################################################################
 class FilteredFieldsListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         if self.context.get('public_access_key', None):
             form_id = data.core_filters['form'].depends_on_id
-
+            section_id = data.core_filters['form'].id
             field_service = FieldService(self.context['user_id'], self.context['company_id'], form_id)
-            data = field_service.get_public_fields(self.context['public_access_key'])
+            data = field_service.get_public_fields_from_section(self.context['public_access_key'], section_id)
         data = data.filter(enabled=True).order_by('order')
         return super(FilteredFieldsListSerializer, self).to_representation(data)
 
@@ -48,6 +50,7 @@ class FormFieldRelation(serializers.ModelSerializer):
         exclude = ('created_at', 'updated_at')
 
 
+############################################################################################
 class FilteredSectionListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         if self.context.get('public_access_key', None):
@@ -76,6 +79,7 @@ class SectionRelation(serializers.ModelSerializer):
                   'form_fields')
 
 
+############################################################################################
 class FormListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         forms_accessed_by = FormAccessedBy.objects.filter(user=self.context['user_id']).values_list('form', flat=True)
@@ -90,7 +94,13 @@ class FormRelation(serializers.ModelSerializer):
         exclude = ('conditional_value', 'conditional_type', 'conditional_on_field', 'depends_on')
 
 
+############################################################################################
 class PublicAccessFieldRelation(serializers.ModelSerializer):
+    field_id = serializers.IntegerField()
+    """
+    Serializer responsible for holding all of the fields that are available for public access.
+    Usually used in conjuction with `PublicAccessFormSerializer`
+    """
     class Meta:
         model = PublicAccessField
-        fields = ('id', 'field_id')
+        fields = ('field_id',)
