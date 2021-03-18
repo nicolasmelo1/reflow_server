@@ -224,7 +224,10 @@ CONSUMERS = {
         'reflow_server.authentication.consumers.AuthenticationConsumer',
         'reflow_server.draft.consumers.DraftConsumer',
         'reflow_server.formulary.consumers.FormularyConsumer'
-    ]
+    ],
+    'PUBLIC': [
+        'reflow_server.draft.consumers.DraftPublicConsumer',
+    ],
 }
 
 # CUSTOM PERMISSIONS CONFIGURATION
@@ -240,8 +243,8 @@ PERMISSIONS = {
         'reflow_server.theme.permissions.ThemeDefaultPermission'
     ],
     'PUBLIC': [
+        'reflow_server.formulary.permissions.FormularyPublicPermission',
         'reflow_server.authentication.permissions.AuthenticationPublicPermission',
-        'reflow_server.formulary.permissions.FormularyPublicPermission'
     ],
     'BILLING': [
         'reflow_server.billing.permissions.BillingBillingPermission',

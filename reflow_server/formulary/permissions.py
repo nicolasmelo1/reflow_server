@@ -58,6 +58,8 @@ class FormularyPublicPermission:
                 raise PublicPermissionIsValidError(detail='valid')
             if self.field_id and PublicAccessField.formulary_.exists_field_id_by_public_access_key_and_form_name(request.public_access_key, self.field_id, self.form_name):
                 raise PublicPermissionIsValidError(detail='valid')
+            else:
+                raise PermissionsError(detail='not_permitted')
     # ------------------------------------------------------------------------------------------
 
         

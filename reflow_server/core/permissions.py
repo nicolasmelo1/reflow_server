@@ -1,12 +1,14 @@
 from django.conf import settings
 from django.urls import resolve
 
+from rest_framework import status
+
 import inspect
 import json
 
 
 class PermissionsError(Exception):
-    def __init__(self, detail, status):
+    def __init__(self, detail, status=status.HTTP_404_NOT_FOUND):
         """
         This class is used for exception handling. Inside of permission classes.
 

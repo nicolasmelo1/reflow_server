@@ -239,6 +239,9 @@ class GroupSerializer(serializers.ModelSerializer):
 
 ############################################################################################
 class PublicAccessFormSerializer(serializers.ModelSerializer):
+    greetings_message = serializers.CharField(allow_blank=True, allow_null=True)
+    description_message = serializers.CharField(allow_blank=True, allow_null=True)
+    is_to_submit_another_response_button = serializers.BooleanField(default=False)
     public_access_key = serializers.CharField(source='public_access.public_key', required=False)
     public_access_form_public_access_fields = PublicAccessFieldRelation(many=True)
 
@@ -253,4 +256,4 @@ class PublicAccessFormSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PublicAccessForm
-        fields =('form_id', 'public_access_key', 'public_access_form_public_access_fields')
+        fields =('form_id', 'description_message', 'greetings_message', 'is_to_submit_another_response_button', 'public_access_key', 'public_access_form_public_access_fields')

@@ -8,15 +8,6 @@ from reflow_server.authentication.utils.jwt_auth import JWT
 from reflow_server.authentication.utils import is_valid_uuid
 
 
-@database_sync_to_async
-def get_user(user_id):
-    user = UserExtended.authentication_.user_by_user_id(user_id)
-    if user:
-        return user
-    else:
-        return AnonymousUser()
-
-
 ############################################################################################
 # HTTP Auth JWT middleware
 class AuthJWTMiddleware:
@@ -92,6 +83,7 @@ class AuthPublicMiddleware:
     # ------------------------------------------------------------------------------------------
     
 
+# CHANNELS MIDDLEWARE BELOW 
 ############################################################################################
 class AuthWebsocketJWTMiddleware(BaseMiddleware):
     """
@@ -115,6 +107,41 @@ class AuthWebsocketJWTMiddleware(BaseMiddleware):
         jwt.extract_jwt_from_scope(scope)
         if jwt.is_valid():
             payload = jwt.data
-            user = await get_user(payload['id'])
+            user = await self.get_user(payload['id'])
         return await self.inner(dict(scope, user=user), receive, send)
+    # ------------------------------------------------------------------------------------------
+    @database_sync_to_async
+    def get_user(self, user_id):
+        user = UserExtended.authentication_.user_by_user_id(user_id)
+        if user:
+            return user
+        else:
+            return AnonymousUser()
+
+
+############################################################################################
+class AuthWebsocketPublicMiddleware(BaseMiddleware):
+    """
+    Similar to `AuthPublicMiddleware` but for Websockets. This also DOES NOT ADD THE USER TO THE SCOPE.
+    On `AuthPublicMiddleware` we add the user to the request because we can have some issues using that. 
+    Here WE DO NOT add him to the scope. If we added we would be able to connect to UserConsumer, with a public_key
+    that would be WRONG so users would be able to see sensitive information in the websockets. (it's important
+    to understand that this happens ONLY if we ad the middleware on the URLRouter lever AND NOT on the Consumer
+    level, as it is today.) 
+
+    THIS IS HIGHLY SENSITIVE, AND CAN BRING LEGAL ISSUES IF DONE WRONG, SO BE AWARE OF THIS WHEN MAKING CHANGES
+    """
+    def __init__(self, inner):
+        self.inner = inner
+    # ------------------------------------------------------------------------------------------
+    async def __call__(self, scope, receive, send):
+        if 'query_string' in scope and 'public_key=' in str(scope['query_string']):
+            public_access_key = scope['query_string'].decode('utf-8').replace('public_key=', '')
+            if await self.does_public_access_key_exists(public_access_key):
+                return await self.inner(dict(scope, is_public=True), receive, send)
+        return await self.inner(dict(scope, is_public=False), receive, send)
+    # ------------------------------------------------------------------------------------------
+    @database_sync_to_async
+    def does_public_access_key_exists(self, public_access_key):
+        return PublicAccess.objects.filter(public_key=public_access_key).exists()
     # ------------------------------------------------------------------------------------------

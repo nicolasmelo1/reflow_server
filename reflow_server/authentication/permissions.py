@@ -30,6 +30,13 @@ class AuthenticationDefaultPermission:
 
 
 class AuthenticationPublicPermission:
+    """
+    IMPORTANT: This should come as late as possible in the permissions list because we validate if the url is a public url
+    if it comes too early we will skip the rest of the permissions.
+    
+    Read reflow_server.core.permissions for further reference on what's this and how it works. So you can create 
+    your own custom permission classes.
+    """
     def __init__(self, company_id=None, user_id=None):
         self.company_id = company_id
         self.user_id = user_id
@@ -46,3 +53,5 @@ class AuthenticationPublicPermission:
 
         if not AuthenticationPermissionsService.is_valid_public_path(request.url_name):
             raise PermissionsError(detail='not_permitted', status=status.HTTP_404_NOT_FOUND)
+        else:
+            raise PublicPermissionIsValidError(detail='valid')
