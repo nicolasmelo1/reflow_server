@@ -6,18 +6,6 @@ class AttachmentsDataManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().all()
     
-    def company_aggregated_file_sizes(self, company_id):
-        """
-        This method calculates the aggregated file size of the attachments for a single company_id
-
-        Args:
-            company_id (int): The id of he company you want to aggregate the attachments.
-
-        Returns:
-            int: The aggregated file size
-        """
-        return self.get_queryset().filter(form__company_id=company_id).aggregate(Sum('file_size')).get('file_size__sum', 0)
-    
     def attachment_by_dynamic_form_id_field_id_and_file_name(self, dynamic_form_id, field_id, file_name):
         """
         This retrieves a single attachment based on the dynamic_form_id, field_id and the file_name.

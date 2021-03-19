@@ -1,10 +1,10 @@
 from rest_framework import status
 
-from reflow_server.pdf_generator.services.permissions import PDFGeneratorPermissionsService
 from reflow_server.core.permissions import PermissionsError
+from reflow_server.draft.services.permissions import DraftPermissionService
 
 
-class PDFGeneratorBillingPermission:
+class DraftBillingPermission:
     """
     Read reflow_server.core.permissions for further reference on what's this and how it works. So you can create 
     your own custom permission classes.
@@ -13,8 +13,9 @@ class PDFGeneratorBillingPermission:
         self.company_id = company_id
 
     def __call__(self, request):
-        from reflow_server.pdf_generator.services.routes import pdf_generator_generate_url_name 
+        from reflow_server.draft.services.routes import draft_url_names
         
-        if request.url_name in pdf_generator_generate_url_name and \
-            not PDFGeneratorPermissionsService.can_generate_pdf(self.company_id):
+        if request.url_name in draft_url_names and request.method in ['PUT', 'POST']:
+            if not DraftPermissionService.validate_file_upload(self.company_id, request.files):
                 raise PermissionsError(detail='invalid_billing', status=status.HTTP_403_FORBIDDEN)
+            
