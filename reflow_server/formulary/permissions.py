@@ -54,7 +54,7 @@ class FormularyPublicPermission:
         FormularyDefaultPermission(self.company_id, None, self.field_id, None, self.form_name)(request=request)
         # validate public access
         if self.form_name:
-            if not self.field_id and PublicAccessForm.formulary_.exists_public_access_form_by_public_access_key_and_main_form_name(request.public_access_key, self.form_name):
+            if not self.field_id and PublicAccessForm.formulary_.public_access_form_by_public_access_key_company_id_and_main_form_name(request.public_access_key, self.company_id, self.form_name):
                 raise PublicPermissionIsValidError(detail='valid')
             if self.field_id and PublicAccessField.formulary_.exists_field_id_by_public_access_key_and_form_name(request.public_access_key, self.field_id, self.form_name):
                 raise PublicPermissionIsValidError(detail='valid')

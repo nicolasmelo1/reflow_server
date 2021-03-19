@@ -2,8 +2,9 @@ from django.conf.urls import re_path, include
 
 from reflow_server.authentication.services.routes import register_admin_only_url, register_can_be_public_url
 from reflow_server.core.decorators import validate_billing
+from reflow_server.authentication.decorators import get_company_id_as_int
 from reflow_server.formulary.views import GetFormularyView, GetGroupsView, UserFieldTypeOptionsView, \
-    FormFieldTypeOptionsView
+    FormFieldTypeOptionsView, PublicFormularyDataView
 from reflow_server.formulary.views.settings import GroupSettingsView, GroupEditSettingsView, FormularySettingsView, \
     FormularySettingsEditView, SectionSettingsView, SectionSettingsEditView, FieldSettingsView, FieldSettingsEditView, \
     FieldOptionsView, PublicFormSettingsView
@@ -42,5 +43,6 @@ urlpatterns = [
                 re_path(r'^(?P<field_id>\d+)/form/options/$',validate_billing(FormFieldTypeOptionsView.as_view()), name='formulary_get_form_field_type_options'),
             ]))
         )
-    ]))
+    ])),
+    re_path(r'^public/(?P<company_id>(\w+(\.)?(-)?(_)?)+)/form/(?P<form>\w+)/$', get_company_id_as_int(PublicFormularyDataView.as_view()), name='public_formulary_data_view')
 ]

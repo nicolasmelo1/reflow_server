@@ -71,13 +71,12 @@ class AuthPublicMiddleware:
         self.get_response = get_response
     # ------------------------------------------------------------------------------------------
     def __call__(self, request): 
+        request.is_public = False
         if 'public_key' in request.GET:
-            request.is_public = True
-            if isinstance(request.user, AnonymousUser) and is_valid_uuid(request.GET.get('public_key')):
+            if is_valid_uuid(request.GET.get('public_key')):
+                request.is_public = True
                 public_access = PublicAccess.objects.filter(public_key=request.GET.get('public_key')).first()
                 request.user = public_access.user
-        else:
-            request.is_public = False
         response = self.get_response(request)
         return response
     # ------------------------------------------------------------------------------------------

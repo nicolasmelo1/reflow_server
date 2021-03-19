@@ -9,7 +9,8 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.formulary.serializers.settings import GroupSerializer, FormularySerializer, \
-    SectionSerializer, FieldSerializer, PublicAccessFormSerializer
+    SectionSerializer, FieldSerializer
+from reflow_server.formulary.serializers import PublicAccessFormSerializer
 from reflow_server.formulary.models import Group, Form, Field, PublicAccessForm
 
 

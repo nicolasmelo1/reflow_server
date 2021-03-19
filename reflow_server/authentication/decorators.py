@@ -99,7 +99,7 @@ def public_access_permissions(function):
         return JsonResponse({
             'status': 'error',
             'reason': 'api_is_not_public'
-        }, status=400)
+        }, status=status.HTTP_403_FORBIDDEN)
     
     return public_access_permissions_wrap
 # ------------------------------------------------------------------------------------------
