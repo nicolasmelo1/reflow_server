@@ -15,6 +15,7 @@ from reflow_server.formula.managers import FormValueFormulaManager, \
     DynamicFormFormulaManager
 from reflow_server.pdf_generator.managers import FormValuePDFGeneratorManager, \
     DynamicFormPDFGeneratorManager
+from reflow_server.draft.managers.attachment import AttachmentsDraftManager
 
 
 class DynamicForm(models.Model):
@@ -133,4 +134,5 @@ class Attachments(models.Model):
         
     objects = models.Manager()
     data_ = AttachmentsDataManager()
+    draft_ = AttachmentsDraftManager()
  

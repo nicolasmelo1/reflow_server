@@ -5,6 +5,7 @@ from reflow_server.rich_text.managers import TextBlockTypeRichTextManager, TextI
     TextBlockRichTextManager, TextContentRichTextManager, TextTableOptionRichTextManager, \
     TextTableOptionColumnDimensionRichTextManager, TextTableOptionRowDimensionRichTextManager, \
     TextBlockTypeCanContainTypeRichTextManager
+from reflow_server.draft.managers.text_image_option import TextImageOptionDraftManager
 from reflow_server.pdf_generator.managers import TextPagePDFGeneratorManager
 
 import uuid
@@ -172,7 +173,8 @@ class TextImageOption(models.Model):
         db_table = 'text_image_option'
 
     rich_text_ = TextImageOptionRichTextManager()
-    
+    draft_ = TextImageOptionDraftManager()
+
 
 class TextBlock(models.Model):
     """

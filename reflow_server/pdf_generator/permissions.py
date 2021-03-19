@@ -17,5 +17,4 @@ class PDFGeneratorBillingPermission:
         
         if request.url_name in pdf_generator_generate_url_name and \
             not PDFGeneratorPermissionsService.can_generate_pdf(self.company_id):
-            
-                raise PermissionsError(detail='not_permitted', status=status.HTTP_403_FORBIDDEN)
+                raise PermissionsError(detail='invalid_billing', status=status.HTTP_403_FORBIDDEN)
