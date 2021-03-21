@@ -21,9 +21,9 @@ class PreSave(Validator):
         cleaned_formulary_data = self.__clean(formulary_data)
         return cleaned_formulary_data
     
-    def __validate_date(self, date_text):
+    def __validate_date(self, date_text, date_format=settings.DEFAULT_DATE_FIELD_FORMAT):
         try:
-            datetime.strptime(date_text, settings.DEFAULT_DATE_FIELD_FORMAT)
+            datetime.strptime(date_text, date_format)
             return True
         except ValueError:
             return False
@@ -142,16 +142,19 @@ class PreSave(Validator):
                             datetime.now() + timedelta(hours=self.user.timezone)
                         ).strftime(field.date_configuration_date_format_type.format), field.date_configuration_date_format_type.format
                     ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
-            elif value != '' and not self.__validate_date(value):
+            elif value != '' and not self.__validate_date(value, settings.DEFAULT_DATE_FIELD_FORMAT):
                 # we try to format to the value of the field supplied, otherwise we format to the value that was already saved.
                 # This can happen if we changed the format of this date field.
-                try:
+                if self.__validate_date(value, field.date_configuration_date_format_type.format):
                     value = datetime.strptime(value, field.date_configuration_date_format_type.format).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
-                except:
-                    value = datetime.strptime(
-                        value, 
-                        FormValue.data_.form_value_by_form_value_id(field_data.field_value_data_id).date_configuration_date_format_type.format
-                    ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+                else:
+                    try:
+                        value = datetime.strptime(
+                            value, 
+                            FormValue.data_.form_value_by_form_value_id(field_data.field_value_data_id).date_configuration_date_format_type.format
+                        ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+                    except:
+                        value = ''
         else:
             value = ''
         return value

@@ -1,5 +1,8 @@
 from reflow_server.data.models import FormValue
 
+from datetime import datetime
+
+
 class Validator:
     """
     Class using for validating the data of a single formulary when saving. First we validate
@@ -65,6 +68,9 @@ class Validator:
                 return False
 
             if not self.__validate_required_field(field, field_values):
+                return False
+
+            if not self.__validate_date(field, field_values):
                 return False
 
         return True
