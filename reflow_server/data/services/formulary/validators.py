@@ -1,7 +1,5 @@
 from reflow_server.data.models import FormValue
 
-from datetime import datetime
-
 
 class Validator:
     """
@@ -68,9 +66,6 @@ class Validator:
                 return False
 
             if not self.__validate_required_field(field, field_values):
-                return False
-
-            if not self.__validate_date(field, field_values):
                 return False
 
         return True
