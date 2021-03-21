@@ -30,7 +30,7 @@ class DraftService:
         self.user_id = user_id
     
     @transaction.atomic
-    def save_new_draft(self, draft_file=None, draft_value=None, draft_id=None):
+    def save_new_draft(self, draft_file=None, draft_value=None, draft_id=None, is_public_draft=False):
         """
         Method used for saving a draft. It can be a draft that already exists or some draft that does not exist yet. 
         To update a draft that already exists you might want to set the `draft_id` parameter.
@@ -44,6 +44,9 @@ class DraftService:
             one file at a time. Defaults to None.
             draft_value (str, optional): The draft value as a string, always as a string. If `draft_file` is set this should be None.
             Defaults to None.
+            draft_id (int, optional): The id of the Draft instance. Defaults to None.
+            is_public_draft (bool, optional): If the user that is saving the draft is a Unauthenticated user using the public_access_key
+            then it is a public draft, otherwise it is False.
 
         Returns:
             str: A draft_string_id. This `draft_string_id` is not trivial, it's a base64 encoded string. And you might ask yourself why do this instead of
@@ -58,6 +61,7 @@ class DraftService:
             draft_type_id = DraftType.objects.filter(name='value').values_list('id', flat=True).first()
     
         instance = Draft.draft_.create_or_update_draft(
+            is_public=is_public_draft,
             draft_id=draft_id,
             value = draft_file.name if draft_file else draft_value,
             draft_type_id = draft_type_id,
@@ -67,7 +71,6 @@ class DraftService:
         )
 
         if draft_file:
-
             # if you are updating a draft we need to delete the old draft and upload again.
             if instance.file_url and len(instance.file_url.split('/{}/'.format(instance.file_draft_path)))>1:
                 key = instance.file_draft_path + '/' + instance.file_url.split('/{}/'.format(instance.file_draft_path))[1]
@@ -249,8 +252,8 @@ class DraftService:
         drafts_to_remove = Draft.draft_.drafts_past_due_date(due_date_for_old_drafts)
         for draft in drafts_to_remove:
             draft_string_id = base64.b64encode(draft_id_template.format(draft.id).encode('utf-8')).decode('utf-8')
-
-            draft_events.send_removed_draft(draft.company_id, draft_string_id)
+            draft_is_public = draft.is_public
+            draft_events.send_removed_draft(draft.company_id, draft_string_id, draft_is_public)
 
         drafts_to_remove.delete()
 

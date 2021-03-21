@@ -1,3 +1,4 @@
+from reflow_server.formulary.managers import public_access_field
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -99,7 +100,13 @@ class FormularyDataView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request, company_id, form):
-        serializer = FormDataSerializer(user_id=request.user.id, company_id=company_id, form_name=form, data=request.data)
+        serializer = FormDataSerializer(
+            user_id=request.user.id, 
+            company_id=company_id, 
+            form_name=form, 
+            data=request.data, 
+            public_access_key=request.query_params.get('public_key', None)
+        )
         if serializer.is_valid():
             try:
                 serializer.save()

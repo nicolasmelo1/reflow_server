@@ -5,6 +5,7 @@ from reflow_server.data.relations import SectionDataRelation, FormularyValueRela
 from reflow_server.data.models import DynamicForm
 
 
+############################################################################################
 class FormDataSerializer(serializers.ModelSerializer):
     """
     Serializer used from loading and saving the data of a single and unique formulary data.
@@ -21,12 +22,12 @@ class FormDataSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(allow_null=True, required=False)
     depends_on_dynamic_form = SectionDataRelation(many=True)
 
-    def __init__(self, user_id, company_id, form_name, form_data_id=None, duplicate=False, **kwargs):
+    def __init__(self, user_id, company_id, form_name, form_data_id=None, duplicate=False, public_access_key=None, **kwargs):
         self.form_data_id = form_data_id
         self.duplicate = duplicate
-        self.formulary_service = FormularyDataService(user_id, company_id, form_name)
+        self.formulary_service = FormularyDataService(user_id, company_id, form_name, public_access_key=public_access_key)
         super(FormDataSerializer, self).__init__(**kwargs)
-
+    # ------------------------------------------------------------------------------------------
     def validate(self, data):
         formulary_data = self.formulary_service.add_formulary_data(self.form_data_id, duplicate=self.duplicate)
         for section in data['depends_on_dynamic_form']:
@@ -37,7 +38,7 @@ class FormDataSerializer(serializers.ModelSerializer):
             return data
         else:
             raise serializers.ValidationError(detail=self.formulary_service.errors)
-        
+    # ------------------------------------------------------------------------------------------
     def save(self):
         instance = self.formulary_service.save()
         return instance
@@ -47,6 +48,7 @@ class FormDataSerializer(serializers.ModelSerializer):
         fields = ('id', 'depends_on_dynamic_form',)
 
 
+############################################################################################
 class DataSerializer(serializers.ModelSerializer):
     """
     Serializer from retrieving the data for listing and kanban visualizations, and probably many more

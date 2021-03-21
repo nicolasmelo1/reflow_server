@@ -10,7 +10,7 @@ class SortItem:
     def __init__(self, field_name, value):
         self.field_name = field_name
         self.value = value
-    
+    # ------------------------------------------------------------------------------------------
     @staticmethod
     def convert_sort_data(sort_data):
         sort_objects = list()
@@ -18,9 +18,12 @@ class SortItem:
             [(field_name, field_value)] = sort.items()
             sort_objects.append(SortItem(field_name, field_value))
         return sort_objects
+    # ------------------------------------------------------------------------------------------
 
 
+############################################################################################
 class DataSort:
+    # ------------------------------------------------------------------------------------------
     def _sort(self, sort_keys):
         """
         Sorts forms queryset based on sort_keys conditions, since it can be multiple sorts we sort inside of a list, so we sort the first row, than the second field 
@@ -89,8 +92,7 @@ class DataSort:
                 order = Case(*[When(id__in=value, then=pos) for pos, value in enumerate(forms_order.values())]) if forms_order.values() else None
                 if self._data and order:
                     self._data = self._data.order_by(order)
-
-
+    # ------------------------------------------------------------------------------------------
     def _sort_date(self, order_up_or_down, field_data):
         return FormValue.data_.form_depends_on_and_values_for_sort_date_field_types(
             company_id=self.company_id, 
@@ -99,7 +101,7 @@ class DataSort:
             field_id=field_data['id'],
             order_by_value=order_up_or_down
         )
-         
+    # ------------------------------------------------------------------------------------------
     def _sort_user(self, order_up_or_down, field_data):
         return FormValue.data_.form_depends_on_and_values_for_sort_user_field_types(
             company_id=self.company_id, 
@@ -111,8 +113,7 @@ class DataSort:
                 order_up_or_down
             ))
         )
-    
-
+    # ------------------------------------------------------------------------------------------
     def _sort_form(self, order_up_or_down, field_data):
         return FormValue.data_.form_depends_on_and_values_for_sort_form_field_types(
             company_id=self.company_id, 
@@ -122,7 +123,7 @@ class DataSort:
             form_field_as_option_id=field_data['form_field_as_option_id'],
             order_by_value=order_up_or_down,
         )
-
+    # ------------------------------------------------------------------------------------------
     def _sort_number(self, order_up_or_down, field_data):
         # reference: https://stackoverflow.com/a/18950952/13158385
         return FormValue.data_.form_depends_on_and_values_for_sort_number_field_types(

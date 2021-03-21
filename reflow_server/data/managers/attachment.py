@@ -4,7 +4,7 @@ from django.db.models import Q, Sum
 
 class AttachmentsDataManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().all()
+        return super().get_queryset()
     
     def attachment_by_dynamic_form_id_field_id_and_file_name(self, dynamic_form_id, field_id, file_name):
         """

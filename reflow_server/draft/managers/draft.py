@@ -33,7 +33,7 @@ class DraftDraftManager(models.Manager):
         """
         return self.drafts_by_company_id_and_user_id(company_id, user_id).filter(id=draft_id, draft_type__name='file').first()
 
-    def create_or_update_draft(self, user_id, company_id, draft_type_id, file_size=None, value=None, draft_id=None):
+    def create_or_update_draft(self, user_id, company_id, draft_type_id, is_public=False, file_size=None, value=None, draft_id=None):
         """
         Creates or updates a draft. To update a draft you must set `draft_id` parameter.
 
@@ -42,6 +42,8 @@ class DraftDraftManager(models.Manager):
             company_id (int): The Company instance id of what company does this draft is from.
             draft_type_id (int): If it's only a value that is stored or if it's a file. If it's a file it's probably on s3, if it's a value
                                  it don't need to be stored outside of the database.
+            is_public (bool, optional):  If the user that is saving the draft is a Unauthenticated user using the public_access_key
+                                         then it is a public draft, otherwise it is False. Default to False.
             file_size (int, optional): The size of the file you are storing  (if it is a file). Defaults to None.
             value (str, optional): The value you are storing. Defaults to None.
             draft_id (int, optional): If you want to update a draft you probably want to set this. Defaults to None.
@@ -52,6 +54,7 @@ class DraftDraftManager(models.Manager):
         instance, __ = self.get_queryset().update_or_create(
             id=draft_id,
             defaults={
+                'is_public': is_public,
                 'value': value,
                 'draft_type_id': draft_type_id,
                 'file_size': file_size,

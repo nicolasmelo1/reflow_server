@@ -1,15 +1,17 @@
 from django.conf.urls import re_path, include
 
-from reflow_server.authentication.services.routes import register_admin_only_url
-from reflow_server.core.decorators import validate_billing, authorize_external_response
+from reflow_server.authentication.services.routes import register_admin_only_url, register_can_be_public_url
+from reflow_server.core.decorators import validate_billing
+from reflow_server.authentication.decorators import get_company_id_as_int
 from reflow_server.formulary.views import GetFormularyView, GetGroupsView, UserFieldTypeOptionsView, \
-    FormFieldTypeOptionsView
+    FormFieldTypeOptionsView, PublicFormularyDataView
 from reflow_server.formulary.views.settings import GroupSettingsView, GroupEditSettingsView, FormularySettingsView, \
     FormularySettingsEditView, SectionSettingsView, SectionSettingsEditView, FieldSettingsView, FieldSettingsEditView, \
-    FieldOptionsView
+    FieldOptionsView, PublicFormSettingsView
 
 
 settings_urlpatterns = [
+    re_path(r'(?P<form_id>\d+)/public/$', validate_billing(PublicFormSettingsView.as_view()), name='formulary_public_form_settings'),
     re_path(r'(?P<form_id>\d+)/field_options/$', validate_billing(FieldOptionsView.as_view()), name='formulary_field_options'),
     re_path(r'^groups/', include([
         re_path(r'^$', validate_billing(GroupSettingsView.as_view()), name='formulary_settings_groups'),
@@ -34,10 +36,13 @@ urlpatterns = [
     re_path(r'^(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
         register_admin_only_url(re_path(r'^settings/', include(settings_urlpatterns))),
         re_path(r'^$', validate_billing(GetGroupsView.as_view()), name='formulary_get_groups'),
-        re_path(r'^(?P<form>\w+)/', include([
-            re_path(r'^$',validate_billing(GetFormularyView.as_view()), name='formulary_get_formulary'),
-            re_path(r'^(?P<field_id>\d+)/user/options/$',validate_billing(UserFieldTypeOptionsView.as_view()), name='formulary_get_user_field_type_options'),
-            re_path(r'^(?P<field_id>\d+)/form/options/$',validate_billing(FormFieldTypeOptionsView.as_view()), name='formulary_get_form_field_type_options'),
-        ]))
-    ]))
+        register_can_be_public_url(
+            re_path(r'^(?P<form>\w+)/', include([
+                re_path(r'^$',validate_billing(GetFormularyView.as_view()), name='formulary_get_formulary'),
+                re_path(r'^(?P<field_id>\d+)/user/options/$',validate_billing(UserFieldTypeOptionsView.as_view()), name='formulary_get_user_field_type_options'),
+                re_path(r'^(?P<field_id>\d+)/form/options/$',validate_billing(FormFieldTypeOptionsView.as_view()), name='formulary_get_form_field_type_options'),
+            ]))
+        )
+    ])),
+    re_path(r'^public/(?P<company_id>(\w+(\.)?(-)?(_)?)+)/form/(?P<form>\w+)/$', get_company_id_as_int(PublicFormularyDataView.as_view()), name='public_formulary_data_view')
 ]

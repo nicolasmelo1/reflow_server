@@ -1,4 +1,3 @@
-from reflow_server.theme.managers import theme
 from django.db import transaction
 
 from reflow_server.theme.models import Theme, ThemeForm, ThemeField, ThemeFieldOptions, ThemeKanbanDefault, \

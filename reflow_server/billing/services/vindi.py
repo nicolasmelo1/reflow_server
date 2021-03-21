@@ -33,7 +33,7 @@ class VindiService:
         self.vindi_product_id = self.company_billing.vindi_product_id
         self.vindi_payment_profile_id = self.company_billing.vindi_payment_profile_id
         self.vindi_signature_id = self.company_billing.vindi_signature_id
-    
+    # ------------------------------------------------------------------------------------------
     @property
     def __total(self):
         """
@@ -52,13 +52,13 @@ class VindiService:
         else:
             self._cache_total = self.charge_service.get_total_data_from_custom_charge_quantity().total
             return self._cache_total
-
+    # ------------------------------------------------------------------------------------------
     def __get_correct_payment_method_type(self, payment_method):
         if payment_method:
             return settings.VINDI_PAYMENT_METHODS.get(payment_method, payment_method)
         else:
             return None
-
+    # ------------------------------------------------------------------------------------------
     def __create_or_update_client(self):
         """
         Creates or updates a single client in the vindi gateway. 
@@ -96,7 +96,7 @@ class VindiService:
         status_code = response.status_code if response and response.status_code else None
         self.vindi_client_id = response.json().get('customer', {}).get('id', self.vindi_client_id) if response else self.vindi_client_id
         return (status_code, self.vindi_client_id)
-
+    # ------------------------------------------------------------------------------------------
     def __create_or_update_product(self):
         """
         This method creates or updates products in vindi gateway. We only create if no product_id has been set for the company
@@ -130,7 +130,7 @@ class VindiService:
         status_code = response.status_code if response and response.status_code else None
         self.vindi_product_id = response.json().get('product', {}).get('id', self.vindi_product_id) if response else self.vindi_product_id
         return (status_code, self.vindi_product_id)
-
+    # ------------------------------------------------------------------------------------------
     def __create_or_update_plan(self):
         """
         This method creates or updates plans in vindi gateway. We only create if no plan_id has been set for the company
@@ -162,7 +162,7 @@ class VindiService:
         status_code = response.status_code if response and response.status_code else None
         self.vindi_plan_id = response.json().get('plan', {}).get('id', self.vindi_plan_id) if response else self.vindi_plan_id
         return (status_code, self.vindi_plan_id)
-
+    # ------------------------------------------------------------------------------------------
     def __create_payment_profile(self, gateway_token):
         """
         We don't handle anything about credit card information in our side since this is REALLY REALLY sensitive and can lead
@@ -191,7 +191,7 @@ class VindiService:
         status_code = response.status_code if response and response.status_code else 200
         self.vindi_payment_profile_id = response.json().get('payment_profile', {}).get('id', self.vindi_payment_profile_id) if response else self.vindi_payment_profile_id
         return (status_code, self.vindi_payment_profile_id)
-
+    # ------------------------------------------------------------------------------------------
     def __create_or_update_subscription(self):
         """
         We don't handle the billing internally, we let vindi handle subscription for us. This way we actually get locked somewhat in
@@ -228,7 +228,7 @@ class VindiService:
         status_code = response.status_code if response and response.status_code else None
         self.vindi_signature_id = response.json().get('subscription', {}).get('id', self.vindi_signature_id) if response else self.vindi_signature_id
         return (status_code, self.vindi_signature_id)
-
+    # ------------------------------------------------------------------------------------------
     def __update_product_item(self, product_item_id):
         """
         This is used so we can update the subscription pricing in vindi payment gateway.
@@ -244,7 +244,7 @@ class VindiService:
         response = self.vindi_external.update_product_item(product_item_id, self.vindi_product_id, self.vindi_signature_id, self.__total)
         if not response or response.status_code != 200:
             raise ConnectionError('Something happened while updating the user subscription data')
-
+    # ------------------------------------------------------------------------------------------
     def get_credit_card_info(self):
         """
         Gets the credit card information from the payment_profile_id of the company.
@@ -261,7 +261,7 @@ class VindiService:
             return self.vindi_external.get_payment_profile(self.vindi_payment_profile_id)
         else:
             return None
-            
+    # ------------------------------------------------------------------------------------------           
     def delete_payment_profile(self):
         """
         As the name suggests, deletes the payment profile from vindi. This is usually used when the user wants to delete his credit card.
@@ -278,7 +278,7 @@ class VindiService:
                 return True
             else:
                 return False
-
+    # ------------------------------------------------------------------------------------------
     @transaction.atomic
     def create_or_update(self, gateway_token=None):
         """
@@ -315,7 +315,7 @@ class VindiService:
             self.company_billing.vindi_signature_id = self.vindi_signature_id
             self.company_billing.save()
             return True
-    
+    # ------------------------------------------------------------------------------------------
     @staticmethod
     def handle_webhook(data):
         """

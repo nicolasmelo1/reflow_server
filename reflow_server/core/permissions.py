@@ -1,12 +1,14 @@
 from django.conf import settings
 from django.urls import resolve
 
+from rest_framework import status
+
 import inspect
 import json
 
 
 class PermissionsError(Exception):
-    def __init__(self, detail, status):
+    def __init__(self, detail, status=status.HTTP_404_NOT_FOUND):
         """
         This class is used for exception handling. Inside of permission classes.
 
@@ -18,6 +20,21 @@ class PermissionsError(Exception):
         self.status = status
 
 
+class PublicPermissionIsValidError(Exception):
+    def __init__(self, detail):
+        """
+        This class is used for exception handling. Inside of permission classes.
+
+        As counterintuitive as it might be, you need to throw this error in order to validate public permissions.
+        By default, unauthenticated users cannot see anything, so you need to throw this error informing that the user
+        can actually see the content.
+        
+        Args:
+            detail (str): The detail of the error, this will usually be shown to the user in the response
+        """
+        self.detail = detail
+
+
 class Request:
     def get_json_data_from_request(self, request):
         try:
@@ -27,6 +44,7 @@ class Request:
 
     def __init__(self, request):
         self.url_name = resolve(request.path_info).url_name
+        self.public_access_key = request.GET.get('public_key', None)
         self.request = request
         self.data = self.get_json_data_from_request(request)
         self.files = request.FILES

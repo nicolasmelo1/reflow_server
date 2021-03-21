@@ -16,6 +16,7 @@ from reflow_server.data.services.formulary import FormularyDataService
 from reflow_server.data.services.representation import RepresentationService
 
 
+############################################################################################
 class KanbanFieldsSerializer(serializers.Serializer):
     dimension_fields = KanbanFieldsRelation(many=True)
     fields = KanbanFieldsRelation(many=True)
@@ -40,16 +41,17 @@ class KanbanFieldsSerializer(serializers.Serializer):
         }
         super(KanbanFieldsSerializer, self).__init__(**kwargs)
         self.is_valid()
-    
+    # ------------------------------------------------------------------------------------------
     @property
     def get_filter_fields(self):
         return KanbanFieldsRelation(instance=self.kanban_service.get_fields, many=True).data
-    
+    # ------------------------------------------------------------------------------------------
     @property
     def get_dimension_fields(self):
         return KanbanFieldsRelation(instance=self.kanban_service.get_possible_dimension_fields, many=True).data
 
 
+############################################################################################
 class KanbanCardsSerializer(serializers.ModelSerializer):
     """
     This serializer handles kanban_cards data, you should note that these kanban cards are the cards to build the kanban, 
@@ -57,16 +59,16 @@ class KanbanCardsSerializer(serializers.ModelSerializer):
     """
     id = serializers.IntegerField(allow_null=True, required=False)
     kanban_card_fields = KanbanCardFieldRelation(many=True)
-
+    # ------------------------------------------------------------------------------------------
     def save(self, user_id, company_id, form_name, **kwargs):
         self.kanban_service = KanbanService(user_id, company_id, form_name=form_name)
         return super(KanbanCardsSerializer, self).save(**kwargs)
-
+    # ------------------------------------------------------------------------------------------
     def create(self, validated_data):
         field_ids = [field['field']['id'] for field in validated_data.get('kanban_card_fields')]
         instance = self.kanban_service.save_kanban_card(field_ids)
         return instance
-
+    # ------------------------------------------------------------------------------------------
     def update(self, instance, validated_data):
         field_ids = [field['field']['id'] for field in validated_data.get('kanban_card_fields')]
         instance = self.kanban_service.save_kanban_card(field_ids, instance)
@@ -77,6 +79,7 @@ class KanbanCardsSerializer(serializers.ModelSerializer):
         fields = ('id', 'kanban_card_fields')
 
 
+############################################################################################
 class KanbanDefaultSerializer(serializers.ModelSerializer):
     """
     This serializer is responsible for saving the default kanban_card_id to be retrieved when the user
@@ -85,13 +88,13 @@ class KanbanDefaultSerializer(serializers.ModelSerializer):
     """
     kanban_card = KanbanCardsSerializer()
     kanban_dimension = KanbanFieldsRelation()
-
+    # ------------------------------------------------------------------------------------------
     def validate(self, data):
         self.kanban_service = KanbanService(user_id=self.context['user_id'], company_id=self.context['company_id'], form_name=self.context['form_name'])
         self.kanban_service.are_defaults_valid(data['kanban_card']['id'], data['kanban_dimension']['id'])
 
         return data
-
+    # ------------------------------------------------------------------------------------------
     def save(self):
         self.kanban_service.save_defaults(self.validated_data['kanban_card']['id'], self.validated_data['kanban_dimension']['id'])
 
@@ -100,7 +103,9 @@ class KanbanDefaultSerializer(serializers.ModelSerializer):
         fields = ('kanban_card', 'kanban_dimension')
 
 
+############################################################################################
 class KanbanDimensionListSerializer(serializers.ListSerializer):
+    # ------------------------------------------------------------------------------------------
     @transaction.atomic
     def update(self, instances, validated_data):
         field_instance = Field.objects.filter(id=self.context['field_id']).first()
@@ -150,6 +155,7 @@ class KanbanDimensionSerializer(serializers.ModelSerializer):
         fields = ('id', 'uuid', 'option')
 
 
+############################################################################################
 class KanbanCollapsedDimensionListSerializer(serializers.ListSerializer):
     def update(self, instance, validated_data):
         collapsed_field_option_ids = [kanban_collapsed_dimension.get('field_option_id') for kanban_collapsed_dimension in validated_data]
@@ -171,6 +177,7 @@ class KanbanCollapsedDimensionSerializer(serializers.ModelSerializer):
         fields = ('field_option_id',)
 
 
+############################################################################################
 class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
     """
     Serializer used for when changing a dimension of a card
@@ -181,7 +188,7 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
     def __init__(self,user_id, company_id, form_name, **kwargs):
         self.formulary_data_service = FormularyDataService(user_id=user_id, company_id=company_id, form_name=form_name)
         super(ChangeKanbanCardBetweenDimensionsSerializer, self).__init__(**kwargs)
-    
+    # ------------------------------------------------------------------------------------------
     def validate(self, data):
         """
         What we do here is prepare the data to change the rows of the kanban.
@@ -211,9 +218,8 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
         if self.formulary_data_service.is_valid():
             return data
         else:
-            raise serializers.ValidationError(detail=self.formulary_data_service.errors)
-        
-
+            raise serializers.ValidationError(detail=self.formulary_data_service.errors)   
+    # ------------------------------------------------------------------------------------------
     def save(self):
         instance = self.formulary_data_service.save()
         return instance

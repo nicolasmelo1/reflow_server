@@ -1,21 +1,23 @@
+############################################################################################
 class FieldValueData:
     def __init__(self, field_value_data_id, field_name, field_id, value):
         self.field_value_data_id = int(field_value_data_id) if field_value_data_id not in ['', None] else None
         self.field_id = field_id
         self.field_name = field_name
         self.value = value
-    
+    # ------------------------------------------------------------------------------------------
     def update_field_value_data_id(self, id):
         self.field_value_data_id = id
 
 
+############################################################################################
 class SectionData:
     def __init__(self, section_data_id, section_id, formulary_data_id=None):
         self.section_data_id = int(section_data_id) if section_data_id not in ['', None] else None
         self.section_id = int(section_id) if section_id not in ['', None] else None
         self.__field_values = list()
         self.formulary_data_id = formulary_data_id
-    
+    # ------------------------------------------------------------------------------------------
     def add_field_value(self, field_id, field_name, value, field_value_data_id=None):
         """
         This function is used to add field_values to sections. remember that formularies is a conjunction of sections following
@@ -33,7 +35,8 @@ class SectionData:
             None: Just a default return statement but is not needed for anything
         """
         # validates if self.formulary_data_id is defined, if it is, it means we are duplicating the value
-        # so we ignore the field_value_data_id recievied and set it to None
+        # so we ignore the field_value_data_id recievied and set it to None.
+        # this also prevents the user forcing to update the formulary directly by the api
         field_value_data_id = field_value_data_id if self.formulary_data_id else None
 
         # we only add values that are not empty strings or none
@@ -42,7 +45,7 @@ class SectionData:
             self.__field_values.append(field_value_obj)
             return field_value_obj
         return None
-    
+    # ------------------------------------------------------------------------------------------
     def get_field_values_by_field_name(self, field_name):
         """
         Gets the values of a field on this particular section from a specific `field_name`
@@ -54,7 +57,7 @@ class SectionData:
             list(FieldValueData): List of FieldValues from this section
         """
         return [field for field in self.__field_values if field_name == field.field_name]
-
+    # ------------------------------------------------------------------------------------------
     @property
     def get_field_values(self):
         """
@@ -66,12 +69,12 @@ class SectionData:
         """
         return self.__field_values
 
-
+############################################################################################
 class FormularyData:
     def __init__(self, form_data_id=None):
         self.form_data_id = form_data_id
         self.__sections = list()
-
+    # ------------------------------------------------------------------------------------------
     def add_section_data(self, section_id, section_data_id=None):
         # validates if self.instance is defined, than we can use the id recieved, otherwise use None
         section_data_id = section_data_id if self.form_data_id else None
@@ -79,7 +82,7 @@ class FormularyData:
         section_data_obj = SectionData(section_data_id, section_id, self.form_data_id)
         self.__sections.append(section_data_obj)
         return section_data_obj
-    
+    # ------------------------------------------------------------------------------------------
     @property
     def get_sections(self):
         """
@@ -89,7 +92,7 @@ class FormularyData:
             list(SectionData): list of SectionData objects
         """
         return self.__sections
-
+    # ------------------------------------------------------------------------------------------
     @property
     def get_field_values(self):
         """
@@ -99,7 +102,7 @@ class FormularyData:
             list(FieldValueData): List of FieldValueData
         """
         return [field_value for section in self.__sections for field_value in section.get_field_values]
-
+    # ------------------------------------------------------------------------------------------
     @property
     def get_formatted_fields_data(self):
         """
@@ -117,7 +120,7 @@ class FormularyData:
                 formatted_field_values[field_value.field_id] = field_value_item_list
         return formatted_field_values
 
-
+############################################################################################
 class PostSaveData:
     def __init__(self, section_instance, form_value_instance):
         self.section_instance = section_instance

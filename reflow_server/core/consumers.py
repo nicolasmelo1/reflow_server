@@ -188,3 +188,58 @@ class UserConsumer(BaseConsumer, *get_consumers('LOGIN_REQUIRED')):
     async def send_event(cls, event_name, user_id, **kwargs):
         group_name = cls.group_name.format(id=user_id)
         await super().send_event(event_name, group_name, **kwargs)
+
+
+class PublicConsumer(BaseConsumer, *get_consumers('PUBLIC')):
+    """
+    This class is a Consumer that we use in our root routing.py, this consumer is used for 
+    validating if the user is a public user before connecting. 
+    
+    To use this consumer you must declare your consumer inside of the 'PUBLIC' 
+    key of the CONSUMERS dict in `settings.py`
+    
+    You can create your own custom consumers inherinting the class from 
+    (BaseConsumer, *get_consumers(YOUR_CUSTOM_KEY_IN_CONSUMERS)). In `settings.py`, in the CONSUMERS 
+    dict, you must add a key that will default to your custom consumer.
+
+    So, if you want to add a consumer that validates if the `company_id` is defined prior connecting 
+    you create something like this:
+
+    in `settings.py`: 
+    >>> CONSUMERS = {
+        # other keys
+        'COMPANY_REQUIRED': [
+            # your consumers
+        ]
+    }
+
+    in `core.consumers.py`:
+    >>> class CompanyConsumer(BaseConsumer, *get_consumers('COMPANY_REQUIRED')):
+            def connect(self):
+                # your custom connect logic here
+
+    and in root `routing.py`:
+    >>> application = ProtocolTypeRouter({
+        'websocket': AuthWebsocketJWTMiddleware(
+            URLRouter([
+                # other consumers
+                re_path(r'^websocket/custom_route_to_your_consumer', CompanyConsumer)
+            ])
+        )
+    })
+    """
+    group_name = 'public'
+
+    async def connect(self):
+        if 'is_public' in self.scope and self.scope['is_public']:
+            await self.channel_layer.group_add(
+                self.group_name,
+                self.channel_name
+            )
+            await self.accept()
+        else:
+            raise DenyConnection('Not a public scope')
+    
+    @classmethod
+    async def send_event(cls, event_name, **kwargs):
+        await super().send_event(event_name, cls.group_name, **kwargs)

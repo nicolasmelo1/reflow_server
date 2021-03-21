@@ -30,7 +30,10 @@ class DraftSaveFileView(APIView):
     def post(self, request, company_id):
         files = [request.data.getlist(key) for key in request.data.keys()]
         draft_service = DraftService(company_id=company_id, user_id=request.user.id)
-        draft_id = draft_service.save_new_draft(draft_file=files[0][0] if len(files) > 0 else None)
+        draft_id = draft_service.save_new_draft(
+            draft_file=files[0][0] if len(files) > 0 else None, 
+            is_public_draft=request.is_public
+        )
         return Response({
             'status': 'ok',
             'data': {
@@ -71,7 +74,8 @@ class DraftEditFileView(APIView):
         draft_service = DraftService(company_id=company_id, user_id=request.user.id)
         draft_string_id = draft_service.save_new_draft(
             draft_file=files[0][0] if len(files) > 0 else None, 
-            draft_id=draft_id
+            draft_id=draft_id,
+            is_public_draft=request.is_public
         )
         return Response({
             'status': 'ok',

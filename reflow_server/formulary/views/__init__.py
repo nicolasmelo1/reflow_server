@@ -4,9 +4,10 @@ from rest_framework.response import Response
 
 from reflow_server.authentication.models import UserExtended
 from reflow_server.core.utils.pagination import Pagination
+from reflow_server.formulary import serializers
 from reflow_server.formulary.serializers import GetFormSerializer, GetGroupSerializer, FormFieldTypeOptionsSerializer, \
-    UserFieldTypeOptionsSerializer
-from reflow_server.formulary.models import Form, FormAccessedBy, Group, Field
+    UserFieldTypeOptionsSerializer, PublicAccessFormSerializer
+from reflow_server.formulary.models import Form, FormAccessedBy, Group, Field, PublicAccessForm
 from reflow_server.data.models import FormValue
 
 
@@ -37,7 +38,11 @@ class GetFormularyView(APIView):
     """
     def get(self, request, company_id, form):
         instance = Form.objects.filter(form_name=form, company_id=company_id, depends_on__isnull=True).first()
-        serializer = GetFormSerializer(user_id=request.user.id, instance=instance)
+        serializer = GetFormSerializer(instance=instance, context={
+            'company_id': company_id,
+            'public_access_key': request.query_params.get('public_key', None),
+            'user_id': request.user.id
+        })
         return Response({
             'status': 'ok',
             'data': serializer.data
@@ -95,3 +100,34 @@ class UserFieldTypeOptionsView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+
+
+class PublicFormularyDataView(APIView):
+    """
+    This is a public view, this means it does not require any authentication.
+
+    The request MUST BE public (this means it requires a public_key query param in the url)
+    in order to retrieve any data.
+    """
+    def get(self, request, company_id, form):
+        if request.is_public:
+            instance = PublicAccessForm.formulary_.public_access_form_by_public_access_key_company_id_and_main_form_name(
+                request.query_params.get('public_key', None),
+                company_id,
+                form
+            )
+            if instance:
+                serializer = PublicAccessFormSerializer(instance=instance)
+                return Response({
+                    'status': 'ok',
+                    'data': serializer.data
+                }, status=status.HTTP_200_OK) 
+            else:
+                return Response({
+                    'status': 'error',
+                    'reason': 'does_not_exist'
+                }, status=status.HTTP_400_BAD_REQUEST) 
+        else: 
+            return Response({
+                'status': 'error'
+            }, status=status.HTTP_403_FORBIDDEN)

@@ -3,7 +3,7 @@ from django.db import models
 
 class FormValueFormularyManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().all()
+        return super().get_queryset()
         
     def form_values_by_company_id_field_id_search_value_and_form_id(self, company_id, field_id, search=None, section_id=None):
         """

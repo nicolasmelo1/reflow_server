@@ -10,6 +10,7 @@ from reflow_server.formulary.services.fields import FieldService
 from reflow_server.formulary.services.data import FieldOptionsData
 
 
+############################################################################################
 class FieldOptionSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(allow_null=True, required=False)
     
@@ -18,6 +19,7 @@ class FieldOptionSerializer(serializers.ModelSerializer):
         fields = ('id', 'uuid', 'option',)
 
 
+############################################################################################
 class FieldAsOptionSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False, allow_null=True)
     form_depends_on_id = serializers.IntegerField(source='form.depends_on_id', required=False, allow_null=True)
@@ -28,6 +30,7 @@ class FieldAsOptionSerializer(serializers.ModelSerializer):
         fields = ('id', 'form_depends_on_id', 'form_depends_on_group_id')
 
 
+############################################################################################
 class FieldSerializer(serializers.ModelSerializer):
     """
     Serializer for editing fields and to be used when loading as the child of a section.
@@ -115,6 +118,7 @@ class FieldSerializer(serializers.ModelSerializer):
         exclude = ('created_at', 'updated_at')
 
 
+############################################################################################
 class SectionSerializer(serializers.ModelSerializer):
     """
     Serializer for editing sections and to be used when loading as the child of a formulary.
@@ -156,6 +160,7 @@ class SectionSerializer(serializers.ModelSerializer):
         exclude = ('company', 'depends_on', 'created_at', 'updated_at')
 
 
+############################################################################################
 class FormularyListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         formulary_service = FormularyService(user_id=self.context['user_id'], company_id=self.context['company_id'])
@@ -204,7 +209,7 @@ class FormularySerializer(serializers.ModelSerializer):
         list_serializer_class = FormularyListSerializer
         fields = ('id', 'label_name', 'form_name', 'enabled', 'group', 'order', 'depends_on_form')
 
-
+############################################################################################
 class GroupSerializer(serializers.ModelSerializer):
     """
     Serializer for editing groups and for loading to be used when loading groups

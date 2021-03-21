@@ -27,3 +27,11 @@ class AuthenticationPermissionsService:
                 return False
         else:
             return True
+
+    @staticmethod
+    def is_valid_public_path(url_name):
+        from reflow_server.authentication.services.routes import can_be_public_url_names
+        if url_name in can_be_public_url_names:
+            return True
+        else:
+            return False
