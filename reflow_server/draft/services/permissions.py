@@ -28,6 +28,9 @@ class DraftPermissionService:
         """
         company_aggregated_rich_text_image_sizes = TextImageOption.draft_.company_aggregated_image_sizes(company_id)
         company_aggregated_attachment_file_sizes = Attachments.draft_.company_aggregated_file_sizes(company_id)
+        
+        company_aggregated_rich_text_image_sizes = company_aggregated_rich_text_image_sizes if company_aggregated_rich_text_image_sizes else 0
+        company_aggregated_attachment_file_sizes = company_aggregated_attachment_file_sizes if company_aggregated_attachment_file_sizes else 0
 
         current_gb_permission_for_company = CurrentCompanyCharge.objects.filter(
             individual_charge_value_type__name='per_gb', 
