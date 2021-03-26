@@ -1,8 +1,14 @@
 from rest_framework import serializers
 
-from reflow_server.formulary.models import Form, Field, OptionAccessedBy, FieldOptions, FormAccessedBy, PublicAccessField
+from reflow_server.formulary.models import Form, Field, OptionAccessedBy, FieldOptions, FormAccessedBy, PublicAccessField, DefaultFieldValue, DefaultFieldValueAttachments
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
+
+############################################################################################
+class FieldDefaultValuesRelation(serializers.ModelSerializer):
+    class Meta:
+        model = DefaultFieldValue
+        fields = ('value', )
 
 ############################################################################################
 class FilteredFieldOptionListSerializer(serializers.ListSerializer):
@@ -43,6 +49,7 @@ class FilteredFieldsListSerializer(serializers.ListSerializer):
 class FormFieldRelation(serializers.ModelSerializer):
     form_field_as_option = FormFieldAsOptionRelation()
     field_option = FieldOptionRelation(many=True)
+    field_default_field_values = FieldDefaultValuesRelation(many=True)
 
     class Meta:
         model = Field

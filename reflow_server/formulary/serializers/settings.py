@@ -2,13 +2,21 @@ from django.db import transaction
 
 from rest_framework import serializers
 
-from reflow_server.formulary.models import Group, Form, Field, FieldOptions, FieldType
+from reflow_server.formulary.models import Group, Form, Field, FieldOptions, FieldType, DefaultFieldValue
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
-from reflow_server.formulary.services.data import FieldOptionsData
+from reflow_server.formulary.services.data import FieldOptionsData, DefaultFieldData
 
+
+############################################################################################
+class FieldDefaultValuesSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(allow_null=True, required=False)
+
+    class Meta:
+        model = DefaultFieldValue
+        fields = ('id', 'value')
 
 ############################################################################################
 class FieldOptionSerializer(serializers.ModelSerializer):
@@ -42,6 +50,7 @@ class FieldSerializer(serializers.ModelSerializer):
     """
     id = serializers.IntegerField(allow_null=True)
     field_option = FieldOptionSerializer(many=True)
+    field_default_field_values = FieldDefaultValuesSerializer(many=True)
     form_field_as_option = FieldAsOptionSerializer(allow_null=True)
     name = serializers.CharField(allow_blank=True, allow_null=True)
 
@@ -79,12 +88,21 @@ class FieldSerializer(serializers.ModelSerializer):
             ).first()
         else:
             form_field_as_option = None
-
+        
         field_options_data = FieldOptionsData()
         formula_configuration = self.validated_data['formula_configuration'] if self.validated_data.get('formula_configuration', None) not in [None, ''] else None 
         for field_option in self.validated_data.get('field_option', list()):
             field_options_data.add_field_option(field_option['option'], field_option['uuid'], field_option['id'])
 
+        default_field_value_data = list()
+        for default_field_value in self.validated_data.get('field_default_field_values', list()):
+            default_field_value_data.append(
+                DefaultFieldData(
+                    default_value_id=default_field_value.get('id'), 
+                    value=default_field_value.get('value')
+                )
+            )
+            
         field_service = FieldService(
             user_id=self.context['user_id'], 
             company_id=self.context['company_id'], 
@@ -102,6 +120,7 @@ class FieldSerializer(serializers.ModelSerializer):
             section=self.validated_data['form'],
             form_field_as_option=form_field_as_option,
             formula_configuration=formula_configuration,
+            default_field_value_data=default_field_value_data,
             date_configuration_auto_create=self.validated_data['date_configuration_auto_create'],
             date_configuration_auto_update=self.validated_data['date_configuration_auto_update'],
             number_configuration_number_format_type=self.validated_data.get('number_configuration_number_format_type', None),

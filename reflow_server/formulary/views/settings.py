@@ -1,7 +1,8 @@
-from reflow_server.authentication.managers import public_access
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
+
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,8 +12,10 @@ from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.formulary.serializers.settings import GroupSerializer, FormularySerializer, \
     SectionSerializer, FieldSerializer
 from reflow_server.formulary.serializers import PublicAccessFormSerializer
-from reflow_server.formulary.models import Group, Form, Field, PublicAccessForm
+from reflow_server.formulary.models import Group, Form, Field, PublicAccessForm, DefaultFieldValue
+from reflow_server.core.utils.storage import Bucket
 
+import urllib
 
 ############################################################################################
 class GroupSettingsView(APIView):
@@ -338,6 +341,36 @@ class FieldSettingsEditView(APIView):
             'status': 'ok'
         }, status=status.HTTP_200_OK)
     # ------------------------------------------------------------------------------------------
+
+
+############################################################################################
+class DefaultValueAttachmentView(APIView):
+    """
+    Retrieve the attachment image and/or file while the user is editing the default values.
+
+    Methods:
+        GET - Retrieve the DefaultAttachment url.
+    """
+    def get(self, request, company_id, form_id, field_id, file_name):
+        bucket = Bucket()
+        instance = DefaultFieldValue.formulary_.default_value_field_by_default_value_field_attachment_file_name_field_id_company_id_and_main_form_id(
+            file_name=file_name,
+            company_id=company_id,
+            main_form_id=form_id,
+            field_id=field_id
+        )
+        file_url = instance.default_attachment.file_url 
+        file_default_attachments_path = instance.default_attachment.file_default_attachments_path
+        
+        if file_url and len(file_url.split('/{}/'.format(file_default_attachments_path)))>1:
+            key = file_default_attachments_path + '/' + file_url.split('/{}/'.format(file_default_attachments_path))[1]
+            key = urllib.parse.unquote(key)
+        else:
+            key = "{file_default_attachments_path}/{default_field_value_instance_id}/".format(
+                file_default_attachments_path=file_default_attachments_path,
+                default_field_value_instance_id=instance.id
+            )
+        return redirect(bucket.get_temp_url(key))
 
 
 ############################################################################################

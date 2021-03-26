@@ -7,7 +7,7 @@ from reflow_server.formulary.views import GetFormularyView, GetGroupsView, UserF
     FormFieldTypeOptionsView, PublicFormularyDataView
 from reflow_server.formulary.views.settings import GroupSettingsView, GroupEditSettingsView, FormularySettingsView, \
     FormularySettingsEditView, SectionSettingsView, SectionSettingsEditView, FieldSettingsView, FieldSettingsEditView, \
-    FieldOptionsView, PublicFormSettingsView
+    FieldOptionsView, PublicFormSettingsView, DefaultValueAttachmentView
 
 
 settings_urlpatterns = [
@@ -27,6 +27,7 @@ settings_urlpatterns = [
     ])),
     re_path(r'^fields/(?P<form_id>\d+)/', include([
         re_path(r'^$', validate_billing(FieldSettingsView.as_view()), name='formulary_settings_fields'),
+        re_path(r'^(?P<field_id>\d+)/defaults/(?P<file_name>.+)/$', validate_billing(DefaultValueAttachmentView.as_view()), name='formulary_settings_default_value_attachment_view'),
         re_path(r'^(?P<field_id>\d+)/$', validate_billing(FieldSettingsEditView.as_view()), name='formulary_settings_edit_fields')
     ]))
 ]

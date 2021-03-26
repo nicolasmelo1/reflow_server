@@ -1,6 +1,6 @@
 from reflow_server.formula.utils.settings import Structure
 from reflow_server.formula.exceptions import FormulaException
-from reflow_server.formula.utils.tokens import Token, TokenContainer
+from reflow_server.formula.utils.tokens import TokenContainer
 
 import re
 

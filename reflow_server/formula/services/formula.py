@@ -3,6 +3,7 @@ from django.conf import settings
 from reflow_server.formula.exceptions import FormulaException
 from reflow_server.formula.utils.parser import Parser
 
+
 class FormulaService:
     def __init__(self, expression, *args, **kwargs):
         """

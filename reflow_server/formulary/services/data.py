@@ -30,3 +30,10 @@ class FieldOptionsData:
 
             return field_option_data
         return None
+
+
+class DefaultFieldData:
+    def __init__(self, value, default_value_id=None):
+        self.default_value_id = default_value_id
+        self.value = value
+

@@ -1,8 +1,5 @@
 from reflow_server.formula.models import FormulaType
 
-import string
-import random
-
 class Structure:
     operations = {
         '>=': '>=',

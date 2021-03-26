@@ -123,3 +123,12 @@ class AbstractFieldOptions(models.Model):
 
     class Meta:
         abstract = True
+
+
+class AbstractDefaultFieldValue(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    value = models.TextField()
+
+    class Meta:
+        abstract = True

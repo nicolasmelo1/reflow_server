@@ -1,9 +1,13 @@
+from django.conf import settings
 from django.db import transaction
 
+
 from reflow_server.notification.services.pre_notification import PreNotificationService
+from reflow_server.draft.services import DraftService
+from reflow_server.draft.models import Draft
 from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.formulary.services.utils import Settings
-from reflow_server.formulary.models import Form, Field, FieldOptions, PublicAccessField
+from reflow_server.formulary.models import Form, Field, FieldOptions, PublicAccessField, DefaultFieldValue, DefaultFieldValueAttachments
 
 
 class FieldService(Settings):
@@ -11,6 +15,45 @@ class FieldService(Settings):
         self.user_id = user_id
         self.company_id = company_id
         self.form = Form.objects.filter(id=form_id).first()
+    # ------------------------------------------------------------------------------------------
+    def save_default_values(self, field_instance, field_type, default_field_values_data):
+        for default_field_value in default_field_values_data:
+            if field_type.type == 'attachment':
+                draft_id = DraftService.draft_id_from_draft_string_id(default_field_value.value)
+                if draft_id != -1:
+                    draft_instance = Draft.formulary_.draft_by_draft_id_user_id_and_company_id(draft_id, self.user_id, self.company_id)
+                    real_file_name = draft_instance.value
+
+                    default_field_value_instance = DefaultFieldValue.formulary_.update_or_create(
+                        field_instance.id, real_file_name, default_field_value.default_value_id
+                    )
+
+                    bucket_key = "{file_default_attachments_path}/{default_field_value_instance_id}/".format(
+                        file_default_attachments_path=settings.S3_FILE_DEFAULT_ATTACHMENTS_PATH,
+                        default_field_value_instance_id=default_field_value_instance.id
+                    )
+
+                    file_size = draft_instance.file_size
+                    file_url = DraftService(self.company_id, self.user_id)\
+                        .copy_file_from_draft_string_id_to_bucket_key(
+                            default_field_value.value,
+                            bucket_key
+                        )
+
+                    default_field_value_attachment_instance = DefaultFieldValueAttachments.formulary_.update_or_create(
+                        file_name=real_file_name,
+                        file_url=file_url,
+                        file_size=file_size
+                    )
+                    
+                    default_field_value_instance.default_attachment = default_field_value_attachment_instance
+                    default_field_value_instance.save()
+            else:
+                DefaultFieldValue.formulary_.update_or_create(
+                    field_instance.id, 
+                    default_field_value.value, 
+                    default_field_value.default_value_id
+                )
     # ------------------------------------------------------------------------------------------
     def get_public_fields_from_section(self, public_access_key, section_id):
         """
@@ -26,9 +69,10 @@ class FieldService(Settings):
     @transaction.atomic
     def save_field(self, enabled, label_name, order, is_unique, field_is_hidden, 
                    label_is_hidden, placeholder, required, section, form_field_as_option, 
-                   formula_configuration, date_configuration_auto_create, date_configuration_auto_update,
-                   number_configuration_number_format_type, date_configuration_date_format_type,
-                   period_configuration_period_interval_type, field_type, field_options_data=None, instance=None):
+                   formula_configuration, default_field_value_data, date_configuration_auto_create, 
+                   date_configuration_auto_update, number_configuration_number_format_type, 
+                   date_configuration_date_format_type, period_configuration_period_interval_type, 
+                   field_type, field_options_data=None, instance=None):
         if instance == None:
             instance = Field()
                    
@@ -66,8 +110,11 @@ class FieldService(Settings):
         
 
         # updates the pre_notifications
-        PreNotificationService.update(self.company_id)
+        if field_type.type == 'date':
+            PreNotificationService.update(self.company_id)
         
+        self.save_default_values(instance, field_type, default_field_value_data)
+
         if instance.type.type in ['option', 'multi_option']:
             field_options_service.create_new_field_options(instance, field_options_data)
 

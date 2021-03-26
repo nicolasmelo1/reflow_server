@@ -1,12 +1,14 @@
 from django.conf import settings
 from django.db import models
 
-from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldOptions
+from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldOptions, \
+    AbstractDefaultFieldValue
 from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, FormAccessedByThemeManager
 from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
 from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager, \
-    PublicAccessFormFormularyManager, FormAccessedByFormularyManager
+    PublicAccessFormFormularyManager, FormAccessedByFormularyManager, DefaultValueFieldAttachmentsFormularyManager, \
+    DefaultFieldValueFormularyManager
 from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager
 
 
@@ -380,6 +382,36 @@ class FormAccessedBy(models.Model):
     objects = models.Manager()
     theme_ = FormAccessedByThemeManager()
     formulary_ = FormAccessedByFormularyManager()
+
+
+############################################################################################
+class DefaultFieldValue(AbstractDefaultFieldValue):
+    """
+    The default values of the field. Whenever a new formulary is created we automatically add this value to the field.
+    """
+    field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, related_name='field_default_field_values')
+    default_attachment = models.ForeignKey('DefaultFieldValueAttachments', models.CASCADE, db_index=True, null=True)
+
+    class Meta:
+        db_table = 'default_field_value'
+
+    formulary_ = DefaultFieldValueFormularyManager()
+
+
+############################################################################################
+class DefaultFieldValueAttachments(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    file = models.CharField(max_length=500, null=True, blank=True)
+    bucket = models.CharField(max_length=200, default=settings.S3_BUCKET)
+    file_default_attachments_path = models.CharField(max_length=250, default=settings.S3_FILE_DEFAULT_ATTACHMENTS_PATH)
+    file_url = models.CharField(max_length=1000, null=True, blank=True)
+    file_size = models.BigIntegerField(default=0)
+    
+    class Meta:
+        db_table = 'default_attachments'
+
+    formulary_ = DefaultValueFieldAttachmentsFormularyManager()
 
 
 ############################################################################################

@@ -52,6 +52,7 @@ class DevelopmentConfig(Config):
 
     S3_REGION_NAME = config_file['aws']['s3_region_name']
     S3_FILE_DRAFT_PATH = config_file['aws']['s3_file_draft_path']
+    S3_FILE_DEFAULT_ATTACHMENTS_PATH = config_file['aws']['s3_file_default_attachments_path']
     S3_FILE_RICH_TEXT_IMAGE_PATH = config_file['aws']['s3_file_rich_text_image_path']
     S3_FILE_ATTACHMENTS_PATH = config_file['aws']['s3_file_attachments_path']
     S3_COMPANY_LOGO_PATH = config_file['aws']['s3_company_logo_path']
@@ -126,6 +127,7 @@ class ServerConfig(Config):
 
     S3_REGION_NAME = os.environ.get('S3_REGION_NAME', None)
     S3_FILE_DRAFT_PATH = os.environ.get('S3_FILE_DRAFT_PATH', None)
+    S3_FILE_DEFAULT_ATTACHMENTS_PATH = os.environ.get('S3_FILE_DEFAULT_ATTACHMENTS_PATH', None)
     S3_FILE_RICH_TEXT_IMAGE_PATH = os.environ.get('S3_FILE_RICH_TEXT_IMAGE_PATH', None)
     S3_FILE_ATTACHMENTS_PATH = os.environ.get('S3_FILE_ATTACHMENTS_PATH', None)
     S3_COMPANY_LOGO_PATH = os.environ.get('S3_COMPANY_LOGO_PATH', None)

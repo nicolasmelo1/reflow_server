@@ -1,4 +1,3 @@
-from reflow_server.formulary.managers import public_access_field
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt

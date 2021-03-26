@@ -41,6 +41,7 @@
     "access_key": "foo",
     "secret_key": "bar",
     "s3_region_name": "",
+    "s3_file_default_attachments_path": "default-file-attachments",
     "s3_file_attachments_path": "file-attachments",
     "s3_file_rich_text_image_path": "rich-text/file-rich-text-image",
     "s3_file_draft_path": "file-draft",

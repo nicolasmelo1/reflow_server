@@ -1,7 +1,6 @@
 from django.conf import settings
 
 from reflow_server.formula.utils.lexer import Lexer
-from reflow_server.formula.utils.tokens import Token
 from reflow_server.formula.exceptions import ValidateError
 from reflow_server.formula.utils.settings import Structure
 
@@ -19,8 +18,6 @@ class Parser(Structure):
             expression {str} -- the formula effectively, it's just a raw formula, could be as simple as
                                 1+1 or more complex like SUM( 2 + 2 ; COUNT("A", 2 , 3 ))
         """
-        self.__args = args
-        self.__kwargs = kwargs
         super(Parser, self).__init__(*args, **kwargs)
 
         # lexer validates and do most of the formating of the formula
