@@ -6,6 +6,7 @@ from reflow_server.authentication.models import UserExtended
 from datetime import datetime
 from math import ceil
 import decimal
+import re
 
 
 class RepresentationService:
@@ -39,6 +40,54 @@ class RepresentationService:
         # sometimes i want to retrieve the id instead of the value
         self.load_ids = load_ids
 
+    def to_internal_value(self, value):
+        """
+        As `.representation` is used when retrieving the value for the user this is used when retrieving the value from the user.
+        So this is the value we use internally.
+
+        Args:
+            value (str): The value you are recieving
+
+        Returns:
+            str: The value formated and ready to be saved in the database
+        """
+        if value and value != '':
+            handler = getattr(self, '_to_internal_value_%s' % self.field_type, None)
+            if handler:
+                value = handler(value)
+        else:
+            value = ''
+        return value
+
+    def _to_internal_value_date(self, value):
+        return datetime.strptime(value, self.date_format_type.format).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+    
+    def _to_internal_value_number(self, value):
+        precision = self.number_format_type.precision
+        base = self.number_format_type.base
+
+        if self.number_format_type.suffix:
+            value = re.sub('(\\{})$'.format(self.number_format_type.suffix), '', value, flags=re.MULTILINE)
+        if self.number_format_type.prefix:
+            value = re.sub('(^\\{})'.format(self.number_format_type.prefix), '', value, flags=re.MULTILINE)
+        if self.number_format_type.decimal_separator:
+            value_list = value.split(self.number_format_type.decimal_separator)
+            value_list = value_list[:2]
+
+            if len(value_list) > 1:
+                cleaned_decimals = re.sub(r'\D', '',  value_list[1])
+                decimals = int(cleaned_decimals)/int('1' + '0'*len(cleaned_decimals))
+                value_list[1] = str(round(decimals, len(str(precision))-1)).split('.')[1]
+                value_list[1] = value_list[1] + '0'*(len(str(precision))-1 - len(value_list[1]))
+            else:
+                value_list.append(str(precision)[1:])
+            value = ''.join(value_list)
+        negative_signal = value[0]
+        value = '{}{}'.format(negative_signal if negative_signal == '-' else '', re.sub(r'\D', '', value))
+        value = 0 if value == '' else value
+        value = str(int(value)*int(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT/(precision*base)))
+        return value
+        
     def representation(self, value):
         """
         This effectively recieves a value and transforms it to an human readable value.

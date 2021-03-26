@@ -1,11 +1,11 @@
 from django.conf import settings
 
+from reflow_server.data.services.representation import RepresentationService
 from reflow_server.data.services.formulary.data import FieldValueData
 from reflow_server.data.services.formulary.validators import Validator
 from reflow_server.data.models import FormValue
 
 from datetime import datetime, timedelta
-import re
 
 
 class PreSave(Validator):
@@ -146,13 +146,23 @@ class PreSave(Validator):
                 # we try to format to the value of the field supplied, otherwise we format to the value that was already saved.
                 # This can happen if we changed the format of this date field.
                 if self.__validate_date(value, field.date_configuration_date_format_type.format):
-                    value = datetime.strptime(value, field.date_configuration_date_format_type.format).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+                    representation = RepresentationService(
+                        field.type.type, 
+                        field.date_configuration_date_format_type, 
+                        field.number_configuration_number_format_type,
+                        field.form_field_as_option
+                    )
+                    value = representation.to_internal_value(value)
                 else:
                     try:
-                        value = datetime.strptime(
-                            value, 
-                            FormValue.data_.form_value_by_form_value_id(field_data.field_value_data_id).date_configuration_date_format_type.format
-                        ).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+                        form_value_instance = FormValue.data_.form_value_by_form_value_id(field_data.field_value_data_id)
+                        representation = RepresentationService(
+                            form_value_instance.field_type.type, 
+                            form_value_instance.date_configuration_date_format_type, 
+                            form_value_instance.number_configuration_number_format_type,
+                            field.form_field_as_option
+                        )
+                        value = representation.to_internal_value(value)
                     except:
                         value = ''
         else:
@@ -183,28 +193,13 @@ class PreSave(Validator):
         numbers it works as expected.
         """
         value = field_data.value
+
         if value != '':
-            precision = field.number_configuration_number_format_type.precision
-            base = field.number_configuration_number_format_type.base
-
-            if field.number_configuration_number_format_type.suffix:
-                value = re.sub('(\\{})$'.format(field.number_configuration_number_format_type.suffix), '', value, flags=re.MULTILINE)
-            if field.number_configuration_number_format_type.prefix:
-                value = re.sub('(^\\{})'.format(field.number_configuration_number_format_type.prefix), '', value, flags=re.MULTILINE)
-            if field.number_configuration_number_format_type.decimal_separator:
-                value_list = value.split(field.number_configuration_number_format_type.decimal_separator)
-                value_list = value_list[:2]
-
-                if len(value_list) > 1:
-                    cleaned_decimals = re.sub(r'\D', '',  value_list[1])
-                    decimals = int(cleaned_decimals)/int('1' + '0'*len(cleaned_decimals))
-                    value_list[1] = str(round(decimals, len(str(precision))-1)).split('.')[1]
-                    value_list[1] = value_list[1] + '0'*(len(str(precision))-1 - len(value_list[1]))
-                else:
-                    value_list.append(str(precision)[1:])
-                value = ''.join(value_list)
-            negative_signal = value[0]
-            value = '{}{}'.format(negative_signal if negative_signal == '-' else '', re.sub(r'\D', '', value))
-            value = 0 if value == '' else value
-            value = str(int(value)*int(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT/(precision*base)))
+            representation = RepresentationService(
+                field.type.type, 
+                field.date_configuration_date_format_type, 
+                field.number_configuration_number_format_type,
+                field.form_field_as_option
+            )
+            value = representation.to_internal_value(value)
         return value

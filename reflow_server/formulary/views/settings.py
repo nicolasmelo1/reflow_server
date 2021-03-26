@@ -12,10 +12,10 @@ from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.formulary.serializers.settings import GroupSerializer, FormularySerializer, \
     SectionSerializer, FieldSerializer
 from reflow_server.formulary.serializers import PublicAccessFormSerializer
-from reflow_server.formulary.models import Group, Form, Field, PublicAccessForm, DefaultFieldValue
-from reflow_server.core.utils.storage import Bucket
+from reflow_server.formulary.services.fields import FieldService
+from reflow_server.formulary.services.default_attachment import DefaultAttachmentService
+from reflow_server.formulary.models import Group, Form, Field, PublicAccessForm
 
-import urllib
 
 ############################################################################################
 class GroupSettingsView(APIView):
@@ -329,14 +329,8 @@ class FieldSettingsEditView(APIView):
             }, status=status.HTTP_502_BAD_GATEWAY)
     # ------------------------------------------------------------------------------------------
     def delete(self, request, company_id, form_id, field_id):
-        instance = Field.objects.filter(
-            id=field_id, 
-            form__depends_on__group__company_id=company_id, 
-            form__depends_on_id=form_id
-        ).first()
-        if instance:
-            instance.delete()
-            
+        field_service = FieldService(request.user.id, company_id, form_id)
+        field_service.remove_field(field_id)
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
@@ -352,25 +346,9 @@ class DefaultValueAttachmentView(APIView):
         GET - Retrieve the DefaultAttachment url.
     """
     def get(self, request, company_id, form_id, field_id, file_name):
-        bucket = Bucket()
-        instance = DefaultFieldValue.formulary_.default_value_field_by_default_value_field_attachment_file_name_field_id_company_id_and_main_form_id(
-            file_name=file_name,
-            company_id=company_id,
-            main_form_id=form_id,
-            field_id=field_id
-        )
-        file_url = instance.default_attachment.file_url 
-        file_default_attachments_path = instance.default_attachment.file_default_attachments_path
-        
-        if file_url and len(file_url.split('/{}/'.format(file_default_attachments_path)))>1:
-            key = file_default_attachments_path + '/' + file_url.split('/{}/'.format(file_default_attachments_path))[1]
-            key = urllib.parse.unquote(key)
-        else:
-            key = "{file_default_attachments_path}/{default_field_value_instance_id}/".format(
-                file_default_attachments_path=file_default_attachments_path,
-                default_field_value_instance_id=instance.id
-            )
-        return redirect(bucket.get_temp_url(key))
+        default_attachment_service = DefaultAttachmentService(company_id=company_id, user_id=request.user.id, field_id=field_id)
+        url = default_attachment_service.get_default_attachment_url(file_name)
+        return redirect(url)
 
 
 ############################################################################################
