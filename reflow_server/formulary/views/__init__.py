@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from reflow_server.authentication.models import UserExtended
 from reflow_server.core.utils.pagination import Pagination
-from reflow_server.formulary import serializers
+from reflow_server.formulary.services.default_attachment import DefaultAttachmentService
 from reflow_server.formulary.serializers import GetFormSerializer, GetGroupSerializer, FormFieldTypeOptionsSerializer, \
     UserFieldTypeOptionsSerializer, PublicAccessFormSerializer
 from reflow_server.formulary.models import Form, FormAccessedBy, Group, Field, PublicAccessForm
@@ -131,3 +131,21 @@ class PublicFormularyDataView(APIView):
             return Response({
                 'status': 'error'
             }, status=status.HTTP_403_FORBIDDEN)
+
+
+class DefaultAttachmentToDraftView(APIView):
+    def get(self, request, company_id, form, field_id, file_name):
+        default_attachment_service = DefaultAttachmentService(company_id=company_id, user_id=request.user.id, field_id=field_id)
+        draft_string_id = default_attachment_service.get_draft_string_id_from_default_attachment(file_name, request.is_public)
+        if draft_string_id:
+            return Response({
+                'status': 'ok',
+                'data': {
+                    'draft_string_id': draft_string_id
+                }
+            }, status=status.HTTP_200_OK) 
+        else:
+            return Response({
+                'status': 'error',
+                'reason': 'does_not_exist'
+            }, status=status.HTTP_400_BAD_REQUEST) 

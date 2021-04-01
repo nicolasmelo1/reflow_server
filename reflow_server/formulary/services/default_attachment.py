@@ -57,9 +57,6 @@ class DefaultAttachmentService:
             default_field_value_ids_to_keep (list(int)): The list of DefultFieldValue instance ids to keep, the others, not present in this list,
             will be removed
         """
-        print('BREAKPOINT')
-        print(self.field_id)
-        print(default_field_value_ids_to_keep)
         default_field_values_to_delete = DefaultFieldValue.formulary_.default_field_values_by_field_id_excluding_default_field_value_ids(self.field_id, default_field_value_ids_to_keep)
 
         for default_field_value_to_delete in default_field_values_to_delete:
@@ -69,6 +66,34 @@ class DefaultAttachmentService:
             )
             self.bucket.delete(key=bucket_key)
 
+    def __get_default_attachment_key(self, file_name):
+        """
+        Retrieves a key for a default_attachment file in a s3 bucket.
+
+        Args:
+            file_name (str): The name of the file to retrieve the key for
+
+        Returns:
+            str: The bucket key for the file
+        """
+        instance = DefaultFieldValue.formulary_.default_value_field_by_default_value_field_attachment_file_name_field_id_and_company_id(
+            file_name=file_name,
+            company_id=self.company_id,
+            field_id=self.field_id
+        )
+        file_url = instance.default_attachment.file_url 
+        file_default_attachments_path = instance.default_attachment.file_default_attachments_path
+        key = None
+        if file_url and len(file_url.split('/{}/'.format(file_default_attachments_path)))>1:
+            key = file_default_attachments_path + '/' + file_url.split('/{}/'.format(file_default_attachments_path))[1]
+            key = urllib.parse.unquote(key)
+        else:
+            key = "{file_default_attachments_path}/{default_field_value_instance_id}/".format(
+                file_default_attachments_path=file_default_attachments_path,
+                default_field_value_instance_id=instance.id
+            )
+        return key
+    # ------------------------------------------------------------------------------------------
     def get_default_attachment_url(self, file_name):
         """
         Gets the temporary url for the file, we need this so we are able to display the file to the user.
@@ -79,21 +104,26 @@ class DefaultAttachmentService:
         Returns:
             str: The temporary url for the file.
         """
-        instance = DefaultFieldValue.formulary_.default_value_field_by_default_value_field_attachment_file_name_field_id_and_company_id(
+        return self.bucket.get_temp_url(self.__get_default_attachment_key(file_name))
+    # ------------------------------------------------------------------------------------------
+    @transaction.atomic
+    def get_draft_string_id_from_default_attachment(self, file_name, is_public=False):
+        default_field_value_instance = DefaultFieldValue.formulary_.default_value_field_by_default_value_field_attachment_file_name_field_id_and_company_id(
             file_name=file_name,
             company_id=self.company_id,
             field_id=self.field_id
         )
-        file_url = instance.default_attachment.file_url 
-        file_default_attachments_path = instance.default_attachment.file_default_attachments_path
-        
-        if file_url and len(file_url.split('/{}/'.format(file_default_attachments_path)))>1:
-            key = file_default_attachments_path + '/' + file_url.split('/{}/'.format(file_default_attachments_path))[1]
-            key = urllib.parse.unquote(key)
-        else:
-            key = "{file_default_attachments_path}/{default_field_value_instance_id}/".format(
-                file_default_attachments_path=file_default_attachments_path,
-                default_field_value_instance_id=instance.id
+        if default_field_value_instance:
+            draft_instance = DraftService(self.company_id, self.user_id)
+            key = self.__get_default_attachment_key(file_name)
+
+            draft_string_id = draft_instance.copy_file_to_draft(
+                key, 
+                default_field_value_instance.default_attachment.file, 
+                default_field_value_instance.default_attachment.file_size, 
+                is_public
             )
 
-        return self.bucket.get_temp_url(key)
+            return draft_string_id
+        else:
+            return None

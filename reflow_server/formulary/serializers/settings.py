@@ -8,10 +8,12 @@ from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
 from reflow_server.formulary.services.data import FieldOptionsData, DefaultFieldData
+from reflow_server.formulary.relations import DefaultFieldValueValue
 
 
 ############################################################################################
 class FieldDefaultValuesSerializer(serializers.ModelSerializer):
+    value = DefaultFieldValueValue(source='*')
     id = serializers.IntegerField(allow_null=True, required=False)
 
     class Meta:

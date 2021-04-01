@@ -4,8 +4,48 @@ from reflow_server.formulary.models import Form, Field, OptionAccessedBy, FieldO
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
 
+
+representation_service_cache = {}
+
+############################################################################################
+class DefaultFieldValueValue(serializers.Field):
+    def to_representation(self, obj):
+        from reflow_server.data.services import RepresentationService
+
+        if obj and obj.value != '':
+            cache_key = '{};{};{};{}'.format(
+                obj.field.type.type, 
+                obj.field.date_configuration_date_format_type_id, 
+                obj.field.number_configuration_number_format_type_id, 
+                obj.field.form_field_as_option_id
+            )
+
+            if representation_service_cache.get(cache_key):
+                representation = representation_service_cache.get(cache_key)
+            else:
+                representation = RepresentationService(
+                    obj.field.type.type, 
+                    obj.field.date_configuration_date_format_type, 
+                    obj.field.number_configuration_number_format_type, 
+                    obj.field.form_field_as_option, 
+                )
+                representation_service_cache[cache_key] = representation
+                
+            represented_value = representation.representation(obj.value)
+
+            # we need to reset the cache now and then so it doesn't take much space in our memory
+            if len(representation_service_cache.keys()) > 300:
+                representation_service_cache.clear()
+
+            return represented_value
+        else:
+            return ''
+
+
 ############################################################################################
 class FieldDefaultValuesRelation(serializers.ModelSerializer):
+    value = DefaultFieldValueValue(source='*')
+
     class Meta:
         model = DefaultFieldValue
         fields = ('value', )

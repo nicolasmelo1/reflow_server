@@ -4,7 +4,7 @@ from reflow_server.authentication.services.routes import register_admin_only_url
 from reflow_server.core.decorators import validate_billing
 from reflow_server.authentication.decorators import get_company_id_as_int
 from reflow_server.formulary.views import GetFormularyView, GetGroupsView, UserFieldTypeOptionsView, \
-    FormFieldTypeOptionsView, PublicFormularyDataView
+    FormFieldTypeOptionsView, PublicFormularyDataView, DefaultAttachmentToDraftView
 from reflow_server.formulary.views.settings import GroupSettingsView, GroupEditSettingsView, FormularySettingsView, \
     FormularySettingsEditView, SectionSettingsView, SectionSettingsEditView, FieldSettingsView, FieldSettingsEditView, \
     FieldOptionsView, PublicFormSettingsView, DefaultValueAttachmentView
@@ -42,6 +42,7 @@ urlpatterns = [
                 re_path(r'^$',validate_billing(GetFormularyView.as_view()), name='formulary_get_formulary'),
                 re_path(r'^(?P<field_id>\d+)/user/options/$',validate_billing(UserFieldTypeOptionsView.as_view()), name='formulary_get_user_field_type_options'),
                 re_path(r'^(?P<field_id>\d+)/form/options/$',validate_billing(FormFieldTypeOptionsView.as_view()), name='formulary_get_form_field_type_options'),
+                re_path(r'^(?P<field_id>\d+)/defaults/draft/(?P<file_name>.+)/$',validate_billing(DefaultAttachmentToDraftView.as_view()), name='formulary_get_draft_from_default_attachment_view'),
             ]))
         )
     ])),

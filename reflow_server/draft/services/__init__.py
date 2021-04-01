@@ -86,8 +86,46 @@ class DraftService:
 
             Draft.draft_.update_file_url_by_draft_id(instance.id, url)
 
+        draft_string_id = base64.b64encode(draft_id_template.format(instance.id).encode('utf-8')).decode('utf-8')
+        return draft_string_id
+    
+    @transaction.atomic
+    def copy_file_to_draft(self, bucket_key_to_copy, file_name, file_size, is_public_draft=False):
+        """
+        Copies a file from a bucket to the draft bucket and creates a new draft instance.
 
-        return base64.b64encode(draft_id_template.format(instance.id).encode('utf-8')).decode('utf-8')
+        Args:
+            bucket_key_to_copy (str): The bucket key to copy the file from
+            file_name (str): The name of the file you are saving
+            file_size (int): The size of the file you are copying in bytes.
+            is_public_draft (bool, optional): Set to true if the Draft is public 
+                                              (so it can be accessible with a public_access_key. 
+                                              Refer to reflow_server.authentication.models.PublicAccess for further reference). Defaults to False.
+
+        Returns:
+            str: Returns the draft string id so it can be used to retrieve this file.
+        """
+        draft_type_id = DraftType.objects.filter(name='file').values_list('id', flat=True).first()
+        draft_instance = Draft.draft_.create_or_update_draft(
+            is_public=is_public_draft,
+            value = file_name,
+            draft_type_id = draft_type_id,
+            file_size = file_size,
+            user_id = self.user_id,
+            company_id = self.company_id
+        )
+
+        draft_key = "{file_draft_path}/{id}/{file_name}".format(
+            id=str(draft_instance.id), 
+            file_draft_path=settings.S3_FILE_DRAFT_PATH,
+            file_name= str(file_name)
+        )
+        self.bucket.copy(
+            from_key=bucket_key_to_copy,
+            to_key=draft_key
+        )
+        draft_string_id = base64.b64encode(draft_id_template.format(draft_instance.id).encode('utf-8')).decode('utf-8')
+        return draft_string_id
 
     @transaction.atomic
     def copy_file_from_draft_string_id_to_bucket_key(self, draft_string_id, bucket_key, delete_after_copy=True):
