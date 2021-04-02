@@ -9,7 +9,7 @@ from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAcces
 from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager, \
     PublicAccessFormFormularyManager, FormAccessedByFormularyManager, DefaultValueFieldAttachmentsFormularyManager, \
     DefaultFieldValueFormularyManager
-from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager
+from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager, DefaultFieldValueDataManager
 
 
 ############################################################################################
@@ -396,7 +396,7 @@ class DefaultFieldValue(AbstractDefaultFieldValue):
         db_table = 'default_field_value'
 
     formulary_ = DefaultFieldValueFormularyManager()
-
+    data_ = DefaultFieldValueDataManager()
 
 ############################################################################################
 class DefaultFieldValueAttachments(models.Model):

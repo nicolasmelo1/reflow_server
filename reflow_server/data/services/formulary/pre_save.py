@@ -4,6 +4,8 @@ from reflow_server.data.services.representation import RepresentationService
 from reflow_server.data.services.formulary.data import FieldValueData
 from reflow_server.data.services.formulary.validators import Validator
 from reflow_server.data.models import FormValue
+from reflow_server.formulary.services import default_attachment
+from reflow_server.formulary.services.default_attachment import DefaultAttachmentService
 
 from datetime import datetime, timedelta
 
@@ -95,6 +97,20 @@ class PreSave(Validator):
 
                 for field in self.fields.filter(form_id=section.section_id):
                     field_values_of_this_field = section.get_field_values_by_field_name(field.name)
+                    
+                    # We only handle the default value and force it if it's a new formulary data, 
+                    # the field_value is not defined and it has default field values
+                    # we only check before the clean because of the automatic values
+                    is_to_handle_default_field_value = self.default_field_value_by_field_id.get(field.id, None) != None and \
+                        len(field_values_of_this_field) == 0 and \
+                        self.formulary_data.form_data_id == None
+
+                    # handles default value
+                    if is_to_handle_default_field_value:
+                        values = self.__handle_default_value(field)
+                        for value in values:
+                            cleaned_section.add_field_value(field.id, field.name, value)
+
                     # no values exists for this field on this section
                     if len(field_values_of_this_field) == 0:
                         field_data = FieldValueData(None, field.name, field.id, '')
@@ -105,9 +121,33 @@ class PreSave(Validator):
                             # clean the data
                             cleaned_value = self.__dispatch_clean(formulary_data, field, field_value)
                             cleaned_section.add_field_value(field.id, field.name, cleaned_value, field_value.field_value_data_id)
-        
+
         return cleaned_formulary_data
 
+    def __handle_default_value(self, field):
+        """
+        Force the default field value to be respected if it's not defined. This way the user cannot bypass the default field value.
+        The user can bypass this only selecting another value AND NEVER not selecting anything.
+
+        Args:
+            field (reflow_server.formulary.models.Field): The Field instance to use
+
+        Returns:
+            list(str): A list of string values.
+        """
+        values = []
+        default_field_values = self.default_field_value_by_field_id.get(field.id)
+        if field.type.type == 'attachment':
+            default_attachment_service = DefaultAttachmentService(self.company_id, self.user_id, field.id)
+            # it's kinda dumb to create a draft just to use it next, and it is not performatic, but it guarantee the default
+            # field value without many changes to the source code
+            for default_field_value in default_field_values:
+                draft_string_id = default_attachment_service.get_draft_string_id_from_default_attachment(default_field_value.value, False)
+                values.append(draft_string_id)
+        else:
+            for default_field_value in default_field_values:
+                values.append(default_field_value.value)
+        return values
 
     def __dispatch_clean(self, formulary_data, field, field_data):
         """
@@ -122,6 +162,7 @@ class PreSave(Validator):
             value = handler(formulary_data, field, field_data)
         else:
             value = field_data.value
+        
         return value
 
 

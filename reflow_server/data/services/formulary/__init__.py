@@ -1,8 +1,9 @@
+from reflow_server.formulary.managers import default_field_value
 from django.db import transaction
 
 from reflow_server.authentication.models import UserExtended
 from reflow_server.notification.services.pre_notification import PreNotificationService
-from reflow_server.formulary.models import Form, Field, PublicAccessField
+from reflow_server.formulary.models import DefaultFieldValue, Form, Field, PublicAccessField
 from reflow_server.data.models import FormValue, DynamicForm
 from reflow_server.data.services.formulary.data import FormularyData
 from reflow_server.data.services.formulary.pre_save import PreSave
@@ -73,6 +74,36 @@ class FormularyDataService(PreSave, PostSave):
         PreNotificationService.update(self.company_id)
     # ------------------------------------------------------------------------------------------
     @property
+    def __default_field_values_to_use_in_formulary(self):
+        """
+        Creates a dict of default field value instances by each field_id. With this we can then force the default value if
+        is not defined.
+
+        Raises:
+            AssertionError: Both `.__sections_to_use_in_formulary()` and `.__fields_to_use_in_formulary()` should be called
+            before this function
+
+        Returns:
+            dict: A dict where each key is a field_id, and the value of each key is a list of DefaultFieldValue instances
+            Example:
+            {
+                1: [reflow_server.formulary.models.DefaultFieldValue],
+                2: [reflow_server.formulary.models.DefaultFieldValue, reflow_server.formulary.models.DefaultFieldValue]
+            }
+        """
+        if hasattr(self, 'sections') and hasattr(self, 'fields'):
+            default_field_value_by_field_id = {}
+            default_field_values = DefaultFieldValue.data_.default_field_values_by_field_ids(self.fields.values_list('id', flat=True))
+            for default_field_value in default_field_values:
+                if default_field_value_by_field_id.get(default_field_value.field_id, None):
+                    default_field_value_by_field_id[default_field_value.field_id] = default_field_value_by_field_id[default_field_value.field_id] + [default_field_value]
+                else:
+                    default_field_value_by_field_id[default_field_value.field_id] = [default_field_value]
+            return default_field_value_by_field_id
+        else:
+            raise AssertionError('You should call `.__sections_to_use_in_formulary()` and `.__fields_to_use_in_formulary()` before calling the `.__default_field_values_to_use_in_formulary()` property') 
+    # ------------------------------------------------------------------------------------------
+    @property
     def __fields_to_use_in_formulary(self):
         """
         Retrieves the fields we should use when validating the formulary, if it's a public access, we use only the fields that the original user
@@ -133,7 +164,7 @@ class FormularyDataService(PreSave, PostSave):
         ).first()
         self.sections = self.__sections_to_use_in_formulary
         self.fields = self.__fields_to_use_in_formulary
-
+        self.default_field_value_by_field_id = self.__default_field_values_to_use_in_formulary 
         self.formulary_data = self.clean_data(self.formulary_data)
 
         self.validated = True

@@ -18,6 +18,7 @@ class FieldService(Settings):
         self.company_id = company_id
         self.form = Form.objects.filter(id=form_id).first()
     # ------------------------------------------------------------------------------------------
+    @transaction.atomic
     def save_default_values(self, field_instance, default_field_values_data):
         """
         Saves the default values, default values are values that are used when no value is provided for a particular field.
@@ -36,21 +37,22 @@ class FieldService(Settings):
                 draft_id = DraftService.draft_id_from_draft_string_id(default_field_value.value)
                 if draft_id != -1:
                     draft_instance = Draft.formulary_.draft_by_draft_id_user_id_and_company_id(draft_id, self.user_id, self.company_id)
-                    real_file_name = draft_instance.value
-                    file_size = draft_instance.file_size
+                    if draft_instance:
+                        real_file_name = draft_instance.value
+                        file_size = draft_instance.file_size
 
-                    default_field_value_instance = DefaultFieldValue.formulary_.update_or_create(
-                        field_instance.id, real_file_name, default_field_value.default_value_id
-                    )
-                    default_field_value_attachment_instance = DefaultAttachmentService(self.company_id, self.user_id, field_instance.id).save_from_draft_string_id(
-                        default_field_value.value, 
-                        default_field_value_instance.id, 
-                        real_file_name,
-                        file_size
-                    )
-                    
-                    default_field_value_instance.default_attachment = default_field_value_attachment_instance
-                    default_field_value_instance.save()
+                        default_field_value_instance = DefaultFieldValue.formulary_.update_or_create(
+                            field_instance.id, real_file_name, default_field_value.default_value_id
+                        )
+                        default_field_value_attachment_instance = DefaultAttachmentService(self.company_id, self.user_id, field_instance.id).save_from_draft_string_id(
+                            default_field_value.value, 
+                            default_field_value_instance.id, 
+                            real_file_name,
+                            file_size
+                        )
+                        
+                        default_field_value_instance.default_attachment = default_field_value_attachment_instance
+                        default_field_value_instance.save()
             else:
                 representation = RepresentationService(
                     field_instance.type.type, 

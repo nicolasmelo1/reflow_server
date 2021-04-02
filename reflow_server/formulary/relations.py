@@ -40,6 +40,13 @@ class DefaultFieldValueValue(serializers.Field):
             return represented_value
         else:
             return ''
+    
+    def to_internal_value(self, data):
+        value = {
+            'value': str(data)
+        }
+        return value
+
 
 
 ############################################################################################
