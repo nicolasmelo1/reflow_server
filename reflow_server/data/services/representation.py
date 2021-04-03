@@ -115,15 +115,17 @@ class RepresentationService:
         to return the id of this reference.
         """
         try:
-            if self.form_field_as_option:
-                if not self.load_ids:
-                    field_type = self.field_type
-                    form_field_as_option_id = self.form_field_as_option.id
-                    while field_type == 'form' and value != '' and form_field_as_option_id != '':
-                        obj = FormValue.data_.value_field_type_and_form_field_as_option_id_by_form_id_and_field_id(form_id=int(value), field_id=form_field_as_option_id)
-                        value = obj['value'] if obj else ''
-                        field_type = obj['field_type__type'] if obj else None
-                        form_field_as_option_id = obj['form_field_as_option_id'] if obj else None
+            if self.form_field_as_option and not self.load_ids:
+                if value != '' and self.form_field_as_option.id:
+                    obj = FormValue.data_.form_value_by_form_id_and_field_id(form_id=int(value), field_id=self.form_field_as_option.id)
+                    representation_service = self.__class__(
+                        obj.field_type,
+                        obj.date_configuration_date_format_type,
+                        obj.number_configuration_number_format_type,
+                        obj.form_field_as_option,
+                        self.load_ids
+                    )
+                    value = representation_service.representation(obj.value)
             else:
                 value = ''
         except ValueError as ve:
