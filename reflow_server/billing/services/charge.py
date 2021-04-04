@@ -189,7 +189,7 @@ class ChargeService:
                 company.partner,
                 individual_charge_value_type.id
             )
-            if partner_default_and_discounts:
+            if partner_default_and_discounts and partner_default_and_discounts.default_quantity != None:
                 quantity = partner_default_and_discounts.default_quantity
             else:
                 quantity = individual_charge_value_type.default_quantity
