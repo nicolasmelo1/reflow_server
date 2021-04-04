@@ -115,8 +115,8 @@ class RepresentationService:
         to return the id of this reference.
         """
         try:
-            if self.form_field_as_option and not self.load_ids:
-                if value != '' and self.form_field_as_option.id:
+            if self.form_field_as_option:
+                if not self.load_ids and value != '' and self.form_field_as_option.id:
                     obj = FormValue.data_.form_value_by_form_id_and_field_id(form_id=int(value), field_id=self.form_field_as_option.id)
                     representation_service = self.__class__(
                         obj.field_type,
