@@ -189,6 +189,8 @@ class ChargeService:
                 company.partner,
                 individual_charge_value_type.id
             )
+            # If partner defaults exists and a default quantity is set use it, otherwise use the default quantity of the individual
+            # charge value
             if partner_default_and_discounts and partner_default_and_discounts.default_quantity != None:
                 quantity = partner_default_and_discounts.default_quantity
             else:
