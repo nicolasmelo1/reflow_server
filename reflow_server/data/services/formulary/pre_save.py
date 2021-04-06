@@ -55,17 +55,53 @@ class PreSave(Validator):
         field_values = formulary_data.get_formatted_fields_data
         section_ids_in_data = [section.section_id for section in formulary_data.get_sections]
         section_ids_to_exclude = []
-        
+
+        def is_conditional_value_or_parent_conditional_not_valid(section):
+            """
+            This is a recursive function to validate if the conditional section is NOT valid. To validate we use recursion, this recursion works like
+            the following:
+
+            First suppose we have 2 sections, "Motivo da perda" which is conditional, and "Informações de cadastro" and this last one
+            has the field "status". On "Motivo da perda" we bound the condition to "status" field, when the value is "perdido", when the value is not "perdido", the condition will not set.
+
+            - We first check if the conditional_on_field field section (aka the Parent section) is a conditional. 
+            (on the example above the "conditional_on_field field section" is "Informações de cadastro")
+            - Then we check if the conditional of the CURRENT (not the parent) section is validated.
+            - IF the PARENT is a conditional and the current section is validated we check the parent section. 
+            - We check the parent UNTIL the parent is NOT a conditional or the current section is NOT valid
+
+            - So if the comparison is not checked, we just check if the conditional value IS NOT contained in the field_values of this field. 
+            So what we are checking here is that if the section IS NOT (pay attention to the NOT) valid.
+
+            Then just return the boolean value of this comparison.
+
+            Why we use recursion? So we can have a conditional, inside of a conditional, inside of a conditional, with this we can
+            validate the hole conditional tree. So, if we have conditionals bounded to the "Motivo da perda" section in the example above,
+            and the "status" is not "perda", the conditional sections bounded to "Motivo da perda" will also not be considered when saving.
+
+            Args:
+                section (reflow_server.formulary.models.Form): A Form instance where depends_on IS NOT NONE
+
+            Returns:
+                bool: Returns True is the section you are veryfying IS NOT valid or False if it is valid.]
+            """
+            # gets the values that matches the condition_on_field
+            is_parent_section_a_conditional_section = section.conditional_on_field.form.conditional_on_field != None
+            conditional_value_in_data = [field_value.value for field_value in field_values.get(section.conditional_on_field.id, [])]
+            if is_parent_section_a_conditional_section and section.conditional_value in conditional_value_in_data:
+                return is_conditional_value_or_parent_conditional_not_valid(section.conditional_on_field.form)
+            else:
+                return section.conditional_value not in conditional_value_in_data
+
         for section in self.sections:
-            conditional_section_is_defined = section.conditional_on_field != None
-            if conditional_section_is_defined:
+            is_conditional_section = section.conditional_on_field != None
+            if is_conditional_section:
                 # if section is conditional and conditional field has not been inserted 
-                conditional_name_not_in_section = section.conditional_on_field.id not in field_values.keys()
+                is_conditional_name_not_in_section = section.conditional_on_field.id not in field_values.keys()
                 # if the conditional is set but the value in the conditional doesn't match the value supplied
-                conditional_value_not_validated = section.conditional_value not in [field_value.value for field_value in field_values.get(section.conditional_on_field.id, [])]
-                if conditional_name_not_in_section or conditional_value_not_validated:
+                is_conditional_value_not_validated = is_conditional_value_or_parent_conditional_not_valid(section)
+                if is_conditional_name_not_in_section or is_conditional_value_not_validated:
                     section_ids_to_exclude.append(section.id)
-            
             # if the conditional field is not defined but the value is we don't consider it
             elif section.conditional_value not in ['', None]:
                 section_ids_to_exclude.append(section.id)
@@ -164,7 +200,6 @@ class PreSave(Validator):
             value = field_data.value
         
         return value
-
 
     def _clean_date(self, formulary_data, field, field_data):
         """

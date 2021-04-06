@@ -13,6 +13,14 @@ from reflow_server.rich_text.services.exceptions import RichTextValidationExcept
 
 import re
 
+class PDFTemplateConfigurationManySerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(allow_null=True)
+    name = serializers.CharField()
+
+    class Meta:
+        model = PDFTemplateConfiguration
+        fields = ('id', 'name')
+
 
 class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
     """

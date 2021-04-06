@@ -21,10 +21,10 @@ class PDFTemplateConfigurationPDFGeneratorManager(models.Manager):
         """
         return self.get_queryset().filter(id=pdf_template_configuration_id).values_list('rich_text_page_id', flat=True).first()
 
-    def pdf_template_configurations_by_user_id_company_id_and_form_name(self, user_id, company_id, form_name):
+    def pdf_template_configurations_by_user_id_company_id_and_form_name_ordered_by_id(self, user_id, company_id, form_name):
         """
         Gets a queryset of PDFTemplateConfiguration instances from a user_id, a company_id and that is bounded
-        to a specific form_name.
+        to a specific form_name. Ordered by id, getting the last to the first.
 
         Args:
             user_id (int): A reflow_server.authentication.models.UserExtended instance id
@@ -35,11 +35,11 @@ class PDFTemplateConfigurationPDFGeneratorManager(models.Manager):
         Returns:
             django.db.models.QuerySet(reflow_server.pdf_generator.models.PDFTemplateConfiguration): The PDFTemplateConfiguration instances
         """
-        return self.pdf_template_configurations_by_company_id_and_form_name(company_id, form_name).filter(user_id=user_id)
+        return self.pdf_template_configurations_by_company_id_and_form_name_ordered_by_id(company_id, form_name).filter(user_id=user_id).order_by('-id')
 
-    def pdf_template_configurations_by_company_id_and_form_name(self, company_id, form_name):
+    def pdf_template_configurations_by_company_id_and_form_name_ordered_by_id(self, company_id, form_name):
         """
-        Gets a queryset of PDFTemplateConfiguration instances by the company_id and the form_name
+        Gets a queryset of PDFTemplateConfiguration instances by the company_id and the form_name. Ordered by id, getting the last to the first.
 
         Args:
             company_id (int): A reflow_server.authentication.models.Company instance id
@@ -49,7 +49,7 @@ class PDFTemplateConfigurationPDFGeneratorManager(models.Manager):
         Returns:
             django.db.models.QuerySet(reflow_server.pdf_generator.models.PDFTemplateConfiguration): The PDFTemplateConfiguration instances
         """
-        return self.get_queryset().filter(company_id=company_id, form__form_name=form_name)
+        return self.get_queryset().filter(company_id=company_id, form__form_name=form_name).order_by('-id')
 
     def pdf_template_configuration_by_user_id_company_id_and_form_name_and_pdf_template_configuration_id(self, user_id, company_id, form_name, pdf_template_configuration_id):
         """
@@ -67,7 +67,7 @@ class PDFTemplateConfigurationPDFGeneratorManager(models.Manager):
             reflow_server.pdf_generator.models.PDFTemplateConfiguration: A single PDFTemplateConfiguration instance filtered by the user,
                                                                          the form_name, company_id and also the pdf_template_configuration_id
         """
-        return self.pdf_template_configurations_by_user_id_company_id_and_form_name(user_id, company_id, form_name).filter(id=pdf_template_configuration_id).first()
+        return self.pdf_template_configurations_by_user_id_company_id_and_form_name_ordered_by_id(user_id, company_id, form_name).filter(id=pdf_template_configuration_id).first()
 
     def remove_pdf_template_configuration_by_template_configuration_id_company_id_and_user_id(self, pdf_template_configuration_id, company_id, user_id):
         """

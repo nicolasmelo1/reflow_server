@@ -22,16 +22,14 @@ class RepresentationService:
         
         And so on...
 
-        Exposes `.representation()` function
+        Exposes `.representation()` function and `.to_internal_value()` function
 
-        Arguments:
-            field_type {str} -- from one of the possible `field_types`, check the `field_type` table in our database for reference
-            date_format_type {reflow_server.models.formulary.FieldDateFormatType} -- The date format of the field, we use this for formatting
-            number_format_type {reflow_server.models.formulary.FieldNumberFormatType} -- The number format type, so we can format it correctly
-            form_field_as_option {reflow_server.models.formulary.Field / reflow_server.models.theme.ThemeField} -- The field model effectively
-
-        Keyword Arguments:
-            load_ids {bool} -- retrieves the ids instead of the value in fields_types like `user` or `form` (default: {False})
+        Args:
+            field_type (str): from one of the possible `field_types`, check the `field_type` table in our database for reference
+            date_format_type (reflow_server.models.formulary.FieldDateFormatType): The date format of the field, we use this for formatting
+            number_format_type (reflow_server.models.formulary.FieldNumberFormatType): The number format type, so we can format it correctly
+            form_field_as_option (reflow_server.models.formulary.Field / reflow_server.models.theme.ThemeField): The Field model effectively
+            load_ids (bool, optional): retrieves the ids instead of the value in fields_types like `user` or `form`. Defaults to False.
         """
         self.field_type = field_type
         self.date_format_type = date_format_type
@@ -42,8 +40,8 @@ class RepresentationService:
 
     def to_internal_value(self, value):
         """
-        As `.representation` is used when retrieving the value for the user this is used when retrieving the value from the user.
-        So this is the value we use internally.
+        As `.representation` is used when retrieving the value for the user this is used when retrieving the value FROM the user.
+        So this converts the value that the user inputs to the value that we use internally.
 
         Args:
             value (str): The value you are recieving
@@ -92,11 +90,11 @@ class RepresentationService:
         """
         This effectively recieves a value and transforms it to an human readable value.
 
-        Arguments:
-            value {str} -- The value you want to format
+        Args:
+            value (str): The value you want to format
 
         Returns:
-            str -- The value formatted
+            str: The value formatted
         """
         if value and value != '':
             handler = getattr(self, '_representation_%s' % self.field_type, None)
@@ -113,6 +111,8 @@ class RepresentationService:
         We can have a "form" value pointing to another "form" value and so on. We need to
         get the furtherst reference to the value. If the user don't want to we don't have 
         to return the id of this reference.
+
+        Because of this, this function is recursive, so we can format the value of the connected field.
         """
         try:
             if self.form_field_as_option:

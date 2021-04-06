@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.core.utils.pagination import Pagination
 from reflow_server.pdf_generator.serializers import PDFTemplateConfigurationSerializer, FormFieldOptionsSerializer, \
-    FieldValueSerializer, PDFTemplateAllowedTextBlockSerializer
+    FieldValueSerializer, PDFTemplateAllowedTextBlockSerializer, PDFTemplateConfigurationManySerializer
 from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFGenerated, PDFTemplateAllowedTextBlock
 from reflow_server.pdf_generator.services import PDFGeneratorService
 
@@ -28,15 +28,15 @@ class PDFTemplateConfigurationView(APIView):
     def get(self, request, company_id, form):
         pagination = Pagination.handle_pagination(
             current_page=int(request.query_params.get('page', 1)),
-            items_per_page=5
+            items_per_page=15
         )    
-        instances = PDFTemplateConfiguration.pdf_generator_.pdf_template_configurations_by_user_id_company_id_and_form_name(
+        instances = PDFTemplateConfiguration.pdf_generator_.pdf_template_configurations_by_user_id_company_id_and_form_name_ordered_by_id(
             request.user.id, 
             company_id, 
             form
         )
         total_number_of_pages, instances = pagination.paginate_queryset(instances)
-        serializer = PDFTemplateConfigurationSerializer(instances, many=True)
+        serializer = PDFTemplateConfigurationManySerializer(instances, many=True)
         return Response({
             'status': 'ok',
             'pagination': {
@@ -67,12 +67,23 @@ class PDFTemplateConfigurationEditView(APIView):
     View used for updating or deleting a single pdf template configuratin id. 
 
     Methods:
+        GET: Get a single PDF template data so the user can edit it
         PUT: Updates a pdf template configuration id data.
         DELETE: Removes a pdf template configuration id data. It's important to notice that when we remove a pdf we also want
                 to remove the PDF template it is bound to.
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
+    def get(self, request, company_id, form, pdf_template_configuration_id):
+        instance = PDFTemplateConfiguration.pdf_generator_.pdf_template_configuration_by_user_id_company_id_and_form_name_and_pdf_template_configuration_id(
+            request.user.id, company_id, form, pdf_template_configuration_id
+        )
+        serializer = PDFTemplateConfigurationSerializer(instance=instance)
+        return Response({
+                'status': 'ok',
+                'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    
     def put(self, request, company_id, form, pdf_template_configuration_id):
         instance = PDFTemplateConfiguration.pdf_generator_.pdf_template_configuration_by_user_id_company_id_and_form_name_and_pdf_template_configuration_id(
             request.user.id, company_id, form, pdf_template_configuration_id
@@ -151,14 +162,14 @@ class PDFTemplatesForReaderView(APIView):
     def get(self, request, company_id, form):
         pagination = Pagination.handle_pagination(
             current_page=int(request.query_params.get('page', 1)),
-            items_per_page=5
+            items_per_page=15
         )
-        instances = PDFTemplateConfiguration.pdf_generator_.pdf_template_configurations_by_company_id_and_form_name(
+        instances = PDFTemplateConfiguration.pdf_generator_.pdf_template_configurations_by_company_id_and_form_name_ordered_by_id(
             company_id, 
             form
         )
         total_number_of_pages, instances = pagination.paginate_queryset(instances)
-        serializer = PDFTemplateConfigurationSerializer(instances, many=True)
+        serializer = PDFTemplateConfigurationManySerializer(instances, many=True)
         return Response({
             'status': 'ok',
             'pagination': {
@@ -168,6 +179,24 @@ class PDFTemplatesForReaderView(APIView):
             'data': serializer.data
         }, status=status.HTTP_200_OK)
 
+
+class PDFTemplateGetDataForReaderView(APIView):
+    """
+    Responsible for retrieving the rich text data alongside with everything needed to render the PDF Template, so we can mount it on the page and the user can 
+    download it.
+
+    Methods:
+        GET: Retrieves a single PDFTemplate so we get the rich text data. Improving the performance of the list.
+    """
+    def get(self, request, company_id, form, pdf_template_configuration_id):
+        instance = PDFTemplateConfiguration.pdf_generator_.pdf_template_configuration_by_user_id_company_id_and_form_name_and_pdf_template_configuration_id(
+            request.user.id, company_id, form, pdf_template_configuration_id
+        )
+        serializer = PDFTemplateConfigurationSerializer(instance)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
 
 class PDFGenerateView(APIView):
     """
