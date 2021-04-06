@@ -122,13 +122,13 @@ class FieldSerializer(serializers.ModelSerializer):
             section=self.validated_data['form'],
             form_field_as_option=form_field_as_option,
             formula_configuration=formula_configuration,
-            default_field_value_data=default_field_value_data,
             date_configuration_auto_create=self.validated_data['date_configuration_auto_create'],
             date_configuration_auto_update=self.validated_data['date_configuration_auto_update'],
             number_configuration_number_format_type=self.validated_data.get('number_configuration_number_format_type', None),
             date_configuration_date_format_type=self.validated_data.get('date_configuration_date_format_type', None),
             period_configuration_period_interval_type=self.validated_data.get('period_configuration_period_interval_type', None),
             field_type=self.validated_data['type'],
+            default_field_value_data=default_field_value_data,
             field_options_data=field_options_data,
             instance=instance
         )

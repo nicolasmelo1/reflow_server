@@ -119,10 +119,10 @@ class FieldService(Settings):
     @transaction.atomic
     def save_field(self, enabled, label_name, order, is_unique, field_is_hidden, 
                    label_is_hidden, placeholder, required, section, form_field_as_option, 
-                   formula_configuration, default_field_value_data, date_configuration_auto_create, 
+                   formula_configuration, date_configuration_auto_create, 
                    date_configuration_auto_update, number_configuration_number_format_type, 
                    date_configuration_date_format_type, period_configuration_period_interval_type, 
-                   field_type, field_options_data=None, instance=None):
+                   field_type, field_options_data=None, default_field_value_data=None, instance=None):
         if instance == None:
             instance = Field()
                    
@@ -162,8 +162,9 @@ class FieldService(Settings):
         # updates the pre_notifications
         if field_type.type == 'date':
             PreNotificationService.update(self.company_id)
-        
-        self.save_default_values(instance, default_field_value_data)
+            
+        if default_field_value_data != None:
+            self.save_default_values(instance, default_field_value_data)
 
         if instance.type.type in ['option', 'multi_option']:
             field_options_service.create_new_field_options(instance, field_options_data)

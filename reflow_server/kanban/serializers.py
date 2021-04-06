@@ -117,7 +117,7 @@ class KanbanDimensionListSerializer(serializers.ListSerializer):
         field_options_data = FieldOptionsData()
         for field_option in validated_data:
             field_options_data.add_field_option(field_option['option'], field_option['uuid'], field_option.get('id', None))
-        
+
         field_service.save_field(
             enabled=field_instance.enabled,
             label_name=field_instance.label_name,

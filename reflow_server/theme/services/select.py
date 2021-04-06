@@ -142,11 +142,24 @@ class ThemeSelectService:
             )
 
             field = field_service.save_field(
-                True, theme_field.label_name, theme_field.order, theme_field.is_unique, theme_field.field_is_hidden, 
-                theme_field.label_is_hidden, theme_field.placeholder, theme_field.required, self.theme_reference.get_formulary_reference(theme_field.form_id),
-                None, theme_field.formula_configuration, theme_field.date_configuration_auto_create, theme_field.date_configuration_auto_update,
-                theme_field.number_configuration_number_format_type, theme_field.date_configuration_date_format_type, 
-                theme_field.period_configuration_period_interval_type, theme_field.type, field_options_data
+                enabled=True, 
+                label_name=theme_field.label_name, 
+                order=theme_field.order, 
+                is_unique=theme_field.is_unique, 
+                field_is_hidden=theme_field.field_is_hidden, 
+                label_is_hidden=theme_field.label_is_hidden, 
+                placeholder=theme_field.placeholder, 
+                required=theme_field.required, 
+                section=self.theme_reference.get_formulary_reference(theme_field.form_id),
+                form_field_as_option=None, 
+                formula_configuration=theme_field.formula_configuration, 
+                date_configuration_auto_create=theme_field.date_configuration_auto_create, 
+                date_configuration_auto_update=theme_field.date_configuration_auto_update,
+                number_configuration_number_format_type=theme_field.number_configuration_number_format_type, 
+                date_configuration_date_format_type=theme_field.date_configuration_date_format_type, 
+                period_configuration_period_interval_type=theme_field.period_configuration_period_interval_type, 
+                field_type=theme_field.type, 
+                field_options_data=field_options_data
             )
 
             self.theme_reference.add_field_reference(theme_field.id, field)
