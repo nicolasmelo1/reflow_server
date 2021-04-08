@@ -164,6 +164,7 @@ class FieldValueSerializer(serializers.ModelSerializer):
     value = ValueField(source='*')
     form_value_from_connected_field = serializers.SerializerMethodField()
     field_type = serializers.CharField(source='field_type.type')
+    form_name = serializers.CharField(source='form.form.depends_on.form_name')
 
     def get_form_value_from_connected_field(self, obj):
         if self.context['form_value_from_connected_field_helper'].get(obj.id, None):
@@ -174,7 +175,7 @@ class FieldValueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FormValue
-        fields = ('id', 'value', 'field_id', 'form_id', 'field_type', 'form_value_from_connected_field')
+        fields = ('id', 'value', 'field_id', 'form_id', 'form_name', 'field_type', 'form_value_from_connected_field')
 
 
 class PDFTemplateAllowedTextBlockSerializer(serializers.ModelSerializer):
