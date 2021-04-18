@@ -82,7 +82,7 @@ class Settings:
 
         return does_with_name_exists
             
-    def update_order(self, queryset_to_update, new_element_order):
+    def update_order(self, queryset_to_update, new_element_order, is_inserting=False):
         """
         Updates the `order` of attribute of many instances of a queryset. 
         The queryset is a django.db.models.QuerySet object from any instances that have the `order` field in it.
@@ -96,6 +96,7 @@ class Settings:
         order_utils = Order()
         # the queryset can be unorderd, here we order by the accending order or `order`
         current_order = list(queryset_to_update.values_list('order', flat=True).order_by('order'))
+        
         reordered = order_utils.reorder(new_element_order, current_order)
         for index, obj in enumerate(queryset_to_update):
             obj.order = reordered[index]

@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.apps import apps
+
+import os
 import subprocess
 import re
 
@@ -15,4 +17,4 @@ class Command(BaseCommand):
         app_models = ['{}.{}'.format(app_label, model._meta.object_name) for app_label in app_names for model in apps.get_app_config(app_label).get_models() if re.search(r'Type$', model._meta.object_name)]
         command = 'python manage.py dumpdata {} > fixtures/required_data.json'.format(' '.join(app_models))
         print(command)
-        subprocess.run(command.split())
+        os.system(command)

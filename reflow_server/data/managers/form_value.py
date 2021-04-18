@@ -481,7 +481,7 @@ class FormValueDataManager(models.Manager):
             Q(id__in=form_value_ids) | Q(field__enabled=False) | Q(field__form__enabled=False)
         )
     # ------------------------------------------------------------------------------------------
-    def delete_form_values_by_main_form_id_excluding_form_value_ids_and_disabled_fields(self, dynamic_form_id, form_value_ids):
+    def delete_form_values_by_main_form_id_excluding_form_value_ids_disabled_fields_and_conditional_excludes_if_not_set(self, dynamic_form_id, form_value_ids):
         """
         Really similar to `attachment_form_values_by_main_form_id_excluding_form_value_ids_and_disabled_fields` method
         except this does not filter by attachments only, it filters FormValue instances for all field types. Then it deletes
@@ -497,7 +497,7 @@ class FormValueDataManager(models.Manager):
         """
         return self.get_queryset().filter(form__depends_on_id=dynamic_form_id)\
         .exclude(
-            Q(id__in=form_value_ids) | Q(field__enabled=False) | Q(field__form__enabled=False)
+            Q(id__in=form_value_ids) | Q(field__enabled=False) | Q(field__form__enabled=False) | Q(field__form__conditional_excludes_data_if_not_set=False)
         ).delete()
     # ------------------------------------------------------------------------------------------
     def last_saved_value_of_id_field_type(self, section_id, field_type_id, field_id):

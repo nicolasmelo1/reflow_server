@@ -127,6 +127,7 @@ class SectionRelation(serializers.ModelSerializer):
         fields = ('id',
                   'label_name',
                   'form_type',
+                  'show_label_name',
                   'conditional_on_field_name',
                   'conditional_type_type',
                   'conditional_value',

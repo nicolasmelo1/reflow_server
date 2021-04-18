@@ -95,9 +95,15 @@ class ThemeSelectService:
             )
                 
             section = section_service.save_section(
-                True, theme_section.label_name, theme_section.order, 
-                theme_section.conditional_value, theme_section.type,
-                theme_section.conditional_type, None
+                enabled=True, 
+                label_name=theme_section.label_name, 
+                order=theme_section.order, 
+                show_label_name=theme_section.show_label_name,
+                conditional_excludes_data_if_not_set=theme_section.conditional_excludes_data_if_not_set,
+                conditional_value=theme_section.conditional_value,
+                section_type=theme_section.type,
+                conditional_type=theme_section.conditional_type, 
+                conditional_on_field=None
             )
             self.theme_reference.add_formulary_reference(theme_section.id, section)
             if theme_section.conditional_on_field:

@@ -1,5 +1,7 @@
 from django.db import models
 
+import uuid
+
 
 class ThemeFormThemeManager(models.Manager):
     def get_queryset(self):
@@ -67,6 +69,7 @@ class ThemeFormThemeManager(models.Manager):
             form_id=form_id,
             form_name=form_name,
             label_name=label_name,
+            uuid=uuid.uuid4(),
             order=order,
             type=form_type
         )
@@ -99,6 +102,7 @@ class ThemeFormThemeManager(models.Manager):
             depends_on_id=depends_on_id,
             label_name=label_name,
             order=order,
+            uuid=uuid.uuid4(),
             type=form_type,
             conditional_type=conditional_type,
             conditional_value=conditional_value

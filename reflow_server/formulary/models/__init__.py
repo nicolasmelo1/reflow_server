@@ -8,7 +8,7 @@ from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldP
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
 from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager, \
     PublicAccessFormFormularyManager, FormAccessedByFormularyManager, DefaultValueFieldAttachmentsFormularyManager, \
-    DefaultFieldValueFormularyManager
+    DefaultFieldValueFormularyManager, FieldFormularyManager
 from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager, DefaultFieldValueDataManager
 
 
@@ -295,6 +295,7 @@ class Field(AbstractField):
         app_label = 'formulary'
 
     objects = models.Manager()
+    formulary_ = FieldFormularyManager()
     theme_ = FieldThemeManager()
     pdf_generator_ = FieldPDFGeneratorManager()
     data_ = FieldDataManager()

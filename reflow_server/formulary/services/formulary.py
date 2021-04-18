@@ -1,6 +1,8 @@
 from reflow_server.formulary.models import FormAccessedBy, Form, SectionType
 from reflow_server.formulary.services.utils import Settings
 
+import uuid
+
 
 class FormularyService(Settings):
     def __init__(self, user_id, company_id):
@@ -39,19 +41,24 @@ class FormularyService(Settings):
     def formulary_names_the_user_has_access_to(self):
         return FormAccessedBy.formulary_.main_form_names_accessed_by_user_id_and_enabled_ordered_by_order(self.user_id)
 
-    def save_formulary(self, enabled, label_name, order, group, instance=None):
+    def save_formulary(self, enabled, label_name, order, group, formulary_uuid=None, instance=None):
         if instance == None:
             instance = Form()
             
+        if formulary_uuid == None:
+            formulary_uuid = uuid.uuid4()
+
         existing_forms = Form.objects.filter(group__company_id=self.company_id, depends_on__isnull=True)\
                                      .exclude(id=instance.id if instance else None)\
                                      .order_by('group__order', 'order')
-        self.update_order(existing_forms, order)
+                                     
+        self.update_order(existing_forms, order, instance.id if instance else None)
 
         is_new = instance.id == None
 
         instance.company_id = self.company_id
         instance.enabled = enabled
+        instance.uuid = formulary_uuid
         instance.label_name = label_name
         instance.order = order
         instance.group = group

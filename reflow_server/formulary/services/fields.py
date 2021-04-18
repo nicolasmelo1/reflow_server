@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db import transaction
 
-
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.data.services.representation import RepresentationService
 from reflow_server.draft.services import DraftService
@@ -9,7 +8,9 @@ from reflow_server.draft.models import Draft
 from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.formulary.services.utils import Settings
 from reflow_server.formulary.services.default_attachment import DefaultAttachmentService
-from reflow_server.formulary.models import Form, Field, FieldOptions, PublicAccessField, DefaultFieldValue, DefaultFieldValueAttachments
+from reflow_server.formulary.models import Form, Field, FieldOptions, PublicAccessField, DefaultFieldValue, FieldType
+
+import uuid
 
 
 class FieldService(Settings):
@@ -122,10 +123,13 @@ class FieldService(Settings):
                    formula_configuration, date_configuration_auto_create, 
                    date_configuration_auto_update, number_configuration_number_format_type, 
                    date_configuration_date_format_type, period_configuration_period_interval_type, 
-                   field_type, field_options_data=None, default_field_value_data=None, instance=None):
+                   field_type, field_options_data=None, default_field_value_data=None, field_uuid=None, instance=None):
+        
         if instance == None:
             instance = Field()
-                   
+        if field_uuid == None:
+            field_uuid = uuid.uuid4()
+
         field_options_service = FieldOptionsService(self.company_id)
 
         existing_fields = Field.objects.filter(
@@ -136,9 +140,10 @@ class FieldService(Settings):
             id=instance.id if instance else None
         ).order_by('form__order', 'order')
         
-        self.update_order(existing_fields, order)          
+        self.update_order(existing_fields, order, instance.id if instance else None)          
 
         instance.enabled = enabled
+        instance.uuid = field_uuid
         instance.label_name = label_name
         instance.order = order
         instance.is_unique = is_unique
@@ -177,3 +182,27 @@ class FieldService(Settings):
         FormularyEvents.send_updated_formulary(self.company_id, self.form.id, self.form.form_name)
 
         return instance
+    # ------------------------------------------------------------------------------------------
+    @staticmethod
+    def is_form_field_type_not_valid(field_type_id, form_field_as_option_field_id):
+        field_type = FieldType.objects.filter(id=field_type_id).first()
+        return field_type and field_type.type == 'form' and not form_field_as_option_field_id
+    # ------------------------------------------------------------------------------------------
+    @staticmethod
+    def is_option_field_type_not_valid(field_type_id, field_options_length):
+        field_type = FieldType.objects.filter(id=field_type_id).first()
+        return field_type and field_type.type in ['option', 'multi_option'] and field_options_length == 0
+    # ------------------------------------------------------------------------------------------
+    @staticmethod
+    def is_label_name_not_unique(field_id, company_id, section_id, label_name):
+        section = Form.objects.filter(id=section_id, depends_on__group__company_id=company_id).first()
+        if section:
+            main_form_id = section.depends_on_id
+            return Field.formulary_.field_by_label_name_company_id_and_main_form_id_excluding_id_exists(
+                field_id=field_id,
+                label_name=label_name,
+                company_id=company_id,
+                main_form_id=main_form_id
+            )
+        else:
+            return False

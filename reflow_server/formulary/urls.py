@@ -7,12 +7,12 @@ from reflow_server.formulary.views import GetFormularyView, GetGroupsView, UserF
     FormFieldTypeOptionsView, PublicFormularyDataView, DefaultAttachmentToDraftView
 from reflow_server.formulary.views.settings import GroupSettingsView, GroupEditSettingsView, FormularySettingsView, \
     FormularySettingsEditView, SectionSettingsView, SectionSettingsEditView, FieldSettingsView, FieldSettingsEditView, \
-    FieldOptionsView, PublicFormSettingsView, DefaultValueAttachmentView
+    ConnectionFieldOptionsView, PublicFormSettingsView, DefaultValueAttachmentView
 
 
 settings_urlpatterns = [
     re_path(r'(?P<form_id>\d+)/public/$', validate_billing(PublicFormSettingsView.as_view()), name='formulary_public_form_settings'),
-    re_path(r'(?P<form_id>\d+)/field_options/$', validate_billing(FieldOptionsView.as_view()), name='formulary_field_options'),
+    re_path(r'(?P<form_id>\d+)/fields/form/field_options/$', validate_billing(ConnectionFieldOptionsView.as_view()), name='formulary_field_options'),
     re_path(r'^groups/', include([
         re_path(r'^$', validate_billing(GroupSettingsView.as_view()), name='formulary_settings_groups'),
         re_path(r'^(?P<group_id>\d+)/$', validate_billing(GroupEditSettingsView.as_view()), name='formulary_settings_edit_groups')
@@ -27,6 +27,7 @@ settings_urlpatterns = [
     ])),
     re_path(r'^fields/(?P<form_id>\d+)/', include([
         re_path(r'^$', validate_billing(FieldSettingsView.as_view()), name='formulary_settings_fields'),
+        re_path(r'form/field_options/$', validate_billing(ConnectionFieldOptionsView.as_view()), name='formulary_connection_field_options'),
         re_path(r'^(?P<field_id>\d+)/defaults/(?P<file_name>.+)/$', validate_billing(DefaultValueAttachmentView.as_view()), name='formulary_settings_default_value_attachment_view'),
         re_path(r'^(?P<field_id>\d+)/$', validate_billing(FieldSettingsEditView.as_view()), name='formulary_settings_edit_fields')
     ]))

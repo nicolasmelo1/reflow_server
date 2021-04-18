@@ -128,6 +128,7 @@ class KanbanDimensionListSerializer(serializers.ListSerializer):
             placeholder=field_instance.placeholder,
             required=field_instance.required,
             section=field_instance.form,
+            field_uuid=field_instance.uuid,
             form_field_as_option=field_instance.form_field_as_option,
             formula_configuration=field_instance.formula_configuration,
             date_configuration_auto_create=field_instance.date_configuration_auto_create,

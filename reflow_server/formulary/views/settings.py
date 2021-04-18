@@ -10,7 +10,7 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.formulary.serializers.settings import GroupSerializer, FormularySerializer, \
-    SectionSerializer, FieldSerializer
+    SectionSerializer, FieldSerializer, FieldOptionsSerializer
 from reflow_server.formulary.serializers import PublicAccessFormSerializer
 from reflow_server.formulary.services.fields import FieldService
 from reflow_server.formulary.services.default_attachment import DefaultAttachmentService
@@ -282,8 +282,8 @@ class FieldSettingsView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({
-                'status': 'ok',
-                'data': None
+                'status': 'error',
+                'error': serializer.errors
             }, status=status.HTTP_502_BAD_GATEWAY)
     # ------------------------------------------------------------------------------------------
 
@@ -323,9 +323,9 @@ class FieldSettingsEditView(APIView):
                 'data': serializer.data
             }, status=status.HTTP_200_OK)
         else:
-            return Response({
-                'status': 'ok',
-                'data': None
+           return Response({
+                'status': 'error',
+                'error': serializer.errors
             }, status=status.HTTP_502_BAD_GATEWAY)
     # ------------------------------------------------------------------------------------------
     def delete(self, request, company_id, form_id, field_id):
@@ -352,7 +352,7 @@ class DefaultValueAttachmentView(APIView):
 
 
 ############################################################################################
-class FieldOptionsView(APIView):
+class ConnectionFieldOptionsView(APIView):
     """
     View responsible for retrieving all of the fields that can be used in connections.
 
@@ -361,18 +361,13 @@ class FieldOptionsView(APIView):
     """
     # ------------------------------------------------------------------------------------------
     def get(self, request, company_id, form_id):
-        instances = Field.objects.filter(
-                form__depends_on_id=form_id, form__depends_on__group__company_id=company_id
-            ).exclude(
-                Q(type__type='attachment') | Q(form__type__type__in=['multi-form'])
-            )
-        serializer = FieldSerializer(instance=instances, many=True)
+        instances = Field.formulary_.fields_by_company_id_excluding_main_form_id_attachments_and_multi_forms(company_id, form_id)
+        serializer = FieldOptionsSerializer(instance=instances, many=True)
         return Response({
             'status': 'ok',
             'data': serializer.data
         })
     # ------------------------------------------------------------------------------------------
-
 
 ############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')

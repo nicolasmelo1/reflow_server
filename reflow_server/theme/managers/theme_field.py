@@ -1,5 +1,7 @@
 from django.db import models
 
+import uuid
+
 
 class ThemeFieldThemeManager(models.Manager):
     def get_queryset(self):
@@ -60,6 +62,7 @@ class ThemeFieldThemeManager(models.Manager):
             label_name=label_name,
             order=order,
             form=form,
+            uuid=uuid.uuid4(),
             type=field_type,
             placeholder=placeholder,
             field_is_hidden=field_is_hidden,

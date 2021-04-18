@@ -12,6 +12,19 @@ from reflow_server.formulary.relations import DefaultFieldValueValue
 
 
 ############################################################################################
+class FieldOptionsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    label_name = serializers.CharField()
+    form_id = serializers.IntegerField(source='form.depends_on_id')
+    form_label_name = serializers.CharField(source='form.depends_on.label_name')
+    group_id = serializers.IntegerField(source='form.depends_on.group_id')
+    group_name = serializers.CharField(source='form.depends_on.group.name')
+
+    class Meta:
+        model = Field
+        fields = ('id', 'label_name', 'form_id', 'form_label_name', 'group_id', 'group_name')
+
+############################################################################################
 class FieldDefaultValuesSerializer(serializers.ModelSerializer):
     value = DefaultFieldValueValue(source='*')
     id = serializers.IntegerField(allow_null=True, required=False)
@@ -28,18 +41,6 @@ class FieldOptionSerializer(serializers.ModelSerializer):
         model = FieldOptions
         fields = ('id', 'uuid', 'option',)
 
-
-############################################################################################
-class FieldAsOptionSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False, allow_null=True)
-    form_depends_on_id = serializers.IntegerField(source='form.depends_on_id', required=False, allow_null=True)
-    form_depends_on_group_id = serializers.IntegerField(source='form.depends_on.group_id', required=False, allow_null=True)
-
-    class Meta:
-        model = Field
-        fields = ('id', 'form_depends_on_id', 'form_depends_on_group_id')
-
-
 ############################################################################################
 class FieldSerializer(serializers.ModelSerializer):
     """
@@ -53,21 +54,38 @@ class FieldSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(allow_null=True)
     field_option = FieldOptionSerializer(many=True)
     field_default_field_values = FieldDefaultValuesSerializer(many=True)
-    form_field_as_option = FieldAsOptionSerializer(allow_null=True)
     name = serializers.CharField(allow_blank=True, allow_null=True)
 
     def validate_form_field_as_option(self, value):
-        if hasattr(self, 'initial_data') and 'type' in self.initial_data and self.initial_data['type']:
-            field_type = FieldType.objects.filter(id=self.initial_data['type']).first()
-            if field_type and field_type.type == 'form' and (not value or not value['id'] or not value['form']['depends_on_id'] or not value['form']['depends_on']['group_id']):
+        if hasattr(self, 'initial_data') and 'type' in self.initial_data and self.initial_data['type'] and value != None:
+            is_form_field_type_not_valid = FieldService.is_form_field_type_not_valid(
+                field_type_id=self.initial_data['type'],
+                form_field_as_option_field_id=value
+            )
+            if is_form_field_type_not_valid:
                 raise serializers.ValidationError(detail={'detail': 'form fields must have a connection', 'reason': 'form_fields_connection'})
         return value
-    
+
     def validate_field_option(self, value): 
-        if hasattr(self, 'initial_data') and 'type' in self.initial_data and self.initial_data['type']:
-            field_type = FieldType.objects.filter(id=self.initial_data['type']).first()
-            if field_type and field_type.type in ['option', 'multi_option'] and len(value) == 0:
+        if hasattr(self, 'initial_data') and 'type' in self.initial_data and self.initial_data['type'] and value != None:
+            is_option_field_type_not_valid = FieldService.is_option_field_type_not_valid(
+                field_type_id=self.initial_data['type'],
+                field_options_length=len(value)
+            )
+            if is_option_field_type_not_valid:
                 raise serializers.ValidationError(detail={'detail': 'option field must have a option', 'reason': 'option_field_empty_option'})
+        return value
+
+    def validate_label_name(self, value):
+        if hasattr(self, 'initial_data') and 'type' in self.initial_data and self.initial_data['type']:
+            has_field_with_label_name = FieldService.is_label_name_not_unique(
+                field_id=self.initial_data.get('id', None),
+                company_id=self.context['company_id'],
+                section_id=self.initial_data.get('form', None),
+                label_name=value
+            )
+            if has_field_with_label_name:
+                raise serializers.ValidationError(detail={'detail': 'label names should be unique', 'reason': 'label_name_already_exists'})
         return value
 
     @transaction.atomic
@@ -77,17 +95,11 @@ class FieldSerializer(serializers.ModelSerializer):
         else:
             instance = self.Meta.model()
 
-        if (
-            self.validated_data.get('form_field_as_option', None) 
-            and self.validated_data['form_field_as_option'].get('id', None)
-            and self.validated_data['form_field_as_option'].get('form', None)
-            and self.validated_data['form_field_as_option']['form'].get('depends_on_id', None)
-        ):
-            form_field_as_option = Field.objects.filter(
-                id=self.validated_data['form_field_as_option']['id'],
-                form__depends_on_id=self.validated_data['form_field_as_option']['form']['depends_on_id'],
-                form__company_id=self.context['company_id']
-            ).first()
+        if self.validated_data['form_field_as_option'] != None:
+            form_field_as_option = Field.formulary_.field_by_field_id_main_form_id_and_company_id(
+                field_id=self.validated_data['form_field_as_option'].id,
+                company_id=self.context['company_id']
+            )
         else:
             form_field_as_option = None
         
@@ -128,6 +140,7 @@ class FieldSerializer(serializers.ModelSerializer):
             date_configuration_date_format_type=self.validated_data.get('date_configuration_date_format_type', None),
             period_configuration_period_interval_type=self.validated_data.get('period_configuration_period_interval_type', None),
             field_type=self.validated_data['type'],
+            field_uuid=self.validated_data['uuid'],
             default_field_value_data=default_field_value_data,
             field_options_data=field_options_data,
             instance=instance
@@ -168,8 +181,11 @@ class SectionSerializer(serializers.ModelSerializer):
             enabled=self.validated_data['enabled'],
             label_name=self.validated_data['label_name'],
             order=self.validated_data['order'],
+            show_label_name=self.validated_data['show_label_name'],
+            conditional_excludes_data_if_not_set=self.validated_data['conditional_excludes_data_if_not_set'],
             conditional_value=self.validated_data['conditional_value'] if self.validated_data.get('conditional_value', None) and self.validated_data['conditional_value'] != '' else None,
             section_type=self.validated_data['type'],
+            section_uuid=self.validated_data['uuid'],
             conditional_type=self.validated_data.get('conditional_type', None),
             conditional_on_field=self.validated_data.get('conditional_on_field', None),
             instance=instance

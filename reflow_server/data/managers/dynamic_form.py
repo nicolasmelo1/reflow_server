@@ -182,11 +182,12 @@ class DynamicFormDataManager(models.Manager):
         return self.dynamic_form_by_dynamic_form_id_and_company_id(dynamic_form_id, company_id, form_name)\
             .delete()
 
-    def remove_dynamic_forms_from_enabled_forms_and_by_depends_on_id_excluding_dynamic_form_ids(
+    def remove_dynamic_forms_from_enabled_forms_and_by_depends_on_id_and_conditional_excludes_data_if_not_setexcluding_dynamic_form_ids(
         self, depends_on_id, dynamic_form_ids
     ):
         return self.get_queryset().filter(
             form__enabled=True, 
+            form__conditional_excludes_data_if_not_set=True,
             depends_on_id=depends_on_id
         )\
             .exclude(id__in=dynamic_form_ids)\

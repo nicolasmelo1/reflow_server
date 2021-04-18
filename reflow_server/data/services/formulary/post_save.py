@@ -69,8 +69,10 @@ class PostSave:
                         )
                     )
                     attachment_to_delete.delete()
-            FormValue.data_.delete_form_values_by_main_form_id_excluding_form_value_ids_and_disabled_fields(formulary_data.form_data_id, form_value_ids)
-            DynamicForm.data_.remove_dynamic_forms_from_enabled_forms_and_by_depends_on_id_excluding_dynamic_form_ids(
+            FormValue.data_.delete_form_values_by_main_form_id_excluding_form_value_ids_disabled_fields_and_conditional_excludes_if_not_set(
+                formulary_data.form_data_id, form_value_ids
+            )
+            DynamicForm.data_.remove_dynamic_forms_from_enabled_forms_and_by_depends_on_id_and_conditional_excludes_data_if_not_setexcluding_dynamic_form_ids(
                 formulary_data.form_data_id,
                 section_ids
             )

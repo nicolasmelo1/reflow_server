@@ -7,6 +7,8 @@ WORKDIR /code
 
 ADD requirements.txt /code/
 ADD scripts/development/docker-entrypoint.sh /usr/local/bin/
+ADD scripts/development/docker-entrypoint.sh /usr/local/bin/
+
 
 RUN pip install -r requirements.txt && chmod +x /usr/local/bin/docker-entrypoint.sh
 

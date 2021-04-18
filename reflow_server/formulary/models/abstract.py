@@ -33,10 +33,13 @@ class AbstractForm(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     form_name = models.CharField(max_length=150, db_index=True)
     label_name = models.CharField(max_length=150)
+    uuid = models.UUIDField(default=uuid.uuid4)
     type = models.ForeignKey('formulary.SectionType', models.CASCADE, db_index=True)
     order = models.BigIntegerField()
     conditional_type = models.ForeignKey('formulary.ConditionalType', models.CASCADE, null=True, blank=True, db_index=True)
     conditional_value = models.CharField(max_length=200, null=True, blank=True)
+    show_label_name = models.BooleanField(default=True)
+    conditional_excludes_data_if_not_set = models.BooleanField(default=True)
 
     class Meta:
         abstract = True
@@ -93,6 +96,7 @@ class AbstractField(AbstractFieldStates):
     placeholder = models.CharField(blank=True, null=True, max_length=450)
     required = models.BooleanField(default=True)
     order = models.BigIntegerField()
+    uuid = models.UUIDField(default=uuid.uuid4)
     is_unique = models.BooleanField(default=False)
     field_is_hidden = models.BooleanField(default=False)
     label_is_hidden = models.BooleanField(default=False)

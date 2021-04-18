@@ -25,7 +25,7 @@ class GroupService(Settings):
         if instance:
             existing_groups = Group.objects.filter(company_id=self.company_id).exclude(id=instance.id if instance else None)
 
-            self.update_order(existing_groups, order)
+            self.update_order(existing_groups, order, instance.id if instance else None)
 
             instance.company_id = self.company_id
             instance.enabled = enabled
