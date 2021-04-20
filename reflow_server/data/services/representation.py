@@ -118,14 +118,19 @@ class RepresentationService:
             if self.form_field_as_option:
                 if not self.load_ids and value != '' and self.form_field_as_option.id:
                     obj = FormValue.data_.form_value_by_form_id_and_field_id(form_id=int(value), field_id=self.form_field_as_option.id)
-                    representation_service = self.__class__(
-                        obj.field_type,
-                        obj.date_configuration_date_format_type,
-                        obj.number_configuration_number_format_type,
-                        obj.form_field_as_option,
-                        self.load_ids
-                    )
-                    value = representation_service.representation(obj.value)
+                    if obj:
+                        representation_service = self.__class__(
+                            obj.field_type,
+                            obj.date_configuration_date_format_type,
+                            obj.number_configuration_number_format_type,
+                            obj.form_field_as_option,
+                            self.load_ids
+                        )
+                        value = representation_service.representation(obj.value)
+                    else:
+                        value = ''
+                else:
+                    value = ''
             else:
                 value = ''
         except ValueError as ve:
