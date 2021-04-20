@@ -15,9 +15,10 @@ class FieldFormularyManager(models.Manager):
         ).first()
 
     def fields_by_company_id_excluding_main_form_id_attachments_and_multi_forms(self, company_id, main_form_id):
-        # form__depends_on_id=main_form_id, 
         return self.get_queryset().filter(
                 form__depends_on__group__company_id=company_id
+            ).exclude(
+                form__depends_on_id=main_form_id
             ).exclude(
                 Q(type__type='attachment') | 
                 Q(form__type__type__in=['multi-form'])
