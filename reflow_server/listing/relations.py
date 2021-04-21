@@ -21,10 +21,11 @@ class ExtractFormValueListSerializer(serializers.ListSerializer):
             new_data = []
             retrieved_form_value_ids = []
             for field_id in self.context.get('fields'):
-                for form_value in self.context['form_values_reference'][data.core_filters['form'].id].get(int(field_id), []):
-                    if form_value.id not in retrieved_form_value_ids:
-                        retrieved_form_value_ids.append(form_value.id)
-                        new_data.append(form_value)
+                if data.core_filters['form'].id in self.context['form_values_reference']:
+                    for form_value in self.context['form_values_reference'][data.core_filters['form'].id].get(int(field_id), []):
+                        if form_value.id not in retrieved_form_value_ids:
+                            retrieved_form_value_ids.append(form_value.id)
+                            new_data.append(form_value)
             data = new_data
         else:
             data = [form_value for field_values in self.context['form_values_reference'][data.core_filters['form'].id].values() for form_value in field_values]

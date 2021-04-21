@@ -37,27 +37,20 @@ class ExtractService:
                            fields_ids, sort_value=[], sort_field=[], 
                            search_value=[], search_field=[], search_exact=[]):
         
-        print('__start_extraction1')
         data_service = DataService(user_id, company_id)
-        print('__start_extraction2')
 
         to_date = DataService.validate_and_extract_date_from_string(to_date)
         from_date = DataService.validate_and_extract_date_from_string(from_date)
-        print('__start_extraction3')
 
         # get correct data to pass as parameters
         converted_search_data = data_service.convert_search_query_parameters(search_field, search_value, search_exact)
         converted_sort_data = data_service.convert_sort_query_parameters(sort_field, sort_value)
-        print('__start_extraction4')
 
         form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data, from_date, to_date)
-        print('__start_extraction5')
 
         # call external service
         from reflow_server.listing.externals import ExtractDataWorkerExternal
         ExtractDataWorkerExternal().build_extraction_data(file_id, file_format, company_id, user_id, form_id, fields_ids, form_data_accessed_by_user)
-        print('__start_extraction6')
-
 
     def extract(self, file_format, from_date, to_date, 
                 sort_value=[], sort_field=[], 

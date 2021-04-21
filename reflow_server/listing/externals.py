@@ -48,10 +48,6 @@ class ExtractDataWorkerExternal(externals.External):
             company_id
         )
         for form_value in form_values:
-            print(form_value.id)
-            print(form_value.field_id)
-            print(form_value.form)
-            print('---------------------')
             if form_value.form and form_value.form.depends_on_id and form_value.field_id:
                 form_value_by_field_id = {}
                 form_value_by_field_id[form_value.field_id] = form_values_reference.get(form_value.form.depends_on_id, dict()).get(form_value.field_id, []) + [form_value]

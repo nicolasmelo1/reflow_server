@@ -15,7 +15,7 @@ class ListingHeaderSerializer(serializers.ModelSerializer):
     field = ListingHeaderFieldsRelation()
 
     def create(self, validated_data):
-        instance, created = ListingSelectedFields.objects.update_or_create(
+        instance, _ = ListingSelectedFields.objects.update_or_create(
             id=validated_data.get('id', None),
             defaults={
                 'field_id': validated_data['field']['id'],
