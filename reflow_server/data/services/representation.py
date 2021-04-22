@@ -129,8 +129,6 @@ class RepresentationService:
                         value = representation_service.representation(obj.value)
                     else:
                         value = ''
-                else:
-                    value = ''
             else:
                 value = ''
         except ValueError as ve:
