@@ -9,7 +9,7 @@ def is_valid_uuid(uuid):
         uuid (str): The uuid that you want to test
 
     Returns:
-        bool: Returns True if `uuid`` is a valid uuid, otherwise, returns False
+        bool: Returns True if `uuid` is a valid uuid, otherwise, returns False
     """
     try:
         uuid_obj = UUID(uuid, version=4)
