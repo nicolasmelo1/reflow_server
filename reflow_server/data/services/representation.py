@@ -135,7 +135,6 @@ class RepresentationService:
             pass
         return value
 
-
     def _representation_user(self, value):
         if not self.load_ids:
             value = UserExtended.data_.user_full_name_by_user_id(int(value))
@@ -146,7 +145,7 @@ class RepresentationService:
             return datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT).strftime(self.date_format_type.format)
         except ValueError as ve:
             return value
-
+    
     def _representation_number(self, value):
         if value.lstrip("-").isdigit() and self.number_format_type:
             negative_signal = value[0] if value[0] == '-' else ''
