@@ -141,7 +141,6 @@ class RepresentationService:
             value = UserExtended.data_.user_full_name_by_user_id(int(value))
         return value
 
-
     def _representation_date(self, value):
         return datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT).strftime(self.date_format_type.format)
     

@@ -70,6 +70,7 @@ class AbstractFieldStates(models.Model):
     number_configuration_mask = models.CharField(max_length=250, blank=True, null=True) # Needs to be removed
     number_configuration_number_format_type = models.ForeignKey('formulary.FieldNumberFormatType', on_delete=models.CASCADE, blank=True, null=True, db_index=True)
     formula_configuration = models.CharField(max_length=1000, blank=True, null=True)
+    is_long_text_rich_text = models.BooleanField(default=False, blank=True, null=True)
 
     class Meta:
         abstract = True

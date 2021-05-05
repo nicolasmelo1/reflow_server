@@ -123,7 +123,8 @@ class FieldService(Settings):
                    formula_configuration, date_configuration_auto_create, 
                    date_configuration_auto_update, number_configuration_number_format_type, 
                    date_configuration_date_format_type, period_configuration_period_interval_type, 
-                   field_type, field_options_data=None, default_field_value_data=None, field_uuid=None, instance=None):
+                   field_type, field_options_data=None, default_field_value_data=None, field_uuid=None,
+                   is_long_text_a_rich_text=False, instance=None):
         
         if instance == None:
             instance = Field()
@@ -151,6 +152,7 @@ class FieldService(Settings):
         instance.label_is_hidden = label_is_hidden
         instance.placeholder = placeholder
         instance.required = required
+        instance.is_long_text_rich_text = is_long_text_a_rich_text
         instance.form_id = section.id if isinstance(section, Form) else section
         instance.form_field_as_option = form_field_as_option
         instance.formula_configuration = formula_configuration

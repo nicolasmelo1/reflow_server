@@ -319,7 +319,27 @@ class FieldOptions(AbstractFieldOptions):
     objects = models.Manager()
     theme_ = FieldOptionsThemeManager()
     kanban_ = FieldOptionsKanbanManager()
-    
+
+############################################################################################
+class UserAccessedBy(models.Model):
+    """
+    This is used to filter the users that another user can see. With this we are able to filter by each form
+    what users can see this data.
+
+    This adds a flexibility in the hole data that enables the user to filter what data another users can see.
+    Suppose we have a formulary with a field of `user` type.
+
+    We can filter by this and other `user` type fields, what data the user can see. Suppose this data is set to 'Lucas',
+    and Lucas can see ONLY data that is set to him, with this we can filter only data that is set to him.
+    """
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True)
+    user_option = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True, related_name='user_accessed_by')
+    user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True, related_name='user_accessed_by_user')
+
+    class Meta:
+        db_table = 'user_accessed_by'
 
 ############################################################################################
 class OptionAccessedBy(models.Model):

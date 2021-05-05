@@ -95,6 +95,7 @@ class RichTextService:
                 'markdown_text': ''
             }
         )
+        raw_text = ''
 
         saved_uuids_contents_reference = {}
         saved_uuids_blocks_reference = {}
@@ -110,8 +111,8 @@ class RichTextService:
             )
             self._save_block_types(block_instance, block)
             saved_uuids_blocks_reference[str(block.uuid)] = block_instance
-
             for content in block.contents:
+                raw_text += content.text if content.text else ''
                 content_instance, __ = TextContent.objects.update_or_create(
                     block_id=block_instance.id,
                     uuid=content.uuid,
@@ -138,6 +139,9 @@ class RichTextService:
             saved_uuids_blocks_reference.values(), 
             saved_uuids_contents_reference.values()
         )
+
+        page_instance.raw_text = raw_text
+        page_instance.save()
         return page_instance
     
     def _save_block_types(self, block_instance, block_data):
@@ -175,7 +179,7 @@ class RichTextService:
         text_option_instance, __ = TextTextOption.objects.update_or_create(
             id=block_instance.text_option.id if block_instance.text_option else None,
             defaults={
-                'alignment_type': block_data.alignment_type_id
+                'alignment_type_id': block_data.alignment_type_id
             }
         )
         block_instance.text_option = text_option_instance

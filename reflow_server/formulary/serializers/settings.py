@@ -134,6 +134,7 @@ class FieldSerializer(serializers.ModelSerializer):
             section=self.validated_data['form'],
             form_field_as_option=form_field_as_option,
             formula_configuration=formula_configuration,
+            is_long_text_a_rich_text=self.validated_data['is_long_text_rich_text'],
             date_configuration_auto_create=self.validated_data['date_configuration_auto_create'],
             date_configuration_auto_update=self.validated_data['date_configuration_auto_update'],
             number_configuration_number_format_type=self.validated_data.get('number_configuration_number_format_type', None),

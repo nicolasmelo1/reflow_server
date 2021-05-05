@@ -7,7 +7,8 @@ from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFTemp
 from reflow_server.pdf_generator.relations import PDFTemplateConfigurationVariablesRelation, \
     FieldOptionRelation
 from reflow_server.pdf_generator.relations.rich_text import PageRelation
-from reflow_server.pdf_generator.services import PDFGeneratorService, PDFVariablesData
+from reflow_server.pdf_generator.services import PDFGeneratorService
+from reflow_server.pdf_generator.services.data import PDFVariablesData
 from reflow_server.rich_text.services import ordered_list_from_serializer_data_for_page_data, PageData
 from reflow_server.rich_text.services.exceptions import RichTextValidationException
 
@@ -72,7 +73,7 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
                     block_data = self.page_data.add_block(block['data']['uuid'], block['data']['block_type'].id, block['depends_on_uuid'])
                     
                     if block['data']['block_type'].name == 'text' and block['data']['text_option']:
-                        block_data.append_text_block_type_data(block['data']['text_option']['alignment_type'])
+                        block_data.append_text_block_type_data(block['data']['text_option']['alignment_type'].id)
                     elif block['data']['block_type'].name == 'image' and block['data']['image_option']:
                         block_data.append_image_block_type_data(
                             block['data']['image_option']['file_image_uuid'],

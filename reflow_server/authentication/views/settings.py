@@ -153,3 +153,10 @@ class FormularyAndFieldOptionsView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+    
+
+class UserFieldOptionsView(APIView):
+    def get(self, request, company_id):
+        return Response({
+            'status': 'ok'
+        }, status=status.HTTP_200_OK)

@@ -7,7 +7,6 @@ from reflow_server.formulary.services.public import PublicFormularyService
 from reflow_server.authentication.models import UserExtended
 from reflow_server.data.models import FormValue
 
-
 ############################################################################################
 class GetFormSerializer(serializers.ModelSerializer):
     """

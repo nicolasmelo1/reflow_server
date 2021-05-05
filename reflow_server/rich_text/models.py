@@ -69,7 +69,7 @@ class TextPage(models.Model):
 
     objects = models.Manager()
     pdf_generator_ = TextPagePDFGeneratorManager()
-
+    
 
 class TextTableOptionRowDimension(models.Model):
     """

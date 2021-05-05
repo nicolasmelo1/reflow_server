@@ -3,11 +3,9 @@ from django.db.utils import IntegrityError
 
 from reflow_server.pdf_generator.models import PDFTemplateConfiguration, \
     PDFTemplateConfigurationVariables
-from reflow_server.pdf_generator.services.data import PDFVariablesData
 from reflow_server.data.models import FormValue, DynamicForm
 from reflow_server.formulary.models import Form, Field
 from reflow_server.formulary.services.formulary import FormularyService
-from reflow_server.rich_text.models import TextPage
 from reflow_server.rich_text.services import RichTextService
 
 
