@@ -8,3 +8,4 @@ from .form_accessed_by import FormAccessedByFormularyManager
 from .draft import DraftFormularyManager
 from .default_field_value_attachments import DefaultValueFieldAttachmentsFormularyManager
 from .default_field_value import DefaultFieldValueFormularyManager
+from .user_accessed_by import UserAccessedByFormularyManager

@@ -1,19 +1,19 @@
 from django.conf import settings
 
 from reflow_server.core.utils.storage import Bucket, BucketUploadException
-from reflow_server.draft.services import DraftService
 from reflow_server.data.services.formulary.data import PostSaveData
 from reflow_server.data.models import FormValue, DynamicForm, Attachments
-from reflow_server.formulary.models import Field
 from reflow_server.formula.services import FormulaService
 from reflow_server.data.services.attachments import AttachmentService
+from reflow_server.rich_text.services import RichTextService, ordered_list_from_serializer_data_for_page_data, PageData
+from reflow_server.rich_text.models import TextBlockType
 
 import json
 
 
 class PostSave:
     def add_saved_field_value_to_post_process(self, section_instance, form_value_instance):
-        if form_value_instance and (form_value_instance.field.type.type in ['id', 'attachment'] or form_value_instance.field.formula_configuration not in ('', None)):
+        if form_value_instance and (form_value_instance.field.type.type in ['id', 'attachment', 'long_text'] or form_value_instance.field.formula_configuration not in ('', None)):
             self.post_save_process.append(PostSaveData(section_instance, form_value_instance))
             return True
         return False
@@ -88,7 +88,7 @@ class PostSave:
             value = formula.value
             process.form_value_instance.value = value
         return process
-    
+
     def _post_process_id(self, process):
         if process.form_value_instance.value == '0':
             last_id = FormValue.data_.last_saved_value_of_id_field_type(process.form_value_instance.field.form.id, process.form_value_instance.field.type.id, process.form_value_instance.field.id)

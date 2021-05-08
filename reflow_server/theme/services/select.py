@@ -158,6 +158,7 @@ class ThemeSelectService:
                 required=theme_field.required, 
                 section=self.theme_reference.get_formulary_reference(theme_field.form_id),
                 form_field_as_option=None, 
+                is_long_text_a_rich_text=theme_field.is_long_text_rich_text,
                 formula_configuration=theme_field.formula_configuration, 
                 date_configuration_auto_create=theme_field.date_configuration_auto_create, 
                 date_configuration_auto_update=theme_field.date_configuration_auto_update,

@@ -129,6 +129,7 @@ class KanbanDimensionListSerializer(serializers.ListSerializer):
             required=field_instance.required,
             section=field_instance.form,
             field_uuid=field_instance.uuid,
+            is_long_text_a_rich_text=field_instance.is_long_text_rich_text,
             form_field_as_option=field_instance.form_field_as_option,
             formula_configuration=field_instance.formula_configuration,
             date_configuration_auto_create=field_instance.date_configuration_auto_create,

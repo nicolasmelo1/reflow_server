@@ -2,7 +2,7 @@ from django.db import transaction
 
 from reflow_server.authentication.models import UserExtended, Company, VisualizationType
 from reflow_server.billing.services import BillingService
-from reflow_server.formulary.models import Field
+from reflow_server.formulary.models import UserAccessedBy, Field
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.notify.services import NotifyService
@@ -30,7 +30,7 @@ class UsersService:
         BillingService(self.company.id).update_charge()
 
     @transaction.atomic
-    def create(self, email, first_name, last_name, profile, field_option_ids_accessed_by, form_ids_accessed_by, change_password_url):
+    def create(self, email, first_name, last_name, profile, field_option_ids_accessed_by, form_ids_accessed_by, users_accessed_by, change_password_url):
         """
         Creates a new user with it's permissions. When we create a new user we also create the billing
 
@@ -45,6 +45,8 @@ class UsersService:
                                                       on form_id 23.
             form_ids_accessed_by (list(int)): The integers in this list are ids of field options the user has access to. It works the same as `field_option_ids_accessed_by`
                                               parameter. The ones that are not in this list are removed from the user.
+            users_accessed_by (list(reflow_server.authentication.services.data.UserAccessedByData)): A list of UserAccessedByData objects so we can change the users
+                                                                                                     the user can access for a certain field.
             change_password_url (str): The url to change the password of the user.
 
         Returns:
@@ -63,11 +65,12 @@ class UsersService:
 
         self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)
         self.__create_new_user_notify_update_billing_and_add_kanban_defaults(instance, change_password_url)
-    
+        self.__update_user_users_permission(instance.id, users_accessed_by)
+        self.__create_user_user_pemissions_when_user_is_created(instance.id)
         return instance
 
     @transaction.atomic
-    def update(self, user_id, email, first_name, last_name, profile, field_option_ids_accessed_by, form_ids_accessed_by):
+    def update(self, user_id, email, first_name, last_name, profile, field_option_ids_accessed_by, form_ids_accessed_by, users_accessed_by):
         """
         Updates a user and it's permissions to both formularies and options.
 
@@ -83,7 +86,8 @@ class UsersService:
                                                       on form_id 23.
             form_ids_accessed_by (list(int)): The integers in this list are ids of field options the user has access to. It works the same as `field_option_ids_accessed_by`
                                               parameter. The ones that are not in this list are removed from the user.
-
+            users_accessed_by (list(reflow_server.authentication.services.data.UserAccessedByData)): A list of UserAccessedByData objects so we can change the users
+                                                                                                     the user can access for a certain field.
         Returns:
             reflow_server.authentication.models.UserExtended: the instance of the updated user.
         """
@@ -97,8 +101,19 @@ class UsersService:
         
         if instance:
             self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)
-
+            self.__update_user_users_permission(instance.id, users_accessed_by)
         return instance
+
+    def __create_user_user_pemissions_when_user_is_created(self, created_user_id):
+        users_from_company = UserExtended.authentication_.users_active_by_company_id(self.company.id)
+        users_fields = Field.objects.filter(form__depends_on__group__company_id=self.company.id, type__type='user')
+        for field in users_fields:
+            for user in users_from_company:
+                UserAccessedBy.objects.update_or_create(
+                    user=user,
+                    field=field,
+                    user_option_id=created_user_id
+                )
 
     def __create_new_user_notify_update_billing_and_add_kanban_defaults(self, instance, change_password_url):
         """
@@ -140,3 +155,33 @@ class UsersService:
         FieldOptionsService(self.company.id).update_fields_options_accessed_by_user(user_id, field_option_ids_accessed_by)
 
         return True
+
+    def __update_user_users_permission(self, user_id, users_accessed_by):
+        """
+        Updates the user permissions, similar from filtering the data by the options we can filter the data by the user options
+        so let's for example imagine the following scenario: We have 'Lucas' and 'Nicolas' users. 
+
+        'Lucas' can only see what is from Lucas and 'Nicolas' can only see what is from Nicolas. With this functionality we can filter
+        what the user can see.
+
+        But let's imagine the following scenario: 
+        The formulary has two user fields: 'Who created' and 'Responsible for Task'.
+
+        Who created can be anyone but the Responsible for Task should be only for the specific user.
+        In this scenario we filter just by the `Responsible for Task` value
+
+        Args:
+            user_id (int): A UserExtended instance id, this is the id of the user you are creating or updating
+            users_accessed_by (reflow_server.authentication.services.data.UserAccessedByData): A class responsible for holding the user accessed by options
+        """
+        saved_instances_ids = []
+        for user_accessed_by in users_accessed_by:
+            instance, __ = UserAccessedBy.objects.update_or_create(
+                user_id=user_id,
+                field_id=user_accessed_by.field_id,
+                user_option_id=user_accessed_by.user_id
+            )
+            saved_instances_ids.append(instance.id)
+
+        UserAccessedBy.objects.filter(user_id=user_id).exclude(id__in=saved_instances_ids).delete()
+

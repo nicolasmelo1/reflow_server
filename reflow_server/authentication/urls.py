@@ -15,7 +15,7 @@ settings_urlpatterns = [
             re_path(r'^(?P<user_id>\d+)/$', validate_billing(UserSettingsEditView.as_view()), name='authentication_settings_edit_users'),
             re_path(r'^formulary_options/$', validate_billing(FormularyAndFieldOptionsView.as_view()), 
                 name='authentication_settings_formulary_options'
-            )
+            ),
         ])),
         re_path(r'^company/$', validate_billing(CompanySettingsView.as_view()), name='authentication_settings_company')
     ]))
