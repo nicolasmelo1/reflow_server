@@ -8,7 +8,7 @@ from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldP
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
 from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager, \
     PublicAccessFormFormularyManager, FormAccessedByFormularyManager, DefaultValueFieldAttachmentsFormularyManager, \
-    DefaultFieldValueFormularyManager, FieldFormularyManager
+    DefaultFieldValueFormularyManager, FieldFormularyManager, UserAccessedByFormularyManager
 from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager, DefaultFieldValueDataManager
 
 
@@ -340,6 +340,9 @@ class UserAccessedBy(models.Model):
 
     class Meta:
         db_table = 'user_accessed_by'
+
+    objects = models.Manager()
+    formulary_ = UserAccessedByFormularyManager()
 
 ############################################################################################
 class OptionAccessedBy(models.Model):

@@ -1,8 +1,17 @@
 from rest_framework import serializers
 
 from reflow_server.formulary.models import OptionAccessedBy, FormAccessedBy, \
-    Field, FieldOptions, Form
+    Field, FieldOptions, Form, UserAccessedBy
 from reflow_server.billing.models import CompanyBilling
+
+
+class UserAccessedByRelation(serializers.ModelSerializer):
+    user_option_id = serializers.IntegerField()    
+    field_id = serializers.IntegerField()
+
+    class Meta:
+        model = UserAccessedBy
+        fields = ('user_option_id', 'field_id')
 
 
 class OptionAccessedByRelation(serializers.ModelSerializer):
@@ -31,7 +40,7 @@ class FieldOptionRelation(serializers.ModelSerializer):
 
 class FieldTypeOptionOnlyListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        data = Field.objects.filter(form__depends_on=data.core_filters['form'], type__type__in=['option', 'multi_option'])
+        data = Field.objects.filter(form__depends_on=data.core_filters['form'], type__type__in=['option', 'multi_option', 'user'])
         return super(FieldTypeOptionOnlyListSerializer, self).to_representation(data)
 
 
@@ -41,7 +50,7 @@ class FormularyFieldsOptionsRelation(serializers.ModelSerializer):
     class Meta:
         model = Field
         list_serializer_class = FieldTypeOptionOnlyListSerializer
-        fields = ('enabled', 'label_name', 'field_option')
+        fields = ('id', 'enabled', 'label_name', 'type', 'field_option')
 
 
 class FormularyOptionsListSerializer(serializers.ListSerializer):

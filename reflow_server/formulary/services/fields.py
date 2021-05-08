@@ -1,14 +1,15 @@
-from django.conf import settings
 from django.db import transaction
 
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.data.services.representation import RepresentationService
 from reflow_server.draft.services import DraftService
 from reflow_server.draft.models import Draft
+from reflow_server.authentication.models import UserExtended
 from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.formulary.services.utils import Settings
 from reflow_server.formulary.services.default_attachment import DefaultAttachmentService
-from reflow_server.formulary.models import Form, Field, FieldOptions, PublicAccessField, DefaultFieldValue, FieldType
+from reflow_server.formulary.models import Form, Field, FieldOptions, PublicAccessField, DefaultFieldValue, \
+    FieldType, UserAccessedBy
 
 import uuid
 
@@ -105,6 +106,23 @@ class FieldService(Settings):
             self.remove_default_values(instance, [])
             instance.delete()
     # ------------------------------------------------------------------------------------------ 
+    def __create_user_accessed_by_when_field_is_created(self, field_id):
+        """
+        When the field is of 'user' type, we need to create the options the user can access, in other words, all of the users.
+        So this function is to give the user full access for all users in this option.
+
+        Args:
+            field_id (int): The newly created Field instance id
+        """
+        users_from_company = UserExtended.formulary_.users_active_by_company_id(self.company_id)
+        for user in users_from_company:
+            for user_option in users_from_company:
+                UserAccessedBy.formulary_.create_or_update(
+                    user_id=user.id,
+                    field_id=field_id,
+                    user_option_id=user_option.id
+                )
+    # ------------------------------------------------------------------------------------------ 
     @transaction.atomic
     def get_public_fields_from_section(self, public_access_key, section_id):
         """
@@ -126,7 +144,9 @@ class FieldService(Settings):
                    field_type, field_options_data=None, default_field_value_data=None, field_uuid=None,
                    is_long_text_a_rich_text=False, instance=None):
         
-        if instance == None:
+        is_new_field = False
+        if instance == None or instance.id == None:
+            is_new_field = True
             instance = Field()
         if field_uuid == None:
             field_uuid = uuid.uuid4()
@@ -179,6 +199,11 @@ class FieldService(Settings):
         # We don't access directly the id of the field option, only the values, we use this to delete or add a field Option
         elif FieldOptions.objects.filter(field=instance).exists():
             field_options_service.remove_field_options_from_field(instance.id)
+        print('BREAKPOINT')
+        print(is_new_field)
+        print(instance.type.type )
+        if is_new_field and instance.type.type == 'user':
+            self.__create_user_accessed_by_when_field_is_created(instance.id)
 
         from reflow_server.formulary.events import FormularyEvents        
         FormularyEvents.send_updated_formulary(self.company_id, self.form.id, self.form.form_name)

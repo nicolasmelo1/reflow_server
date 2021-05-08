@@ -1,7 +1,7 @@
 from reflow_server.data.services.data.sort import DataSort
 from reflow_server.data.services.data.search import DataSearch
 from reflow_server.data.models import FormValue, DynamicForm
-from reflow_server.formulary.models import OptionAccessedBy, Field, FieldOptions
+from reflow_server.formulary.models import OptionAccessedBy, Field, FieldOptions, UserAccessedBy
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.authentication.models import UserExtended
 
@@ -13,6 +13,7 @@ class DataService(DataSort, DataSearch):
     def __init__(self, user_id, company_id):
         self.user_id = user_id
         self.company_id = company_id
+        self.user = UserExtended.data_.user_by_user_id(user_id)
     # ------------------------------------------------------------------------------------------
     @staticmethod
     def validate_and_extract_date_from_string(date):
@@ -237,10 +238,11 @@ class DataService(DataSort, DataSearch):
                                       'You can use the .convert_sort_query_parameters() staticmethod of DataService class to convert from query parameters to this format.')
             self._sort(sort_keys)
         
-        self.__filter_by_profile_permissions(form_id)
+        self.__filter_by_profile_permissions_options(form_id)
+        self.__filter_by_profile_permissions_users(form_id)
         return list(self._data.values_list('id', flat=True))
     # ------------------------------------------------------------------------------------------
-    def __filter_by_profile_permissions(self, form_id):
+    def __filter_by_profile_permissions_options(self, form_id):
         """
         This is one of the key features of our platform that can be later changed by the more advanced `filter`.
         A user can edit what another user sees from the options it have access to. To the formularies the user have access to.
@@ -258,8 +260,7 @@ class DataService(DataSort, DataSearch):
             form_id (int): the reflow_server.formulary.models.Form instance id. So we can know for what formulary this permission
             is for.
         """
-        user = UserExtended.data_.user_by_user_id(self.user_id)
-        if user.profile.name == 'simple_user':
+        if self.user.profile.name == 'simple_user':
             self._data = self._data.filter(user_id=self.user_id)
         else:
             field_options = FieldOptions.objects.filter(
@@ -300,5 +301,35 @@ class DataService(DataSort, DataSearch):
                 forms_to_ignore = list()
                 for (value, field_id, field_type, form_depends_on) in all_form_values.values_list('value', 'field_id', 'field__type__type', 'form__depends_on'):
                     if field_id in options_by_field and value not in options_by_field[field_id]+[''] and field_id in field_options_by_field and value in field_options_by_field[field_id]:
+                        forms_to_ignore.append(form_depends_on)
+                self._data = self._data.exclude(id__in=forms_to_ignore)
+    # ------------------------------------------------------------------------------------------
+    def __filter_by_profile_permissions_users(self, form_id):
+        if self.user.profile.name == 'simple_user':
+            self._data = self._data.filter(user_id=self.user_id)
+        else:
+            user_fields_of_this_formulary_that_the_user_has_access_to = UserAccessedBy.objects.filter(field__form__depends_on_id=form_id, user_id=self.user_id).values('field_id', 'user_option_id')
+            if not user_fields_of_this_formulary_that_the_user_has_access_to:
+                # Similar to field_options filter, if there is no user_options on this form, consequently, no filter need to be made.
+                # In this condition we return all the data to the user, like if he was an admin.
+                return
+            else:
+                user_options_by_field = dict()
+
+                for user_option in user_fields_of_this_formulary_that_the_user_has_access_to:
+                    user_options_by_field[user_option['field_id']] = user_options_by_field.get(
+                        user_option['field_id'], []
+                    ) + [str(user_option['user_option_id'])]
+
+                all_form_values_of_user_option = FormValue.data_.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(
+                    company_id=self.company_id,
+                    depends_on_forms=self._data,
+                    field_ids=list(user_options_by_field.keys()),
+                    field_types=['user']
+                )
+
+                forms_to_ignore = list()
+                for (value, field_id, field_type, form_depends_on) in all_form_values_of_user_option.values_list('value', 'field_id', 'field__type__type', 'form__depends_on'):
+                    if field_id in user_options_by_field and value not in user_options_by_field[field_id]+['']:
                         forms_to_ignore.append(form_depends_on)
                 self._data = self._data.exclude(id__in=forms_to_ignore)

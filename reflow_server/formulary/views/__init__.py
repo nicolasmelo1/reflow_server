@@ -1,13 +1,13 @@
+from reflow_server.formulary.managers import user_accessed_by
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 
-from reflow_server.authentication.models import UserExtended
 from reflow_server.core.utils.pagination import Pagination
 from reflow_server.formulary.services.default_attachment import DefaultAttachmentService
 from reflow_server.formulary.serializers import GetFormSerializer, GetGroupSerializer, FormFieldTypeOptionsSerializer, \
     UserFieldTypeOptionsSerializer, PublicAccessFormSerializer
-from reflow_server.formulary.models import Form, FormAccessedBy, Group, Field, PublicAccessForm
+from reflow_server.formulary.models import Form, FormAccessedBy, Group, Field, PublicAccessForm, UserAccessedBy
 from reflow_server.data.models import FormValue
 
 
@@ -94,7 +94,8 @@ class UserFieldTypeOptionsView(APIView):
                   right now, all of the users of a current company
     """
     def get(self, request, company_id, form, field_id):
-        instances = UserExtended.formulary_.users_active_by_company_id(company_id)
+        users_accessed_by = UserAccessedBy.formulary_.users_accessed_by_by_field_id_company_id_and_user_id(field_id, company_id, request.user.id)
+        instances = [user_accessed_by.user_option for user_accessed_by in users_accessed_by]
         serializer = UserFieldTypeOptionsSerializer(instance=instances, many=True)
         return Response({
             'status': 'ok',
