@@ -8,12 +8,14 @@ class DynamicFormDataManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
-    def create_or_update_main_form_instance(self, form_id, user_id, company_id, main_form_instance_id=None):
+    def create_or_update_main_form_instance(self, form_id, main_form_uuid, user_id, company_id, main_form_instance_id=None):
         """
         Creates or updates a main DynamicForm instance. This instance is the one that have depends_on as NULL.
 
         Args:
             form_id (int): The Form instance id that have depends_on as NULL
+            main_form_uuid (uuid.uuid): The uuid from the formulary we use this uuid so we can have more control over formularies
+            in the front end
             user_id (int): The UserExtended instance id of the user that is saving this data 
             company_id (int): The Company instance id, is the company that this data is from.
             main_form_instance_id (int, optional): If you are UPDATING an instance
@@ -26,6 +28,7 @@ class DynamicFormDataManager(models.Manager):
             id=main_form_instance_id,
             defaults={
                 'updated_at': datetime.now(),
+                'uuid': main_form_uuid,
                 'form_id': form_id,
                 'user_id': user_id,
                 'company_id': company_id
@@ -34,13 +37,14 @@ class DynamicFormDataManager(models.Manager):
 
         return instance
 
-    def create_or_update_section_instance(self, section_id, user_id, company_id, main_form_instance, section_instance_id=None):
+    def create_or_update_section_instance(self, section_id, section_uuid, user_id, company_id, main_form_instance, section_instance_id=None):
         """
         Creates or updates a section DynamicForm instance. This instance is the one that have depends_on defined so it
         needs to become after the `create_or_update_main_form_instance` method
 
         Args:
             form_id (int): The Form instance id that have depends_on as NOT NULL
+            section_uuid (uuid.uuid4): A uuid so we can have more control over sections in the frontend
             user_id (int): The UserExtended instance id of the user that is saving this data 
             company_id (int): The Company instance id, is the company that this data is from.
             main_form_instance (reflow_server.data.models.DynamicForm): This is the DynamicForm 
@@ -51,10 +55,13 @@ class DynamicFormDataManager(models.Manager):
         Returns:
             reflow_server.data.models.DynamicForm: This is the saved or updated DynamicForm instance
         """
+        print('BREAKPOINT')
+        print(section_uuid)
         instance, __ = super().get_queryset().update_or_create(
             id=section_instance_id, 
             defaults={
                 'form_id': section_id,
+                'uuid': section_uuid,
                 'user_id': user_id,
                 'company_id': company_id,
                 'depends_on': main_form_instance

@@ -1,4 +1,3 @@
-from reflow_server.kanban.managers import field_options
 from django.db import transaction
 
 from rest_framework import serializers
@@ -11,6 +10,7 @@ from reflow_server.formulary.services.data import FieldOptionsData
 from reflow_server.kanban.models import KanbanCard, KanbanDefault, KanbanCollapsedOption
 from reflow_server.kanban.services import KanbanService
 from reflow_server.kanban.relations import KanbanFieldsRelation, KanbanCardFieldRelation
+from reflow_server.formulary.models import Form
 from reflow_server.data.models import DynamicForm, FormValue
 from reflow_server.data.services.formulary import FormularyDataService
 from reflow_server.data.services.representation import RepresentationService
@@ -193,17 +193,41 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
     # ------------------------------------------------------------------------------------------
     def validate(self, data):
         """
+        Here we just check if the card you are moving has a conditional set to it, if it has, opens the formulary of the user
+        so he can make changes directly in the formulary
+        """
+        self.form_value_to_change = FormValue.kanban_.form_value_by_form_value_id(int(data['form_value_id']))
+
+        is_conditional = Form.objects.filter(
+            depends_on=self.form_value_to_change.field.form.depends_on, 
+            conditional_on_field=self.form_value_to_change.field, 
+            conditional_value=data['new_value']
+        ).exists()
+
+
+        if is_conditional:
+            raise serializers.ValidationError(detail='has_conditionals')
+        else:
+            return data
+
+    # ------------------------------------------------------------------------------------------
+    def save(self):
+        """
         What we do here is prepare the data to change the rows of the kanban.
 
         What you notice right away is that what we actually do is build a formulary data on the fly changing
-        only the value of the FormValue that was changed and then sending it to the FormularyDataService. 
         We do this because we can reuse all of the validation logic of this service without the need to redo it again.
         """
-        form_value_to_change = FormValue.kanban_.form_value_by_form_value_id(int(data['form_value_id']))
-        sections = DynamicForm.kanban_.sections_data_by_depends_on_id(form_value_to_change.form.depends_on.id)
-        formulary_data = self.formulary_data_service.add_formulary_data(form_value_to_change.form.depends_on.id)
+        sections = DynamicForm.kanban_.sections_data_by_depends_on_id(self.form_value_to_change.form.depends_on.id)
+        formulary_data = self.formulary_data_service.add_formulary_data(
+            self.form_value_to_change.form.depends_on.uuid,
+            self.form_value_to_change.form.depends_on.id
+        )
         for section in sections:
-            section_data = formulary_data.add_section_data(section_id=section.form.id, section_data_id=section.id)
+            section_data = formulary_data.add_section_data(
+                section_id=section.form.id, 
+                section_data_id=section.id
+            )
             section_field_values = FormValue.kanban_.form_values_by_dynamic_form_id(section.id)
             for field_value in section_field_values:
                 # The data we use is the represented data since it will reformat again when saving.
@@ -215,13 +239,10 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
                     True
                 )
                 value = representation_service.representation(field_value.value)
-                value = data['new_value'] if field_value.id == form_value_to_change.id else value
+                value = self.validated_data['new_value'] if field_value.id == self.form_value_to_change.id else value
                 section_data.add_field_value(field_value.field.id, field_value.field.name, value, field_value.id)
+        
         if self.formulary_data_service.is_valid():
-            return data
-        else:
-            raise serializers.ValidationError(detail=self.formulary_data_service.errors)   
-    # ------------------------------------------------------------------------------------------
-    def save(self):
-        instance = self.formulary_data_service.save()
-        return instance
+            instance = self.formulary_data_service.save()
+            return instance
+        return None

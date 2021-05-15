@@ -12,7 +12,8 @@ class FieldValueData:
 
 ############################################################################################
 class SectionData:
-    def __init__(self, section_data_id, section_id, formulary_data_id=None):
+    def __init__(self, section_data_id, section_id, uuid, formulary_data_id=None):
+        self.section_uuid = uuid
         self.section_data_id = int(section_data_id) if section_data_id not in ['', None] else None
         self.section_id = int(section_id) if section_id not in ['', None] else None
         self.__field_values = list()
@@ -71,15 +72,15 @@ class SectionData:
 
 ############################################################################################
 class FormularyData:
-    def __init__(self, form_data_id=None):
+    def __init__(self, uuid, form_data_id=None):
         self.form_data_id = form_data_id
+        self.uuid = uuid
         self.__sections = list()
     # ------------------------------------------------------------------------------------------
-    def add_section_data(self, section_id, section_data_id=None):
+    def add_section_data(self, section_id, uuid, section_data_id=None):
         # validates if self.instance is defined, than we can use the id recieved, otherwise use None
         section_data_id = section_data_id if self.form_data_id else None
-
-        section_data_obj = SectionData(section_data_id, section_id, self.form_data_id)
+        section_data_obj = SectionData(section_data_id, section_id, uuid, self.form_data_id)
         self.__sections.append(section_data_obj)
         return section_data_obj
     # ------------------------------------------------------------------------------------------

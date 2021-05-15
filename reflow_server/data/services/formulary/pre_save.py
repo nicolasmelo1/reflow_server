@@ -121,13 +121,16 @@ class PreSave(Validator):
         Not all fields of a section need to be sent in the request, since it is an array of field_values,
         with this, we force to handle the data of this field considering it as empty.
         """
-        cleaned_formulary_data = self.add_formulary_data(formulary_data.form_data_id)
+        print('__clean')
+        print(formulary_data.form_data_id)
+        cleaned_formulary_data = self.add_formulary_data(formulary_data.uuid, formulary_data.form_data_id)
 
         for section in formulary_data.get_sections:
             # check if the section is section to be used, check `.__format()` method
             if self.sections.filter(id=section.section_id).exists():
                 cleaned_section = cleaned_formulary_data.add_section_data(
                     section.section_id,
+                    section.section_uuid,
                     section.section_data_id
                 )
 

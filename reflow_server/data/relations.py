@@ -33,12 +33,13 @@ class SectionDataListSerializer(serializers.ListSerializer):
 class SectionDataRelation(serializers.ModelSerializer):
     id = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     form_id = serializers.CharField()
+    uuid = serializers.UUIDField()
     dynamic_form_value = FieldValueRelation(many=True)
 
     class Meta:
         model = DynamicForm
         list_serializer_class = SectionDataListSerializer
-        fields = ('id', 'form_id', 'dynamic_form_value')
+        fields = ('id', 'form_id', 'uuid', 'dynamic_form_value')
 
 
 class FilteredFormularyValueListSerializer(serializers.ListSerializer):

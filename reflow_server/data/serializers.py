@@ -20,18 +20,26 @@ class FormDataSerializer(serializers.ModelSerializer):
         duplicate (bool, optional): Only needed if you are duplicating a formulary. Defaults to False.
     """
     id = serializers.IntegerField(allow_null=True, required=False)
+    uuid = serializers.UUIDField()
     depends_on_dynamic_form = SectionDataRelation(many=True)
 
-    def __init__(self, user_id, company_id, form_name, form_data_id=None, duplicate=False, public_access_key=None, **kwargs):
-        self.form_data_id = form_data_id
+    def __init__(self, user_id, company_id, form_name, duplicate=False, public_access_key=None, **kwargs):
         self.duplicate = duplicate
         self.formulary_service = FormularyDataService(user_id, company_id, form_name, public_access_key=public_access_key)
         super(FormDataSerializer, self).__init__(**kwargs)
     # ------------------------------------------------------------------------------------------
     def validate(self, data):
-        formulary_data = self.formulary_service.add_formulary_data(self.form_data_id, duplicate=self.duplicate)
+        formulary_data = self.formulary_service.add_formulary_data(
+            data['uuid'],
+            self.instance.id, 
+            duplicate=self.duplicate
+        )
         for section in data['depends_on_dynamic_form']:
-            section_data = formulary_data.add_section_data(section_id=section['form_id'], section_data_id=section['id'])
+            section_data = formulary_data.add_section_data(
+                section_id=section['form_id'], 
+                uuid=section['uuid'], 
+                section_data_id=section['id']
+            )
             for field in section['dynamic_form_value']:
                 section_data.add_field_value(field['field_id'], field['field']['name'], field['value'], field['id'])
         if self.formulary_service.is_valid():
@@ -45,7 +53,7 @@ class FormDataSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = DynamicForm
-        fields = ('id', 'depends_on_dynamic_form',)
+        fields = ('id', 'uuid', 'depends_on_dynamic_form')
 
 
 ############################################################################################

@@ -27,7 +27,7 @@ class FormularyDataService(PreSave, PostSave):
         self.public_access_key = public_access_key
         self.post_save_process = list()
     # ------------------------------------------------------------------------------------------
-    def add_formulary_data(self, form_data_id=None, duplicate=False):
+    def add_formulary_data(self, form_data_uuid, form_data_id=None, duplicate=False):
         """
         This function is meant to be run inside a loop of insertion. it's important to 
         understand that this is required for running any other method inside of this service.
@@ -46,6 +46,7 @@ class FormularyDataService(PreSave, PostSave):
         with it instead of working directly with serializers.
 
         Args:
+            form_data_uuid: The uuid of the formulary
             form_data_id (int, optional): The id of the formulary, this is usually set if you are editing an
                                           instance, otherwise you can leave it as null (default as None)
             duplicate_form_data_id (int, optional): If you are trying to duplicate a formulary set it to True 
@@ -56,7 +57,9 @@ class FormularyDataService(PreSave, PostSave):
         if duplicate:
             self.duplicate_form_data_id = form_data_id
             form_data_id = None
-        self.formulary_data = FormularyData(form_data_id)
+        
+        print(form_data_id)
+        self.formulary_data = FormularyData(form_data_uuid, form_data_id)
         return self.formulary_data
     # ------------------------------------------------------------------------------------------
     def __send_events_post_save(self, formulary_instance_id): 
@@ -194,16 +197,23 @@ class FormularyDataService(PreSave, PostSave):
         if not hasattr(self, 'validated'):
             raise AssertionError('You should call `.is_valid()` method before trying to save the data.')
         
+        print(self.form.id)
+        print(self.formulary_data.uuid)
+        print(self.formulary_data.form_data_id)
         formulary_instance = DynamicForm.data_.create_or_update_main_form_instance(
             self.form.id,
+            self.formulary_data.uuid,
             self.user_id,
             self.company_id,
             main_form_instance_id=self.formulary_data.form_data_id
         )
 
         for section in self.formulary_data.get_sections:
+            print('section')
+            print(section)
             section_instance = DynamicForm.data_.create_or_update_section_instance(
                 section.section_id,
+                section.section_uuid,
                 self.user_id,
                 self.company_id,
                 main_form_instance=formulary_instance,

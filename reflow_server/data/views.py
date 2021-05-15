@@ -157,13 +157,14 @@ class FormularyDataEditView(APIView):
 
     def put(self, request, company_id, form, dynamic_form_id):
         duplicate = 'duplicate' in request.query_params
+        instance = DynamicForm.objects.filter(id=dynamic_form_id, form__group__company_id=company_id, depends_on__isnull=True).first()
         serializer = FormDataSerializer(
             user_id=request.user.id, 
             company_id=company_id, 
             form_name=form,
-            form_data_id=dynamic_form_id,
             duplicate=duplicate,
-            data=request.data
+            data=request.data,
+            instance=instance
         )
         if serializer.is_valid():
             try:
