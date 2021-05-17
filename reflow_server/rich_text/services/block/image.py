@@ -111,6 +111,10 @@ class RichTextImageBlockService:
                     image_uuid = uuid.uuid4()
             
             elif draft_id != -1:
+                print('BREAKPOINT')
+                print(draft_id)
+                print(self.user_id)
+                print(self.company_id)
                 draft_instance = Draft.rich_text_.draft_by_draft_id_user_id_and_company_id(draft_id, self.user_id, self.company_id)
                 if draft_instance:
                     file_size = draft_instance.file_size
