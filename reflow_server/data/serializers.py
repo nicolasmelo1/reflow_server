@@ -31,7 +31,7 @@ class FormDataSerializer(serializers.ModelSerializer):
     def validate(self, data):
         formulary_data = self.formulary_service.add_formulary_data(
             data['uuid'],
-            self.instance.id, 
+            self.instance.id if self.instance else None, 
             duplicate=self.duplicate
         )
         for section in data['depends_on_dynamic_form']:
