@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from reflow_server.core.relations import ValueField
 from reflow_server.data.models import FormValue
-from reflow_server.formulary.models import Form
+from reflow_server.formulary.models import Form, Field
 from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFTemplateAllowedTextBlock
 from reflow_server.pdf_generator.relations import PDFTemplateConfigurationVariablesRelation, \
     FieldOptionRelation
@@ -89,27 +89,32 @@ class PDFTemplateConfigurationSerializer(serializers.ModelSerializer):
                         )
                     
                     for content in block['data'].get('rich_text_block_contents', []):
+                        is_to_ignore_content = False
                         # Adds the variables here, on front end it was causing problems
                         if content.get('is_custom', False) and re.search('fieldVariable-\d+', content.get('custom_value', '')):
                             variable_field_id = re.match('fieldVariable-\d+', content.get('custom_value', '')).group(0)
                             variable_field_id = int(variable_field_id.replace('fieldVariable-', ''))
-                            self.pdf_variables_data.add_variable(variable_field_id)
-
-                        block_data.add_content(
-                            content['uuid'], 
-                            content.get('text', ''), 
-                            content.get('is_bold', False),
-                            content.get('is_italic', False),
-                            content.get('is_underline', False),
-                            content.get('is_code', False),
-                            content.get('is_custom', False),
-                            content.get('custom_value', None),
-                            content.get('latex_equation', None),
-                            content.get('marker_color', None),
-                            content.get('text_color', None),
-                            content.get('text_size', 12),
-                            content.get('link', None)
-                        )
+                            if Field.pdf_generator_.exist_field_by_id_and_company_id(variable_field_id, self.company_id):
+                                self.pdf_variables_data.add_variable(variable_field_id)
+                            else:
+                                is_to_ignore_content = True
+                                
+                        if not is_to_ignore_content:
+                            block_data.add_content(
+                                content['uuid'], 
+                                content.get('text', ''), 
+                                content.get('is_bold', False),
+                                content.get('is_italic', False),
+                                content.get('is_underline', False),
+                                content.get('is_code', False),
+                                content.get('is_custom', False),
+                                content.get('custom_value', None),
+                                content.get('latex_equation', None),
+                                content.get('marker_color', None),
+                                content.get('text_color', None),
+                                content.get('text_size', 12),
+                                content.get('link', None)
+                            )
         except RichTextValidationException as rtve:
             raise serializers.ValidationError(detail={'detail': 'rich_text_not_valid', 'reason': 'invalid_rich_text'})
         

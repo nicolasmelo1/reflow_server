@@ -516,7 +516,7 @@ class FormValueDataManager(models.Manager):
         """
         return self.get_queryset().filter(
             form__form_id=section_id, 
-            field__type_id=field_type_id, 
+            field_type_id=field_type_id, 
             field_id=field_id
         )\
         .annotate(value_as_int=Cast('value', IntegerField()))\

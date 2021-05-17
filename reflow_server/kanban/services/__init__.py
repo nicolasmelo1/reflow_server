@@ -116,6 +116,10 @@ class KanbanService(KanbanCardService):
         """
         if not hasattr(self, '_was_defaults_validated'):
             raise KanbanValidationError('You need to validate the defaults using `.are_defaults_valid()` method before saving.')
+        number_of_kanban_defaults = KanbanDefault.objects.filter(form=self.form, user_id=self.user_id, company_id=self.company_id).count()
+        if number_of_kanban_defaults > 1:
+            KanbanDefault.objects.filter(form=self.form, user_id=self.user_id, company_id=self.company_id).delete()
+        
         instance = KanbanDefault.objects.update_or_create(
             form=self.form,
             user_id=self.user_id,

@@ -226,6 +226,7 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
         for section in sections:
             section_data = formulary_data.add_section_data(
                 section_id=section.form.id, 
+                uuid=section.uuid,
                 section_data_id=section.id
             )
             section_field_values = FormValue.kanban_.form_values_by_dynamic_form_id(section.id)

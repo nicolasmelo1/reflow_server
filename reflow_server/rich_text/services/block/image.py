@@ -112,15 +112,16 @@ class RichTextImageBlockService:
             
             elif draft_id != -1:
                 draft_instance = Draft.rich_text_.draft_by_draft_id_user_id_and_company_id(draft_id, self.user_id, self.company_id)
-                file_size = draft_instance.file_size
-                file_name = draft_instance.value
-                bucket_key = "{file_rich_text_image_path}/{block_uuid}/".format(
-                    block_uuid=str(block_uuid), 
-                    file_rich_text_image_path=settings.S3_FILE_RICH_TEXT_IMAGE_PATH
-                )
+                if draft_instance:
+                    file_size = draft_instance.file_size
+                    file_name = draft_instance.value
+                    bucket_key = "{file_rich_text_image_path}/{block_uuid}/".format(
+                        block_uuid=str(block_uuid), 
+                        file_rich_text_image_path=settings.S3_FILE_RICH_TEXT_IMAGE_PATH
+                    )
 
-                draft_service = DraftService(self.company_id, self.user_id)
-                url = draft_service.copy_file_from_draft_string_id_to_bucket_key(image_file_name, bucket_key)
+                    draft_service = DraftService(self.company_id, self.user_id)
+                    url = draft_service.copy_file_from_draft_string_id_to_bucket_key(image_file_name, bucket_key)
 
         text_image_option_instance = TextImageOption.rich_text_.update_or_create(
             image_uuid,

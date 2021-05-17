@@ -5,6 +5,9 @@ class FieldPDFGeneratorManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
+    def exist_field_by_id_and_company_id(self, field_id, company_id):
+        return self.get_queryset().filter(id=field_id, form__depends_on__group__company_id=company_id).exists()
+
     def fields_by_main_form_id(self, main_form_id):
         """
         Retrieves all of the fields by the main_form_id. The main_form_id is the id of the formulary.
