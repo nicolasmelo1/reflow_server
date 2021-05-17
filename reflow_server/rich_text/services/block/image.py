@@ -83,6 +83,8 @@ class RichTextImageBlockService:
             file_size = text_image_option_instance.file_size
 
         if image_file_name not in ['',  None]:
+            print('BREAKPOINT')
+            print(image_file_name)
             draft_id = DraftService.draft_id_from_draft_string_id(image_file_name)
             block_with_file = TextBlock.rich_text_.text_block_by_file_image_uuid(image_uuid)
 
@@ -111,7 +113,6 @@ class RichTextImageBlockService:
                     image_uuid = uuid.uuid4()
             
             elif draft_id != -1:
-                print('BREAKPOINT')
                 print(draft_id)
                 print(self.user_id)
                 print(self.company_id)
