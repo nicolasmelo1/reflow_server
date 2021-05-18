@@ -34,7 +34,7 @@ class ExtractDataWorkerExternal(externals.External):
         Returns:
             request.Response: The response of the POST request.
         """
-        logging.info('CALLING EXTERNAL EXTRACT')
+        logging.error('CALLING EXTERNAL EXTRACT for %s' % file_id)
         dynamic_forms = DynamicForm.listing_.dynamic_forms_by_dynamic_form_ids_ordered(dynamic_form_ids)
         form = Form.objects.filter(id=form_id).first()
         url = '/data/external/extraction/{company_id}/{user_id}/{form_name}/'.format(
@@ -59,12 +59,14 @@ class ExtractDataWorkerExternal(externals.External):
                 else:
                     form_values_reference[form_value.form.depends_on_id] = form_value_by_field_id
         
-
+        logging.error('IS READY TO BUILD SERIALIZER for %s' % file_id)
         form_data_serializer = ExtractFormDataSerializer(instance=dynamic_forms, many=True, context={
             'company_id': company_id, 
             'fields': field_ids,
             'form_values_reference': form_values_reference
         })
+        logging.error('HAS BUILT SERIALIZER for %s' % file_id)
+
         return self.post(url, data={
             'file_id': file_id,
             'params': {

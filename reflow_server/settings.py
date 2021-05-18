@@ -10,11 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 import os
 import config
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
+import logging
 
 
 ENV = os.environ.get('CONFIG', 'development')
@@ -343,10 +345,14 @@ VINDI_ACCEPTED_WEBHOOK_EVENTS = {
 FROM_EMAIL = configuration.EMAIL_ADD_NEW_USER
 
 if ENV == 'server':
+    sentry_logging = LoggingIntegration(
+        level=logging.INFO,        # Capture info and above as breadcrumbs
+        event_level=logging.ERROR  # Send errors as events
+    )
     sentry_sdk.init(
         environment=ENV,
         dsn=configuration.SENTRY_DSN,
-        integrations=[DjangoIntegration()],
+        integrations=[DjangoIntegration(), sentry_logging],
 
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.

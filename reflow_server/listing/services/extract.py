@@ -6,6 +6,8 @@ from reflow_server.data.services import DataService
 from datetime import datetime
 import uuid
 import logging
+import time
+
 
 class ExtractService:
     def __init__(self, user_id, company_id, form_name):
@@ -36,7 +38,8 @@ class ExtractService:
                            file_format, from_date, to_date, 
                            fields_ids, sort_value=[], sort_field=[], 
                            search_value=[], search_field=[], search_exact=[]):
-        logging.info('EXTRACTION STARTED')
+        start = time.time()
+        logging.error('EXTRACTION STARTED: %s' % file_id)
         data_service = DataService(user_id, company_id)
 
         to_date = DataService.validate_and_extract_date_from_string(to_date)
@@ -51,8 +54,8 @@ class ExtractService:
         # call external service
         from reflow_server.listing.externals import ExtractDataWorkerExternal
         response = ExtractDataWorkerExternal().build_extraction_data(file_id, file_format, company_id, user_id, form_id, fields_ids, form_data_accessed_by_user)
-        logging.info('EXTRACTION STATUS CODE')
-        logging.info(response.status_code)
+        end = time.time()
+        logging.error('EXTRACTION STATUS CODE: %s for file_id %s time_elapsed %s' % (response.status_code, file_id, end - start))
 
 
     def extract(self, file_format, from_date, to_date, 
