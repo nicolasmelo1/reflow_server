@@ -57,12 +57,13 @@ class ExtractDataWorkerExternal(externals.External):
 
         for form_value in form_values:
             if form_value.form and form_value.form.depends_on_id and form_value.field_id:
-                form_value_by_field_id = {}
-                form_value_by_field_id[form_value.field_id] = form_values_reference.get(form_value.form.depends_on_id, dict()).get(form_value.field_id, []) + [form_value]
-                if form_values_reference.get(form_value.form.depends_on_id):
-                    form_values_reference[form_value.form.depends_on_id].update(form_value_by_field_id)
+                depends_on_id = form_value.form.depends_on_id
+                field_id = form_value.field_id
+                if form_values_reference.get(depends_on_id):
+                    form_values_reference[depends_on_id][field_id] = form_values_reference.get(depends_on_id, dict()).get(field_id, []) + [form_value]
                 else:
-                    form_values_reference[form_value.form.depends_on_id] = form_value_by_field_id
+                    form_values_reference[depends_on_id] = {}
+                    form_values_reference[depends_on_id][field_id] = [form_value]
         
         logging.error('IS READY TO BUILD SERIALIZER for %s' % file_id)
         form_data_serializer = ExtractFormDataSerializer(instance=dynamic_forms, many=True, context={

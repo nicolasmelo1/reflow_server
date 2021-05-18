@@ -15,7 +15,7 @@ from reflow_server.data.services import DataService, AttachmentService
 from reflow_server.formulary.models import Form
 
 import json
-
+import time
 
 class DataView(APIView):
     """
@@ -59,14 +59,21 @@ class DataView(APIView):
                 instances.values_list('id', flat=True),
                 company_id
             )
-            for form_value in form_values:
-                form_value_by_field_id = {}
-                form_value_by_field_id[form_value.field_id] = form_values_reference.get(form_value.form.depends_on_id, dict()).get(form_value.field_id, []) + [form_value]
-                if form_values_reference.get(form_value.form.depends_on_id):
-                    form_values_reference[form_value.form.depends_on_id].update(form_value_by_field_id)
-                else:
-                    form_values_reference[form_value.form.depends_on_id] = form_value_by_field_id
 
+            start = time.time()
+            for form_value in form_values:
+                if form_value.form and form_value.form.depends_on_id and form_value.field_id:
+                    depends_on_id = form_value.form.depends_on_id
+                    field_id = form_value.field_id
+                    if form_values_reference.get(depends_on_id):
+                        form_values_reference[depends_on_id][field_id] = form_values_reference.get(depends_on_id, dict()).get(field_id, []) + [form_value]
+                    else:
+                        form_values_reference[depends_on_id] = {}
+                        form_values_reference[depends_on_id][field_id] = [form_value]
+
+
+            end = time.time()
+            print('Time Ellapsed %s' % str(end - start))
             serializer = DataSerializer(instance=instances, many=True, context={
                 'fields': fields,
                 'company_id': company_id,
