@@ -199,9 +199,6 @@ class FieldService(Settings):
         # We don't access directly the id of the field option, only the values, we use this to delete or add a field Option
         elif FieldOptions.objects.filter(field=instance).exists():
             field_options_service.remove_field_options_from_field(instance.id)
-        print('BREAKPOINT')
-        print(is_new_field)
-        print(instance.type.type )
         if is_new_field and instance.type.type == 'user':
             self.__create_user_accessed_by_when_field_is_created(instance.id)
 

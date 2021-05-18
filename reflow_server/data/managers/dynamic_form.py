@@ -55,8 +55,6 @@ class DynamicFormDataManager(models.Manager):
         Returns:
             reflow_server.data.models.DynamicForm: This is the saved or updated DynamicForm instance
         """
-        print('BREAKPOINT')
-        print(section_uuid)
         instance, __ = super().get_queryset().update_or_create(
             id=section_instance_id, 
             defaults={

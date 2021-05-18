@@ -58,7 +58,6 @@ class FormularyDataService(PreSave, PostSave):
             self.duplicate_form_data_id = form_data_id
             form_data_id = None
         
-        print(form_data_id)
         self.formulary_data = FormularyData(form_data_uuid, form_data_id)
         return self.formulary_data
     # ------------------------------------------------------------------------------------------
@@ -197,9 +196,6 @@ class FormularyDataService(PreSave, PostSave):
         if not hasattr(self, 'validated'):
             raise AssertionError('You should call `.is_valid()` method before trying to save the data.')
         
-        print(self.form.id)
-        print(self.formulary_data.uuid)
-        print(self.formulary_data.form_data_id)
         formulary_instance = DynamicForm.data_.create_or_update_main_form_instance(
             self.form.id,
             self.formulary_data.uuid,
@@ -209,8 +205,6 @@ class FormularyDataService(PreSave, PostSave):
         )
 
         for section in self.formulary_data.get_sections:
-            print('section')
-            print(section)
             section_instance = DynamicForm.data_.create_or_update_section_instance(
                 section.section_id,
                 section.section_uuid,
