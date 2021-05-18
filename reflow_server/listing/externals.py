@@ -32,6 +32,7 @@ class ExtractDataWorkerExternal(externals.External):
         Returns:
             request.Response: The response of the POST request.
         """
+        print('CALLING EXTERNAL EXTRACT')
         dynamic_forms = DynamicForm.listing_.dynamic_forms_by_dynamic_form_ids_ordered(dynamic_form_ids)
         form = Form.objects.filter(id=form_id).first()
         url = '/data/external/extraction/{company_id}/{user_id}/{form_name}/'.format(
