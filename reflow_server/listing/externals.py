@@ -5,6 +5,8 @@ from reflow_server.data.models import DynamicForm, FormValue
 from reflow_server.formulary.models import Form
 from reflow_server.listing.serializers import ExtractFormDataSerializer, ExtractFormSerializer
 
+import logging
+
 
 class ExtractDataWorkerExternal(externals.External):
     host = settings.EXTERNAL_APPS['reflow_worker'][0]
@@ -32,7 +34,7 @@ class ExtractDataWorkerExternal(externals.External):
         Returns:
             request.Response: The response of the POST request.
         """
-        print('CALLING EXTERNAL EXTRACT')
+        logging.info('CALLING EXTERNAL EXTRACT')
         dynamic_forms = DynamicForm.listing_.dynamic_forms_by_dynamic_form_ids_ordered(dynamic_form_ids)
         form = Form.objects.filter(id=form_id).first()
         url = '/data/external/extraction/{company_id}/{user_id}/{form_name}/'.format(
