@@ -15,7 +15,6 @@ constantly==15.1.0
 cryptography==3.3.1
 daphne==3.0.1
 Django==3.1.4
-django-debug-toolbar==3.2.1
 djangorestframework==3.12.2
 docutils==0.16
 hiredis==1.1.0
