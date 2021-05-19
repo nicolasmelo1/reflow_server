@@ -45,31 +45,29 @@ class ExtractDataWorkerExternal(externals.External):
             form_name=form.form_name
         )
         logging.error('EXTERNAL EXTRACT HAS BUILT FORM for %s' % file_id)
-
+        
         form_serializer = ExtractFormSerializer(instance=form)
-
+        """
         form_values_reference = dict()
         form_values = FormValue.data_.form_values_by_main_form_ids_company_id(
             dynamic_forms.values_list('id', flat=True),
             company_id
         )
-        logging.error('EXTERNAL EXTRACT HAS GOT FORM_VALUES for %s' % file_id)
 
         for form_value in form_values:
             if form_value.form and form_value.form.depends_on_id and form_value.field_id:
-                depends_on_id = form_value.form.depends_on_id
-                field_id = form_value.field_id
+                depends_on_id = int(form_value.form.depends_on_id)
+                field_id = int(form_value.field_id)
                 if form_values_reference.get(depends_on_id):
                     form_values_reference[depends_on_id][field_id] = form_values_reference.get(depends_on_id, dict()).get(field_id, []) + [form_value]
                 else:
                     form_values_reference[depends_on_id] = {}
                     form_values_reference[depends_on_id][field_id] = [form_value]
-        
+        """
         logging.error('IS READY TO BUILD SERIALIZER for %s' % file_id)
         form_data_serializer = ExtractFormDataSerializer(instance=dynamic_forms, many=True, context={
             'company_id': company_id, 
-            'fields': field_ids,
-            'form_values_reference': form_values_reference
+            'fields': field_ids
         })
         logging.error('HAS BUILT SERIALIZER for %s' % file_id)
 
