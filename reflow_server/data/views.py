@@ -37,6 +37,7 @@ class DataView(APIView):
         formulary_instance = Form.objects.filter(group__company_id=company_id, form_name=form).first()
 
         if formulary_instance:
+            start = time.time()
             pagination = Pagination.handle_pagination(
                 current_page=int(request.query_params.get('page', 1)),
                 items_per_page=15
@@ -59,7 +60,6 @@ class DataView(APIView):
                 instances.values_list('id', flat=True),
                 company_id
             )
-
             
             for form_value in form_values:
                 if form_value.form and form_value.form.depends_on_id and form_value.field_id:
@@ -70,14 +70,15 @@ class DataView(APIView):
                     else:
                         form_values_reference[depends_on_id] = {}
                         form_values_reference[depends_on_id][field_id] = [form_value]
-
-            #print('Time Ellapsed %s' % str(end - start))
+            
             serializer = DataSerializer(instance=instances, many=True, context={
                 'fields': fields,
                 'company_id': company_id,
                 'form_values_reference': form_values_reference
             })
             data = serializer.data
+            end = time.time()
+            print('TIME ELLAPSED TO RETRIEVE DATA: %s' % (end - start))
             return Response({
                 'status': 'ok',
                 'pagination': {

@@ -30,7 +30,6 @@ class ExtractFormValueListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         if self.context.get('fields', None):
             # this prevents us from retrieving the same form_value_id twice
-            """
             new_data = []
             retrieved_form_value_ids = []
             for field_id in self.context.get('fields'):
@@ -39,11 +38,11 @@ class ExtractFormValueListSerializer(serializers.ListSerializer):
                         retrieved_form_value_ids.append(form_value.id)
                         new_data.append(form_value)
             data = new_data
-            """
-            data = FormValue.objects.filter(form__depends_on_id=data.core_filters['form'].id, field_id__in=self.context.get('fields'))
+            
+            #data = FormValue.objects.filter(form__depends_on_id=data.core_filters['form'].id, field_id__in=self.context.get('fields'))
         else:
-            data = FormValue.objects.filter(form__depends_on_id=data.core_filters['form'].id)
-            #data = [form_value for field_values in self.context['form_values_reference'].get(data.core_filters['form'].id, {}).values() for form_value in field_values]
+            #data = FormValue.objects.filter(form__depends_on_id=data.core_filters['form'].id)
+            data = [form_value for field_values in self.context['form_values_reference'].get(data.core_filters['form'].id, {}).values() for form_value in field_values]
         return super(ExtractFormValueListSerializer, self).to_representation(data)
 
 class ExtractFormValueRelation(serializers.ModelSerializer):

@@ -8,6 +8,24 @@ from math import ceil
 import decimal
 import re
 
+representation_date_format_type_cache = {}
+representation_number_format_type_cache = {}
+representation_field_cache = {}
+
+class RepresentationDateFormatTypeData:
+    def __init__(self, format_type_name, date_format):
+        self.format_type_name = format_type_name
+        self.format = date_format
+
+class RepresentationNumberFormatTypeData:
+    def __init__(self, format_type_name, precision, prefix, suffix, thousand_separator, decimal_separator, base):
+        self.format_type_name = format_type_name
+        self.precision = precision
+        self.prefix = prefix
+        self.suffix = suffix
+        self.thousand_separator = thousand_separator
+        self.decimal_separator = decimal_separator
+        self.base = base
 
 class RepresentationService:
     def __init__(self, field_type, date_format_type, number_format_type, form_field_as_option, load_ids = False):
@@ -31,9 +49,36 @@ class RepresentationService:
             form_field_as_option (reflow_server.models.formulary.Field / reflow_server.models.theme.ThemeField): The Field model effectively
             load_ids (bool, optional): retrieves the ids instead of the value in fields_types like `user` or `form`. Defaults to False.
         """
+        representation_number_format_type = None
+        representation_date_format_type = None
+        if date_format_type:
+            if representation_date_format_type_cache.get(date_format_type.id, None):
+                representation_date_format_type = representation_date_format_type_cache[date_format_type.id]
+            else:
+                representation_date_format_type_cache[date_format_type.id] = RepresentationDateFormatTypeData(
+                    date_format_type.type, date_format_type.format
+                )
+                representation_date_format_type = representation_date_format_type_cache[date_format_type.id]
+        
+        if number_format_type:
+            if representation_number_format_type_cache.get(number_format_type.id, None):
+                representation_number_format_type = representation_number_format_type_cache[number_format_type.id]
+            else:
+                representation_number_format_type_cache[number_format_type.id] = RepresentationNumberFormatTypeData(
+                    number_format_type.type, 
+                    number_format_type.precision,
+                    number_format_type.prefix,
+                    number_format_type.suffix,
+                    number_format_type.thousand_separator,
+                    number_format_type.decimal_separator,
+                    number_format_type.base
+                )
+                representation_number_format_type = representation_number_format_type_cache[number_format_type.id]
+        
+
         self.field_type = field_type
-        self.date_format_type = date_format_type
-        self.number_format_type = number_format_type
+        self.date_format_type = representation_date_format_type
+        self.number_format_type = representation_number_format_type
         self.form_field_as_option = form_field_as_option
         # sometimes i want to retrieve the id instead of the value
         self.load_ids = load_ids

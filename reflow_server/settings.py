@@ -84,7 +84,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'reflow_server.authentication.middleware.AuthJWTMiddleware',
-    'reflow_server.authentication.middleware.AuthPublicMiddleware'
+    'reflow_server.authentication.middleware.AuthPublicMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'reflow_server.urls'

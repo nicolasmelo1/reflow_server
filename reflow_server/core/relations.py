@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 
 
-representation_service_cache = {}
+field_type_cache = {}
 
 class ValueField(serializers.Field):
     default_error_messages = {
@@ -47,36 +47,24 @@ class ValueField(serializers.Field):
         the field.type with this if the user change from a form field.type to a text field.type, then i retrieve the hole text
         to the user and not the id the field references to.
         """
-        from reflow_server.data.services import RepresentationService
+        from reflow_server.data.services import RepresentationService    
 
         if obj and obj.value != '':
-            if self.load_ids and obj.field_type.type == 'form' and obj.field.type.type != 'form':
+            if field_type_cache.get(obj.field_type_id, None) == None:
+                field_type_cache[obj.field_type_id] = str(obj.field_type.type)
+
+            if self.load_ids and field_type_cache[obj.field_type_id] == 'form':
                 self.load_ids = False
-            
-            cache_key = '{};{};{};{};{}'.format(
+
+            representation = RepresentationService(
                 obj.field_type.type, 
-                obj.date_configuration_date_format_type_id, 
-                obj.number_configuration_number_format_type_id, 
-                obj.form_field_as_option_id,
+                obj.date_configuration_date_format_type, 
+                obj.number_configuration_number_format_type, 
+                obj.form_field_as_option, 
                 self.load_ids
             )
-            if representation_service_cache.get(cache_key):
-                representation = representation_service_cache.get(cache_key)
-            else:
-                representation = RepresentationService(
-                    obj.field_type.type, 
-                    obj.date_configuration_date_format_type, 
-                    obj.number_configuration_number_format_type, 
-                    obj.form_field_as_option, 
-                    self.load_ids
-                )
-                representation_service_cache[cache_key] = representation
                 
             represented_value = representation.representation(obj.value)
-
-            # we need to reset the cache now and then so it doesn't take much space in our memory
-            if len(representation_service_cache.keys()) > 300:
-                representation_service_cache.clear()
 
             return represented_value
         else:

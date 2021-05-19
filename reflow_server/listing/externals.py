@@ -47,7 +47,7 @@ class ExtractDataWorkerExternal(externals.External):
         logging.error('EXTERNAL EXTRACT HAS BUILT FORM for %s' % file_id)
         
         form_serializer = ExtractFormSerializer(instance=form)
-        """
+
         form_values_reference = dict()
         form_values = FormValue.data_.form_values_by_main_form_ids_company_id(
             dynamic_forms.values_list('id', flat=True),
@@ -63,11 +63,12 @@ class ExtractDataWorkerExternal(externals.External):
                 else:
                     form_values_reference[depends_on_id] = {}
                     form_values_reference[depends_on_id][field_id] = [form_value]
-        """
+        
         logging.error('IS READY TO BUILD SERIALIZER for %s' % file_id)
         form_data_serializer = ExtractFormDataSerializer(instance=dynamic_forms, many=True, context={
             'company_id': company_id, 
-            'fields': field_ids
+            'fields': field_ids,
+            'form_values_reference': form_values_reference
         })
         logging.error('HAS BUILT SERIALIZER for %s' % file_id)
 
