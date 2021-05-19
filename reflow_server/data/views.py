@@ -53,7 +53,6 @@ class DataView(APIView):
             )
 
             total_number_of_pages, instances = pagination.paginate_queryset(DynamicForm.data_.dynamic_forms_by_dynamic_form_ids_ordered(form_data_accessed_by_user))
-            """
             form_values_reference = dict()
             
             form_values = FormValue.data_.form_values_by_main_form_ids_company_id(
@@ -71,12 +70,12 @@ class DataView(APIView):
                     else:
                         form_values_reference[depends_on_id] = {}
                         form_values_reference[depends_on_id][field_id] = [form_value]
-            """
 
             #print('Time Ellapsed %s' % str(end - start))
             serializer = DataSerializer(instance=instances, many=True, context={
                 'fields': fields,
-                'company_id': company_id
+                'company_id': company_id,
+                'form_values_reference': form_values_reference
             })
             data = serializer.data
             return Response({
