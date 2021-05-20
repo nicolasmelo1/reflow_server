@@ -36,7 +36,7 @@ class ExtractDataWorkerExternal(externals.External):
         """
         logging.error('CALLING EXTERNAL EXTRACT for %s' % file_id)
         dynamic_forms = DynamicForm.listing_.dynamic_forms_by_dynamic_form_ids_ordered(dynamic_form_ids)
-        logging.error('EXTERNAL EXTRACT HAS BUILT DYNAMIC FORMS for %s' % file_id)
+        logging.error('EXTERNAL EXTRACT HAS BUILT %s DYNAMIC FORMS for %s' % (dynamic_forms.count(), file_id))
 
         form = Form.objects.filter(id=form_id).first()
         url = '/data/external/extraction/{company_id}/{user_id}/{form_name}/'.format(
@@ -53,6 +53,7 @@ class ExtractDataWorkerExternal(externals.External):
             dynamic_forms.values_list('id', flat=True),
             company_id
         )
+        logging.error('EXTERNAL EXTRACT HAS BUILT %s FORM_VALUES for %s' % (form_values.count(), file_id))
 
         for form_value in form_values:
             if form_value.form and form_value.form.depends_on_id and form_value.field_id:
