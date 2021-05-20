@@ -50,10 +50,8 @@ class ValueField(serializers.Field):
         from reflow_server.data.services import RepresentationService    
 
         if obj and obj.value != '':
-            if field_type_cache.get(obj.field_type_id, None) == None:
-                field_type_cache[obj.field_type_id] = str(obj.field_type.type)
-
-            if self.load_ids and field_type_cache[obj.field_type_id] == 'form':
+            print(obj.field.type.type)
+            if self.load_ids and obj.field_type.type == 'form' and obj.field.type.type != 'form':
                 self.load_ids = False
 
             representation = RepresentationService(
