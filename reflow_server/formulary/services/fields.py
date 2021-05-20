@@ -58,9 +58,9 @@ class FieldService(Settings):
             else:
                 representation = RepresentationService(
                     field_instance.type.type, 
-                    field_instance.date_configuration_date_format_type, 
-                    field_instance.number_configuration_number_format_type,
-                    field_instance.form_field_as_option
+                    field_instance.date_configuration_date_format_type_id, 
+                    field_instance.number_configuration_number_format_type_id,
+                    field_instance.form_field_as_option_id
                 )
 
                 DefaultFieldValue.formulary_.update_or_create(

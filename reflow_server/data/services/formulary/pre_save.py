@@ -225,9 +225,9 @@ class PreSave(Validator):
                 if self.__validate_date(value, field.date_configuration_date_format_type.format):
                     representation = RepresentationService(
                         field.type.type, 
-                        field.date_configuration_date_format_type, 
-                        field.number_configuration_number_format_type,
-                        field.form_field_as_option
+                        field.date_configuration_date_format_type_id, 
+                        field.number_configuration_number_format_type_id,
+                        field.form_field_as_option_id
                     )
                     value = representation.to_internal_value(value)
                 else:
@@ -235,9 +235,9 @@ class PreSave(Validator):
                         form_value_instance = FormValue.data_.form_value_by_form_value_id(field_data.field_value_data_id)
                         representation = RepresentationService(
                             form_value_instance.field_type.type, 
-                            form_value_instance.date_configuration_date_format_type, 
-                            form_value_instance.number_configuration_number_format_type,
-                            field.form_field_as_option
+                            form_value_instance.date_configuration_date_format_type_id, 
+                            form_value_instance.number_configuration_number_format_type_id,
+                            field.form_field_as_option_id
                         )
                         value = representation.to_internal_value(value)
                     except:
@@ -274,9 +274,9 @@ class PreSave(Validator):
         if value != '':
             representation = RepresentationService(
                 field.type.type, 
-                field.date_configuration_date_format_type, 
-                field.number_configuration_number_format_type,
-                field.form_field_as_option
+                field.date_configuration_date_format_type_id, 
+                field.number_configuration_number_format_type_id,
+                field.form_field_as_option_id
             )
             value = representation.to_internal_value(value)
         return value

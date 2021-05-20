@@ -70,7 +70,9 @@ class FormValueDataManager(models.Manager):
         )
         return instance
     # ------------------------------------------------------------------------------------------
-    def form_values_by_main_form_ids_company_id(self, main_form_ids, company_id):
+    def form_value_id_field_name_form_field_as_option_id_number_format_id_date_format_id_field_type_value_field_id_and_form_depends_on_by_main_form_ids_company_id_and_field_ids(
+        self, main_form_ids, company_id, field_ids=[]
+    ):
         """
         Gets the form_values from a list of main_form_ids (those are not section ids) and from a company_id
 
@@ -82,7 +84,20 @@ class FormValueDataManager(models.Manager):
             django.db.models.QuerySet(reflow_server.data.models.FormValue): Returns a queryset of FormValue instances from the parameters
             recieved
         """
-        return self.get_queryset().filter(form__depends_on_id__in=main_form_ids, company_id=company_id)
+        instances = self.get_queryset().filter(form__depends_on_id__in=main_form_ids, company_id=company_id)
+        if field_ids:
+            instances = instances.filter(field_id__in=field_ids)
+        return instances.values(
+            'id', 
+            'field__name', 
+            'form_field_as_option_id', 
+            'number_configuration_number_format_type_id',
+            'date_configuration_date_format_type_id',
+            'field_type__type', 
+            'value', 
+            'field_id', 
+            'form__depends_on_id'
+        )
     # ------------------------------------------------------------------------------------------
     def form_values_by_value_field_id_and_section_id(self, value, field_id, section_id):
         """

@@ -25,9 +25,9 @@ class DefaultFieldValueValue(serializers.Field):
             else:
                 representation = RepresentationService(
                     obj.field.type.type, 
-                    obj.field.date_configuration_date_format_type, 
-                    obj.field.number_configuration_number_format_type, 
-                    obj.field.form_field_as_option, 
+                    obj.field.date_configuration_date_format_type_id, 
+                    obj.field.number_configuration_number_format_type_id, 
+                    obj.field.form_field_as_option_id, 
                 )
                 representation_service_cache[cache_key] = representation
                 

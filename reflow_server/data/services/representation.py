@@ -2,6 +2,7 @@ from django.conf import settings
 
 from reflow_server.data.models import FormValue
 from reflow_server.authentication.models import UserExtended
+from reflow_server.formulary.models import FieldNumberFormatType, FieldDateFormatType
 
 from datetime import datetime
 from math import ceil
@@ -28,7 +29,7 @@ class RepresentationNumberFormatTypeData:
         self.base = base
 
 class RepresentationService:
-    def __init__(self, field_type, date_format_type, number_format_type, form_field_as_option, load_ids = False):
+    def __init__(self, field_type, date_format_type_id, number_format_type_id, form_field_as_option_id, load_ids = False):
         """
         Used for presenting data from this app to the user, use it everywhere you need to present the data 
         from the backend to the normal user. So use this in serializers, dashboard, totals and etc.
@@ -51,20 +52,23 @@ class RepresentationService:
         """
         representation_number_format_type = None
         representation_date_format_type = None
-        if date_format_type:
-            if representation_date_format_type_cache.get(date_format_type.id, None):
-                representation_date_format_type = representation_date_format_type_cache[date_format_type.id]
+        if date_format_type_id:
+            if representation_date_format_type_cache.get(date_format_type_id, None):
+                representation_date_format_type = representation_date_format_type_cache[date_format_type_id]
             else:
-                representation_date_format_type_cache[date_format_type.id] = RepresentationDateFormatTypeData(
+                date_format_type = FieldDateFormatType.objects.filter(id=date_format_type_id).first()
+                representation_date_format_type_cache[date_format_type_id] = RepresentationDateFormatTypeData(
                     date_format_type.type, date_format_type.format
                 )
-                representation_date_format_type = representation_date_format_type_cache[date_format_type.id]
+                representation_date_format_type = representation_date_format_type_cache[date_format_type_id]
         
-        if number_format_type:
-            if representation_number_format_type_cache.get(number_format_type.id, None):
-                representation_number_format_type = representation_number_format_type_cache[number_format_type.id]
+        if number_format_type_id:
+            if representation_number_format_type_cache.get(number_format_type_id, None):
+                representation_number_format_type = representation_number_format_type_cache[number_format_type_id]
             else:
-                representation_number_format_type_cache[number_format_type.id] = RepresentationNumberFormatTypeData(
+                number_format_type = FieldNumberFormatType.objects.filter(id=number_format_type_id).first()
+
+                representation_number_format_type_cache[number_format_type_id] = RepresentationNumberFormatTypeData(
                     number_format_type.type, 
                     number_format_type.precision,
                     number_format_type.prefix,
@@ -73,13 +77,13 @@ class RepresentationService:
                     number_format_type.decimal_separator,
                     number_format_type.base
                 )
-                representation_number_format_type = representation_number_format_type_cache[number_format_type.id]
+                representation_number_format_type = representation_number_format_type_cache[number_format_type_id]
         
 
         self.field_type = field_type
         self.date_format_type = representation_date_format_type
         self.number_format_type = representation_number_format_type
-        self.form_field_as_option = form_field_as_option
+        self.form_field_as_option_id = form_field_as_option_id
         # sometimes i want to retrieve the id instead of the value
         self.load_ids = load_ids
 
@@ -160,15 +164,15 @@ class RepresentationService:
         Because of this, this function is recursive, so we can format the value of the connected field.
         """
         try:
-            if self.form_field_as_option:
-                if not self.load_ids and value != '' and self.form_field_as_option.id:
-                    obj = FormValue.data_.form_value_by_form_id_and_field_id(form_id=int(value), field_id=self.form_field_as_option.id)
+            if self.form_field_as_option_id:
+                if not self.load_ids and value != '' and self.form_field_as_option_id:
+                    obj = FormValue.data_.form_value_by_form_id_and_field_id(form_id=int(value), field_id=self.form_field_as_option_id)
                     if obj:
                         representation_service = self.__class__(
                             obj.field_type,
-                            obj.date_configuration_date_format_type,
-                            obj.number_configuration_number_format_type,
-                            obj.form_field_as_option,
+                            obj.date_configuration_date_format_type_id,
+                            obj.number_configuration_number_format_type_id,
+                            obj.form_field_as_option_id,
                             self.load_ids
                         )
                         value = representation_service.representation(obj.value)

@@ -1,15 +1,15 @@
 from reflow_server.core.utils.asynchronous import RunAsyncFunction
-from reflow_server.listing.models import ListingSelectedFields, ExtractFileData
+from reflow_server.listing.models import ListingSelectedFields
+from reflow_server.data.models import ExtractFileData
 from reflow_server.formulary.models import Form
 from reflow_server.data.services import DataService
 
-from datetime import datetime
 import uuid
 import logging
 import time
 
 
-class ExtractService:
+class DataExtractService:
     def __init__(self, user_id, company_id, form_name):
         self.user_id = user_id
         self.company_id = company_id
@@ -52,7 +52,7 @@ class ExtractService:
         form_data_accessed_by_user = data_service.get_user_form_data_ids_from_form_id(form_id, converted_search_data, converted_sort_data, from_date, to_date)
 
         # call external service
-        from reflow_server.listing.externals import ExtractDataWorkerExternal
+        from reflow_server.data.externals import ExtractDataWorkerExternal
         response = ExtractDataWorkerExternal().build_extraction_data(file_id, file_format, company_id, user_id, form_id, fields_ids, form_data_accessed_by_user)
         end = time.time()
         logging.error('EXTRACTION STATUS CODE: %s for file_id %s time_elapsed %s' % (response.status_code, file_id, end - start))

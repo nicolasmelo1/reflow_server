@@ -234,9 +234,9 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
                 # The data we use is the represented data since it will reformat again when saving.
                 representation_service = RepresentationService(
                     field_value.field_type.type, 
-                    field_value.date_configuration_date_format_type, 
-                    field_value.number_configuration_number_format_type, 
-                    field_value.form_field_as_option, 
+                    field_value.date_configuration_date_format_type_id, 
+                    field_value.number_configuration_number_format_type_id, 
+                    field_value.form_field_as_option_id, 
                     True
                 )
                 value = representation_service.representation(field_value.value)

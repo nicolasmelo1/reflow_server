@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.db.models import Count
 
 from reflow_server.formulary.models import Field
 from reflow_server.listing.models import ListingSelectedFields

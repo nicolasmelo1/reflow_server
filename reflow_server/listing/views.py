@@ -9,9 +9,6 @@ from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.listing.services import ListingService
 from reflow_server.listing.serializers import ListingHeaderSerializer
 
-from .external import *
-from .extract import *
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ListingHeaderView(APIView):

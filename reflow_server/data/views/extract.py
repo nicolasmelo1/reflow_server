@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.listing.serializers import ExtractDataSerializer
-from reflow_server.listing.models import ExtractFileData
+from reflow_server.data.serializers.extract import ExtractDataSerializer
+from reflow_server.data.models import ExtractFileData
 
 from datetime import datetime
 import io
@@ -68,7 +68,7 @@ class GetExtractDataView(APIView):
         GET: Usually returns a JSON saying if your data is ready to be downloaded or not. If it is you
                   need to add the `download` query parameter to your request to download the file
     """
-    def get(self, request, company_id, file_id):
+    def get(self, request, company_id, form, file_id):
         download = request.GET.get('download', None)
         file = ExtractFileData.objects.filter(file_id=file_id, company_id=company_id, user=request.user).first()
         if file and not download:

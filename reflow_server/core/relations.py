@@ -2,8 +2,7 @@ from rest_framework import serializers
 
 from django.utils.translation import gettext_lazy as _
 
-
-field_type_cache = {}
+field_types_cache = {}
 
 class ValueField(serializers.Field):
     default_error_messages = {
@@ -19,7 +18,14 @@ class ValueField(serializers.Field):
         self.max_length = kwargs.pop('max_length', None)
         super().__init__(**kwargs)
         
-                
+    def initialize_field_types_cache(self): 
+        from reflow_server.formulary.models import FieldType
+
+        if not field_types_cache:
+            field_types = FieldType.objects.all()
+            for field_type in field_types:
+                field_types_cache[field_type.id] = field_type.type
+
     def run_validation(self, data=serializers.empty):
         if data == '':
             if not self.allow_blank:
@@ -39,8 +45,7 @@ class ValueField(serializers.Field):
         }
         return value
 
-
-    def to_representation(self, obj):
+    def to_representation(self, form_value_id):
         """ 
         In certain cases i want to be able to load the id, in others i don't, i want to retrieve only the string.
         this is why i use load_ids parameter for. For form type of field i check if the form_value.field_type is equal
@@ -48,21 +53,35 @@ class ValueField(serializers.Field):
         to the user and not the id the field references to.
         """
         from reflow_server.data.services import RepresentationService    
+        from reflow_server.data.models import FormValue
 
-        if obj and obj.value != '':
-            print(obj.field.type.type)
-            if self.load_ids and obj.field_type.type == 'form' and obj.field.type.type != 'form':
+        form_value = FormValue.objects.filter(id=form_value_id).values(
+            'value', 
+            'form_field_as_option_id', 
+            'number_configuration_number_format_type_id',
+            'date_configuration_date_format_type_id',
+            'field_type_id', 
+            'field__type_id'
+        ).first()
+        
+        self.initialize_field_types_cache()
+        
+        if form_value and form_value['value'] != '':
+            is_form_value_of_form_type = field_types_cache[form_value['field_type_id']] == 'form'
+            is_field_of_form_type = field_types_cache[form_value['field__type_id']] != 'form'
+
+            if self.load_ids and is_form_value_of_form_type and is_field_of_form_type:
                 self.load_ids = False
 
             representation = RepresentationService(
-                obj.field_type.type, 
-                obj.date_configuration_date_format_type, 
-                obj.number_configuration_number_format_type, 
-                obj.form_field_as_option, 
+                field_types_cache[form_value['field_type_id']], 
+                form_value['date_configuration_date_format_type_id'], 
+                form_value['number_configuration_number_format_type_id'], 
+                form_value['form_field_as_option_id'], 
                 self.load_ids
             )
                 
-            represented_value = representation.representation(obj.value)
+            represented_value = representation.representation(form_value['value'])
 
             return represented_value
         else:

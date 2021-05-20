@@ -6,9 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
-from reflow_server.listing.serializers import ExtractFileSerializer
-
-import json
+from reflow_server.data.serializers.extract import ExtractFileSerializer
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -25,6 +23,8 @@ class ExtractFileExternalView(APIView):
     Methods:
         POST: recieves the data as json inside of the body
     """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
     def post(self, request, company_id, user_id, form_name):
         serializer = ExtractFileSerializer(data=request.data, user_id=user_id, company_id=company_id, form_name=form_name)
         if serializer.is_valid():

@@ -160,9 +160,9 @@ class AggregationService:
             for key, value in aggregation_result_data.items():
                 key_representation = RepresentationService(
                     key_field.type.type,
-                    key_field.date_configuration_date_format_type,
-                    key_field.number_configuration_number_format_type,
-                    key_field.form_field_as_option,
+                    key_field.date_configuration_date_format_type_id,
+                    key_field.number_configuration_number_format_type_id,
+                    key_field.form_field_as_option_id,
                     load_ids=False
                 )
                 value = value if type(value) in [int, float] else 0

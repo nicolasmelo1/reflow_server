@@ -8,8 +8,6 @@ from reflow_server.data.managers import FormValueDataManager, AttachmentsDataMan
 from reflow_server.notification.managers import FormValueNotificationManager
 from reflow_server.kanban.managers import FormValueKanbanManager, \
     DynamicFormKanbanManager
-from reflow_server.listing.managers import FormValueListingManager, \
-    DynamicFormListingManager
 from reflow_server.formulary.managers import FormValueFormularyManager
 from reflow_server.formula.managers import FormValueFormulaManager, \
     DynamicFormFormulaManager
@@ -59,7 +57,6 @@ class DynamicForm(models.Model):
     data_ = DynamicFormDataManager()
     formula_ = DynamicFormFormulaManager()
     kanban_ = DynamicFormKanbanManager()
-    listing_ = DynamicFormListingManager()
     pdf_generator_ = DynamicFormPDFGeneratorManager()
 
 
@@ -95,7 +92,6 @@ class FormValue(AbstractFieldStates):
 
     objects = models.Manager()
     data_ = FormValueDataManager()
-    listing_ = FormValueListingManager()
     kanban_ = FormValueKanbanManager()
     formulary_ = FormValueFormularyManager()
     formula_ = FormValueFormulaManager()
@@ -139,3 +135,26 @@ class Attachments(models.Model):
     data_ = AttachmentsDataManager()
     draft_ = AttachmentsDraftManager()
  
+
+class ExtractFileData(models.Model):
+    """
+    This model is used to extract a data to the user. This works on the following architecture:
+
+    First we send a request to the worker, then the worker request all of the data that the user is requesting.
+    Since this takes too long, the request for the data is async, when it is ready we send a post request with the data to the worker
+    again.
+    The worker then uses this data to build a csv, the csv is then encoded as base64 and is sent back to this application
+    we save the file as a base64 string in our database. Then when the user wants to download we convert the base64 csv to
+    the desired user format (xlsx or csv)
+    """
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    file_id = models.UUIDField(default=uuid.uuid4)
+    file = models.TextField()
+    file_format = models.CharField(max_length=10, default='csv')
+    company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, db_index=True)
+    form = models.ForeignKey('formulary.Form', on_delete=models.CASCADE, db_index=True)
+    user = models.ForeignKey('authentication.UserExtended', on_delete=models.CASCADE, db_index=True)
+
+    class Meta:
+        db_table = 'extract_file_data'
