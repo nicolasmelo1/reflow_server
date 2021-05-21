@@ -84,6 +84,7 @@ class DataSerializer(serializers.Serializer):
     visualizations to come. This serializer is often used just to read the data, but not saving.
     This is because we format the data completly ignoring the sections and caring just about the values.
     """
+    id = serializers.IntegerField()
     dynamic_form_value = FormularyValueRelation(many=True)
 
     @staticmethod
@@ -152,6 +153,7 @@ class DataSerializer(serializers.Serializer):
                     data[depends_on_id]['dynamic_form_value'].append(form_value_data)
                 else:
                     data[depends_on_id] = {
+                        'id': depends_on_id,
                         'dynamic_form_value': []
                     }
                     data[depends_on_id]['dynamic_form_value'].append(form_value_data)
