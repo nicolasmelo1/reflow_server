@@ -74,15 +74,25 @@ class FormValueDataManager(models.Manager):
         self, main_form_ids, company_id, field_ids=[]
     ):
         """
-        Gets the form_values from a list of main_form_ids (those are not section ids) and from a company_id
+        Gets the following data
+        'id'
+        'field__name'
+        'form_field_as_option_id'
+        'number_configuration_number_format_type_id'
+        'date_configuration_date_format_type_id'
+        'field_type__type'
+        'value'
+        'field_id'
+        'form__depends_on_id'
+        of the FormValue instances from a list of main_form_ids (those are not section ids) and from a company_id
 
         Args:
             main_form_ids (list(int)): a list of DynamicForm instance ids where depends_on IS NULL.
             company_id (int): a Company instance id.
+            field_ids (list[int], optional): a list of Field instance ids so we don't retrieve EVERY FormValue instance of the DynamicForm. Defaults to [].
 
         Returns:
-            django.db.models.QuerySet(reflow_server.data.models.FormValue): Returns a queryset of FormValue instances from the parameters
-            recieved
+            django.db.models.QuerySet(dict): Returns a queryset of dicts
         """
         instances = self.get_queryset().filter(form__depends_on_id__in=main_form_ids, company_id=company_id)
         if field_ids:
