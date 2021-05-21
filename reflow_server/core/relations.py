@@ -39,13 +39,12 @@ class ValueField(serializers.Field):
         return super().run_validation(str(data))
     
     def to_internal_value(self, data):
-
         value = {
             'value': str(data)
         }
         return value
 
-    def to_representation(self, form_value_id):
+    def to_representation(self, obj):
         """ 
         In certain cases i want to be able to load the id, in others i don't, i want to retrieve only the string.
         this is why i use load_ids parameter for. For form type of field i check if the form_value.field_type is equal
@@ -55,7 +54,7 @@ class ValueField(serializers.Field):
         from reflow_server.data.services import RepresentationService    
         from reflow_server.data.models import FormValue
 
-        form_value = FormValue.objects.filter(id=form_value_id).values(
+        form_value = FormValue.objects.filter(id=obj.id).values(
             'value', 
             'form_field_as_option_id', 
             'number_configuration_number_format_type_id',

@@ -41,7 +41,7 @@ class GetGroupSerializer(serializers.ModelSerializer):
 
 ############################################################################################
 class FormFieldTypeOptionsSerializer(serializers.ModelSerializer):
-    value = ValueField(source='id')
+    value = ValueField(source='*')
 
     class Meta:
         model = FormValue

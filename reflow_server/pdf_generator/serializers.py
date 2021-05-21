@@ -167,7 +167,7 @@ class FieldValueSerializer(serializers.ModelSerializer):
     of the fields of a form_id.
     """
     id = serializers.IntegerField(required=False, allow_null=True)
-    value = ValueField(source='id')
+    value = ValueField(source='*')
     form_value_from_connected_field = serializers.SerializerMethodField()
     field_type = serializers.CharField(source='field_type.type')
     form_name = serializers.CharField(source='form.form.depends_on.form_name')

@@ -26,7 +26,7 @@ class NotificationConfigurationFieldsRelation(serializers.ModelSerializer):
 
 class NotificationFormValueVariableDataForBuildRelation(serializers.ModelSerializer):
     field_name = serializers.CharField(source='field.name')
-    value = ValueField(source='id')
+    value = ValueField(source='*')
 
     class Meta:
         model = FormValue

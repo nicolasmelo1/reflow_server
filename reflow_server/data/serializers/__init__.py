@@ -58,26 +58,6 @@ class FormDataSerializer(serializers.ModelSerializer):
 
 
 ############################################################################################
-class FieldValueSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(allow_blank=True, allow_null=True, required=False)
-    field_name = serializers.CharField(source='field.name')
-    field_id = serializers.IntegerField()
-    value = ValueField(source='*', allow_blank=True, load_ids=True)
-
-    class Meta:
-        model = FormValue
-        fields = ('id', 'value', 'field_id', 'field_name')
-
-class SectionSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(allow_blank=True, allow_null=True, required=False)
-    form_id = serializers.CharField()
-    uuid = serializers.UUIDField()
-    dynamic_form_value = FieldValueSerializer(many=True)
-
-    class Meta:
-        model = DynamicForm
-        fields = ('id', 'form_id', 'uuid', 'dynamic_form_value')
-
 class DataSerializer(serializers.Serializer):
     """
     Serializer from retrieving the data for listing and kanban visualizations, and probably many more
