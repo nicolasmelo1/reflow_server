@@ -45,5 +45,6 @@ class SectionDataRelation(serializers.ModelSerializer):
 
 class FormularyValueRelation(serializers.Serializer):
     id = serializers.IntegerField(required=False, allow_null=True)
+    field_id = serializers.IntegerField()
     field_name = serializers.CharField()
-    value = serializers.CharField()
+    value = serializers.CharField(allow_null=True, allow_blank=True)

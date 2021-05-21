@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.http import JsonResponse
 
 from reflow_server.core.services.external import ExternalService
@@ -6,7 +5,6 @@ from reflow_server.authentication.decorators import jwt_required, permission_req
 from reflow_server.billing.decorators import validate_billing
 
 from functools import wraps
-import requests
 
 
 def authorize_external_response(function):
