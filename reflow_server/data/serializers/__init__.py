@@ -83,16 +83,49 @@ class DataSerializer(serializers.Serializer):
     Serializer from retrieving the data for listing and kanban visualizations, and probably many more
     visualizations to come. This serializer is often used just to read the data, but not saving.
     This is because we format the data completly ignoring the sections and caring just about the values.
-
-    Context Args:
-        fields (optional, list(int)) -- list of field ids to use, this way this doesn't retrieve the data from
-                                       all of the fields, but only a small portion of them. Default as None.
-        company_id (int) -- We need this to retrieve the correct data when loading the formulary
     """
     dynamic_form_value = FormularyValueRelation(many=True)
 
     @staticmethod
     def retrieve_data(main_form_ids, company_id, field_ids=[]):
+        """
+        So you might ask yourself:
+        "WTF, why retrieve data like that and not using ModelSerializer like a normal person?"
+
+        This happened in May of 2021: We had performance issues when retrieving data using ModelSerializer, what happened is that
+        when we create a field like:
+
+        `field_name = serializers.CharField(source='field.name')`
+        
+        what Django does to retrieve this data is a SELECT query on 'field' table like 
+        SELECT * FROM "field" WHERE "field"."id" = %s LIMIT 21
+
+        The problem is then elevated to 2 when we use the reflow_server.core.relations.ValueField custom field.
+        
+        So to get a single related attribute data what Django does is make a query for the hole row data, as you might already know retrieve a data
+        for a single field of the table is better than retrieve the hole data.
+
+        But the problem is: this was happening for EVERY FORM_VALUE, and a single Data in reflow is composed of MANY form_values.
+        So to get few saved DynamicForm instances it was taking ages because it needed to do so many queries because and only because of those relations.
+
+        To simplify the number of queries we made the serializer a simple serializer, so the only thing Django Rest Framework has to do
+        is convert a dict to a object and then to a dict again, yes, this causes an overhead, but we can still guarantee a particular serialization
+        and deserialization for the data, and since this serialization is not I/O bound it takes way less than it would be if we needed to make lots of queries.
+
+        TL.DR:
+        What happens is that when you retrieve a related attribute in django like `form_value.field.name`, django makes a query to retrieve all of the fields of the 
+        'field' table. The query made is not optimized and it actually doesn't need to exist, so what we do is minimize the number of queries made using
+        a simple serializer and not a ModelSerializer.
+
+        Args:
+            main_form_ids (list[int]): DynamicForm instances ids used to retrieve the FormValue of those.
+            company_id (int): The company id the user is logged in
+            field_ids (list[int], optional): List of Field instances ids, if you want to retrieve the data for some particular fields you use this, this will optimize the query. Defaults to [].
+
+        Returns:
+            list[{'dynamic_form_value': dict}]: Returns a list of dicts where each dict is a DynamicForm and the only key in each dict is the 'dynamic_form_value'
+                                                containing each FormValue.
+        """
         data = {}
         form_values = FormValue.data_.form_value_id_field_name_form_field_as_option_id_number_format_id_date_format_id_field_type_value_field_id_and_form_depends_on_by_main_form_ids_company_id_and_field_ids(
             main_form_ids,

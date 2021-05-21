@@ -11,14 +11,21 @@ import re
 
 representation_date_format_type_cache = {}
 representation_number_format_type_cache = {}
-representation_field_cache = {}
 
 class RepresentationDateFormatTypeData:
+    """
+    By making this we don't need to make queries everytime we want to use a FieldDateFormatType instance. This
+    guarantees no query is made and we can cache it
+    """
     def __init__(self, format_type_name, date_format):
         self.format_type_name = format_type_name
         self.format = date_format
 
 class RepresentationNumberFormatTypeData:
+    """
+    By making this we don't need to make queries everytime we want to use a FieldNumberFormatType instance. This
+    guarantees no query is made and we can cache it
+    """
     def __init__(self, format_type_name, precision, prefix, suffix, thousand_separator, decimal_separator, base):
         self.format_type_name = format_type_name
         self.precision = precision
@@ -45,11 +52,13 @@ class RepresentationService:
 
         Args:
             field_type (str): from one of the possible `field_types`, check the `field_type` table in our database for reference
-            date_format_type (reflow_server.models.formulary.FieldDateFormatType): The date format of the field, we use this for formatting
-            number_format_type (reflow_server.models.formulary.FieldNumberFormatType): The number format type, so we can format it correctly
-            form_field_as_option (reflow_server.models.formulary.Field / reflow_server.models.theme.ThemeField): The Field model effectively
+            date_format_type_id (int): The FieldDateFormatType instance id that the field uses
+            number_format_type (int): The FieldNumberFormatType instance id that the field uses
+                                                                                       to format the base number to the desired format
+            form_field_as_option_id (int): The Field or ThemeField instance id of the connected field
             load_ids (bool, optional): retrieves the ids instead of the value in fields_types like `user` or `form`. Defaults to False.
         """
+        # making this we don't need to make queries every time date_format_type
         representation_number_format_type = None
         representation_date_format_type = None
         if date_format_type_id:
@@ -61,7 +70,8 @@ class RepresentationService:
                     date_format_type.type, date_format_type.format
                 )
                 representation_date_format_type = representation_date_format_type_cache[date_format_type_id]
-        
+
+        # making this we don't need to make queries every time to retrieve a number_format_type
         if number_format_type_id:
             if representation_number_format_type_cache.get(number_format_type_id, None):
                 representation_number_format_type = representation_number_format_type_cache[number_format_type_id]
