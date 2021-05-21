@@ -53,7 +53,7 @@ class RepresentationService:
         Args:
             field_type (str): from one of the possible `field_types`, check the `field_type` table in our database for reference
             date_format_type_id (int): The FieldDateFormatType instance id that the field uses
-            number_format_type (int): The FieldNumberFormatType instance id that the field uses
+            number_format_type_id (int): The FieldNumberFormatType instance id that the field uses
                                                                                        to format the base number to the desired format
             form_field_as_option_id (int): The Field or ThemeField instance id of the connected field
             load_ids (bool, optional): retrieves the ids instead of the value in fields_types like `user` or `form`. Defaults to False.
