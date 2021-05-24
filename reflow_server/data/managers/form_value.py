@@ -94,7 +94,8 @@ class FormValueDataManager(models.Manager):
         Returns:
             django.db.models.QuerySet(dict): Returns a queryset of dicts
         """
-        instances = self.get_queryset().filter(form__depends_on_id__in=main_form_ids, company_id=company_id)
+        order = Case(*[When(id=form_data_id, then=index) for index, form_data_id in enumerate(main_form_ids)])
+        instances = self.get_queryset().filter(form__depends_on_id__in=main_form_ids, company_id=company_id).order_by(order)
         if field_ids:
             instances = instances.filter(field_id__in=field_ids)
         return instances.values(
