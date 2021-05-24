@@ -82,7 +82,6 @@ class PostSave:
         if process.form_value_instance.field.formula_configuration not in ('', None):
             formula = FormulaService(
                 process.form_value_instance.field.formula_configuration, 
-                precision=process.form_value_instance.field.number_configuration_number_format_type.precision,
                 dynamic_form_id=process.section_instance.depends_on.id
             )
             value = formula.value

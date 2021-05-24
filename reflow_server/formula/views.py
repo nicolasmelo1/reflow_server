@@ -2,14 +2,25 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from reflow_server.data.models import DynamicForm
-from reflow_server.formula.services import FormulaService, call_formula
+from reflow_server.formula.services import FormulaService
 
 class TestNewFormulaView(APIView):
     def get(self, request):
-        out = call_formula()
+        formula_service = FormulaService("""
+function recursao(n) do
+    if n >= 100 do
+        n
+    else do
+        recursao(n + 1)
+    end
+end
+
+recursao(0)
+        """)
+        value = formula_service.evaluate()
         return Response({
             'status': 'ok',
-            'data': out
+            'data': value
         }) 
 
 
