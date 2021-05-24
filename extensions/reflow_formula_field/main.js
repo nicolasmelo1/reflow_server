@@ -74,6 +74,8 @@ teste = hello()
 
 teste()
 `
+
+testando
 console.log(JSON.stringify(newContext.eval(fomula5)))
 //console.log(evaluator('1 + 2 - 3 and 3 + 5 + 0'))
 //console.log(evaluator('"a" * 3'))
