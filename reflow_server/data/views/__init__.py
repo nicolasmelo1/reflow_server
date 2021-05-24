@@ -52,7 +52,7 @@ class DataView(APIView):
                 form_id=form_id
             )
 
-            total_number_of_pages, main_form_data_ids_paginated = pagination.paginate_queryset(form_data_accessed_by_user)
+            total_number_of_pages, main_form_data_ids_paginated = pagination.paginate_list(form_data_accessed_by_user)
             
             serializer_data = DataSerializer.retrieve_data(main_form_data_ids_paginated, company_id, fields)
             serializer = DataSerializer(data=serializer_data, many=True)

@@ -8,6 +8,10 @@ class Pagination:
         self.current_page = current_page
         self.items_per_page = items_per_page
 
+    def paginate_list(self, list_data):
+        total_number_of_pages = self.get_total_number_of_pages(len(list_data))
+        return total_number_of_pages, list_data[self.offset: self.limit]
+
     def paginate_queryset(self, queryset):
         """
         Recieves a queryset and paginate it with the data of the Pagination object.
