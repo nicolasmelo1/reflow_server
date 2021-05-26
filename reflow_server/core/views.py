@@ -8,7 +8,6 @@ from rest_framework import status
 
 from reflow_server.billing.models import ChargeFrequencyType, ChargeType, IndividualChargeValueType, InvoiceDateType, PaymentMethodType
 from reflow_server.authentication.models import CompanyType, ProfileType, VisualizationType
-from reflow_server.formula.models import FormulaType
 from reflow_server.formulary.models import SectionType, FieldType, FieldPeriodIntervalType, FieldNumberFormatType, \
     FieldDateFormatType, ConditionalType
 from reflow_server.dashboard.models import AggregationType, ChartType
