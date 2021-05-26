@@ -2,21 +2,17 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from reflow_server.data.models import DynamicForm
-from reflow_server.formula.services import FormulaService
+from reflow_server.formula.services import FormulaService, Context
 
 class TestNewFormulaView(APIView):
     def get(self, request):
+        custom_context = Context(
+            conjunction='e',
+            disjunction='ou'
+        )
         formula_service = FormulaService("""
-function recursao(n) do
-    if n >= 100 do
-        n
-    else do
-        recursao(n + 1)
-    end
-end
-
-recursao(0)
-        """)
+            1 + 2
+        """, context=custom_context)
         value = formula_service.evaluate()
         return Response({
             'status': 'ok',
@@ -42,7 +38,7 @@ class TestFormulaView(APIView):
         dynamic_form_id = DynamicForm.formula_.latest_main_dynamic_form_id_by_form_id(form_id)
         text = request.GET.get('text')
         formula = FormulaService(text, dynamic_form_id=dynamic_form_id)
-        value = formula.value
+        value = formula.evaluate()
         if value in ('#ERROR', '#N/A'):
             return Response({
                 'status': 'error'

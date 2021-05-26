@@ -126,14 +126,21 @@ class int extends object {
     __power__(object) {
         const representation = this.__representation__()
         const objectRepresentation = object.__representation__()
-
-        if (object.type === FLOAT_TYPE) {
-            const float = require('./float')
-            const response = new float()
-            return response.__initialize__(Math.pow(representation, objectRepresentation))
-        } else if (object.type === INTEGER_TYPE) {
-            const response = new int()
-            return response.__initialize__(Math.pow(representation, objectRepresentation))
+        
+        if ([FLOAT_TYPE, INTEGER_TYPE].includes(object.type)) {
+            const result = Math.pow(representation, objectRepresentation)
+            if (object.type === FLOAT_TYPE && result !== Infinity) {
+                const float = require('./float')
+                const response = new float()
+                return response.__initialize__(result)
+            } else if (object.type === INTEGER_TYPE && result !== Infinity) {
+                const response = new int()
+                return response.__initialize__(result) 
+            } else {
+                const none = require('./none')   
+                const response = new none()
+                return response.__initialize__()
+            }
         } else {
             super.__power__(object)
         }

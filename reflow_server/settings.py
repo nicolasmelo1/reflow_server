@@ -267,11 +267,7 @@ JWT_HEADER_TYPES = ('Client',)
 
 # FORMULA CONFIGURATION
 # check formula.utils.parser file
-FORMULA_MAXIMUM_EVAL_TIME = 0.1
-FORMULA_FORMULAS = 'reflow_server.formula.utils.formulas'
-FORMULA_KEYWORD = 'Formula'
-FORMULA_TRIM_SPACES = '_'
-FORMULA_TITLE_STRING = True
+FORMULA_MAXIMUM_EVAL_TIME = 10
 
 # DATE FIELD CONFIGURATION
 # check formulary.models.FieldDateFormatType
