@@ -5,8 +5,6 @@ from reflow_server.data.services.formulary.data import PostSaveData
 from reflow_server.data.models import FormValue, DynamicForm, Attachments
 from reflow_server.formula.services import FormulaService
 from reflow_server.data.services.attachments import AttachmentService
-from reflow_server.rich_text.services import RichTextService, ordered_list_from_serializer_data_for_page_data, PageData
-from reflow_server.rich_text.models import TextBlockType
 
 import json
 
@@ -82,11 +80,19 @@ class PostSave:
         if process.form_value_instance.field.formula_configuration not in ('', None):
             formula = FormulaService(
                 process.form_value_instance.field.formula_configuration, 
-                precision=process.form_value_instance.field.number_configuration_number_format_type.precision,
                 dynamic_form_id=process.section_instance.depends_on.id
             )
-            value = formula.value
-            process.form_value_instance.value = value
+            formula_result = formula.evaluate()
+            value = ''
+            if isinstance(formula_result, dict):
+                if formula_result.get('type') == 'int':
+                    value = formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
+                elif formula_result.get('type') == 'float':
+                    splitted_value = str(formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
+                    value = splitted_value[0]
+            else:
+                value = formula_result
+            process.form_value_instance.value = str(value)
         return process
 
     def _post_process_id(self, process):

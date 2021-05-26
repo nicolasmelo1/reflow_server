@@ -4,7 +4,7 @@ class FormValueFormulaManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().all()
 
-    def values_by_main_formulary_data_id_and_field_id(self, formulary_data_id, field_id):
+    def values_and_field_type_by_main_formulary_data_id_and_field_id(self, formulary_data_id, field_id):
         """
         This gets all of the values by a single field_id and a main formulary_data_id. This main_formulary_data_id
         is the id of the DynamicForm that has depends_on column as NULL. So not the sections saved but the main 
@@ -21,4 +21,4 @@ class FormValueFormulaManager(models.Manager):
         return self.get_queryset().filter(
             field_id=field_id, 
             form__depends_on_id=formulary_data_id
-        ).values_list('value', flat=True)
+        ).values('value', 'field_type__type', 'number_configuration_number_format_type__base')

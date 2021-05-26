@@ -195,40 +195,30 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
         """
         Here we just check if the card you are moving has a conditional set to it, if it has, opens the formulary of the user
         so he can make changes directly in the formulary
+
+        Also
+    
+        What we do here is prepare the data to change the rows of the kanban.
+        What you notice right away is that what we actually do is build a formulary data on the fly changing
+        only the value of the FormValue that was changed and then sending it to the FormularyDataService. 
+        We do this because we can reuse all of the validation logic of this service without the need to redo it again.
         """
-        self.form_value_to_change = FormValue.kanban_.form_value_by_form_value_id(int(data['form_value_id']))
+        form_value_to_change = FormValue.kanban_.form_value_by_form_value_id(int(data['form_value_id']))
 
         is_conditional = Form.objects.filter(
-            depends_on=self.form_value_to_change.field.form.depends_on, 
-            conditional_on_field=self.form_value_to_change.field, 
+            depends_on=form_value_to_change.field.form.depends_on, 
+            conditional_on_field=form_value_to_change.field, 
             conditional_value=data['new_value']
         ).exists()
 
-
-        if is_conditional:
-            raise serializers.ValidationError(detail='has_conditionals')
-        else:
-            return data
-
-    # ------------------------------------------------------------------------------------------
-    def save(self):
-        """
-        What we do here is prepare the data to change the rows of the kanban.
-
-        What you notice right away is that what we actually do is build a formulary data on the fly changing
-        We do this because we can reuse all of the validation logic of this service without the need to redo it again.
-        """
-        sections = DynamicForm.kanban_.sections_data_by_depends_on_id(self.form_value_to_change.form.depends_on.id)
+        sections = DynamicForm.kanban_.sections_data_by_depends_on_id(form_value_to_change.form.depends_on_id)
         formulary_data = self.formulary_data_service.add_formulary_data(
-            self.form_value_to_change.form.depends_on.uuid,
-            self.form_value_to_change.form.depends_on.id
+            form_value_to_change.form.depends_on.uuid,
+            form_value_to_change.form.depends_on_id
         )
         for section in sections:
-            section_data = formulary_data.add_section_data(
-                section_id=section.form.id, 
-                uuid=section.uuid,
-                section_data_id=section.id
-            )
+            section_data = formulary_data.add_section_data(section_id=section.form.id, section_data_id=section.id, uuid=section.uuid,
+)
             section_field_values = FormValue.kanban_.form_values_by_dynamic_form_id(section.id)
             for field_value in section_field_values:
                 # The data we use is the represented data since it will reformat again when saving.
@@ -240,10 +230,21 @@ class ChangeKanbanCardBetweenDimensionsSerializer(serializers.Serializer):
                     True
                 )
                 value = representation_service.representation(field_value.value)
-                value = self.validated_data['new_value'] if field_value.id == self.form_value_to_change.id else value
+                value = data['new_value'] if field_value.id == form_value_to_change.id else value
                 section_data.add_field_value(field_value.field.id, field_value.field.name, value, field_value.id)
-        
-        if self.formulary_data_service.is_valid():
-            instance = self.formulary_data_service.save()
-            return instance
-        return None
+        if self.formulary_data_service.is_valid() and not is_conditional:
+            return data
+        elif is_conditional:
+            raise serializers.ValidationError(detail='has_conditionals')
+        else:
+            raise serializers.ValidationError(detail=self.formulary_data_service.errors)   
+    # ------------------------------------------------------------------------------------------
+    def save(self):
+        """
+        What we do here is prepare the data to change the rows of the kanban.
+
+        What you notice right away is that what we actually do is build a formulary data on the fly changing
+        We do this because we can reuse all of the validation logic of this service without the need to redo it again.
+        """
+        instance = self.formulary_data_service.save()
+        return instance
