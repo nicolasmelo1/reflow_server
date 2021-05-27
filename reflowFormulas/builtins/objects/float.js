@@ -104,7 +104,14 @@ class float extends object {
 
         if ([FLOAT_TYPE, INTEGER_TYPE].includes(object.type)) {
             const response = new float()
-            return response.__initialize__(Math.pow(representation, objectRepresentation))
+            const result = Math.pow(representation, objectRepresentation)
+            if (result === Infinity) {
+                const none = require('./none')
+                const response = new none()
+                return response.__initialize__()
+            } else {
+                return response.__initialize__(result)
+            }
         } else {
             super.__power__(object)
         }

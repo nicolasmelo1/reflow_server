@@ -5,7 +5,6 @@ let context = {
         conjunction: 'and',
         disjunction: 'or',
         inversion: 'not',
-        block: ['do', 'end'],
         null: 'None',
         boolean: {
             true: 'True',
@@ -20,7 +19,8 @@ let context = {
             end: 'end'
         },
         function: 'function',
-        decimal_point_separator: ','
+        decimal_point_separator: ',',
+        positional_argument_separator: ';'
     },
     formulas: {
         'count': formulas.Count,
@@ -117,7 +117,7 @@ const settings = () => {
 
     const FORMULAS_KEYWORD = Object.keys(FORMULAS)
 
-    const POSITIONAL_ARGUMENT_SEPARATOR = ';'
+    const POSITIONAL_ARGUMENT_SEPARATOR = context.keywords.positional_argument_separator
     const NULL_KEYWORD = context.keywords.null
     const FUNCTION_KEYWORD = context.keywords.function
     const BLOCK_KEYWORDS = [context.keywords.block.do, context.keywords.block.end]
