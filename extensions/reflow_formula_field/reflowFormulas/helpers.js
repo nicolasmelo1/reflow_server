@@ -54,7 +54,7 @@ const isString = (value) => {
 const isFloat = (value) => {
     try {
         value = parseFloat(value)
-        return value
+        return true
     } catch {
         return false
     }

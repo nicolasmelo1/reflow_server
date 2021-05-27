@@ -60,13 +60,14 @@ class FormulaService:
             if len(values) == 1:
                 if values[0]['field_type__type'] == 'number':
                     value = (int(values[0]['value'])/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)/values[0]['number_configuration_number_format_type__base']
-                    formula = formula.replace(variable, str(value).replace('.', self.context.data['keywords']['decimal_point_separator']))
+                    formula = formula.replace(variable, str('%f' % value).replace('.', self.context.data['keywords']['decimal_point_separator']))
         return formula
 
     def evaluate(self):
         directory = settings.BASE_DIR
         command = ['node', '%s/extensions/reflow_formula_field/fromCommandLine.js' % (directory) , self.encoded_formula, self.encoded_context]
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=settings.FORMULA_MAXIMUM_EVAL_TIME)
+        print(output)
         try: 
             data = json.loads(output)
             return data
