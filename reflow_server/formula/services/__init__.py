@@ -62,7 +62,7 @@ class FormulaService:
                 if values[0]['field_type__type'] == 'number':
                     value = values[0]['value']
                     value = value if value.isdigit() else '1'
-                    value = (int(values[0]['value'])/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)/values[0]['number_configuration_number_format_type__base']
+                    value = (int(value)/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)/values[0]['number_configuration_number_format_type__base']
                     formula = formula.replace(variable, str('%f' % value).replace('.', self.context.data['keywords']['decimal_point_separator']))
         return formula
 
