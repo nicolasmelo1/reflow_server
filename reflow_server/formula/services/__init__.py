@@ -2,6 +2,7 @@ from django.conf import settings
 
 from reflow_server.data.models import FormValue
 
+import logging
 import subprocess
 import json
 import base64
@@ -64,11 +65,11 @@ class FormulaService:
         return formula
 
     def evaluate(self):
-        directory = settings.BASE_DIR
-        command = ['node', '%s/extensions/reflow_formula_field/fromCommandLine.js' % (directory) , self.encoded_formula, self.encoded_context]
-        output = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=settings.FORMULA_MAXIMUM_EVAL_TIME)
-        print(output)
         try: 
+            directory = settings.BASE_DIR
+            command = ['node', '%s/extensions/reflow_formula_field/fromCommandLine.js' % (directory) , self.encoded_formula, self.encoded_context]
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=settings.FORMULA_MAXIMUM_EVAL_TIME)
+            logging.error(command)
             data = json.loads(output)
             return data
         except subprocess.TimeoutExpired as te:
