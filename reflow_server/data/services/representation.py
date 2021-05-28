@@ -221,8 +221,17 @@ class RepresentationService:
                 value_and_decimal[0] = thousand_separator.join([value_and_decimal[0][::-1][i*3:(i*3)+3][::-1] for i in range(ceil(len(value_and_decimal[0])/3))][::-1])
                 if len(value_and_decimal)>1:
                     value_and_decimal[1] = value_and_decimal[1][0:len(str(self.number_format_type.precision))-1]
-                value = self.number_format_type.decimal_separator.join(value_and_decimal)
+                if self.number_format_type.has_to_enforce_decimal:
+                    value = self.number_format_type.decimal_separator.join(value_and_decimal)    
+                else:
+                    decimal_character_list = list(value_and_decimal[1])
+                    is_all_zeros = all([decimal == '0' for decimal in decimal_character_list])
+                    if is_all_zeros:
+                        value = value_and_decimal[0]
+                    else:
+                        value = self.number_format_type.decimal_separator.join(value_and_decimal)    
             else:
+                # yes, this doesn't make sense [::-1][i*3:(i*3)+3][::-1] understand that: what we are doing is actually strip the string 3 by 3 and add the '.'
                 value = thousand_separator.join([value_and_decimal[0][::-1][i*3:(i*3)+3][::-1] for i in range(ceil(len(value_and_decimal[0])/3))][::-1])
             value = prefix + negative_signal + str(value) + suffix
         return value

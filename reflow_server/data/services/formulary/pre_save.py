@@ -192,14 +192,21 @@ class PreSave(Validator):
         so you need to be aware of all the possible field_types in order to create another clean function
         """
         handler = getattr(self, '_clean_%s' % field.type.type, None)
-         # bypass empty value for formulas
-        if field.formula_configuration:
-            value = '0'
-        elif handler:
+        if handler:
             value = handler(formulary_data, field, field_data)
         else:
             value = field_data.value
         
+        return value
+
+    def _clean_formula(self, formulary_data, field, field_data):
+        """
+        Similar to `self._clean_id` we use this to bypass the empty value for formulas, this way this value is evaluated after it has been saved.
+
+        Returns:
+            str: returns the value of the field or '0' if it doesn't have any value yet.
+        """
+        value = field_data.value if field_data.value not in [None, ''] and formulary_data.form_data_id else '0'
         return value
 
     def _clean_date(self, formulary_data, field, field_data):
@@ -249,9 +256,10 @@ class PreSave(Validator):
     
     def _clean_id(self, formulary_data, field, field_data):
         """
-        returns: data
-
         Cleans id from `id` field_type, this just adds a value to the id, so it can pass the checks for empty string.
+
+        Returns:
+            str: The new value for the `id` field type
         """
         value = field_data.value if field_data.value not in [None, ''] and formulary_data.form_data_id else '0'
         return value

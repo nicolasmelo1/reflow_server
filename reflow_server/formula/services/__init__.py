@@ -45,7 +45,6 @@ class FormulaService:
         else:
             self.context = context
         formula = self.__clean_formula(formula, dynamic_form_id)
-        print(formula)
         self.encoded_formula = base64.b64encode(formula.encode('utf-8')).decode('utf-8')
         self.encoded_context = base64.b64encode(json.dumps(self.context.data).encode('utf-8')).decode('utf-8')
 
@@ -59,7 +58,7 @@ class FormulaService:
             )
             if len(values) == 1:
                 if values[0]['field_type__type'] == 'number':
-                    value = (int(values[0]['value'])/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)/values[0]['number_configuration_number_format_type__base']
+                    value = int(values[0]['value'])/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
                     formula = formula.replace(variable, str('%f' % value).replace('.', self.context.data['keywords']['decimal_point_separator']))
         return formula
 

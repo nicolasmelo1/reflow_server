@@ -4,6 +4,7 @@ from reflow_server.core.utils.storage import Bucket, BucketUploadException
 from reflow_server.data.services.formulary.data import PostSaveData
 from reflow_server.data.models import FormValue, DynamicForm, Attachments
 from reflow_server.formula.services import FormulaService
+from reflow_server.formulary.models import FieldType, FieldNumberFormatType
 from reflow_server.data.services.attachments import AttachmentService
 
 import json
@@ -11,7 +12,7 @@ import json
 
 class PostSave:
     def add_saved_field_value_to_post_process(self, section_instance, form_value_instance):
-        if form_value_instance and (form_value_instance.field.type.type in ['id', 'attachment', 'long_text'] or form_value_instance.field.formula_configuration not in ('', None)):
+        if form_value_instance and form_value_instance.field.type.type in ['id', 'attachment', 'long_text', 'formula']:
             self.post_save_process.append(PostSaveData(section_instance, form_value_instance))
             return True
         return False
@@ -28,13 +29,10 @@ class PostSave:
         self.__remove_deleted(formulary_data)
 
         for process in self.post_save_process:
-            value = process.form_value_instance.value
             handler = getattr(self, '_post_process_%s' % process.form_value_instance.field.type.type, None)
             if handler:
                 process = handler(process)
-            
-            process = self._post_process_formula(process)
-            
+                            
             process.form_value_instance.save()
         return None
 
@@ -85,13 +83,24 @@ class PostSave:
             formula_result = formula.evaluate()
             value = ''
             if isinstance(formula_result, dict):
-                if formula_result.get('type') == 'int':
-                    value = formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
-                elif formula_result.get('type') == 'float':
-                    splitted_value = str(formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
-                    value = splitted_value[0]
+                if formula_result.get('type') in ['int', 'float']:
+                    
+                    number_field_type = FieldType.objects.filter(type='number').first()
+                    number_format_type = FieldNumberFormatType.objects.filter(type='currency').first()
+                    process.form_value_instance.field_type = number_field_type
+                    process.form_value_instance.number_configuration_number_format_type = number_format_type
+
+                    if formula_result.get('type') == 'int':
+                        process.form_value_instance.field_type
+                        value = formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
+                    elif formula_result.get('type') == 'float':
+                        splitted_value = str(formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
+                        print(splitted_value)
+                        print('BREAKPOINT')
+                        value = splitted_value[0]
             else:
                 value = formula_result
+            
             process.form_value_instance.value = str(value)
         return process
 

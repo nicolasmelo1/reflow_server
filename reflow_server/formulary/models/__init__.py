@@ -114,7 +114,8 @@ class FieldNumberFormatType(models.Model):
     decimal_separator = models.CharField(max_length=10, null=True)
     order = models.BigIntegerField()
     base = models.BigIntegerField(default=1)
-
+    has_to_enforce_decimal = models.BooleanField(default=False)
+    
     class Meta:
         db_table = 'field_number_format_type'
         ordering = ('order',)
@@ -186,6 +187,10 @@ class FieldType(models.Model):
 
     So with this a important thing to say is: IT IS REALLY IMPORTANT TO BE CAREFULL WHEN REMOVING OR ADDING A FIELD TYPE.
 
+    `is_dynamic_evaluated` - on formulas we don't evaluate everytime we show the data to the user, instead we hold the actual value for the user. The user might 
+    want to make filters or even ordering, so to don't repeat code everytime we save the data of the 'formula' field as any other type, if it's dynamic evaluated
+    this means the data CAN'T hold this field type.
+
     References:
     reflow_server.formulary.models.abstract.AbstractFieldOption
     reflow_server.formulary.models.FieldPeriodIntervalType
@@ -195,10 +200,10 @@ class FieldType(models.Model):
     type = models.CharField(max_length=200, db_index=True)
     label_name = models.CharField(max_length=250, null=True, blank=True)
     order = models.BigIntegerField(default=1)
+    is_dynamic_evaluated = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'field_type'
-        app_label = 'formulary'
         ordering = ('order',)
 
 #############
