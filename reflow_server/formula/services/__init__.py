@@ -2,6 +2,7 @@ from django.conf import settings
 
 from reflow_server.data.models import FormValue
 
+import logging
 import subprocess
 import json
 import base64
@@ -58,16 +59,18 @@ class FormulaService:
             )
             if len(values) == 1:
                 if values[0]['field_type__type'] == 'number':
-                    value = int(values[0]['value'])/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
+                    value = values[0]['value']
+                    value = value if value.isdigit() else '1'
+                    value = (int(value)/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)/values[0]['number_configuration_number_format_type__base']
                     formula = formula.replace(variable, str('%f' % value).replace('.', self.context.data['keywords']['decimal_point_separator']))
         return formula
 
     def evaluate(self):
-        directory = settings.BASE_DIR
-        command = ['node', '%s/extensions/reflow_formula_field/fromCommandLine.js' % (directory) , self.encoded_formula, self.encoded_context]
-        output = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=settings.FORMULA_MAXIMUM_EVAL_TIME)
-        print(output)
         try: 
+            directory = settings.BASE_DIR
+            command = ['node', '%s/extensions/reflow_formula_field/fromCommandLine.js' % (directory) , self.encoded_formula, self.encoded_context]
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=settings.FORMULA_MAXIMUM_EVAL_TIME)
+            logging.error(command)
             data = json.loads(output)
             return data
         except subprocess.TimeoutExpired as te:
