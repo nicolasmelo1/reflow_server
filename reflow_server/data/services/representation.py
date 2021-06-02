@@ -5,7 +5,6 @@ from reflow_server.authentication.models import UserExtended
 from reflow_server.formulary.models import FieldNumberFormatType, FieldDateFormatType
 
 from datetime import datetime
-from math import ceil
 import decimal
 import re
 
@@ -26,7 +25,7 @@ class RepresentationNumberFormatTypeData:
     By making this we don't need to make queries everytime we want to use a FieldNumberFormatType instance. This
     guarantees no query is made and we can cache it
     """
-    def __init__(self, format_type_name, precision, prefix, suffix, thousand_separator, decimal_separator, base):
+    def __init__(self, format_type_name, precision, prefix, suffix, thousand_separator, decimal_separator, base, has_to_enforce_decimal=False):
         self.format_type_name = format_type_name
         self.precision = precision
         self.prefix = prefix
@@ -34,6 +33,7 @@ class RepresentationNumberFormatTypeData:
         self.thousand_separator = thousand_separator
         self.decimal_separator = decimal_separator
         self.base = base
+        self.has_to_enforce_decimal = has_to_enforce_decimal
 
 class RepresentationService:
     def __init__(self, field_type, date_format_type_id, number_format_type_id, form_field_as_option_id, load_ids = False):
@@ -85,7 +85,8 @@ class RepresentationService:
                     number_format_type.suffix,
                     number_format_type.thousand_separator,
                     number_format_type.decimal_separator,
-                    number_format_type.base
+                    number_format_type.base,
+                    number_format_type.has_to_enforce_decimal
                 )
                 representation_number_format_type = representation_number_format_type_cache[number_format_type_id]
         
@@ -213,25 +214,25 @@ class RepresentationService:
             suffix = self.number_format_type.suffix if self.number_format_type.suffix else ''
             base = self.number_format_type.base
             thousand_separator = self.number_format_type.thousand_separator if self.number_format_type.thousand_separator else ''
-            formater = '{:.' + str(settings.DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION) + 'f}'
-            
-            value = formater.format((decimal.Decimal(str(value))*decimal.Decimal(str(base))/decimal.Decimal(str(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT))))
-            value_and_decimal = value.split('.')
+
+            value = decimal.Decimal(str(value))*decimal.Decimal(str(base))/decimal.Decimal(str(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT))
+            # work on the decimal part
             if self.number_format_type.decimal_separator:
-                value_and_decimal[0] = thousand_separator.join([value_and_decimal[0][::-1][i*3:(i*3)+3][::-1] for i in range(ceil(len(value_and_decimal[0])/3))][::-1])
-                if len(value_and_decimal)>1:
-                    value_and_decimal[1] = value_and_decimal[1][0:len(str(self.number_format_type.precision))-1]
+                formater = '{:.0f}'
                 if self.number_format_type.has_to_enforce_decimal:
-                    value = self.number_format_type.decimal_separator.join(value_and_decimal)    
+                    formater = '{:.' + str(len(str(self.number_format_type.precision))-1) + 'f}'
                 else:
-                    decimal_character_list = list(value_and_decimal[1])
-                    is_all_zeros = all([decimal == '0' for decimal in decimal_character_list])
-                    if is_all_zeros:
-                        value = value_and_decimal[0]
-                    else:
-                        value = self.number_format_type.decimal_separator.join(value_and_decimal)    
-            else:
-                # yes, this doesn't make sense [::-1][i*3:(i*3)+3][::-1] understand that: what we are doing is actually strip the string 3 by 3 and add the '.'
-                value = thousand_separator.join([value_and_decimal[0][::-1][i*3:(i*3)+3][::-1] for i in range(ceil(len(value_and_decimal[0])/3))][::-1])
+                    value_and_decimal_splitted = str(value).split('.')
+                    if len(value_and_decimal_splitted) > 1:
+                        decimal_of_value = str(value_and_decimal_splitted[1])
+                        formater = '{:.' + str(len(decimal_of_value)) + 'f}'
+                value = formater.format(value)
+                value = value.replace('.', self.number_format_type.decimal_separator)
+            value_and_decimal = value.split(self.number_format_type.decimal_separator)
+            if thousand_separator != '':
+                # reference: https://stackoverflow.com/questions/1823058/how-to-print-number-with-commas-as-thousands-separators
+                value_and_decimal[0] = '{:,}'.format(int(value_and_decimal[0]))
+                value_and_decimal[0] = value_and_decimal[0].replace(',', thousand_separator)
+                value = self.number_format_type.decimal_separator.join(value_and_decimal)
             value = prefix + negative_signal + str(value) + suffix
         return value

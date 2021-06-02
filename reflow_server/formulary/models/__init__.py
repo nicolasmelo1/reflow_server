@@ -81,9 +81,6 @@ class FieldNumberFormatType(models.Model):
 
     With the information above you might be wondering: BUT HEY, HOW DO YOU WORK WITH FRACTIONS LIKE 0,98 or PERCENTAGES?
 
-    For this you need to see the settings.py defined in the root of this django project for the DEFAULT_BASE_NUMBER_FIELD_FORMAT and
-    DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION.
-
     Every number saved on the database wheater it has a decimal defined or not is multiplied by the number defined on the 
     DEFAULT_BASE_NUMBER_FIELD_FORMAT setting. This means, the maximum number of decimal places accepted for for numbers 
     is the number of `0` in this default number.

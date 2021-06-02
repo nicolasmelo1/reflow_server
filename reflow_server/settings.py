@@ -89,6 +89,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'reflow_server.urls'
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -169,8 +170,6 @@ LOGGING = {
 
     }
 }
-
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
@@ -287,7 +286,6 @@ with float values in computing, with this, we define a BASE NUMBER, so every int
 is multiplied by it, and every decimal is saved following the rule FLOATNUMBER * (BASE/PRECISION)
 """
 DEFAULT_BASE_NUMBER_FIELD_FORMAT = 100000000
-DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION = len(str(DEFAULT_BASE_NUMBER_FIELD_FORMAT))-1
 
 # AWS CONFIGURATION
 AWS_SECRET_ACCESS_KEY = configuration.AWS_SECRET_ACCESS_KEY
