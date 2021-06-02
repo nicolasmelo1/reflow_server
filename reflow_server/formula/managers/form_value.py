@@ -21,4 +21,4 @@ class FormValueFormulaManager(models.Manager):
         return self.get_queryset().filter(
             field_id=field_id, 
             form__depends_on_id=formulary_data_id
-        ).values('value', 'field_type__type', 'number_configuration_number_format_type__base')
+        ).values('value', 'field_type__type')
