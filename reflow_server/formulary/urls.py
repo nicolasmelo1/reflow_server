@@ -35,7 +35,7 @@ settings_urlpatterns = [
 
 
 urlpatterns = [
-    re_path(r'^(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
+    re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/', include([
         register_admin_only_url(re_path(r'^settings/', include(settings_urlpatterns))),
         re_path(r'^$', validate_billing(GetGroupsView.as_view()), name='formulary_get_groups'),
         register_can_be_public_url(
@@ -47,5 +47,5 @@ urlpatterns = [
             ]))
         )
     ])),
-    re_path(r'^public/(?P<company_id>(\w+(\.)?(-)?(_)?)+)/form/(?P<form>\w+)/$', get_company_id_as_int(PublicFormularyDataView.as_view()), name='public_formulary_data_view')
+    re_path(r'^public/(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/form/(?P<form>\w+)/$', get_company_id_as_int(PublicFormularyDataView.as_view()), name='public_formulary_data_view')
 ]

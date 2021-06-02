@@ -9,7 +9,7 @@ from reflow_server.authentication.views.settings import CompanySettingsView, Use
 
 
 settings_urlpatterns = [
-    re_path(r'^(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
+    re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/', include([
         re_path(r'^users/', include([
             re_path(r'^$', validate_billing(UserSettingsView.as_view()), name='authentication_settings_users'),
             re_path(r'^(?P<user_id>\d+)/$', validate_billing(UserSettingsEditView.as_view()), name='authentication_settings_edit_users'),
@@ -29,7 +29,7 @@ loginrequired_urlpatterns = [
         re_path(r'^visualization_type/(?P<visualization_type_id>\d+)/$', permission_required(UserVisualizationTypeView.as_view()), 
         name='authentication_user_set_visualization_type_id')
     ])),
-    re_path(r'^(?P<company_id>(\w+(\.)?(-)?(_)?)+)/company/$', permission_required(CompanyView.as_view()), name='authentication_company')
+    re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/company/$', permission_required(CompanyView.as_view()), name='authentication_company')
 ]
 
 urlpatterns = [

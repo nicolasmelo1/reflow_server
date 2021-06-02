@@ -21,7 +21,7 @@ settings_urlpatterns = [
 
 urlpatterns = [
     re_path(r'^external/', include(external_urlpatterns)),
-    re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
+    re_path(r'(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/', include([
         re_path(r'^$', validate_billing(NotificationsView.as_view()), name='notification_load_data'),
         re_path(r'^read/$', validate_billing(UnreadAndReadNotificationView.as_view()), name='notification_read_or_unread'),
         re_path(r'^settings/', include(settings_urlpatterns)),

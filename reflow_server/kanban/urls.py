@@ -17,7 +17,7 @@ settings_urlpatterns = [
 ]
 
 urlpatterns = [
-    re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/(?P<form>\w+)/', include([
+    re_path(r'(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/(?P<form>\w+)/', include([
         re_path(r'^default/$', validate_billing(KanbanDefaultView.as_view()), name='kanban_default'),
         re_path(r'^change/$', validate_billing(ChangeKanbanCardBetweenDimensionsView.as_view()), name='kanban_change_card_between_dimensions'),
         re_path(r'^dimension/(?P<field_id>\w+)/$', validate_billing(KanbanDimensionPhaseView.as_view()), name='kanban_dimension_order'),
