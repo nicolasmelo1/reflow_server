@@ -12,7 +12,7 @@ settings_urlpatterns = [
 ]
 
 urlpatterns = [
-    re_path(r'^(?P<company_id>(\w+(\.)?(-)?(_)?)+)/(?P<form>\w+)/', include([
+    re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/(?P<form>\w+)/', include([
         re_path(r'^$', validate_billing(DashboardChartsView.as_view()), name='dashboard_charts'),
         re_path(r'^(?P<dashboard_configuration_id>\d+)/$', validate_billing(DashboardDataView.as_view()), name='dashboard_data'),
         re_path(r'^settings/', include(settings_urlpatterns))

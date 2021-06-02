@@ -14,7 +14,7 @@ settings_urlpatterns = [
 
 urlpatterns = [
     re_path(r'allowed_blocks/$', validate_billing(PDFTemplateAllowedTextBlockView.as_view()), name='pdf_generator_allowed_blocks'),
-    re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/(?P<form>\w+)/', include([
+    re_path(r'(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/(?P<form>\w+)/', include([
         re_path(r'^$', validate_billing(PDFTemplatesForReaderView.as_view()), name='pdf_generator_reader_templates'),
         re_path(r'^(?P<pdf_template_configuration_id>\d+)/', include([
             re_path(r'^$', validate_billing(PDFTemplateGetDataForReaderView.as_view()), name='pdf_generator_reader_get_single_template'),

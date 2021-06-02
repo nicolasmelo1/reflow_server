@@ -14,7 +14,7 @@ external_urlpatterns = [
 
 urlpatterns = [
     re_path(r'^external/', include(external_urlpatterns)),
-    re_path(r'(?P<company_id>(\w+(\.)?(-)?(_)?)+)/(?P<form>\w+)/', include([
+    re_path(r'(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/(?P<form>\w+)/', include([
         re_path(r'^extract/', include([
             re_path(r'^$', validate_billing(ExtractDataBuilderView.as_view()), name='data_build_extract_data'), 
             re_path(r'^(?P<file_id>[\w-]+)/$', validate_billing(GetExtractDataView.as_view()), name='data_get_extract_data')

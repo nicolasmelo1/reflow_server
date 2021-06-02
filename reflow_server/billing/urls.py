@@ -23,7 +23,7 @@ settings_urlpatterns = [
 ]
 
 urlpatterns = [
-    re_path(r'^(?P<company_id>(\w+(\.)?(-)?(_)?)+)/', include([
+    re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/', include([
         register_admin_only_url(re_path(r'^settings/', include(settings_urlpatterns))),
     ])),
     re_path(r'^external/', include(external_urlpatterns))
