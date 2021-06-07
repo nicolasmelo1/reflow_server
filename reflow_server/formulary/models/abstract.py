@@ -3,6 +3,13 @@ from django.db import models
 import uuid
 
 
+class AbstractFormulaVariable(models.Model):
+    order = models.BigIntegerField()
+
+    class Meta:
+        abstract = True
+
+
 class AbstractForm(models.Model):
     """
     This is the abstract for Forms (do not mistake with DynamicForm), this abstract is used to define
