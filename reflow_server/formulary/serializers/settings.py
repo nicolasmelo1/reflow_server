@@ -2,7 +2,7 @@ from django.db import transaction
 
 from rest_framework import serializers
 
-from reflow_server.formulary.models import Group, Form, Field, FieldOptions, FieldType, DefaultFieldValue
+from reflow_server.formulary.models import FormulaVariable, Group, Form, Field, FieldOptions, DefaultFieldValue
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.sections import SectionService
@@ -23,6 +23,16 @@ class FieldOptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Field
         fields = ('id', 'label_name', 'form_id', 'form_label_name', 'group_id', 'group_name')
+
+
+############################################################################################
+class FieldFormulaVariablesSerializer(serializers.ModelSerializer):
+    variable_id = serializers.IntegerField()
+
+    class Meta:
+        model = FormulaVariable
+        fields = ('variable_id',)
+
 
 ############################################################################################
 class FieldDefaultValuesSerializer(serializers.ModelSerializer):
@@ -53,6 +63,7 @@ class FieldSerializer(serializers.ModelSerializer):
     """
     id = serializers.IntegerField(allow_null=True)
     field_option = FieldOptionSerializer(many=True)
+    field_formula_variables = FieldFormulaVariablesSerializer(many=True)
     field_default_field_values = FieldDefaultValuesSerializer(many=True)
     name = serializers.CharField(allow_blank=True, allow_null=True)
 
@@ -116,7 +127,14 @@ class FieldSerializer(serializers.ModelSerializer):
                     value=default_field_value.get('value')
                 )
             )
-            
+
+        field_formula_variables_ids = list()
+        print(self.validated_data.get('field_formula_variables', list()))
+        for field_formula_variable in self.validated_data.get('field_formula_variables', list()):
+            print(field_formula_variable)
+            if field_formula_variable.get('variable_id', None):
+                field_formula_variables_ids.append(field_formula_variable.get('variable_id'))
+        
         field_service = FieldService(
             user_id=self.context['user_id'], 
             company_id=self.context['company_id'], 
@@ -143,6 +161,7 @@ class FieldSerializer(serializers.ModelSerializer):
             field_type=self.validated_data['type'],
             field_uuid=self.validated_data['uuid'],
             default_field_value_data=default_field_value_data,
+            field_formula_variables_ids=field_formula_variables_ids,
             field_options_data=field_options_data,
             instance=instance
         )

@@ -1,8 +1,9 @@
+from reflow_server.formulary.managers.formula_variable import FormulaVariableFormularyManager
 from django.conf import settings
 from django.db import models
 
 from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldOptions, \
-    AbstractDefaultFieldValue
+    AbstractDefaultFieldValue, AbstractFormulaVariable
 from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, FormAccessedByThemeManager
 from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
@@ -442,6 +443,15 @@ class DefaultFieldValueAttachments(models.Model):
 
 ############################################################################################
 class PublicAccessForm(models.Model):
+    """
+    This holds all of the formularies that are public. It's important to understand this holds
+    all of the forms that has depends_on_id as null. This is because the sections are enabled for public access 
+    if the section has any public field. The user doesn't explicit add the section for public access
+    he just enables or disables the field for public access.
+
+    Those main_form_ids holds a greetings message (the message that is shown AFTER the user fills the formulary)
+    and the description message.
+    """
     form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True)
     greetings_message = models.TextField(default=None, null=True, blank=True)
     description_message = models.TextField(default=None, null=True, blank=True)
@@ -476,3 +486,18 @@ class PublicAccessField(models.Model):
     objects = models.Manager()
     formulary_ = PublicAccessFieldFormularyManager()
     data_ = PublicAccessFieldDataManager()
+
+
+class FormulaVariable(AbstractFormulaVariable):
+    """
+    Those are the variables for the formulas
+    """
+    field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, related_name='field_formula_variables')
+    variable = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, related_name='field_formula_variable_variables')
+
+    class Meta:
+        db_table = 'formula_variable'
+        ordering = ('order',)
+
+    objects = models.Manager()
+    formulary_ = FormulaVariableFormularyManager()
