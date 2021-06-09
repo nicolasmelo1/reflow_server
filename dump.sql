@@ -136,16 +136,16 @@ ALTER SEQUENCE public.app_id_seq OWNED BY public.data_type.id;
 
 CREATE TABLE public.attachments (
     id integer NOT NULL,
-    file character varying(500),
-    date date NOT NULL,
-    form_id integer,
-    field_id integer,
-    file_url character varying(1000),
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    file_size bigint NOT NULL,
+    file character varying(500),
     bucket character varying(200) NOT NULL,
-    file_attachments_path character varying(250) NOT NULL
+    file_attachments_path character varying(250) NOT NULL,
+    file_url character varying(1000),
+    file_size bigint NOT NULL,
+    date date NOT NULL,
+    field_id integer,
+    form_id integer
 );
 
 
@@ -179,7 +179,7 @@ ALTER SEQUENCE public.attachments_id_seq OWNED BY public.attachments.id;
 
 CREATE TABLE public.auth_group (
     id integer NOT NULL,
-    name character varying(80) NOT NULL
+    name character varying(150) NOT NULL
 );
 
 
@@ -389,19 +389,19 @@ ALTER SEQUENCE public.chart_type_id_seq OWNED BY public.chart_type.id;
 
 CREATE TABLE public.form_value (
     id integer NOT NULL,
-    value text,
-    field_id integer,
-    form_id integer,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    field_type_id integer,
-    date_configuration_date_format_type_id integer,
-    period_configuration_period_interval_type_id integer,
     number_configuration_mask character varying(250),
     formula_configuration character varying(1000),
-    number_configuration_number_format_type_id integer,
-    form_field_as_option_id integer,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    value text,
     company_id integer,
+    date_configuration_date_format_type_id integer,
+    field_id integer,
+    field_type_id integer,
+    form_id integer,
+    form_field_as_option_id integer,
+    number_configuration_number_format_type_id integer,
+    period_configuration_period_interval_type_id integer,
     is_long_text_rich_text boolean
 );
 
@@ -441,8 +441,8 @@ CREATE TABLE public.company (
     updated_at timestamp with time zone NOT NULL,
     created_at timestamp with time zone NOT NULL,
     is_active boolean NOT NULL,
-    company_type_id integer,
     partner character varying(500),
+    company_type_id integer,
     shared_by_id integer,
     logo_image_bucket character varying(200) NOT NULL,
     logo_image_path character varying(250) NOT NULL,
@@ -534,11 +534,11 @@ ALTER SEQUENCE public.company_billing_id_seq OWNED BY public.company_billing.id;
 
 CREATE TABLE public.company_charge (
     id integer NOT NULL,
-    total_value numeric(10,2) NOT NULL,
-    company_id integer NOT NULL,
-    attempt_count integer NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    total_value numeric(10,2) NOT NULL,
+    attempt_count integer NOT NULL,
+    company_id integer NOT NULL
 );
 
 
@@ -599,6 +599,28 @@ ALTER TABLE public.company_coupon_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE public.company_coupon_id_seq OWNED BY public.company_coupon.id;
+
+
+--
+-- Name: company_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.company_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.company_id_seq OWNER TO postgres;
+
+--
+-- Name: company_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.company_id_seq OWNED BY public.company.id;
 
 
 --
@@ -750,12 +772,12 @@ ALTER SEQUENCE public.conditional_type_id_seq OWNED BY public.conditional_type.i
 
 CREATE TABLE public.current_company_charge (
     id integer NOT NULL,
-    quantity integer NOT NULL,
-    discount_by_individual_value_id integer,
-    company_id integer NOT NULL,
-    individual_charge_value_type_id integer NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    quantity integer NOT NULL,
+    company_id integer NOT NULL,
+    discount_by_individual_value_id integer,
+    individual_charge_value_type_id integer NOT NULL
 );
 
 
@@ -824,6 +846,28 @@ ALTER TABLE public.dashboard_chart_configuration_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE public.dashboard_chart_configuration_id_seq OWNED BY public.dashboard_chart_configuration.id;
+
+
+--
+-- Name: data_type_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.data_type_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.data_type_id_seq OWNER TO postgres;
+
+--
+-- Name: data_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.data_type_id_seq OWNED BY public.data_type.id;
 
 
 --
@@ -1024,8 +1068,8 @@ CREATE TABLE public.discount_coupon (
     name character varying(250) NOT NULL,
     value numeric(10,2) NOT NULL,
     permanent boolean NOT NULL,
-    end_at timestamp with time zone,
-    start_at timestamp with time zone
+    start_at timestamp with time zone,
+    end_at timestamp with time zone
 );
 
 
@@ -1310,10 +1354,10 @@ CREATE TABLE public.dynamic_forms (
     id integer NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
+    company_id integer,
+    depends_on_id integer,
     form_id integer NOT NULL,
     user_id integer,
-    depends_on_id integer,
-    company_id integer,
     uuid uuid
 );
 
@@ -1350,12 +1394,12 @@ CREATE TABLE public.extract_file_data (
     id integer NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
+    file_id uuid NOT NULL,
     file text NOT NULL,
+    file_format character varying(10) NOT NULL,
     company_id integer NOT NULL,
     form_id integer NOT NULL,
-    user_id integer NOT NULL,
-    file_format character varying(10) NOT NULL,
-    file_id uuid NOT NULL
+    user_id integer NOT NULL
 );
 
 
@@ -1389,35 +1433,57 @@ ALTER SEQUENCE public.extract_file_data_id_seq OWNED BY public.extract_file_data
 
 CREATE TABLE public.field (
     id integer NOT NULL,
+    number_configuration_mask character varying(250),
+    formula_configuration character varying(1000),
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     name character varying(300) NOT NULL,
-    type_id integer NOT NULL,
-    enabled boolean NOT NULL,
-    required boolean NOT NULL,
     label_name character varying(300),
     placeholder character varying(450),
+    required boolean NOT NULL,
     "order" bigint NOT NULL,
-    form_field_as_option_id integer,
-    label_is_hidden boolean NOT NULL,
-    form_id integer NOT NULL,
-    field_is_hidden boolean NOT NULL,
     is_unique boolean NOT NULL,
-    number_configuration_mask character varying(250),
+    field_is_hidden boolean NOT NULL,
+    label_is_hidden boolean NOT NULL,
     date_configuration_auto_create boolean NOT NULL,
     date_configuration_auto_update boolean NOT NULL,
-    date_configuration_date_format_type_id integer,
-    period_configuration_period_interval_type_id integer,
-    formula_configuration character varying(1000),
     number_configuration_allow_negative boolean NOT NULL,
     number_configuration_allow_zero boolean NOT NULL,
+    enabled boolean NOT NULL,
+    date_configuration_date_format_type_id integer,
+    form_id integer NOT NULL,
+    form_field_as_option_id integer,
     number_configuration_number_format_type_id integer,
+    period_configuration_period_interval_type_id integer,
+    type_id integer NOT NULL,
     uuid uuid NOT NULL,
     is_long_text_rich_text boolean
 );
 
 
 ALTER TABLE public.field OWNER TO postgres;
+
+--
+-- Name: field_date_format_type_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.field_date_format_type_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.field_date_format_type_id_seq OWNER TO postgres;
+
+--
+-- Name: field_date_format_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.field_date_format_type_id_seq OWNED BY public.field_date_format_type.id;
+
 
 --
 -- Name: field_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -1455,7 +1521,8 @@ CREATE TABLE public.field_number_format_type (
     thousand_separator character varying(10),
     decimal_separator character varying(10),
     "order" bigint NOT NULL,
-    base bigint NOT NULL
+    base bigint NOT NULL,
+    has_to_enforce_decimal boolean NOT NULL
 );
 
 
@@ -1489,11 +1556,11 @@ ALTER SEQUENCE public.field_number_format_type_id_seq OWNED BY public.field_numb
 
 CREATE TABLE public.field_options (
     id integer NOT NULL,
-    option character varying(500) NOT NULL,
-    field_id integer NOT NULL,
-    "order" bigint NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
+    option character varying(500) NOT NULL,
+    "order" bigint NOT NULL,
+    field_id integer NOT NULL,
     uuid uuid NOT NULL
 );
 
@@ -1538,6 +1605,28 @@ CREATE TABLE public.field_period_interval_type (
 ALTER TABLE public.field_period_interval_type OWNER TO postgres;
 
 --
+-- Name: field_period_interval_type_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.field_period_interval_type_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.field_period_interval_type_id_seq OWNER TO postgres;
+
+--
+-- Name: field_period_interval_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.field_period_interval_type_id_seq OWNED BY public.field_period_interval_type.id;
+
+
+--
 -- Name: field_type; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -1545,7 +1634,8 @@ CREATE TABLE public.field_type (
     id integer NOT NULL,
     type character varying(200) NOT NULL,
     label_name character varying(250),
-    "order" bigint NOT NULL
+    "order" bigint NOT NULL,
+    is_dynamic_evaluated boolean NOT NULL
 );
 
 
@@ -1579,19 +1669,19 @@ ALTER SEQUENCE public.field_type_id_seq OWNED BY public.field_type.id;
 
 CREATE TABLE public.form (
     id integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
     form_name character varying(150) NOT NULL,
     label_name character varying(150) NOT NULL,
     "order" bigint NOT NULL,
+    conditional_value character varying(200),
+    enabled boolean NOT NULL,
     company_id integer NOT NULL,
-    depends_on_id integer,
-    type_id integer NOT NULL,
     conditional_on_field_id integer,
     conditional_type_id integer,
-    conditional_value character varying(200),
-    created_at timestamp with time zone NOT NULL,
-    enabled boolean NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
+    depends_on_id integer,
     group_id integer,
+    type_id integer NOT NULL,
     uuid uuid NOT NULL,
     conditional_excludes_data_if_not_set boolean NOT NULL,
     show_label_name boolean NOT NULL
@@ -1606,10 +1696,10 @@ ALTER TABLE public.form OWNER TO postgres;
 
 CREATE TABLE public.form_accessed_by (
     id integer NOT NULL,
-    form_id integer NOT NULL,
-    user_id integer NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    form_id integer NOT NULL,
+    user_id integer NOT NULL
 );
 
 
@@ -1696,6 +1786,170 @@ ALTER SEQUENCE public.form_type_id_seq OWNED BY public.form_type.id;
 
 
 --
+-- Name: form_value_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.form_value_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.form_value_id_seq OWNER TO postgres;
+
+--
+-- Name: form_value_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.form_value_id_seq OWNED BY public.form_value.id;
+
+
+--
+-- Name: formula_attribute_type; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.formula_attribute_type (
+    id integer NOT NULL,
+    name character varying(280) NOT NULL,
+    "order" integer NOT NULL
+);
+
+
+ALTER TABLE public.formula_attribute_type OWNER TO postgres;
+
+--
+-- Name: formula_attribute_type_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.formula_attribute_type_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.formula_attribute_type_id_seq OWNER TO postgres;
+
+--
+-- Name: formula_attribute_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.formula_attribute_type_id_seq OWNED BY public.formula_attribute_type.id;
+
+
+--
+-- Name: formula_context_attribute_type; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.formula_context_attribute_type (
+    id integer NOT NULL,
+    translation text NOT NULL,
+    attribute_type_id integer NOT NULL,
+    context_type_id integer NOT NULL
+);
+
+
+ALTER TABLE public.formula_context_attribute_type OWNER TO postgres;
+
+--
+-- Name: formula_context_attribute_type_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.formula_context_attribute_type_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.formula_context_attribute_type_id_seq OWNER TO postgres;
+
+--
+-- Name: formula_context_attribute_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.formula_context_attribute_type_id_seq OWNED BY public.formula_context_attribute_type.id;
+
+
+--
+-- Name: formula_context_for_company; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.formula_context_for_company (
+    id integer NOT NULL,
+    company_id integer NOT NULL,
+    context_type_id integer NOT NULL
+);
+
+
+ALTER TABLE public.formula_context_for_company OWNER TO postgres;
+
+--
+-- Name: formula_context_for_company_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.formula_context_for_company_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.formula_context_for_company_id_seq OWNER TO postgres;
+
+--
+-- Name: formula_context_for_company_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.formula_context_for_company_id_seq OWNED BY public.formula_context_for_company.id;
+
+
+--
+-- Name: formula_context_type; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.formula_context_type (
+    id integer NOT NULL,
+    language character varying(280) NOT NULL,
+    name character varying(280) NOT NULL,
+    "order" integer NOT NULL
+);
+
+
+ALTER TABLE public.formula_context_type OWNER TO postgres;
+
+--
+-- Name: formula_context_type_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.formula_context_type_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.formula_context_type_id_seq OWNER TO postgres;
+
+--
+-- Name: formula_context_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.formula_context_type_id_seq OWNED BY public.formula_context_type.id;
+
+
+--
 -- Name: formula_parameters_type; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -1733,24 +1987,24 @@ ALTER SEQUENCE public.formula_parameters_type_id_seq OWNED BY public.formula_par
 
 
 --
--- Name: formula_type; Type: TABLE; Schema: public; Owner: postgres
+-- Name: formula_variable; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public.formula_type (
+CREATE TABLE public.formula_variable (
     id integer NOT NULL,
-    name character varying(50) NOT NULL,
-    label_name character varying(100) NOT NULL,
-    "order" bigint NOT NULL
+    "order" bigint NOT NULL,
+    field_id integer NOT NULL,
+    variable_id integer NOT NULL
 );
 
 
-ALTER TABLE public.formula_type OWNER TO postgres;
+ALTER TABLE public.formula_variable OWNER TO postgres;
 
 --
--- Name: formula_type_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: formula_variable_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE public.formula_type_id_seq
+CREATE SEQUENCE public.formula_variable_id_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -1759,13 +2013,13 @@ CREATE SEQUENCE public.formula_type_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.formula_type_id_seq OWNER TO postgres;
+ALTER TABLE public.formula_variable_id_seq OWNER TO postgres;
 
 --
--- Name: formula_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: formula_variable_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE public.formula_type_id_seq OWNED BY public.formula_type.id;
+ALTER SEQUENCE public.formula_variable_id_seq OWNED BY public.formula_variable.id;
 
 
 --
@@ -1776,8 +2030,8 @@ CREATE TABLE public."group" (
     id integer NOT NULL,
     name character varying(500) NOT NULL,
     enabled boolean NOT NULL,
-    company_id integer NOT NULL,
-    "order" bigint NOT NULL
+    "order" bigint NOT NULL,
+    company_id integer NOT NULL
 );
 
 
@@ -1888,8 +2142,8 @@ CREATE TABLE public.kanban_card (
     id integer NOT NULL,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    user_id integer NOT NULL,
     "default" boolean NOT NULL,
+    user_id integer NOT NULL,
     company_id integer,
     form_id integer
 );
@@ -1903,10 +2157,10 @@ ALTER TABLE public.kanban_card OWNER TO postgres;
 
 CREATE TABLE public.kanban_card_field (
     id integer NOT NULL,
-    field_id integer,
-    kanban_card_id integer,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
+    field_id integer,
+    kanban_card_id integer,
     "order" integer NOT NULL
 );
 
@@ -2037,13 +2291,13 @@ ALTER SEQUENCE public.kanban_default_id_seq OWNED BY public.kanban_default.id;
 
 CREATE TABLE public.kanban_dimension_order (
     id integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
     options character varying(500) NOT NULL,
-    dimension_id integer,
-    user_id integer NOT NULL,
     "order" bigint NOT NULL,
     "default" boolean NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    dimension_id integer,
+    user_id integer NOT NULL
 );
 
 
@@ -2230,10 +2484,10 @@ ALTER SEQUENCE public.notification_id_seq OWNED BY public.notification.id;
 
 CREATE TABLE public.option_accessed_by (
     id integer NOT NULL,
-    field_option_id integer NOT NULL,
-    user_id integer NOT NULL,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    field_option_id integer NOT NULL,
+    user_id integer NOT NULL
 );
 
 
@@ -2548,8 +2802,8 @@ ALTER SEQUENCE public.pre_notification_id_seq OWNED BY public.pre_notification.i
 CREATE TABLE public.profiles (
     id integer NOT NULL,
     name character varying(200) NOT NULL,
-    can_edit boolean NOT NULL,
     label_name character varying(200),
+    can_edit boolean NOT NULL,
     "order" bigint NOT NULL
 );
 
@@ -3527,6 +3781,42 @@ ALTER SEQUENCE public.theme_form_id_seq OWNED BY public.theme_form.id;
 
 
 --
+-- Name: theme_formula_variable; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.theme_formula_variable (
+    id integer NOT NULL,
+    "order" bigint NOT NULL,
+    field_id integer NOT NULL,
+    variable_id integer NOT NULL
+);
+
+
+ALTER TABLE public.theme_formula_variable OWNER TO postgres;
+
+--
+-- Name: theme_formula_variable_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.theme_formula_variable_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.theme_formula_variable_id_seq OWNER TO postgres;
+
+--
+-- Name: theme_formula_variable_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.theme_formula_variable_id_seq OWNED BY public.theme_formula_variable.id;
+
+
+--
 -- Name: theme_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -3868,12 +4158,12 @@ CREATE TABLE public.users (
     is_active boolean NOT NULL,
     date_joined timestamp with time zone NOT NULL,
     phone character varying(250),
+    timezone integer NOT NULL,
     is_admin boolean NOT NULL,
-    company_id integer NOT NULL,
-    profile_id integer NOT NULL,
     temp_password character varying(250),
+    company_id integer NOT NULL,
     data_type_id integer,
-    timezone integer NOT NULL
+    profile_id integer NOT NULL
 );
 
 
@@ -4266,6 +4556,34 @@ ALTER TABLE ONLY public.form_value ALTER COLUMN id SET DEFAULT nextval('public.c
 
 
 --
+-- Name: formula_attribute_type id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_attribute_type ALTER COLUMN id SET DEFAULT nextval('public.formula_attribute_type_id_seq'::regclass);
+
+
+--
+-- Name: formula_context_attribute_type id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_context_attribute_type ALTER COLUMN id SET DEFAULT nextval('public.formula_context_attribute_type_id_seq'::regclass);
+
+
+--
+-- Name: formula_context_for_company id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_context_for_company ALTER COLUMN id SET DEFAULT nextval('public.formula_context_for_company_id_seq'::regclass);
+
+
+--
+-- Name: formula_context_type id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_context_type ALTER COLUMN id SET DEFAULT nextval('public.formula_context_type_id_seq'::regclass);
+
+
+--
 -- Name: formula_parameters_type id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -4273,10 +4591,10 @@ ALTER TABLE ONLY public.formula_parameters_type ALTER COLUMN id SET DEFAULT next
 
 
 --
--- Name: formula_type id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: formula_variable id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.formula_type ALTER COLUMN id SET DEFAULT nextval('public.formula_type_id_seq'::regclass);
+ALTER TABLE ONLY public.formula_variable ALTER COLUMN id SET DEFAULT nextval('public.formula_variable_id_seq'::regclass);
 
 
 --
@@ -4592,6 +4910,13 @@ ALTER TABLE ONLY public.theme_field_options ALTER COLUMN id SET DEFAULT nextval(
 --
 
 ALTER TABLE ONLY public.theme_form ALTER COLUMN id SET DEFAULT nextval('public.theme_form_id_seq'::regclass);
+
+
+--
+-- Name: theme_formula_variable id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.theme_formula_variable ALTER COLUMN id SET DEFAULT nextval('public.theme_formula_variable_id_seq'::regclass);
 
 
 --
@@ -10281,21 +10606,7 @@ COPY public.aggregation_type (id, name, "order") FROM stdin;
 -- Data for Name: attachments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.attachments (id, file, date, form_id, field_id, file_url, created_at, updated_at, file_size, bucket, file_attachments_path) FROM stdin;
-33	etiqueta-de-mala-allianz-global-assistance.pdf	2019-03-27	195	122	\N	2019-03-27 23:26:14.665726+00	2019-03-27 23:26:14.666147+00	0	reflow-crm	file-attachments
-36	eCNHsp - DETRAN - São Paulo.pdf	2019-04-06	291	122	\N	2019-04-06 20:15:30.520843+00	2019-04-06 20:15:30.521058+00	0	reflow-crm	file-attachments
-37	eCNHsp - DETRAN - São Paulo.pdf	2019-04-07	289	128	\N	2019-04-07 18:48:31.155705+00	2019-04-07 18:48:31.155935+00	0	reflow-crm	file-attachments
-35	1552929658250.pdf	2019-04-07	289	128	\N	2019-04-06 19:24:17.010813+00	2019-04-07 18:48:32.083746+00	0	reflow-crm	file-attachments
-34	15545785779501226244843950623459.jpg	2019-04-07	289	128	\N	2019-04-06 19:23:13.908297+00	2019-04-07 18:48:32.097855+00	0	reflow-crm	file-attachments
-41	2018_HBR_Inovação_3.pdf	2019-04-07	293	122	https://reflow-crm.s3.file-attachments.amazonaws.com/file-attachments/293/122/2018_HBR_Inovac%CC%A7a%CC%83o_3.pdf	2019-04-07 20:26:37.107883+00	2019-04-07 20:26:37.994075+00	0	reflow-crm	file-attachments
-38	eCNHsp - DETRAN - São Paulo.pdf	2019-04-07	293	122	\N	2019-04-07 18:57:14.817552+00	2019-04-07 20:26:38.024702+00	0	reflow-crm	file-attachments
-39	Forms.pdf	2019-04-07	296	128	\N	2019-04-07 19:32:12.216902+00	2019-04-07 22:47:21.996453+00	0	reflow-crm	file-attachments
-40	business_model_canvas_poster_trimmed_print.pdf	2019-04-07	296	128	\N	2019-04-07 19:32:12.233002+00	2019-04-07 22:47:22.014943+00	0	reflow-crm	file-attachments
-42	contrato socialREFLOW.pdf	2019-04-08	299	128	https://reflow-crm.s3.file-attachments.amazonaws.com/file-attachments/299/128/contrato%20socialREFLOW.pdf	2019-04-08 00:02:38.96878+00	2019-04-08 00:02:39.746062+00	0	reflow-crm	file-attachments
-43	Resumo artigos Pesquisa  2.pdf	2019-04-08	302	128	https://reflow-crm.s3.file-attachments.amazonaws.com/file-attachments/302/128/Resumo%20artigos%20Pesquisa%20%202.pdf	2019-04-08 19:18:58.764499+00	2019-04-08 19:19:00.231802+00	0	reflow-crm	file-attachments
-44	13-mapas-funil-de-vendas.pdf	2019-04-08	308	128	https://reflow-crm.s3.file-attachments.amazonaws.com/file-attachments/308/128/13-mapas-funil-de-vendas.pdf	2019-04-08 19:37:10.528405+00	2019-04-08 19:37:20.958052+00	0	reflow-crm	file-attachments
-45	1553904439837.pdf	2019-04-08	314	128	https://reflow-crm.s3.file-attachments.amazonaws.com/file-attachments/314/128/1553904439837.pdf	2019-04-08 19:37:36.245244+00	2019-04-08 19:37:36.937739+00	0	reflow-crm	file-attachments
-46	74746-OEKSO7-912.png	2019-04-16	368	128	https://reflow-crm.s3.file-attachments.amazonaws.com/file-attachments/368/128/74746-OEKSO7-912.png	2019-04-16 22:56:01.729174+00	2019-04-16 22:56:02.758282+00	0	reflow-crm	file-attachments
+COPY public.attachments (id, created_at, updated_at, file, bucket, file_attachments_path, file_url, file_size, date, field_id, form_id) FROM stdin;
 \.
 
 
@@ -10320,834 +10631,414 @@ COPY public.auth_group_permissions (id, group_id, permission_id) FROM stdin;
 --
 
 COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
-1	Can add clients	1	add_clients
-2	Can change clients	1	change_clients
-3	Can delete clients	1	delete_clients
-4	Can view clients	1	view_clients
-5	Can add commercials	2	add_commercials
-6	Can change commercials	2	change_commercials
-7	Can delete commercials	2	delete_commercials
-8	Can view commercials	2	view_commercials
-9	Can add congeners	3	add_congeners
-10	Can change congeners	3	change_congeners
-11	Can delete congeners	3	delete_congeners
-12	Can view congeners	3	view_congeners
-13	Can add detail	4	add_detail
-14	Can change detail	4	change_detail
-15	Can delete detail	4	delete_detail
-16	Can view detail	4	view_detail
-17	Can add expectations	5	add_expectations
-18	Can change expectations	5	change_expectations
-19	Can delete expectations	5	delete_expectations
-20	Can view expectations	5	view_expectations
-21	Can add insurance type	6	add_insurancetype
-22	Can change insurance type	6	change_insurancetype
-23	Can delete insurance type	6	delete_insurancetype
-24	Can view insurance type	6	view_insurancetype
-25	Can add persons	7	add_persons
-26	Can change persons	7	change_persons
-27	Can delete persons	7	delete_persons
-28	Can view persons	7	view_persons
-29	Can add products	8	add_products
-30	Can change products	8	change_products
-31	Can delete products	8	delete_products
-32	Can view products	8	view_products
-33	Can add reasons for loss	9	add_reasonsforloss
-34	Can change reasons for loss	9	change_reasonsforloss
-35	Can delete reasons for loss	9	delete_reasonsforloss
-36	Can view reasons for loss	9	view_reasonsforloss
-37	Can add regionals	10	add_regionals
-38	Can change regionals	10	change_regionals
-39	Can delete regionals	10	delete_regionals
-40	Can view regionals	10	view_regionals
-41	Can add regionals accessed by	11	add_regionalsaccessedby
-42	Can change regionals accessed by	11	change_regionalsaccessedby
-43	Can delete regionals accessed by	11	delete_regionalsaccessedby
-44	Can view regionals accessed by	11	view_regionalsaccessedby
-45	Can add status	12	add_status
-46	Can change status	12	change_status
-47	Can delete status	12	delete_status
-48	Can view status	12	view_status
-49	Can add subsidiaries	13	add_subsidiaries
-50	Can change subsidiaries	13	change_subsidiaries
-51	Can delete subsidiaries	13	delete_subsidiaries
-52	Can view subsidiaries	13	view_subsidiaries
-53	Can add subsidiaries accessed by	14	add_subsidiariesaccessedby
-54	Can change subsidiaries accessed by	14	change_subsidiariesaccessedby
-55	Can delete subsidiaries accessed by	14	delete_subsidiariesaccessedby
-56	Can view subsidiaries accessed by	14	view_subsidiariesaccessedby
-57	Can add attachments	15	add_attachments
-58	Can change attachments	15	change_attachments
-59	Can delete attachments	15	delete_attachments
-60	Can view attachments	15	view_attachments
-61	Can add dynamic protocol	16	add_dynamicprotocol
-62	Can change dynamic protocol	16	change_dynamicprotocol
-63	Can delete dynamic protocol	16	delete_dynamicprotocol
-64	Can view dynamic protocol	16	view_dynamicprotocol
-65	Can add field	17	add_field
-66	Can change field	17	change_field
-67	Can delete field	17	delete_field
-68	Can view field	17	view_field
-69	Can add history	18	add_history
-70	Can change history	18	change_history
-71	Can delete history	18	delete_history
-72	Can view history	18	view_history
-73	Can add protocols	19	add_protocols
-74	Can change protocols	19	change_protocols
-75	Can delete protocols	19	delete_protocols
-76	Can view protocols	19	view_protocols
-77	Can add user extended	20	add_userextended
-78	Can change user extended	20	change_userextended
-79	Can delete user extended	20	delete_userextended
-80	Can view user extended	20	view_userextended
-81	Can add companies	21	add_companies
-82	Can change companies	21	change_companies
-83	Can delete companies	21	delete_companies
-84	Can view companies	21	view_companies
-85	Can add profiles	22	add_profiles
-86	Can change profiles	22	change_profiles
-87	Can delete profiles	22	delete_profiles
-88	Can view profiles	22	view_profiles
-89	Can add log entry	23	add_logentry
-90	Can change log entry	23	change_logentry
-91	Can delete log entry	23	delete_logentry
-92	Can view log entry	23	view_logentry
-93	Can add permission	24	add_permission
-94	Can change permission	24	change_permission
-95	Can delete permission	24	delete_permission
-96	Can view permission	24	view_permission
-97	Can add group	25	add_group
-98	Can change group	25	change_group
-99	Can delete group	25	delete_group
-100	Can view group	25	view_group
-101	Can add content type	26	add_contenttype
-102	Can change content type	26	change_contenttype
-103	Can delete content type	26	delete_contenttype
-104	Can view content type	26	view_contenttype
-105	Can add session	27	add_session
-106	Can change session	27	change_session
-107	Can delete session	27	delete_session
-108	Can view session	27	view_session
-109	Can add field options	28	add_fieldoptions
-110	Can change field options	28	change_fieldoptions
-111	Can delete field options	28	delete_fieldoptions
-112	Can view field options	28	view_fieldoptions
-113	Can add field type	29	add_fieldtype
-114	Can change field type	29	change_fieldtype
-115	Can delete field type	29	delete_fieldtype
-116	Can view field type	29	view_fieldtype
-117	Can add protocol value	30	add_protocolvalue
-118	Can change protocol value	30	change_protocolvalue
-119	Can delete protocol value	30	delete_protocolvalue
-120	Can view protocol value	30	view_protocolvalue
-121	Can add field topic	31	add_fieldtopic
-122	Can change field topic	31	change_fieldtopic
-123	Can delete field topic	31	delete_fieldtopic
-124	Can view field topic	31	view_fieldtopic
-125	Can add option accessed by	32	add_optionaccessedby
-126	Can change option accessed by	32	change_optionaccessedby
-127	Can delete option accessed by	32	delete_optionaccessedby
-128	Can view option accessed by	32	view_optionaccessedby
-129	Can add theme	33	add_theme
-130	Can change theme	33	change_theme
-131	Can delete theme	33	delete_theme
-132	Can view theme	33	view_theme
-133	Can add theme field	34	add_themefield
-134	Can change theme field	34	change_themefield
-135	Can delete theme field	34	delete_themefield
-136	Can view theme field	34	view_themefield
-137	Can add theme field topic	35	add_themefieldtopic
-138	Can change theme field topic	35	change_themefieldtopic
-139	Can delete theme field topic	35	delete_themefieldtopic
-140	Can view theme field topic	35	view_themefieldtopic
-141	Can add conditional topic by option	36	add_conditionaltopicbyoption
-142	Can change conditional topic by option	36	change_conditionaltopicbyoption
-143	Can delete conditional topic by option	36	delete_conditionaltopicbyoption
-144	Can view conditional topic by option	36	view_conditionaltopicbyoption
-145	Can add form type	37	add_formtype
-146	Can change form type	37	change_formtype
-147	Can delete form type	37	delete_formtype
-148	Can view form type	37	view_formtype
-149	Can add client value	38	add_clientvalue
-150	Can change client value	38	change_clientvalue
-151	Can delete client value	38	delete_clientvalue
-152	Can view client value	38	view_clientvalue
-153	Can add dynamic client	39	add_dynamicclient
-154	Can change dynamic client	39	change_dynamicclient
-155	Can delete dynamic client	39	delete_dynamicclient
-156	Can view dynamic client	39	view_dynamicclient
-157	Can add dynamic person	40	add_dynamicperson
-158	Can change dynamic person	40	change_dynamicperson
-159	Can delete dynamic person	40	delete_dynamicperson
-160	Can view dynamic person	40	view_dynamicperson
-161	Can add person value	41	add_personvalue
-162	Can change person value	41	change_personvalue
-163	Can delete person value	41	delete_personvalue
-164	Can view person value	41	view_personvalue
-165	Can add theme field options	42	add_themefieldoptions
-166	Can change theme field options	42	change_themefieldoptions
-167	Can delete theme field options	42	delete_themefieldoptions
-168	Can view theme field options	42	view_themefieldoptions
-169	Can add app	43	add_app
-170	Can change app	43	change_app
-171	Can delete app	43	delete_app
-172	Can view app	43	view_app
-173	Can add dynamic form	44	add_dynamicform
-174	Can change dynamic form	44	change_dynamicform
-175	Can delete dynamic form	44	delete_dynamicform
-176	Can view dynamic form	44	view_dynamicform
-177	Can add form value	38	add_formvalue
-178	Can change form value	38	change_formvalue
-179	Can delete form value	38	delete_formvalue
-180	Can view form value	38	view_formvalue
-181	Can add form	45	add_form
-182	Can change form	45	change_form
-183	Can delete form	45	delete_form
-184	Can view form	45	view_form
-185	Can add theme form	46	add_themeform
-186	Can change theme form	46	change_themeform
-187	Can delete theme form	46	delete_themeform
-188	Can view theme form	46	view_themeform
-189	Can add form accessed by	47	add_formaccessedby
-190	Can change form accessed by	47	change_formaccessedby
-191	Can delete form accessed by	47	delete_formaccessedby
-192	Can view form accessed by	47	view_formaccessedby
-193	Can add kanban card	48	add_kanbancard
-194	Can change kanban card	48	change_kanbancard
-195	Can delete kanban card	48	delete_kanbancard
-196	Can view kanban card	48	view_kanbancard
-197	Can add kanban card field	49	add_kanbancardfield
-198	Can change kanban card field	49	change_kanbancardfield
-199	Can delete kanban card field	49	delete_kanbancardfield
-200	Can view kanban card field	49	view_kanbancardfield
-201	Can add kanban dimension order	50	add_kanbandimensionorder
-202	Can change kanban dimension order	50	change_kanbandimensionorder
-203	Can delete kanban dimension order	50	delete_kanbandimensionorder
-204	Can view kanban dimension order	50	view_kanbandimensionorder
-205	Can add listing selected fields	51	add_listingselectedfields
-206	Can change listing selected fields	51	change_listingselectedfields
-207	Can delete listing selected fields	51	delete_listingselectedfields
-208	Can view listing selected fields	51	view_listingselectedfields
-209	Can add listing total for field	52	add_listingtotalforfield
-210	Can change listing total for field	52	change_listingtotalforfield
-211	Can delete listing total for field	52	delete_listingtotalforfield
-212	Can view listing total for field	52	view_listingtotalforfield
-213	Can add conditional type	53	add_conditionaltype
-214	Can change conditional type	53	change_conditionaltype
-215	Can delete conditional type	53	delete_conditionaltype
-216	Can view conditional type	53	view_conditionaltype
-217	Can add notification	54	add_notification
-218	Can change notification	54	change_notification
-219	Can delete notification	54	delete_notification
-220	Can view notification	54	view_notification
-221	Can add notification configuration	55	add_notificationconfiguration
-222	Can change notification configuration	55	change_notificationconfiguration
-223	Can delete notification configuration	55	delete_notificationconfiguration
-224	Can view notification configuration	55	view_notificationconfiguration
-225	Can add read notification	56	add_readnotification
-226	Can change read notification	56	change_readnotification
-227	Can delete read notification	56	delete_readnotification
-228	Can view read notification	56	view_readnotification
-229	Can add attachments	57	add_attachments
-230	Can change attachments	57	change_attachments
-231	Can delete attachments	57	delete_attachments
-232	Can view attachments	57	view_attachments
-233	Can add field	58	add_field
-234	Can change field	58	change_field
-235	Can delete field	58	delete_field
-236	Can view field	58	view_field
-237	Can add field options	59	add_fieldoptions
-238	Can change field options	59	change_fieldoptions
-239	Can delete field options	59	delete_fieldoptions
-240	Can view field options	59	view_fieldoptions
-241	Can add field type	60	add_fieldtype
-242	Can change field type	60	change_fieldtype
-243	Can delete field type	60	delete_fieldtype
-244	Can view field type	60	view_fieldtype
-245	Can add option accessed by	61	add_optionaccessedby
-246	Can change option accessed by	61	change_optionaccessedby
-247	Can delete option accessed by	61	delete_optionaccessedby
-248	Can view option accessed by	61	view_optionaccessedby
-249	Can add theme	62	add_theme
-250	Can change theme	62	change_theme
-251	Can delete theme	62	delete_theme
-252	Can view theme	62	view_theme
-253	Can add theme field	63	add_themefield
-254	Can change theme field	63	change_themefield
-255	Can delete theme field	63	delete_themefield
-256	Can view theme field	63	view_themefield
-257	Can add theme field topic	64	add_themefieldtopic
-258	Can change theme field topic	64	change_themefieldtopic
-259	Can delete theme field topic	64	delete_themefieldtopic
-260	Can view theme field topic	64	view_themefieldtopic
-261	Can add form type	65	add_formtype
-262	Can change form type	65	change_formtype
-263	Can delete form type	65	delete_formtype
-264	Can view form type	65	view_formtype
-265	Can add theme field options	66	add_themefieldoptions
-266	Can change theme field options	66	change_themefieldoptions
-267	Can delete theme field options	66	delete_themefieldoptions
-268	Can view theme field options	66	view_themefieldoptions
-269	Can add dynamic form	67	add_dynamicform
-270	Can change dynamic form	67	change_dynamicform
-271	Can delete dynamic form	67	delete_dynamicform
-272	Can view dynamic form	67	view_dynamicform
-273	Can add form value	68	add_formvalue
-274	Can change form value	68	change_formvalue
-275	Can delete form value	68	delete_formvalue
-276	Can view form value	68	view_formvalue
-277	Can add form	69	add_form
-278	Can change form	69	change_form
-279	Can delete form	69	delete_form
-280	Can view form	69	view_form
-281	Can add theme form	70	add_themeform
-282	Can change theme form	70	change_themeform
-283	Can delete theme form	70	delete_themeform
-284	Can view theme form	70	view_themeform
-285	Can add form accessed by	71	add_formaccessedby
-286	Can change form accessed by	71	change_formaccessedby
-287	Can delete form accessed by	71	delete_formaccessedby
-288	Can view form accessed by	71	view_formaccessedby
-289	Can add kanban card	72	add_kanbancard
-290	Can change kanban card	72	change_kanbancard
-291	Can delete kanban card	72	delete_kanbancard
-292	Can view kanban card	72	view_kanbancard
-293	Can add kanban card field	73	add_kanbancardfield
-294	Can change kanban card field	73	change_kanbancardfield
-295	Can delete kanban card field	73	delete_kanbancardfield
-296	Can view kanban card field	73	view_kanbancardfield
-297	Can add kanban dimension order	74	add_kanbandimensionorder
-298	Can change kanban dimension order	74	change_kanbandimensionorder
-299	Can delete kanban dimension order	74	delete_kanbandimensionorder
-300	Can view kanban dimension order	74	view_kanbandimensionorder
-301	Can add listing selected fields	75	add_listingselectedfields
-302	Can change listing selected fields	75	change_listingselectedfields
-303	Can delete listing selected fields	75	delete_listingselectedfields
-304	Can view listing selected fields	75	view_listingselectedfields
-305	Can add listing total for field	76	add_listingtotalforfield
-306	Can change listing total for field	76	change_listingtotalforfield
-307	Can delete listing total for field	76	delete_listingtotalforfield
-308	Can view listing total for field	76	view_listingtotalforfield
-309	Can add conditional type	77	add_conditionaltype
-310	Can change conditional type	77	change_conditionaltype
-311	Can delete conditional type	77	delete_conditionaltype
-312	Can view conditional type	77	view_conditionaltype
-313	Can add data type	43	add_datatype
-314	Can change data type	43	change_datatype
-315	Can delete data type	43	delete_datatype
-316	Can view data type	43	view_datatype
-317	Can add config type	78	add_configtype
-318	Can change config type	78	change_configtype
-319	Can delete config type	78	delete_configtype
-320	Can view config type	78	view_configtype
-321	Can add field config type	79	add_fieldconfigtype
-322	Can change field config type	79	change_fieldconfigtype
-323	Can delete field config type	79	delete_fieldconfigtype
-324	Can view field config type	79	view_fieldconfigtype
-325	Can add field config	80	add_fieldconfig
-326	Can change field config	80	change_fieldconfig
-327	Can delete field config	80	delete_fieldconfig
-328	Can view field config	80	view_fieldconfig
-329	Can add company type	81	add_companytype
-330	Can change company type	81	change_companytype
-331	Can delete company type	81	delete_companytype
-332	Can view company type	81	view_companytype
-333	Can add theme	82	add_theme
-334	Can change theme	82	change_theme
-335	Can delete theme	82	delete_theme
-336	Can view theme	82	view_theme
-337	Can add theme field	83	add_themefield
-338	Can change theme field	83	change_themefield
-339	Can delete theme field	83	delete_themefield
-340	Can view theme field	83	view_themefield
-341	Can add theme form	84	add_themeform
-342	Can change theme form	84	change_themeform
-343	Can delete theme form	84	delete_themeform
-344	Can view theme form	84	view_themeform
-345	Can add theme kanban card	85	add_themekanbancard
-346	Can change theme kanban card	85	change_themekanbancard
-347	Can delete theme kanban card	85	delete_themekanbancard
-348	Can view theme kanban card	85	view_themekanbancard
-349	Can add theme notification configuration	86	add_themenotificationconfiguration
-350	Can change theme notification configuration	86	change_themenotificationconfiguration
-351	Can delete theme notification configuration	86	delete_themenotificationconfiguration
-352	Can view theme notification configuration	86	view_themenotificationconfiguration
-353	Can add theme listing total for field	87	add_themelistingtotalforfield
-354	Can change theme listing total for field	87	change_themelistingtotalforfield
-355	Can delete theme listing total for field	87	delete_themelistingtotalforfield
-356	Can view theme listing total for field	87	view_themelistingtotalforfield
-357	Can add theme kanban dimension order	88	add_themekanbandimensionorder
-358	Can change theme kanban dimension order	88	change_themekanbandimensionorder
-359	Can delete theme kanban dimension order	88	delete_themekanbandimensionorder
-360	Can view theme kanban dimension order	88	view_themekanbandimensionorder
-361	Can add theme kanban card field	89	add_themekanbancardfield
-362	Can change theme kanban card field	89	change_themekanbancardfield
-363	Can delete theme kanban card field	89	delete_themekanbancardfield
-364	Can view theme kanban card field	89	view_themekanbancardfield
-365	Can add theme field options	90	add_themefieldoptions
-366	Can change theme field options	90	change_themefieldoptions
-367	Can delete theme field options	90	delete_themefieldoptions
-368	Can view theme field options	90	view_themefieldoptions
-369	Can add theme photos	91	add_themephotos
-370	Can change theme photos	91	change_themephotos
-371	Can delete theme photos	91	delete_themephotos
-372	Can view theme photos	91	view_themephotos
-373	Can add group	92	add_group
-374	Can change group	92	change_group
-375	Can delete group	92	delete_group
-376	Can view group	92	view_group
-377	Can add company	21	add_company
-378	Can change company	21	change_company
-379	Can delete company	21	delete_company
-380	Can view company	21	view_company
-381	Can add group type	81	add_grouptype
-382	Can change group type	81	change_grouptype
-383	Can delete group type	81	delete_grouptype
-384	Can view group type	81	view_grouptype
-385	Can add company type	93	add_companytype
-386	Can change company type	93	change_companytype
-387	Can delete company type	93	delete_companytype
-388	Can view company type	93	view_companytype
-389	Can add extract file data	94	add_extractfiledata
-390	Can change extract file data	94	change_extractfiledata
-391	Can delete extract file data	94	delete_extractfiledata
-392	Can view extract file data	94	view_extractfiledata
-393	Can add task result	95	add_taskresult
-394	Can change task result	95	change_taskresult
-395	Can delete task result	95	delete_taskresult
-396	Can view task result	95	view_taskresult
-397	Can add number mask type	96	add_numbermasktype
-398	Can change number mask type	96	change_numbermasktype
-399	Can delete number mask type	96	delete_numbermasktype
-400	Can view number mask type	96	view_numbermasktype
-401	Can add field configuration	97	add_fieldconfiguration
-402	Can change field configuration	97	change_fieldconfiguration
-403	Can delete field configuration	97	delete_fieldconfiguration
-404	Can view field configuration	97	view_fieldconfiguration
-405	Can add theme field configuration	98	add_themefieldconfiguration
-406	Can change theme field configuration	98	change_themefieldconfiguration
-407	Can delete theme field configuration	98	delete_themefieldconfiguration
-408	Can view theme field configuration	98	view_themefieldconfiguration
-409	Can add date format type	99	add_dateformattype
-410	Can change date format type	99	change_dateformattype
-411	Can delete date format type	99	delete_dateformattype
-412	Can view date format type	99	view_dateformattype
-413	Can add period interval type	100	add_periodintervaltype
-414	Can change period interval type	100	change_periodintervaltype
-415	Can delete period interval type	100	delete_periodintervaltype
-416	Can view period interval type	100	view_periodintervaltype
-417	Can add charge frequency type	101	add_chargefrequencytype
-418	Can change charge frequency type	101	change_chargefrequencytype
-419	Can delete charge frequency type	101	delete_chargefrequencytype
-420	Can view charge frequency type	101	view_chargefrequencytype
-421	Can add charge type	102	add_chargetype
-422	Can change charge type	102	change_chargetype
-423	Can delete charge type	102	delete_chargetype
-424	Can view charge type	102	view_chargetype
-425	Can add invoice date type	103	add_invoicedatetype
-426	Can change invoice date type	103	change_invoicedatetype
-427	Can delete invoice date type	103	delete_invoicedatetype
-428	Can view invoice date type	103	view_invoicedatetype
-429	Can add payment method type	104	add_paymentmethodtype
-430	Can change payment method type	104	change_paymentmethodtype
-431	Can delete payment method type	104	delete_paymentmethodtype
-432	Can view payment method type	104	view_paymentmethodtype
-433	Can add discount by individual value	105	add_discountbyindividualvalue
-434	Can change discount by individual value	105	change_discountbyindividualvalue
-435	Can delete discount by individual value	105	delete_discountbyindividualvalue
-436	Can view discount by individual value	105	view_discountbyindividualvalue
-437	Can add current company charge	106	add_currentcompanycharge
-438	Can change current company charge	106	change_currentcompanycharge
-439	Can delete current company charge	106	delete_currentcompanycharge
-440	Can view current company charge	106	view_currentcompanycharge
-441	Can add company charge	107	add_companycharge
-442	Can change company charge	107	change_companycharge
-443	Can delete company charge	107	delete_companycharge
-444	Can view company charge	107	view_companycharge
-445	Can add individual charge value type	108	add_individualchargevaluetype
-446	Can change individual charge value type	108	change_individualchargevaluetype
-447	Can delete individual charge value type	108	delete_individualchargevaluetype
-448	Can view individual charge value type	108	view_individualchargevaluetype
-449	Can add company invoice mails	109	add_companyinvoicemails
-450	Can change company invoice mails	109	change_companyinvoicemails
-451	Can delete company invoice mails	109	delete_companyinvoicemails
-452	Can view company invoice mails	109	view_companyinvoicemails
-453	Can add company coupons	110	add_companycoupons
-454	Can change company coupons	110	change_companycoupons
-455	Can delete company coupons	110	delete_companycoupons
-456	Can view company coupons	110	view_companycoupons
-457	Can add discount coupon	111	add_discountcoupon
-458	Can change discount coupon	111	change_discountcoupon
-459	Can delete discount coupon	111	delete_discountcoupon
-460	Can view discount coupon	111	view_discountcoupon
-461	Can add user notification	56	add_usernotification
-462	Can change user notification	56	change_usernotification
-463	Can delete user notification	56	delete_usernotification
-464	Can view user notification	56	view_usernotification
-465	Can add pre notification	112	add_prenotification
-466	Can change pre notification	112	change_prenotification
-467	Can delete pre notification	112	delete_prenotification
-468	Can view pre notification	112	view_prenotification
-469	Can add field date format type	99	add_fielddateformattype
-470	Can change field date format type	99	change_fielddateformattype
-471	Can delete field date format type	99	delete_fielddateformattype
-472	Can view field date format type	99	view_fielddateformattype
-473	Can add field number mask type	96	add_fieldnumbermasktype
-474	Can change field number mask type	96	change_fieldnumbermasktype
-475	Can delete field number mask type	96	delete_fieldnumbermasktype
-476	Can view field number mask type	96	view_fieldnumbermasktype
-477	Can add field period interval type	100	add_fieldperiodintervaltype
-478	Can change field period interval type	100	change_fieldperiodintervaltype
-479	Can delete field period interval type	100	delete_fieldperiodintervaltype
-480	Can view field period interval type	100	view_fieldperiodintervaltype
-481	Can add notification configuration variable	113	add_notificationconfigurationvariable
-482	Can change notification configuration variable	113	change_notificationconfigurationvariable
-483	Can delete notification configuration variable	113	delete_notificationconfigurationvariable
-484	Can view notification configuration variable	113	view_notificationconfigurationvariable
-485	Can add theme notification configuration variable	114	add_themenotificationconfigurationvariable
-486	Can change theme notification configuration variable	114	change_themenotificationconfigurationvariable
-487	Can delete theme notification configuration variable	114	delete_themenotificationconfigurationvariable
-488	Can view theme notification configuration variable	114	view_themenotificationconfigurationvariable
-489	Can add formula type	115	add_formulatype
-490	Can change formula type	115	change_formulatype
-491	Can delete formula type	115	delete_formulatype
-492	Can view formula type	115	view_formulatype
-493	Can add raw data type	116	add_rawdatatype
-494	Can change raw data type	116	change_rawdatatype
-495	Can delete raw data type	116	delete_rawdatatype
-496	Can view raw data type	116	view_rawdatatype
-497	Can add formula parameters type	117	add_formulaparameterstype
-498	Can change formula parameters type	117	change_formulaparameterstype
-499	Can delete formula parameters type	117	delete_formulaparameterstype
-500	Can view formula parameters type	117	view_formulaparameterstype
-501	Can add field number format type	118	add_fieldnumberformattype
-502	Can change field number format type	118	change_fieldnumberformattype
-503	Can delete field number format type	118	delete_fieldnumberformattype
-504	Can view field number format type	118	view_fieldnumberformattype
-505	Can add push notification tag type	119	add_pushnotificationtagtype
-506	Can change push notification tag type	119	change_pushnotificationtagtype
-507	Can delete push notification tag type	119	delete_pushnotificationtagtype
-508	Can view push notification tag type	119	view_pushnotificationtagtype
-509	Can add push notification	120	add_pushnotification
-510	Can change push notification	120	change_pushnotification
-511	Can delete push notification	120	delete_pushnotification
-512	Can view push notification	120	view_pushnotification
-513	Can add user extended	121	add_userextended
-514	Can change user extended	121	change_userextended
-515	Can delete user extended	121	delete_userextended
-516	Can view user extended	121	view_userextended
-517	Can add company	122	add_company
-518	Can change company	122	change_company
-519	Can delete company	122	delete_company
-520	Can view company	122	view_company
-521	Can add company type	123	add_companytype
-522	Can change company type	123	change_companytype
-523	Can delete company type	123	delete_companytype
-524	Can view company type	123	view_companytype
-525	Can add profile type	124	add_profiletype
-526	Can change profile type	124	change_profiletype
-527	Can delete profile type	124	delete_profiletype
-528	Can view profile type	124	view_profiletype
-529	Can add visualization type	125	add_visualizationtype
-530	Can change visualization type	125	change_visualizationtype
-531	Can delete visualization type	125	delete_visualizationtype
-532	Can view visualization type	125	view_visualizationtype
-533	Can add conditional type	126	add_conditionaltype
-534	Can change conditional type	126	change_conditionaltype
-535	Can delete conditional type	126	delete_conditionaltype
-536	Can view conditional type	126	view_conditionaltype
-537	Can add field	127	add_field
-538	Can change field	127	change_field
-539	Can delete field	127	delete_field
-540	Can view field	127	view_field
-541	Can add field date format type	128	add_fielddateformattype
-542	Can change field date format type	128	change_fielddateformattype
-543	Can delete field date format type	128	delete_fielddateformattype
-544	Can view field date format type	128	view_fielddateformattype
-545	Can add field number format type	129	add_fieldnumberformattype
-546	Can change field number format type	129	change_fieldnumberformattype
-547	Can delete field number format type	129	delete_fieldnumberformattype
-548	Can view field number format type	129	view_fieldnumberformattype
-549	Can add field options	130	add_fieldoptions
-550	Can change field options	130	change_fieldoptions
-551	Can delete field options	130	delete_fieldoptions
-552	Can view field options	130	view_fieldoptions
-553	Can add field period interval type	131	add_fieldperiodintervaltype
-554	Can change field period interval type	131	change_fieldperiodintervaltype
-555	Can delete field period interval type	131	delete_fieldperiodintervaltype
-556	Can view field period interval type	131	view_fieldperiodintervaltype
-557	Can add field type	132	add_fieldtype
-558	Can change field type	132	change_fieldtype
-559	Can delete field type	132	delete_fieldtype
-560	Can view field type	132	view_fieldtype
-561	Can add form	133	add_form
-562	Can change form	133	change_form
-563	Can delete form	133	delete_form
-564	Can view form	133	view_form
-565	Can add section type	134	add_sectiontype
-566	Can change section type	134	change_sectiontype
-567	Can delete section type	134	delete_sectiontype
-568	Can view section type	134	view_sectiontype
-569	Can add option accessed by	135	add_optionaccessedby
-570	Can change option accessed by	135	change_optionaccessedby
-571	Can delete option accessed by	135	delete_optionaccessedby
-572	Can view option accessed by	135	view_optionaccessedby
-573	Can add group	136	add_group
-574	Can change group	136	change_group
-575	Can delete group	136	delete_group
-576	Can view group	136	view_group
-577	Can add form accessed by	137	add_formaccessedby
-578	Can change form accessed by	137	change_formaccessedby
-579	Can delete form accessed by	137	delete_formaccessedby
-580	Can view form accessed by	137	view_formaccessedby
-581	Can add notification	138	add_notification
-582	Can change notification	138	change_notification
-583	Can delete notification	138	delete_notification
-584	Can view notification	138	view_notification
-585	Can add notification configuration	139	add_notificationconfiguration
-586	Can change notification configuration	139	change_notificationconfiguration
-587	Can delete notification configuration	139	delete_notificationconfiguration
-588	Can view notification configuration	139	view_notificationconfiguration
-589	Can add user notification	140	add_usernotification
-590	Can change user notification	140	change_usernotification
-591	Can delete user notification	140	delete_usernotification
-592	Can view user notification	140	view_usernotification
-593	Can add pre notification	141	add_prenotification
-594	Can change pre notification	141	change_prenotification
-595	Can delete pre notification	141	delete_prenotification
-596	Can view pre notification	141	view_prenotification
-597	Can add notification configuration variable	142	add_notificationconfigurationvariable
-598	Can change notification configuration variable	142	change_notificationconfigurationvariable
-599	Can delete notification configuration variable	142	delete_notificationconfigurationvariable
-600	Can view notification configuration variable	142	view_notificationconfigurationvariable
-601	Can add push notification tag type	143	add_pushnotificationtagtype
-602	Can change push notification tag type	143	change_pushnotificationtagtype
-603	Can delete push notification tag type	143	delete_pushnotificationtagtype
-604	Can view push notification tag type	143	view_pushnotificationtagtype
-605	Can add push notification	144	add_pushnotification
-606	Can change push notification	144	change_pushnotification
-607	Can delete push notification	144	delete_pushnotification
-608	Can view push notification	144	view_pushnotification
-609	Can add kanban card	145	add_kanbancard
-610	Can change kanban card	145	change_kanbancard
-611	Can delete kanban card	145	delete_kanbancard
-612	Can view kanban card	145	view_kanbancard
-613	Can add kanban dimension order	146	add_kanbandimensionorder
-614	Can change kanban dimension order	146	change_kanbandimensionorder
-615	Can delete kanban dimension order	146	delete_kanbandimensionorder
-616	Can view kanban dimension order	146	view_kanbandimensionorder
-617	Can add kanban card field	147	add_kanbancardfield
-618	Can change kanban card field	147	change_kanbancardfield
-619	Can delete kanban card field	147	delete_kanbancardfield
-620	Can view kanban card field	147	view_kanbancardfield
-621	Can add listing total for field	148	add_listingtotalforfield
-622	Can change listing total for field	148	change_listingtotalforfield
-623	Can delete listing total for field	148	delete_listingtotalforfield
-624	Can view listing total for field	148	view_listingtotalforfield
-625	Can add listing selected fields	149	add_listingselectedfields
-626	Can change listing selected fields	149	change_listingselectedfields
-627	Can delete listing selected fields	149	delete_listingselectedfields
-628	Can view listing selected fields	149	view_listingselectedfields
-629	Can add extract file data	150	add_extractfiledata
-630	Can change extract file data	150	change_extractfiledata
-631	Can delete extract file data	150	delete_extractfiledata
-632	Can view extract file data	150	view_extractfiledata
-633	Can add theme	151	add_theme
-634	Can change theme	151	change_theme
-635	Can delete theme	151	delete_theme
-636	Can view theme	151	view_theme
-637	Can add theme field	152	add_themefield
-638	Can change theme field	152	change_themefield
-639	Can delete theme field	152	delete_themefield
-640	Can view theme field	152	view_themefield
-641	Can add theme form	153	add_themeform
-642	Can change theme form	153	change_themeform
-643	Can delete theme form	153	delete_themeform
-644	Can view theme form	153	view_themeform
-645	Can add theme kanban card	154	add_themekanbancard
-646	Can change theme kanban card	154	change_themekanbancard
-647	Can delete theme kanban card	154	delete_themekanbancard
-648	Can view theme kanban card	154	view_themekanbancard
-649	Can add theme notification configuration	155	add_themenotificationconfiguration
-650	Can change theme notification configuration	155	change_themenotificationconfiguration
-651	Can delete theme notification configuration	155	delete_themenotificationconfiguration
-652	Can view theme notification configuration	155	view_themenotificationconfiguration
-653	Can add theme type	156	add_themetype
-654	Can change theme type	156	change_themetype
-655	Can delete theme type	156	delete_themetype
-656	Can view theme type	156	view_themetype
-657	Can add theme photos	157	add_themephotos
-658	Can change theme photos	157	change_themephotos
-659	Can delete theme photos	157	delete_themephotos
-660	Can view theme photos	157	view_themephotos
-661	Can add theme notification configuration variable	158	add_themenotificationconfigurationvariable
-662	Can change theme notification configuration variable	158	change_themenotificationconfigurationvariable
-663	Can delete theme notification configuration variable	158	delete_themenotificationconfigurationvariable
-664	Can view theme notification configuration variable	158	view_themenotificationconfigurationvariable
-665	Can add theme listing total for field	159	add_themelistingtotalforfield
-666	Can change theme listing total for field	159	change_themelistingtotalforfield
-667	Can delete theme listing total for field	159	delete_themelistingtotalforfield
-668	Can view theme listing total for field	159	view_themelistingtotalforfield
-669	Can add theme kanban dimension order	160	add_themekanbandimensionorder
-670	Can change theme kanban dimension order	160	change_themekanbandimensionorder
-671	Can delete theme kanban dimension order	160	delete_themekanbandimensionorder
-672	Can view theme kanban dimension order	160	view_themekanbandimensionorder
-673	Can add theme kanban card field	161	add_themekanbancardfield
-674	Can change theme kanban card field	161	change_themekanbancardfield
-675	Can delete theme kanban card field	161	delete_themekanbancardfield
-676	Can view theme kanban card field	161	view_themekanbancardfield
-677	Can add theme field options	162	add_themefieldoptions
-678	Can change theme field options	162	change_themefieldoptions
-679	Can delete theme field options	162	delete_themefieldoptions
-680	Can view theme field options	162	view_themefieldoptions
-681	Can add chart type	163	add_charttype
-682	Can change chart type	163	change_charttype
-683	Can delete chart type	163	delete_charttype
-684	Can view chart type	163	view_charttype
-685	Can add aggregation type	164	add_aggregationtype
-686	Can change aggregation type	164	change_aggregationtype
-687	Can delete aggregation type	164	delete_aggregationtype
-688	Can view aggregation type	164	view_aggregationtype
-689	Can add dashboard chart configuration	165	add_dashboardchartconfiguration
-690	Can change dashboard chart configuration	165	change_dashboardchartconfiguration
-691	Can delete dashboard chart configuration	165	delete_dashboardchartconfiguration
-692	Can view dashboard chart configuration	165	view_dashboardchartconfiguration
-693	Can add address helper	166	add_addresshelper
-694	Can change address helper	166	change_addresshelper
-695	Can delete address helper	166	delete_addresshelper
-696	Can view address helper	166	view_addresshelper
-697	Can add discount by individual value quantity	167	add_discountbyindividualvaluequantity
-698	Can change discount by individual value quantity	167	change_discountbyindividualvaluequantity
-699	Can delete discount by individual value quantity	167	delete_discountbyindividualvaluequantity
-700	Can view discount by individual value quantity	167	view_discountbyindividualvaluequantity
-701	Can add discount by individual name for company	168	add_discountbyindividualnameforcompany
-702	Can change discount by individual name for company	168	change_discountbyindividualnameforcompany
-703	Can delete discount by individual name for company	168	delete_discountbyindividualnameforcompany
-704	Can view discount by individual name for company	168	view_discountbyindividualnameforcompany
-705	Can add company billing	169	add_companybilling
-706	Can change company billing	169	change_companybilling
-707	Can delete company billing	169	delete_companybilling
-708	Can view company billing	169	view_companybilling
-709	Can add theme dashboard chart configuration	170	add_themedashboardchartconfiguration
-710	Can change theme dashboard chart configuration	170	change_themedashboardchartconfiguration
-711	Can delete theme dashboard chart configuration	170	delete_themedashboardchartconfiguration
-712	Can view theme dashboard chart configuration	170	view_themedashboardchartconfiguration
-713	Can add text alignment type	171	add_textalignmenttype
-714	Can change text alignment type	171	change_textalignmenttype
-715	Can delete text alignment type	171	delete_textalignmenttype
-716	Can view text alignment type	171	view_textalignmenttype
-717	Can add text block	172	add_textblock
-718	Can change text block	172	change_textblock
-719	Can delete text block	172	delete_textblock
-720	Can view text block	172	view_textblock
-721	Can add text block type	173	add_textblocktype
-722	Can change text block type	173	change_textblocktype
-723	Can delete text block type	173	delete_textblocktype
-724	Can view text block type	173	view_textblocktype
-725	Can add text image option	174	add_textimageoption
-726	Can change text image option	174	change_textimageoption
-727	Can delete text image option	174	delete_textimageoption
-728	Can view text image option	174	view_textimageoption
-729	Can add text list type	175	add_textlisttype
-730	Can change text list type	175	change_textlisttype
-731	Can delete text list type	175	delete_textlisttype
-732	Can view text list type	175	view_textlisttype
-733	Can add text page	176	add_textpage
-734	Can change text page	176	change_textpage
-735	Can delete text page	176	delete_textpage
-736	Can view text page	176	view_textpage
-737	Can add text table option	177	add_texttableoption
-738	Can change text table option	177	change_texttableoption
-739	Can delete text table option	177	delete_texttableoption
-740	Can view text table option	177	view_texttableoption
-741	Can add text text option	178	add_texttextoption
-742	Can change text text option	178	change_texttextoption
-743	Can delete text text option	178	delete_texttextoption
-744	Can view text text option	178	view_texttextoption
-745	Can add text list option	179	add_textlistoption
-746	Can change text list option	179	change_textlistoption
-747	Can delete text list option	179	delete_textlistoption
-748	Can view text list option	179	view_textlistoption
-749	Can add text content	180	add_textcontent
-750	Can change text content	180	change_textcontent
-751	Can delete text content	180	delete_textcontent
-752	Can view text content	180	view_textcontent
-753	Can add text block type can contain type	181	add_textblocktypecancontaintype
-754	Can change text block type can contain type	181	change_textblocktypecancontaintype
-755	Can delete text block type can contain type	181	delete_textblocktypecancontaintype
-756	Can view text block type can contain type	181	view_textblocktypecancontaintype
-757	Can add pdf template configuration	182	add_pdftemplateconfiguration
-758	Can change pdf template configuration	182	change_pdftemplateconfiguration
-759	Can delete pdf template configuration	182	delete_pdftemplateconfiguration
-760	Can view pdf template configuration	182	view_pdftemplateconfiguration
-761	Can add pdf template configuration variables	183	add_pdftemplateconfigurationvariables
-762	Can change pdf template configuration variables	183	change_pdftemplateconfigurationvariables
-763	Can delete pdf template configuration variables	183	delete_pdftemplateconfigurationvariables
-764	Can view pdf template configuration variables	183	view_pdftemplateconfigurationvariables
-765	Can add pdf generated	184	add_pdfgenerated
-766	Can change pdf generated	184	change_pdfgenerated
-767	Can delete pdf generated	184	delete_pdfgenerated
-768	Can view pdf generated	184	view_pdfgenerated
-769	Can add draft type	185	add_drafttype
-770	Can change draft type	185	change_drafttype
-771	Can delete draft type	185	delete_drafttype
-772	Can view draft type	185	view_drafttype
-773	Can add draft	186	add_draft
-774	Can change draft	186	change_draft
-775	Can delete draft	186	delete_draft
-776	Can view draft	186	view_draft
-777	Can add partner default and discounts	187	add_partnerdefaultanddiscounts
-778	Can change partner default and discounts	187	change_partnerdefaultanddiscounts
-779	Can delete partner default and discounts	187	delete_partnerdefaultanddiscounts
-780	Can view partner default and discounts	187	view_partnerdefaultanddiscounts
-781	Can add text table option row dimension	188	add_texttableoptionrowdimension
-782	Can change text table option row dimension	188	change_texttableoptionrowdimension
-783	Can delete text table option row dimension	188	delete_texttableoptionrowdimension
-784	Can view text table option row dimension	188	view_texttableoptionrowdimension
-785	Can add text table option column dimension	189	add_texttableoptioncolumndimension
-786	Can change text table option column dimension	189	change_texttableoptioncolumndimension
-787	Can delete text table option column dimension	189	delete_texttableoptioncolumndimension
-788	Can view text table option column dimension	189	view_texttableoptioncolumndimension
-789	Can add pdf template allowed text block	190	add_pdftemplateallowedtextblock
-790	Can change pdf template allowed text block	190	change_pdftemplateallowedtextblock
-791	Can delete pdf template allowed text block	190	delete_pdftemplateallowedtextblock
-792	Can view pdf template allowed text block	190	view_pdftemplateallowedtextblock
-793	Can add kanban default	191	add_kanbandefault
-794	Can change kanban default	191	change_kanbandefault
-795	Can delete kanban default	191	delete_kanbandefault
-796	Can view kanban default	191	view_kanbandefault
-797	Can add kanban collapsed option	192	add_kanbancollapsedoption
-798	Can change kanban collapsed option	192	change_kanbancollapsedoption
-799	Can delete kanban collapsed option	192	delete_kanbancollapsedoption
-800	Can view kanban collapsed option	192	view_kanbancollapsedoption
-801	Can add theme kanban default	193	add_themekanbandefault
-802	Can change theme kanban default	193	change_themekanbandefault
-803	Can delete theme kanban default	193	delete_themekanbandefault
-804	Can view theme kanban default	193	view_themekanbandefault
-805	Can add public access	194	add_publicaccess
-806	Can change public access	194	change_publicaccess
-807	Can delete public access	194	delete_publicaccess
-808	Can view public access	194	view_publicaccess
-809	Can add public access form	195	add_publicaccessform
-810	Can change public access form	195	change_publicaccessform
-811	Can delete public access form	195	delete_publicaccessform
-812	Can view public access form	195	view_publicaccessform
-813	Can add public access field	196	add_publicaccessfield
-814	Can change public access field	196	change_publicaccessfield
-815	Can delete public access field	196	delete_publicaccessfield
-816	Can view public access field	196	view_publicaccessfield
-817	Can add default field value	197	add_defaultfieldvalue
-818	Can change default field value	197	change_defaultfieldvalue
-819	Can delete default field value	197	delete_defaultfieldvalue
-820	Can view default field value	197	view_defaultfieldvalue
-821	Can add default field value attachments	198	add_defaultfieldvalueattachments
-822	Can change default field value attachments	198	change_defaultfieldvalueattachments
-823	Can delete default field value attachments	198	delete_defaultfieldvalueattachments
-824	Can view default field value attachments	198	view_defaultfieldvalueattachments
-825	Can add user accessed by	199	add_useraccessedby
-826	Can change user accessed by	199	change_useraccessedby
-827	Can delete user accessed by	199	delete_useraccessedby
-828	Can view user accessed by	199	view_useraccessedby
+1	Can add user extended	1	add_userextended
+2	Can change user extended	1	change_userextended
+3	Can delete user extended	1	delete_userextended
+4	Can view user extended	1	view_userextended
+5	Can add company	2	add_company
+6	Can change company	2	change_company
+7	Can delete company	2	delete_company
+8	Can view company	2	view_company
+9	Can add company type	3	add_companytype
+10	Can change company type	3	change_companytype
+11	Can delete company type	3	delete_companytype
+12	Can view company type	3	view_companytype
+13	Can add profile type	4	add_profiletype
+14	Can change profile type	4	change_profiletype
+15	Can delete profile type	4	delete_profiletype
+16	Can view profile type	4	view_profiletype
+17	Can add visualization type	5	add_visualizationtype
+18	Can change visualization type	5	change_visualizationtype
+19	Can delete visualization type	5	delete_visualizationtype
+20	Can view visualization type	5	view_visualizationtype
+21	Can add address helper	6	add_addresshelper
+22	Can change address helper	6	change_addresshelper
+23	Can delete address helper	6	delete_addresshelper
+24	Can view address helper	6	view_addresshelper
+25	Can add public access	7	add_publicaccess
+26	Can change public access	7	change_publicaccess
+27	Can delete public access	7	delete_publicaccess
+28	Can view public access	7	view_publicaccess
+29	Can add charge frequency type	8	add_chargefrequencytype
+30	Can change charge frequency type	8	change_chargefrequencytype
+31	Can delete charge frequency type	8	delete_chargefrequencytype
+32	Can view charge frequency type	8	view_chargefrequencytype
+33	Can add charge type	9	add_chargetype
+34	Can change charge type	9	change_chargetype
+35	Can delete charge type	9	delete_chargetype
+36	Can view charge type	9	view_chargetype
+37	Can add discount coupon	10	add_discountcoupon
+38	Can change discount coupon	10	change_discountcoupon
+39	Can delete discount coupon	10	delete_discountcoupon
+40	Can view discount coupon	10	view_discountcoupon
+41	Can add invoice date type	11	add_invoicedatetype
+42	Can change invoice date type	11	change_invoicedatetype
+43	Can delete invoice date type	11	delete_invoicedatetype
+44	Can view invoice date type	11	view_invoicedatetype
+45	Can add payment method type	12	add_paymentmethodtype
+46	Can change payment method type	12	change_paymentmethodtype
+47	Can delete payment method type	12	delete_paymentmethodtype
+48	Can view payment method type	12	view_paymentmethodtype
+49	Can add individual charge value type	13	add_individualchargevaluetype
+50	Can change individual charge value type	13	change_individualchargevaluetype
+51	Can delete individual charge value type	13	delete_individualchargevaluetype
+52	Can view individual charge value type	13	view_individualchargevaluetype
+53	Can add discount by individual value quantity	14	add_discountbyindividualvaluequantity
+54	Can change discount by individual value quantity	14	change_discountbyindividualvaluequantity
+55	Can delete discount by individual value quantity	14	delete_discountbyindividualvaluequantity
+56	Can view discount by individual value quantity	14	view_discountbyindividualvaluequantity
+57	Can add current company charge	15	add_currentcompanycharge
+58	Can change current company charge	15	change_currentcompanycharge
+59	Can delete current company charge	15	delete_currentcompanycharge
+60	Can view current company charge	15	view_currentcompanycharge
+61	Can add company invoice mails	16	add_companyinvoicemails
+62	Can change company invoice mails	16	change_companyinvoicemails
+63	Can delete company invoice mails	16	delete_companyinvoicemails
+64	Can view company invoice mails	16	view_companyinvoicemails
+65	Can add company coupons	17	add_companycoupons
+66	Can change company coupons	17	change_companycoupons
+67	Can delete company coupons	17	delete_companycoupons
+68	Can view company coupons	17	view_companycoupons
+69	Can add company charge	18	add_companycharge
+70	Can change company charge	18	change_companycharge
+71	Can delete company charge	18	delete_companycharge
+72	Can view company charge	18	view_companycharge
+73	Can add discount by individual name for company	19	add_discountbyindividualnameforcompany
+74	Can change discount by individual name for company	19	change_discountbyindividualnameforcompany
+75	Can delete discount by individual name for company	19	delete_discountbyindividualnameforcompany
+76	Can view discount by individual name for company	19	view_discountbyindividualnameforcompany
+77	Can add company billing	20	add_companybilling
+78	Can change company billing	20	change_companybilling
+79	Can delete company billing	20	delete_companybilling
+80	Can view company billing	20	view_companybilling
+81	Can add partner default and discounts	21	add_partnerdefaultanddiscounts
+82	Can change partner default and discounts	21	change_partnerdefaultanddiscounts
+83	Can delete partner default and discounts	21	delete_partnerdefaultanddiscounts
+84	Can view partner default and discounts	21	view_partnerdefaultanddiscounts
+85	Can add aggregation type	22	add_aggregationtype
+86	Can change aggregation type	22	change_aggregationtype
+87	Can delete aggregation type	22	delete_aggregationtype
+88	Can view aggregation type	22	view_aggregationtype
+89	Can add chart type	23	add_charttype
+90	Can change chart type	23	change_charttype
+91	Can delete chart type	23	delete_charttype
+92	Can view chart type	23	view_charttype
+93	Can add dashboard chart configuration	24	add_dashboardchartconfiguration
+94	Can change dashboard chart configuration	24	change_dashboardchartconfiguration
+95	Can delete dashboard chart configuration	24	delete_dashboardchartconfiguration
+96	Can view dashboard chart configuration	24	view_dashboardchartconfiguration
+97	Can add formula type	25	add_formulatype
+98	Can change formula type	25	change_formulatype
+99	Can delete formula type	25	delete_formulatype
+100	Can view formula type	25	view_formulatype
+101	Can add draft type	26	add_drafttype
+102	Can change draft type	26	change_drafttype
+103	Can delete draft type	26	delete_drafttype
+104	Can view draft type	26	view_drafttype
+105	Can add draft	27	add_draft
+106	Can change draft	27	change_draft
+107	Can delete draft	27	delete_draft
+108	Can view draft	27	view_draft
+109	Can add dynamic form	28	add_dynamicform
+110	Can change dynamic form	28	change_dynamicform
+111	Can delete dynamic form	28	delete_dynamicform
+112	Can view dynamic form	28	view_dynamicform
+113	Can add form value	29	add_formvalue
+114	Can change form value	29	change_formvalue
+115	Can delete form value	29	delete_formvalue
+116	Can view form value	29	view_formvalue
+117	Can add attachments	30	add_attachments
+118	Can change attachments	30	change_attachments
+119	Can delete attachments	30	delete_attachments
+120	Can view attachments	30	view_attachments
+121	Can add extract file data	31	add_extractfiledata
+122	Can change extract file data	31	change_extractfiledata
+123	Can delete extract file data	31	delete_extractfiledata
+124	Can view extract file data	31	view_extractfiledata
+125	Can add conditional type	32	add_conditionaltype
+126	Can change conditional type	32	change_conditionaltype
+127	Can delete conditional type	32	delete_conditionaltype
+128	Can view conditional type	32	view_conditionaltype
+129	Can add field	33	add_field
+130	Can change field	33	change_field
+131	Can delete field	33	delete_field
+132	Can view field	33	view_field
+133	Can add field date format type	34	add_fielddateformattype
+134	Can change field date format type	34	change_fielddateformattype
+135	Can delete field date format type	34	delete_fielddateformattype
+136	Can view field date format type	34	view_fielddateformattype
+137	Can add field number format type	35	add_fieldnumberformattype
+138	Can change field number format type	35	change_fieldnumberformattype
+139	Can delete field number format type	35	delete_fieldnumberformattype
+140	Can view field number format type	35	view_fieldnumberformattype
+141	Can add field options	36	add_fieldoptions
+142	Can change field options	36	change_fieldoptions
+143	Can delete field options	36	delete_fieldoptions
+144	Can view field options	36	view_fieldoptions
+145	Can add field period interval type	37	add_fieldperiodintervaltype
+146	Can change field period interval type	37	change_fieldperiodintervaltype
+147	Can delete field period interval type	37	delete_fieldperiodintervaltype
+148	Can view field period interval type	37	view_fieldperiodintervaltype
+149	Can add field type	38	add_fieldtype
+150	Can change field type	38	change_fieldtype
+151	Can delete field type	38	delete_fieldtype
+152	Can view field type	38	view_fieldtype
+153	Can add form	39	add_form
+154	Can change form	39	change_form
+155	Can delete form	39	delete_form
+156	Can view form	39	view_form
+157	Can add section type	40	add_sectiontype
+158	Can change section type	40	change_sectiontype
+159	Can delete section type	40	delete_sectiontype
+160	Can view section type	40	view_sectiontype
+161	Can add option accessed by	41	add_optionaccessedby
+162	Can change option accessed by	41	change_optionaccessedby
+163	Can delete option accessed by	41	delete_optionaccessedby
+164	Can view option accessed by	41	view_optionaccessedby
+165	Can add group	42	add_group
+166	Can change group	42	change_group
+167	Can delete group	42	delete_group
+168	Can view group	42	view_group
+169	Can add form accessed by	43	add_formaccessedby
+170	Can change form accessed by	43	change_formaccessedby
+171	Can delete form accessed by	43	delete_formaccessedby
+172	Can view form accessed by	43	view_formaccessedby
+173	Can add public access form	44	add_publicaccessform
+174	Can change public access form	44	change_publicaccessform
+175	Can delete public access form	44	delete_publicaccessform
+176	Can view public access form	44	view_publicaccessform
+177	Can add public access field	45	add_publicaccessfield
+178	Can change public access field	45	change_publicaccessfield
+179	Can delete public access field	45	delete_publicaccessfield
+180	Can view public access field	45	view_publicaccessfield
+181	Can add default field value	46	add_defaultfieldvalue
+182	Can change default field value	46	change_defaultfieldvalue
+183	Can delete default field value	46	delete_defaultfieldvalue
+184	Can view default field value	46	view_defaultfieldvalue
+185	Can add default field value attachments	47	add_defaultfieldvalueattachments
+186	Can change default field value attachments	47	change_defaultfieldvalueattachments
+187	Can delete default field value attachments	47	delete_defaultfieldvalueattachments
+188	Can view default field value attachments	47	view_defaultfieldvalueattachments
+189	Can add user accessed by	48	add_useraccessedby
+190	Can change user accessed by	48	change_useraccessedby
+191	Can delete user accessed by	48	delete_useraccessedby
+192	Can view user accessed by	48	view_useraccessedby
+193	Can add kanban card	49	add_kanbancard
+194	Can change kanban card	49	change_kanbancard
+195	Can delete kanban card	49	delete_kanbancard
+196	Can view kanban card	49	view_kanbancard
+197	Can add kanban dimension order	50	add_kanbandimensionorder
+198	Can change kanban dimension order	50	change_kanbandimensionorder
+199	Can delete kanban dimension order	50	delete_kanbandimensionorder
+200	Can view kanban dimension order	50	view_kanbandimensionorder
+201	Can add kanban card field	51	add_kanbancardfield
+202	Can change kanban card field	51	change_kanbancardfield
+203	Can delete kanban card field	51	delete_kanbancardfield
+204	Can view kanban card field	51	view_kanbancardfield
+205	Can add kanban default	52	add_kanbandefault
+206	Can change kanban default	52	change_kanbandefault
+207	Can delete kanban default	52	delete_kanbandefault
+208	Can view kanban default	52	view_kanbandefault
+209	Can add kanban collapsed option	53	add_kanbancollapsedoption
+210	Can change kanban collapsed option	53	change_kanbancollapsedoption
+211	Can delete kanban collapsed option	53	delete_kanbancollapsedoption
+212	Can view kanban collapsed option	53	view_kanbancollapsedoption
+213	Can add log entry	54	add_logentry
+214	Can change log entry	54	change_logentry
+215	Can delete log entry	54	delete_logentry
+216	Can view log entry	54	view_logentry
+217	Can add permission	55	add_permission
+218	Can change permission	55	change_permission
+219	Can delete permission	55	delete_permission
+220	Can view permission	55	view_permission
+221	Can add group	56	add_group
+222	Can change group	56	change_group
+223	Can delete group	56	delete_group
+224	Can view group	56	view_group
+225	Can add content type	57	add_contenttype
+226	Can change content type	57	change_contenttype
+227	Can delete content type	57	delete_contenttype
+228	Can view content type	57	view_contenttype
+829	Can add formula context attribute type	200	add_formulacontextattributetype
+830	Can change formula context attribute type	200	change_formulacontextattributetype
+831	Can delete formula context attribute type	200	delete_formulacontextattributetype
+832	Can view formula context attribute type	200	view_formulacontextattributetype
+833	Can add formula attribute type	201	add_formulaattributetype
+834	Can change formula attribute type	201	change_formulaattributetype
+835	Can delete formula attribute type	201	delete_formulaattributetype
+836	Can view formula attribute type	201	view_formulaattributetype
+837	Can add formula context for company	202	add_formulacontextforcompany
+838	Can change formula context for company	202	change_formulacontextforcompany
+839	Can delete formula context for company	202	delete_formulacontextforcompany
+840	Can view formula context for company	202	view_formulacontextforcompany
+841	Can add formula context type	203	add_formulacontexttype
+842	Can change formula context type	203	change_formulacontexttype
+843	Can delete formula context type	203	delete_formulacontexttype
+844	Can view formula context type	203	view_formulacontexttype
+845	Can add user notification	204	add_usernotification
+846	Can change user notification	204	change_usernotification
+847	Can delete user notification	204	delete_usernotification
+848	Can view user notification	204	view_usernotification
+849	Can add notification configuration variable	205	add_notificationconfigurationvariable
+850	Can change notification configuration variable	205	change_notificationconfigurationvariable
+851	Can delete notification configuration variable	205	delete_notificationconfigurationvariable
+852	Can view notification configuration variable	205	view_notificationconfigurationvariable
+853	Can add notification configuration	206	add_notificationconfiguration
+854	Can change notification configuration	206	change_notificationconfiguration
+855	Can delete notification configuration	206	delete_notificationconfiguration
+856	Can view notification configuration	206	view_notificationconfiguration
+857	Can add pre notification	207	add_prenotification
+858	Can change pre notification	207	change_prenotification
+859	Can delete pre notification	207	delete_prenotification
+860	Can view pre notification	207	view_prenotification
+861	Can add notification	208	add_notification
+862	Can change notification	208	change_notification
+863	Can delete notification	208	delete_notification
+864	Can view notification	208	view_notification
+865	Can add push notification tag type	209	add_pushnotificationtagtype
+866	Can change push notification tag type	209	change_pushnotificationtagtype
+867	Can delete push notification tag type	209	delete_pushnotificationtagtype
+868	Can view push notification tag type	209	view_pushnotificationtagtype
+869	Can add push notification	210	add_pushnotification
+870	Can change push notification	210	change_pushnotification
+871	Can delete push notification	210	delete_pushnotification
+872	Can view push notification	210	view_pushnotification
+873	Can add listing selected fields	211	add_listingselectedfields
+874	Can change listing selected fields	211	change_listingselectedfields
+875	Can delete listing selected fields	211	delete_listingselectedfields
+876	Can view listing selected fields	211	view_listingselectedfields
+877	Can add theme photos	212	add_themephotos
+878	Can change theme photos	212	change_themephotos
+879	Can delete theme photos	212	delete_themephotos
+880	Can view theme photos	212	view_themephotos
+881	Can add theme dashboard chart configuration	213	add_themedashboardchartconfiguration
+882	Can change theme dashboard chart configuration	213	change_themedashboardchartconfiguration
+883	Can delete theme dashboard chart configuration	213	delete_themedashboardchartconfiguration
+884	Can view theme dashboard chart configuration	213	view_themedashboardchartconfiguration
+885	Can add theme type	214	add_themetype
+886	Can change theme type	214	change_themetype
+887	Can delete theme type	214	delete_themetype
+888	Can view theme type	214	view_themetype
+889	Can add theme kanban card	215	add_themekanbancard
+890	Can change theme kanban card	215	change_themekanbancard
+891	Can delete theme kanban card	215	delete_themekanbancard
+892	Can view theme kanban card	215	view_themekanbancard
+893	Can add theme form	216	add_themeform
+894	Can change theme form	216	change_themeform
+895	Can delete theme form	216	delete_themeform
+896	Can view theme form	216	view_themeform
+897	Can add theme notification configuration variable	217	add_themenotificationconfigurationvariable
+898	Can change theme notification configuration variable	217	change_themenotificationconfigurationvariable
+899	Can delete theme notification configuration variable	217	delete_themenotificationconfigurationvariable
+900	Can view theme notification configuration variable	217	view_themenotificationconfigurationvariable
+901	Can add theme kanban card field	218	add_themekanbancardfield
+902	Can change theme kanban card field	218	change_themekanbancardfield
+903	Can delete theme kanban card field	218	delete_themekanbancardfield
+904	Can view theme kanban card field	218	view_themekanbancardfield
+905	Can add theme field	219	add_themefield
+906	Can change theme field	219	change_themefield
+907	Can delete theme field	219	delete_themefield
+908	Can view theme field	219	view_themefield
+909	Can add theme	220	add_theme
+910	Can change theme	220	change_theme
+911	Can delete theme	220	delete_theme
+912	Can view theme	220	view_theme
+913	Can add theme kanban dimension order	221	add_themekanbandimensionorder
+914	Can change theme kanban dimension order	221	change_themekanbandimensionorder
+915	Can delete theme kanban dimension order	221	delete_themekanbandimensionorder
+916	Can view theme kanban dimension order	221	view_themekanbandimensionorder
+917	Can add theme notification configuration	222	add_themenotificationconfiguration
+918	Can change theme notification configuration	222	change_themenotificationconfiguration
+919	Can delete theme notification configuration	222	delete_themenotificationconfiguration
+920	Can view theme notification configuration	222	view_themenotificationconfiguration
+921	Can add theme kanban default	223	add_themekanbandefault
+922	Can change theme kanban default	223	change_themekanbandefault
+923	Can delete theme kanban default	223	delete_themekanbandefault
+924	Can view theme kanban default	223	view_themekanbandefault
+925	Can add theme field options	224	add_themefieldoptions
+926	Can change theme field options	224	change_themefieldoptions
+927	Can delete theme field options	224	delete_themefieldoptions
+928	Can view theme field options	224	view_themefieldoptions
+929	Can add text table option	225	add_texttableoption
+930	Can change text table option	225	change_texttableoption
+931	Can delete text table option	225	delete_texttableoption
+932	Can view text table option	225	view_texttableoption
+933	Can add text text option	226	add_texttextoption
+934	Can change text text option	226	change_texttextoption
+935	Can delete text text option	226	delete_texttextoption
+936	Can view text text option	226	view_texttextoption
+937	Can add text list type	227	add_textlisttype
+938	Can change text list type	227	change_textlisttype
+939	Can delete text list type	227	delete_textlisttype
+940	Can view text list type	227	view_textlisttype
+941	Can add text alignment type	228	add_textalignmenttype
+942	Can change text alignment type	228	change_textalignmenttype
+943	Can delete text alignment type	228	delete_textalignmenttype
+944	Can view text alignment type	228	view_textalignmenttype
+945	Can add text table option column dimension	229	add_texttableoptioncolumndimension
+946	Can change text table option column dimension	229	change_texttableoptioncolumndimension
+947	Can delete text table option column dimension	229	delete_texttableoptioncolumndimension
+948	Can view text table option column dimension	229	view_texttableoptioncolumndimension
+949	Can add text table option row dimension	230	add_texttableoptionrowdimension
+950	Can change text table option row dimension	230	change_texttableoptionrowdimension
+951	Can delete text table option row dimension	230	delete_texttableoptionrowdimension
+952	Can view text table option row dimension	230	view_texttableoptionrowdimension
+953	Can add text block type	231	add_textblocktype
+954	Can change text block type	231	change_textblocktype
+955	Can delete text block type	231	delete_textblocktype
+956	Can view text block type	231	view_textblocktype
+957	Can add text page	232	add_textpage
+958	Can change text page	232	change_textpage
+959	Can delete text page	232	delete_textpage
+960	Can view text page	232	view_textpage
+961	Can add text content	233	add_textcontent
+962	Can change text content	233	change_textcontent
+963	Can delete text content	233	delete_textcontent
+964	Can view text content	233	view_textcontent
+965	Can add text block	234	add_textblock
+966	Can change text block	234	change_textblock
+967	Can delete text block	234	delete_textblock
+968	Can view text block	234	view_textblock
+969	Can add text list option	235	add_textlistoption
+970	Can change text list option	235	change_textlistoption
+971	Can delete text list option	235	delete_textlistoption
+972	Can view text list option	235	view_textlistoption
+973	Can add text block type can contain type	236	add_textblocktypecancontaintype
+974	Can change text block type can contain type	236	change_textblocktypecancontaintype
+975	Can delete text block type can contain type	236	delete_textblocktypecancontaintype
+976	Can view text block type can contain type	236	view_textblocktypecancontaintype
+977	Can add text image option	237	add_textimageoption
+978	Can change text image option	237	change_textimageoption
+979	Can delete text image option	237	delete_textimageoption
+980	Can view text image option	237	view_textimageoption
+981	Can add pdf template configuration	238	add_pdftemplateconfiguration
+982	Can change pdf template configuration	238	change_pdftemplateconfiguration
+983	Can delete pdf template configuration	238	delete_pdftemplateconfiguration
+984	Can view pdf template configuration	238	view_pdftemplateconfiguration
+985	Can add pdf generated	239	add_pdfgenerated
+986	Can change pdf generated	239	change_pdfgenerated
+987	Can delete pdf generated	239	delete_pdfgenerated
+988	Can view pdf generated	239	view_pdfgenerated
+989	Can add pdf template allowed text block	240	add_pdftemplateallowedtextblock
+990	Can change pdf template allowed text block	240	change_pdftemplateallowedtextblock
+991	Can delete pdf template allowed text block	240	delete_pdftemplateallowedtextblock
+992	Can view pdf template allowed text block	240	view_pdftemplateallowedtextblock
+993	Can add pdf template configuration variables	241	add_pdftemplateconfigurationvariables
+994	Can change pdf template configuration variables	241	change_pdftemplateconfigurationvariables
+995	Can delete pdf template configuration variables	241	delete_pdftemplateconfigurationvariables
+996	Can view pdf template configuration variables	241	view_pdftemplateconfigurationvariables
+997	Can add session	242	add_session
+998	Can change session	242	change_session
+999	Can delete session	242	delete_session
+1000	Can view session	242	view_session
+1001	Can add formula variable	243	add_formulavariable
+1002	Can change formula variable	243	change_formulavariable
+1003	Can delete formula variable	243	delete_formulavariable
+1004	Can view formula variable	243	view_formulavariable
+1005	Can add theme formula variable	244	add_themeformulavariable
+1006	Can change theme formula variable	244	change_themeformulavariable
+1007	Can delete theme formula variable	244	delete_themeformulavariable
+1008	Can view theme formula variable	244	view_themeformulavariable
 \.
 
 
@@ -11186,12 +11077,12 @@ COPY public.chart_type (id, name, "order") FROM stdin;
 -- Data for Name: company; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.company (id, name, endpoint, updated_at, created_at, is_active, company_type_id, partner, shared_by_id, logo_image_bucket, logo_image_path, logo_image_url) FROM stdin;
+COPY public.company (id, name, endpoint, updated_at, created_at, is_active, partner, company_type_id, shared_by_id, logo_image_bucket, logo_image_path, logo_image_url) FROM stdin;
 6	teste	teste	2019-07-28 14:25:22.131892+00	2019-07-28 14:25:22.132173+00	t	\N	\N	\N	reflow-crm	company-logo	\N
 7	asdasdasd	asdasdasd	2019-07-29 19:00:39.574115+00	2019-07-29 19:00:39.574387+00	t	\N	\N	\N	reflow-crm	company-logo	\N
-8	Teste	testeteste1	2019-11-05 16:48:17.059542+00	2019-11-05 16:48:17.059891+00	t	1	\N	\N	reflow-crm	company-logo	\N
+8	Teste	testeteste1	2019-11-05 16:48:17.059542+00	2019-11-05 16:48:17.059891+00	t	\N	1	\N	reflow-crm	company-logo	\N
 3	reflow	reflow	2019-03-01 02:00:49.548484+00	2018-07-18 02:39:10.828+00	t	\N	\N	\N	reflow-crm	company-logo	\N
-1	reflow	reflow	2020-09-09 01:07:00.769551+00	2019-03-20 21:18:13.761+00	t	3	\N	\N	reflow-crm	company-logo	https://reflow-crm.s3.amazonaws.com/company-logo/1/complete_logo.png
+1	reflow	reflow	2020-09-09 01:07:00.769551+00	2019-03-20 21:18:13.761+00	t	\N	3	\N	reflow-crm	company-logo	https://reflow-crm.s3.amazonaws.com/company-logo/1/complete_logo.png
 9	Rapid Rhino	rapidrhino	2020-09-29 23:01:05.291124+00	2020-09-29 23:01:05.291151+00	t	\N	\N	\N	reflow-crm	company-logo	\N
 \.
 
@@ -11214,15 +11105,15 @@ COPY public.company_billing (id, address, zip_code, street, number, neighborhood
 -- Data for Name: company_charge; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.company_charge (id, total_value, company_id, attempt_count, created_at, updated_at) FROM stdin;
-1	168.00	1	1	2020-10-02 20:22:24.96461+00	2020-10-02 20:22:24.964586+00
-2	168.00	1	1	2020-11-01 12:35:12.163411+00	2020-11-01 12:35:12.163381+00
-3	168.00	1	1	2020-12-01 11:31:10.90173+00	2020-12-01 11:31:10.901704+00
-4	168.00	1	1	2020-12-31 14:59:42.148288+00	2020-12-31 14:59:42.148266+00
-5	168.00	1	1	2021-02-01 12:49:51.442432+00	2021-02-01 12:49:51.442405+00
-6	168.00	1	1	2021-03-01 14:11:09.32847+00	2021-03-01 14:11:09.328447+00
-7	168.00	1	1	2021-04-01 13:20:11.495895+00	2021-04-01 13:20:11.495872+00
-8	168.00	1	1	2021-05-01 14:40:16.815344+00	2021-05-01 14:40:16.815321+00
+COPY public.company_charge (id, updated_at, created_at, total_value, attempt_count, company_id) FROM stdin;
+1	2020-10-02 20:22:24.964586+00	2020-10-02 20:22:24.96461+00	168.00	1	1
+2	2020-11-01 12:35:12.163381+00	2020-11-01 12:35:12.163411+00	168.00	1	1
+3	2020-12-01 11:31:10.901704+00	2020-12-01 11:31:10.90173+00	168.00	1	1
+4	2020-12-31 14:59:42.148266+00	2020-12-31 14:59:42.148288+00	168.00	1	1
+5	2021-02-01 12:49:51.442405+00	2021-02-01 12:49:51.442432+00	168.00	1	1
+6	2021-03-01 14:11:09.328447+00	2021-03-01 14:11:09.32847+00	168.00	1	1
+7	2021-04-01 13:20:11.495872+00	2021-04-01 13:20:11.495895+00	168.00	1	1
+8	2021-05-01 14:40:16.815321+00	2021-05-01 14:40:16.815344+00	168.00	1	1
 \.
 
 
@@ -11280,37 +11171,7 @@ COPY public.conditional_type (id, type, label_name, "order") FROM stdin;
 -- Data for Name: current_company_charge; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.current_company_charge (id, quantity, discount_by_individual_value_id, company_id, individual_charge_value_type_id, created_at, updated_at) FROM stdin;
-79	1	\N	6	2	2021-02-16 01:48:17.507547+00	2021-02-16 01:48:17.507515+00
-80	5	3	6	1	2021-02-16 01:48:17.527028+00	2021-02-16 01:48:17.526999+00
-81	30	10	6	5	2021-02-16 01:48:17.529767+00	2021-02-16 01:48:17.529748+00
-82	2	7	6	3	2021-02-16 01:48:17.535312+00	2021-02-16 01:48:17.53529+00
-83	2	4	6	4	2021-02-16 01:48:17.538323+00	2021-02-16 01:48:17.538303+00
-84	1	\N	7	2	2021-02-16 01:48:17.539542+00	2021-02-16 01:48:17.539523+00
-85	5	3	7	1	2021-02-16 01:48:17.540911+00	2021-02-16 01:48:17.540893+00
-86	30	10	7	5	2021-02-16 01:48:17.542046+00	2021-02-16 01:48:17.542028+00
-87	2	7	7	3	2021-02-16 01:48:17.545326+00	2021-02-16 01:48:17.545306+00
-88	2	4	7	4	2021-02-16 01:48:17.548536+00	2021-02-16 01:48:17.548516+00
-89	1	\N	8	2	2021-02-16 01:48:17.549999+00	2021-02-16 01:48:17.54998+00
-90	5	3	8	1	2021-02-16 01:48:17.551276+00	2021-02-16 01:48:17.551257+00
-91	30	10	8	5	2021-02-16 01:48:17.552755+00	2021-02-16 01:48:17.552737+00
-92	2	7	8	3	2021-02-16 01:48:17.556081+00	2021-02-16 01:48:17.556062+00
-93	2	4	8	4	2021-02-16 01:48:17.560536+00	2021-02-16 01:48:17.560516+00
-94	1	\N	3	2	2021-02-16 01:48:17.561782+00	2021-02-16 01:48:17.561763+00
-95	5	3	3	1	2021-02-16 01:48:17.563013+00	2021-02-16 01:48:17.562994+00
-96	30	10	3	5	2021-02-16 01:48:17.564267+00	2021-02-16 01:48:17.564249+00
-97	2	7	3	3	2021-02-16 01:48:17.567326+00	2021-02-16 01:48:17.567306+00
-98	2	4	3	4	2021-02-16 01:48:17.570294+00	2021-02-16 01:48:17.570274+00
-99	1	\N	1	2	2021-02-16 01:48:17.571509+00	2021-02-16 01:48:17.571491+00
-100	5	3	1	1	2021-02-16 01:48:17.572685+00	2021-02-16 01:48:17.572666+00
-101	1	\N	1	3	2021-02-16 01:48:17.576797+00	2021-02-16 01:48:17.576778+00
-102	1	\N	1	4	2021-02-16 01:48:17.58+00	2021-02-16 01:48:17.579981+00
-103	30	10	1	5	2021-02-16 01:48:17.581159+00	2021-02-16 01:48:17.58114+00
-104	5	3	9	1	2021-02-16 01:48:17.582355+00	2021-02-16 01:48:17.582336+00
-105	1	\N	9	2	2021-02-16 01:48:17.584318+00	2021-02-16 01:48:17.5843+00
-106	1	\N	9	4	2021-02-16 01:48:17.58549+00	2021-02-16 01:48:17.58547+00
-107	1	\N	9	3	2021-02-16 01:48:17.586693+00	2021-02-16 01:48:17.586674+00
-108	30	10	9	5	2021-02-16 01:48:17.587838+00	2021-02-16 01:48:17.587814+00
+COPY public.current_company_charge (id, updated_at, created_at, quantity, company_id, discount_by_individual_value_id, individual_charge_value_type_id) FROM stdin;
 \.
 
 
@@ -11319,7 +11180,6 @@ COPY public.current_company_charge (id, quantity, discount_by_individual_value_i
 --
 
 COPY public.dashboard_chart_configuration (id, name, for_company, aggregation_type_id, chart_type_id, company_id, form_id, label_field_id, number_format_type_id, user_id, value_field_id) FROM stdin;
-47	Negócios por Status	f	1	3	1	308	689	2	1	698
 \.
 
 
@@ -11347,7 +11207,6 @@ COPY public.default_attachments (id, created_at, updated_at, file, bucket, file_
 --
 
 COPY public.default_field_value (id, created_at, updated_at, value, field_id, default_attachment_id) FROM stdin;
-1	2021-04-17 20:25:05.053344+00	2021-04-17 20:25:49.587776+00	Proposta	689	\N
 \.
 
 
@@ -11383,7 +11242,7 @@ COPY public.discount_by_individual_value_quantity (id, quantity, value, name, in
 -- Data for Name: discount_coupon; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.discount_coupon (id, name, value, permanent, end_at, start_at) FROM stdin;
+COPY public.discount_coupon (id, name, value, permanent, start_at, end_at) FROM stdin;
 \.
 
 
@@ -11392,9 +11251,6 @@ COPY public.discount_coupon (id, name, value, permanent, end_at, start_at) FROM 
 --
 
 COPY public.django_admin_log (id, action_time, object_id, object_repr, action_flag, change_message, content_type_id, user_id) FROM stdin;
-1	2018-12-24 04:21:49.012304+00	1	Perdido	1	[{"added": {}}]	12	9
-2	2018-12-24 04:22:04.42596+00	2	Em Negociação	1	[{"added": {}}]	12	9
-3	2018-12-26 23:15:46.844153+00	5	luksinho1	1	[{"added": {}}]	20	9
 \.
 
 
@@ -11411,205 +11267,108 @@ COPY public.django_celery_results_taskresult (id, task_id, status, content_type,
 --
 
 COPY public.django_content_type (id, app_label, model) FROM stdin;
-1	pipeline	clients
-2	pipeline	commercials
-3	pipeline	congeners
-4	pipeline	detail
-5	pipeline	expectations
-6	pipeline	insurancetype
-7	pipeline	persons
-8	pipeline	products
-9	pipeline	reasonsforloss
-10	pipeline	regionals
-11	pipeline	regionalsaccessedby
-12	pipeline	status
-13	pipeline	subsidiaries
-14	pipeline	subsidiariesaccessedby
-15	protocolos	attachments
-16	protocolos	dynamicprotocol
-17	protocolos	field
-18	protocolos	history
-19	protocolos	protocols
-20	login	userextended
-22	login	profiles
-23	admin	logentry
-24	auth	permission
-25	auth	group
-26	contenttypes	contenttype
-27	sessions	session
-28	protocolos	fieldoptions
-29	protocolos	fieldtype
-30	protocolos	protocolvalue
-31	protocolos	fieldtopic
-32	protocolos	optionaccessedby
-33	protocolos	theme
-34	protocolos	themefield
-35	protocolos	themefieldtopic
-36	protocolos	conditionaltopicbyoption
-37	protocolos	formtype
-39	protocolos	dynamicclient
-40	protocolos	dynamicperson
-41	protocolos	personvalue
-42	protocolos	themefieldoptions
-38	protocolos	formvalue
-44	protocolos	dynamicform
-45	protocolos	form
-46	protocolos	themeform
-47	protocolos	formaccessedby
-48	protocolos	kanbancard
-49	protocolos	kanbancardfield
-50	protocolos	kanbandimensionorder
-51	protocolos	listingselectedfields
-52	protocolos	listingtotalforfield
-53	protocolos	conditionaltype
-54	notifications	notification
-55	notifications	notificationconfiguration
-57	data	attachments
-58	data	field
-59	data	fieldoptions
-60	data	fieldtype
-61	data	optionaccessedby
-62	data	theme
-63	data	themefield
-64	data	themefieldtopic
-65	data	formtype
-66	data	themefieldoptions
-67	data	dynamicform
-68	data	formvalue
-69	data	form
-70	data	themeform
-71	data	formaccessedby
-72	data	kanbancard
-73	data	kanbancardfield
-74	data	kanbandimensionorder
-75	data	listingselectedfields
-76	data	listingtotalforfield
-77	data	conditionaltype
-43	login	datatype
-78	data	configtype
-79	data	fieldconfigtype
-80	data	fieldconfig
-82	configuration	theme
-83	configuration	themefield
-84	configuration	themeform
-85	configuration	themekanbancard
-86	configuration	themenotificationconfiguration
-87	configuration	themelistingtotalforfield
-88	configuration	themekanbandimensionorder
-89	configuration	themekanbancardfield
-90	configuration	themefieldoptions
-91	configuration	themephotos
-92	data	group
-21	login	company
-81	login	grouptype
-93	login	companytype
-94	data	extractfiledata
-95	django_celery_results	taskresult
-97	data	fieldconfiguration
-98	configuration	themefieldconfiguration
-101	billing	chargefrequencytype
-102	billing	chargetype
-103	billing	invoicedatetype
-104	billing	paymentmethodtype
-105	billing	discountbyindividualvalue
-106	billing	currentcompanycharge
-107	billing	companycharge
-108	billing	individualchargevaluetype
-109	billing	companyinvoicemails
-110	billing	companycoupons
-111	billing	discountcoupon
-56	notifications	usernotification
-99	data	fielddateformattype
-96	data	fieldnumbermasktype
-100	data	fieldperiodintervaltype
-112	notifications	prenotification
-113	notifications	notificationconfigurationvariable
-114	configuration	themenotificationconfigurationvariable
-115	formula	formulatype
-116	formula	rawdatatype
-117	formula	formulaparameterstype
-118	data	fieldnumberformattype
-119	login	pushnotificationtagtype
-120	login	pushnotification
-121	authentication	userextended
-122	authentication	company
-123	authentication	companytype
-124	authentication	profiletype
-125	authentication	visualizationtype
-126	formulary	conditionaltype
-127	formulary	field
-128	formulary	fielddateformattype
-129	formulary	fieldnumberformattype
-130	formulary	fieldoptions
-131	formulary	fieldperiodintervaltype
-132	formulary	fieldtype
-133	formulary	form
-134	formulary	sectiontype
-135	formulary	optionaccessedby
-136	formulary	group
-137	formulary	formaccessedby
-138	notification	notification
-139	notification	notificationconfiguration
-140	notification	usernotification
-141	notification	prenotification
-142	notification	notificationconfigurationvariable
-143	notify	pushnotificationtagtype
-144	notify	pushnotification
-145	kanban	kanbancard
-146	kanban	kanbandimensionorder
-147	kanban	kanbancardfield
-148	listing	listingtotalforfield
-149	listing	listingselectedfields
-150	listing	extractfiledata
-151	theme	theme
-152	theme	themefield
-153	theme	themeform
-154	theme	themekanbancard
-155	theme	themenotificationconfiguration
-156	theme	themetype
-157	theme	themephotos
-158	theme	themenotificationconfigurationvariable
-159	theme	themelistingtotalforfield
-160	theme	themekanbandimensionorder
-161	theme	themekanbancardfield
-162	theme	themefieldoptions
-163	dashboard	charttype
-164	dashboard	aggregationtype
-165	dashboard	dashboardchartconfiguration
-166	authentication	addresshelper
-167	billing	discountbyindividualvaluequantity
-168	billing	discountbyindividualnameforcompany
-169	billing	companybilling
-170	theme	themedashboardchartconfiguration
-171	rich_text	textalignmenttype
-172	rich_text	textblock
-173	rich_text	textblocktype
-174	rich_text	textimageoption
-175	rich_text	textlisttype
-176	rich_text	textpage
-177	rich_text	texttableoption
-178	rich_text	texttextoption
-179	rich_text	textlistoption
-180	rich_text	textcontent
-181	rich_text	textblocktypecancontaintype
-182	pdf_generator	pdftemplateconfiguration
-183	pdf_generator	pdftemplateconfigurationvariables
-184	pdf_generator	pdfgenerated
-185	draft	drafttype
-186	draft	draft
-187	billing	partnerdefaultanddiscounts
-188	rich_text	texttableoptionrowdimension
-189	rich_text	texttableoptioncolumndimension
-190	pdf_generator	pdftemplateallowedtextblock
-191	kanban	kanbandefault
-192	kanban	kanbancollapsedoption
-193	theme	themekanbandefault
-194	authentication	publicaccess
-195	formulary	publicaccessform
-196	formulary	publicaccessfield
-197	formulary	defaultfieldvalue
-198	formulary	defaultfieldvalueattachments
-199	formulary	useraccessedby
+1	authentication	userextended
+2	authentication	company
+3	authentication	companytype
+4	authentication	profiletype
+5	authentication	visualizationtype
+6	authentication	addresshelper
+7	authentication	publicaccess
+8	billing	chargefrequencytype
+9	billing	chargetype
+10	billing	discountcoupon
+11	billing	invoicedatetype
+12	billing	paymentmethodtype
+13	billing	individualchargevaluetype
+14	billing	discountbyindividualvaluequantity
+15	billing	currentcompanycharge
+16	billing	companyinvoicemails
+17	billing	companycoupons
+18	billing	companycharge
+19	billing	discountbyindividualnameforcompany
+20	billing	companybilling
+21	billing	partnerdefaultanddiscounts
+22	dashboard	aggregationtype
+23	dashboard	charttype
+24	dashboard	dashboardchartconfiguration
+25	formula	formulatype
+26	draft	drafttype
+27	draft	draft
+28	data	dynamicform
+29	data	formvalue
+30	data	attachments
+31	data	extractfiledata
+32	formulary	conditionaltype
+33	formulary	field
+34	formulary	fielddateformattype
+35	formulary	fieldnumberformattype
+36	formulary	fieldoptions
+37	formulary	fieldperiodintervaltype
+38	formulary	fieldtype
+39	formulary	form
+40	formulary	sectiontype
+41	formulary	optionaccessedby
+42	formulary	group
+43	formulary	formaccessedby
+44	formulary	publicaccessform
+45	formulary	publicaccessfield
+46	formulary	defaultfieldvalue
+47	formulary	defaultfieldvalueattachments
+48	formulary	useraccessedby
+49	kanban	kanbancard
+50	kanban	kanbandimensionorder
+51	kanban	kanbancardfield
+52	kanban	kanbandefault
+53	kanban	kanbancollapsedoption
+54	admin	logentry
+55	auth	permission
+56	auth	group
+57	contenttypes	contenttype
+200	formula	formulacontextattributetype
+201	formula	formulaattributetype
+202	formula	formulacontextforcompany
+203	formula	formulacontexttype
+204	notification	usernotification
+205	notification	notificationconfigurationvariable
+206	notification	notificationconfiguration
+207	notification	prenotification
+208	notification	notification
+209	notify	pushnotificationtagtype
+210	notify	pushnotification
+211	listing	listingselectedfields
+212	theme	themephotos
+213	theme	themedashboardchartconfiguration
+214	theme	themetype
+215	theme	themekanbancard
+216	theme	themeform
+217	theme	themenotificationconfigurationvariable
+218	theme	themekanbancardfield
+219	theme	themefield
+220	theme	theme
+221	theme	themekanbandimensionorder
+222	theme	themenotificationconfiguration
+223	theme	themekanbandefault
+224	theme	themefieldoptions
+225	rich_text	texttableoption
+226	rich_text	texttextoption
+227	rich_text	textlisttype
+228	rich_text	textalignmenttype
+229	rich_text	texttableoptioncolumndimension
+230	rich_text	texttableoptionrowdimension
+231	rich_text	textblocktype
+232	rich_text	textpage
+233	rich_text	textcontent
+234	rich_text	textblock
+235	rich_text	textlistoption
+236	rich_text	textblocktypecancontaintype
+237	rich_text	textimageoption
+238	pdf_generator	pdftemplateconfiguration
+239	pdf_generator	pdfgenerated
+240	pdf_generator	pdftemplateallowedtextblock
+241	pdf_generator	pdftemplateconfigurationvariables
+242	sessions	session
+243	formulary	formulavariable
+244	theme	themeformulavariable
 \.
 
 
@@ -11618,6 +11377,145 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 --
 
 COPY public.django_migrations (id, app, name, applied) FROM stdin;
+1	contenttypes	0001_initial	2021-05-22 06:04:31.490027+00
+2	authentication	0001_initial	2021-05-22 06:04:31.546305+00
+3	admin	0001_initial	2021-05-22 06:04:31.599021+00
+4	admin	0002_logentry_remove_auto_add	2021-05-22 06:04:31.619299+00
+5	admin	0003_logentry_add_action_flag_choices	2021-05-22 06:04:31.629304+00
+6	contenttypes	0002_remove_content_type_name	2021-05-22 06:04:31.652966+00
+7	auth	0001_initial	2021-05-22 06:04:31.695597+00
+8	auth	0002_alter_permission_name_max_length	2021-05-22 06:04:31.733577+00
+9	auth	0003_alter_user_email_max_length	2021-05-22 06:04:31.74411+00
+10	auth	0004_alter_user_username_opts	2021-05-22 06:04:31.760306+00
+11	auth	0005_alter_user_last_login_null	2021-05-22 06:04:31.773918+00
+12	auth	0006_require_contenttypes_0002	2021-05-22 06:04:31.778125+00
+13	auth	0007_alter_validators_add_error_messages	2021-05-22 06:04:31.815308+00
+14	auth	0008_alter_user_username_max_length	2021-05-22 06:04:31.832689+00
+15	auth	0009_alter_user_last_name_max_length	2021-05-22 06:04:31.845938+00
+16	auth	0010_alter_group_name_max_length	2021-05-22 06:04:31.863525+00
+17	auth	0011_update_proxy_permissions	2021-05-22 06:04:31.883882+00
+18	auth	0012_alter_user_first_name_max_length	2021-05-22 06:04:31.898724+00
+19	billing	0001_initial	2021-05-22 06:04:32.037168+00
+20	billing	0002_auto_20200719_1720	2021-05-22 06:04:32.175296+00
+21	billing	0003_individualchargevaluetype_charge_group_name	2021-05-22 06:04:32.191682+00
+22	billing	0004_discountbyindividualvalue_static	2021-05-22 06:04:32.204324+00
+23	authentication	0002_auto_20200608_1957	2021-05-22 06:04:32.428505+00
+24	authentication	0003_auto_20200719_1720	2021-05-22 06:04:32.519835+00
+25	authentication	0004_addresstype	2021-05-22 06:04:32.538096+00
+26	authentication	0005_auto_20200722_1450	2021-05-22 06:04:32.582023+00
+27	authentication	0006_company_additional_details	2021-05-22 06:04:32.604098+00
+28	billing	0005_auto_20200804_0005	2021-05-22 06:04:32.668702+00
+29	billing	0006_auto_20200804_0557	2021-05-22 06:04:32.715479+00
+30	authentication	0007_auto_20200818_0005	2021-05-22 06:04:32.74578+00
+31	authentication	0008_auto_20200828_1928	2021-05-22 06:04:32.775399+00
+32	billing	0007_companybilling	2021-05-22 06:04:32.824013+00
+33	billing	0008_migrate_company_to_company_billing	2021-05-22 06:04:32.907271+00
+34	authentication	0009_auto_20200828_2011	2021-05-22 06:04:33.363171+00
+35	authentication	0010_auto_20200902_1555	2021-05-22 06:04:33.415091+00
+36	authentication	0011_publicaccess	2021-05-22 06:04:33.450842+00
+37	billing	0009_auto_20200828_2045	2021-05-22 06:04:33.497526+00
+38	billing	0010_auto_20200828_2112	2021-05-22 06:04:33.540823+00
+39	billing	0011_partnerdefaultanddiscounts	2021-05-22 06:04:33.574759+00
+40	billing	0012_auto_20210126_2029	2021-05-22 06:04:33.613609+00
+41	billing	0013_auto_20210213_2138	2021-05-22 06:04:33.650565+00
+42	billing	0014_remove_currentcompanycharge_user	2021-05-22 06:04:33.688488+00
+43	formulary	0001_initial	2021-05-22 06:04:34.284083+00
+44	formulary	0002_auto_20200719_1720	2021-05-22 06:04:34.437694+00
+45	dashboard	0001_initial	2021-05-22 06:04:34.505255+00
+46	dashboard	0002_auto_20200719_1720	2021-05-22 06:04:34.561613+00
+47	dashboard	0003_auto_20200917_2102	2021-05-22 06:04:34.712165+00
+48	formulary	0003_fieldoptions_uuid	2021-05-22 06:04:34.73348+00
+49	formulary	0004_auto_20210225_2352	2021-05-22 06:04:34.780709+00
+50	formulary	0005_publicaccessfield_publicaccessform	2021-05-22 06:04:34.981033+00
+51	formulary	0006_auto_20210302_1652	2021-05-22 06:04:35.065492+00
+52	formulary	0007_auto_20210307_2157	2021-05-22 06:04:35.133353+00
+53	formulary	0008_auto_20210317_1341	2021-05-22 06:04:35.212428+00
+54	formulary	0009_defaultfieldvalue	2021-05-22 06:04:35.266002+00
+55	formulary	0010_auto_20210325_0155	2021-05-22 06:04:35.326066+00
+56	formulary	0011_auto_20210325_1716	2021-05-22 06:04:35.343487+00
+57	formulary	0012_auto_20210326_0112	2021-05-22 06:04:35.36925+00
+58	formulary	0013_auto_20210413_0050	2021-05-22 06:04:35.422919+00
+59	formulary	0014_auto_20210413_0330	2021-05-22 06:04:35.472204+00
+60	formulary	0015_auto_20210417_0106	2021-05-22 06:04:35.538175+00
+61	formulary	0016_field_is_long_text_rich_text	2021-05-22 06:04:35.563587+00
+62	formulary	0017_useraccessedby	2021-05-22 06:04:35.6146+00
+63	formulary	0018_auto_20210507_1829	2021-05-22 06:04:35.675036+00
+64	data	0001_initial	2021-05-22 06:04:35.94386+00
+65	data	0002_auto_20200614_0232	2021-05-22 06:04:36.057143+00
+66	data	0003_auto_20200624_1506	2021-05-22 06:04:36.106707+00
+67	data	0004_dynamicform_user	2021-05-22 06:04:36.174612+00
+68	data	0005_formvalue_is_long_text_rich_text	2021-05-22 06:04:36.216255+00
+69	data	0006_dynamicform_uuid	2021-05-22 06:04:36.255992+00
+70	data	0007_auto_20210514_1559	2021-05-22 06:04:36.311427+00
+71	data	0008_extractfiledata	2021-05-22 06:04:36.372158+00
+72	draft	0001_initial	2021-05-22 06:04:36.460309+00
+73	draft	0002_auto_20210105_0535	2021-05-22 06:04:36.570293+00
+74	draft	0003_draft_is_public	2021-05-22 06:04:36.608475+00
+75	formula	0001_initial	2021-05-22 06:04:36.61977+00
+76	formula	0002_auto_20200719_1720	2021-05-22 06:04:36.634466+00
+77	kanban	0001_initial	2021-05-22 06:04:36.916425+00
+78	kanban	0002_auto_20210220_0556	2021-05-22 06:04:37.167679+00
+79	kanban	0003_auto_20210220_0556	2021-05-22 06:04:37.263395+00
+80	kanban	0004_kanbancardfield_order	2021-05-22 06:04:37.297413+00
+81	kanban	0005_auto_20210224_0438	2021-05-22 06:04:37.357309+00
+82	kanban	0006_auto_20210225_1717	2021-05-22 06:04:37.407193+00
+83	kanban	0007_auto_20210227_1913	2021-05-22 06:04:37.437906+00
+84	listing	0001_initial	2021-05-22 06:04:54.359948+00
+85	listing	0002_extractfiledata_file_id	2021-05-22 06:04:54.380569+00
+86	listing	0003_delete_listingtotalforfield	2021-05-22 06:04:54.384735+00
+87	listing	0004_delete_extractfiledata	2021-05-22 06:04:54.389225+00
+88	notification	0001_initial	2021-05-22 06:04:54.392841+00
+89	notification	0002_auto_20200719_1720	2021-05-22 06:04:54.396102+00
+90	notify	0001_initial	2021-05-22 06:04:54.400602+00
+91	notify	0002_auto_20200719_1720	2021-05-22 06:04:54.404994+00
+92	rich_text	0001_initial	2021-05-22 06:04:54.410607+00
+93	rich_text	0002_auto_20201016_2146	2021-05-22 06:04:54.414156+00
+94	rich_text	0003_textcontent_link	2021-05-22 06:04:54.418432+00
+95	rich_text	0004_auto_20201019_1430	2021-05-22 06:04:54.422588+00
+96	rich_text	0005_auto_20201027_0030	2021-05-22 06:04:54.427071+00
+97	rich_text	0006_auto_20201126_1627	2021-05-22 06:04:54.430541+00
+98	rich_text	0007_auto_20201201_0108	2021-05-22 06:04:54.433818+00
+99	rich_text	0008_auto_20201202_1739	2021-05-22 06:04:54.437214+00
+100	rich_text	0009_textcontent_text_size	2021-05-22 06:04:54.441813+00
+101	rich_text	0010_auto_20210106_0031	2021-05-22 06:04:54.445623+00
+102	rich_text	0011_auto_20210106_1651	2021-05-22 06:04:54.449205+00
+103	rich_text	0012_auto_20210107_1457	2021-05-22 06:04:54.452641+00
+104	rich_text	0013_auto_20210113_2322	2021-05-22 06:04:54.456073+00
+105	rich_text	0014_auto_20210113_2348	2021-05-22 06:04:54.460068+00
+106	rich_text	0015_auto_20210113_2352	2021-05-22 06:04:54.46443+00
+107	rich_text	0016_textimageoption_file_image_uuid	2021-05-22 06:04:54.467943+00
+108	rich_text	0017_auto_20210126_2029	2021-05-22 06:04:54.471484+00
+109	rich_text	0018_auto_20210126_2126	2021-05-22 06:04:54.474805+00
+110	rich_text	0019_auto_20210127_1315	2021-05-22 06:04:54.478548+00
+111	pdf_generator	0001_initial	2021-05-22 06:04:54.483007+00
+112	pdf_generator	0002_auto_20201201_0108	2021-05-22 06:04:54.486531+00
+113	pdf_generator	0003_auto_20201203_2308	2021-05-22 06:04:54.489941+00
+114	pdf_generator	0004_pdftemplateconfiguration_rich_text	2021-05-22 06:04:54.493353+00
+115	pdf_generator	0005_auto_20201211_1634	2021-05-22 06:04:54.496884+00
+116	pdf_generator	0006_pdfgenerated	2021-05-22 06:04:54.500797+00
+117	pdf_generator	0007_pdftemplateallowedtextblock	2021-05-22 06:04:54.504569+00
+118	pdf_generator	0008_auto_20210210_2309	2021-05-22 06:04:54.508904+00
+119	rich_text	0020_auto_20210210_2309	2021-05-22 06:04:54.512289+00
+120	sessions	0001_initial	2021-05-22 06:04:54.515677+00
+121	theme	0001_initial	2021-05-22 06:04:54.519919+00
+122	theme	0002_auto_20200719_1720	2021-05-22 06:04:54.523967+00
+123	theme	0003_auto_20200917_2102	2021-05-22 06:04:54.528929+00
+124	theme	0004_auto_20200917_2105	2021-05-22 06:04:54.533244+00
+125	theme	0005_auto_20200929_1701	2021-05-22 06:04:54.536586+00
+126	theme	0006_migrate_company_to_theme	2021-05-22 06:04:54.540498+00
+127	theme	0007_auto_20201016_1942	2021-05-22 06:04:54.54467+00
+128	theme	0008_auto_20210222_1540	2021-05-22 06:04:54.548145+00
+129	theme	0009_auto_20210222_1639	2021-05-22 06:04:54.551616+00
+130	theme	0010_auto_20210222_1639	2021-05-22 06:04:54.555011+00
+131	theme	0011_themekanbancardfield_order	2021-05-22 06:04:54.558776+00
+132	theme	0012_auto_20210224_0438	2021-05-22 06:04:54.563114+00
+133	theme	0013_themefieldoptions_uuid	2021-05-22 06:04:54.566873+00
+134	theme	0014_auto_20210225_2352	2021-05-22 06:04:54.570403+00
+135	theme	0015_auto_20210227_1913	2021-05-22 06:04:54.574168+00
+136	theme	0016_auto_20210413_0050	2021-05-22 06:04:54.57759+00
+137	theme	0017_auto_20210413_0329	2021-05-22 06:04:54.582387+00
+138	theme	0018_auto_20210417_0106	2021-05-22 06:04:54.587008+00
+139	theme	0019_themefield_is_long_text_rich_text	2021-05-22 06:04:54.590315+00
 519	contenttypes	0001_initial	2020-06-19 07:39:51.379778+00
 520	authentication	0001_initial	2020-06-19 07:39:51.385314+00
 521	admin	0001_initial	2020-06-19 07:39:51.389492+00
@@ -11757,6 +11655,17 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 655	data	0007_auto_20210514_1559	2021-05-15 04:54:51.676814+00
 656	data	0008_extractfiledata	2021-05-20 23:17:46.466915+00
 657	listing	0004_delete_extractfiledata	2021-05-20 23:17:46.49118+00
+658	formula	0003_auto_20210526_1335	2021-05-26 13:40:04.438281+00
+660	formulary	0019_fieldtype_is_dynamic_evaluated	2021-05-27 19:00:52.537452+00
+662	formula	0004_auto_20210527_1829	2021-05-27 19:36:22.068386+00
+663	formulary	0020_fieldnumberformattype_has_to_enforce_decimal	2021-05-28 00:30:47.075076+00
+664	formulary	0019_formulavariable	2021-06-07 14:31:36.339074+00
+665	formulary	0021_formulavariable	2021-06-07 15:53:51.329065+00
+666	formulary	0022_auto_20210607_1546	2021-06-07 17:06:46.06881+00
+667	theme	0020_themeformulavariable	2021-06-07 17:19:07.599292+00
+668	theme	0021_auto_20210607_1719	2021-06-07 17:22:03.740354+00
+669	formulary	0023_auto_20210607_1747	2021-06-07 17:48:33.188576+00
+670	theme	0022_auto_20210607_1747	2021-06-07 17:48:33.438515+00
 \.
 
 
@@ -11899,6 +11808,13 @@ k2odwc27vqzvl6oa9xadfgl5twottbh1	ZGU0ZDRmN2U1NDk5ZTI1YTczMWMwYmFlMmJmM2QwNDRkNjJ
 7io3pr31s4vby2fxvluk060kouf925yf	.eJxVjEEOgjAQRe_StSGFSmfi0sRzNNOZTtqIkEDBhfHuSsJCt--__14m0FpzWJc0hyLmYlpz-mWR-J7GfZiTDtMzfOGW5mY30lgLUy3T2Bza0tweVIbrcforZVry3m89g2DkHlEcw1k9eMcWQPqEFm3EKKCeBRmpj51TZSZxXjurgOb9AYvMPJQ:1k9Guj:11CUI2RzsYfFIxYoDe1ZVXoFW9Cbe2PRCKRAw4S00rM	2020-09-04 23:57:41.00177+00
 3phhofoqru48iwec0mw92q4flx2g67lq	NGQ4MTIzMjQ0YzY0M2UxY2JiZTc1MzdiZDZkMjVhMDJjZjg1MzY5Yjp7Il9hdXRoX3VzZXJfaWQiOiIxIiwiX2F1dGhfdXNlcl9iYWNrZW5kIjoicmVmbG93X2NybS5sb2dpbi5tb2RlbHMuRW1haWxCYWNrZW5kIiwiX2F1dGhfdXNlcl9oYXNoIjoiODIzMDlhYjExYTU3N2UwMmNjNzE3ODA3ZWIzYzAzZjI1ZmYyNmMxNCJ9	2019-12-05 03:54:27.316741+00
 1cwpwpbl2yf8c0aoclhoxk867odhkbvw	.eJxVjEEOgjAQRe_StSGFSmfi0sRzNNOZTtqIkEDBhfHuSsJCt--__14m0FpzWJc0hyLmYlpz-mWR-J7GfZiTDtMzfOGW5mY30lgLUy3T2Bza0tweVIbrcforZVry3m89g2DkHlEcw1k9eMcWQPqEFm3EKKCeBRmpj51TZSZxXjurgOb9AYvMPJQ:1k9IKx:lpeYpmnNRo2_79DAhJRdGgmAjbskMyrbgE3BXK8cGHM	2020-09-05 01:28:51.231526+00
+hmgz984vghgc6ygih3atbem3d35ij0rs	.eJxVjEEOgyAQRe_CujHgiAxdNvEcZIAhkFpNRNtF07tXExft9v3331s42tbstsqLK1FchRKXX-Yp3Hk6hoXTOL_cDp-8NIfB01oCrWWemlOrzfCgMt7O018pU817JibVIoGR3vQge98lZVvlg4kdIURmr4LFNqAGVgYYvUwcIkrSSVvoxecLhTU8HA:1lkUC8:Cwl7_ttaEEZPYR-Di70cbnFIuiQUDjrwQS9etaQVIf8	2021-06-05 16:09:44.682185+00
+w38u6w6666hhyhaaos54d4hsfih0co6h	.eJxVjEEOgyAQRe_CujHgiAxdNvEcZIAhkFpNRNtF07tXExft9v3331s42tbstsqLK1FchRKXX-Yp3Hk6hoXTOL_cDp-8NIfB01oCrWWemlOrzfCgMt7O018pU817JibVIoGR3vQge98lZVvlg4kdIURmr4LFNqAGVgYYvUwcIkrSSVvoxecLhTU8HA:1lkUDv:wg7xHyNWTZH2leR-P6MLizIYA3uyrUsJ38XXPAp20aI	2021-06-05 16:11:35.637786+00
+dws5eds8sk1yaq2ymphxuxhnr3keb8cp	.eJxVjEEOgyAQRe_CujHgiAxdNvEcZIAhkFpNRNtF07tXExft9v3331s42tbstsqLK1FchRKXX-Yp3Hk6hoXTOL_cDp-8NIfB01oCrWWemlOrzfCgMt7O018pU817JibVIoGR3vQge98lZVvlg4kdIURmr4LFNqAGVgYYvUwcIkrSSVvoxecLhTU8HA:1lkUEs:Di9XGMrdzukfusjBuMeDdjIUXBAgmWIPlSf0JnJI4Ik	2021-06-05 16:12:34.548599+00
+u5cwz4ga6bwm136k3s9r2rqynnl2y4hn	.eJxVjEEOgyAQRe_CujHgiAxdNvEcZIAhkFpNRNtF07tXExft9v3331s42tbstsqLK1FchRKXX-Yp3Hk6hoXTOL_cDp-8NIfB01oCrWWemlOrzfCgMt7O018pU817JibVIoGR3vQge98lZVvlg4kdIURmr4LFNqAGVgYYvUwcIkrSSVvoxecLhTU8HA:1lmGvQ:H8ehiF6hcjk6gvm3PS4KTR-nfJ1BG8SbBFolaarzH-w	2021-06-10 14:23:52.668415+00
+firme6mtcbnb7hp2g2t0onh6i679v9en	.eJxVjEEOgyAQRe_CujHgiAxdNvEcZIAhkFpNRNtF07tXExft9v3331s42tbstsqLK1FchRKXX-Yp3Hk6hoXTOL_cDp-8NIfB01oCrWWemlOrzfCgMt7O018pU817JibVIoGR3vQge98lZVvlg4kdIURmr4LFNqAGVgYYvUwcIkrSSVvoxecLhTU8HA:1lmeX9:bGCuiUi58sMfbU1bFKERoTrVydj8RVXVxz8ktNATtZI	2021-06-11 15:36:23.249528+00
+b02tz8135uamvdiqwzjy1b1jqr7izhe2	.eJxVjEEOgyAQRe_CujHgiAxdNvEcZIAhkFpNRNtF07tXExft9v3331s42tbstsqLK1FchRKXX-Yp3Hk6hoXTOL_cDp-8NIfB01oCrWWemlOrzfCgMt7O018pU817JibVIoGR3vQge98lZVvlg4kdIURmr4LFNqAGVgYYvUwcIkrSSVvoxecLhTU8HA:1lnjVT:iPshb-r-psh9TCMl8TClKrELR5gxGrezafcHsJ06uMg	2021-06-14 15:07:07.323607+00
+e0pvohtdp5763bts9csrrltxogt0btt5	.eJxVjEEOgyAQRe_CujHgiAxdNvEcZIAhkFpNRNtF07tXExft9v3331s42tbstsqLK1FchRKXX-Yp3Hk6hoXTOL_cDp-8NIfB01oCrWWemlOrzfCgMt7O018pU817JibVIoGR3vQge98lZVvlg4kdIURmr4LFNqAGVgYYvUwcIkrSSVvoxecLhTU8HA:1lqJUY:b7Cv_SpibZtkeIwOooG2HrW_fajWVWyHYzQCqYOAsQg	2021-06-21 17:56:50.046011+00
 \.
 
 
@@ -11924,296 +11840,16 @@ COPY public.draft_type (id, name, "order") FROM stdin;
 -- Data for Name: dynamic_forms; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.dynamic_forms (id, created_at, updated_at, form_id, user_id, depends_on_id, company_id, uuid) FROM stdin;
-2076	2021-03-19 13:11:19.144564+00	2021-05-15 04:54:51.23667+00	316	1	2074	1	3d0f4c25-3a44-4d52-aa2f-582dfcbb22df
-2077	2021-03-19 13:11:19.235171+00	2021-05-15 04:54:51.245082+00	317	1	2074	1	151183f2-3997-432c-9411-ff31810c703e
-2075	2021-03-19 13:09:41.75996+00	2021-05-15 04:54:51.246549+00	310	1	2074	1	8b99827b-6e88-453c-86ea-472d86b9f4b7
-2078	2021-03-19 13:11:19.381162+00	2021-05-15 04:54:51.24917+00	313	1	2074	1	74b4ffb4-c6e3-4c1b-85eb-7bc0ac8dc615
-2074	2021-03-19 13:09:41.754296+00	2021-05-15 04:54:51.250486+00	308	1	\N	1	2ffbc4f2-7f9f-4b78-a2df-2cb8a5440edc
-2100	2021-03-19 22:24:21.352905+00	2021-05-15 04:54:51.251848+00	330	1	2099	1	d6d43700-e697-4486-ae3b-b0c4f969484e
-2099	2021-03-19 22:24:21.346849+00	2021-05-15 04:54:51.253228+00	329	1	\N	1	7f14226f-02b9-4c12-96a6-640f98479891
-2098	2021-03-19 22:19:51.545658+00	2021-05-15 04:54:51.254515+00	330	1	2097	1	361ffd3d-cf46-4bf9-af13-af3d0ecb1221
-2097	2021-03-19 22:19:51.540038+00	2021-05-15 04:54:51.255814+00	329	1	\N	1	bb5b169a-de57-4ea7-9699-9d3a8458bf29
-2096	2021-03-19 17:56:49.111888+00	2021-05-15 04:54:51.257112+00	331	1	2072	1	c735ee78-cabc-469c-99b0-cd21dad701ea
-2095	2021-03-19 17:56:49.106532+00	2021-05-15 04:54:51.258392+00	313	1	2072	1	64a961e8-1c27-427b-9094-bea2552af198
-2073	2021-03-19 13:09:11.039957+00	2021-05-15 04:54:51.259706+00	310	1	2072	1	dbc8f026-4925-41b5-ba37-3b1933e05c1f
-2094	2021-03-19 17:56:48.959052+00	2021-05-15 04:54:51.260992+00	317	1	2072	1	8ea47a1b-cd84-4a67-8698-3f289be3bfce
-2093	2021-03-19 17:56:48.867663+00	2021-05-15 04:54:51.262292+00	316	1	2072	1	7a1ff72f-d435-4c53-80ac-ea478039fd31
-2072	2021-03-19 13:09:11.021202+00	2021-05-15 04:54:51.263629+00	308	1	\N	1	7e05197b-30cb-468b-a84a-08bee515d78a
-2092	2021-03-19 17:45:58.594079+00	2021-05-15 04:54:51.26509+00	311	1	2091	1	799444e3-fdda-4049-9d56-842f9df52085
-2091	2021-03-19 17:45:58.588061+00	2021-05-15 04:54:51.266402+00	309	1	\N	1	e35eb1be-5c9c-4ef4-b0a3-c451a3e69e5a
-2090	2021-03-19 17:41:11.699977+00	2021-05-15 04:54:51.267703+00	330	1	2089	1	597c244c-7bfe-4d2b-8490-a0828e60cf3a
-2089	2021-03-19 17:41:11.69253+00	2021-05-15 04:54:51.269005+00	329	1	\N	1	11560a3a-655b-4f92-84b5-e69782afe651
-2088	2021-03-19 17:01:41.390373+00	2021-05-15 04:54:51.270345+00	330	1	2087	1	1669f450-a8f2-4291-bc2a-e36b96a6ed07
-2087	2021-03-19 17:01:41.383363+00	2021-05-15 04:54:51.271708+00	329	1	\N	1	0e75ef7b-07db-4115-bf07-da816beebbb3
-2086	2021-03-19 15:24:30.33884+00	2021-05-15 04:54:51.273035+00	330	1	2085	1	222f8654-fe9b-459e-9197-59880ae67436
-2085	2021-03-19 15:24:30.332934+00	2021-05-15 04:54:51.27437+00	329	1	\N	1	6c1db4fc-7c97-4136-a58b-eeafbe87fe62
-2084	2021-03-19 14:28:28.014111+00	2021-05-15 04:54:51.275709+00	311	1	2083	1	1c28ada0-caba-4c9a-892d-78317eac6c6c
-2083	2021-03-19 14:28:28.008018+00	2021-05-15 04:54:51.277013+00	309	1	\N	1	41ca635e-a77a-4cef-aaf2-73a80b40929f
-2082	2021-03-19 14:23:25.117203+00	2021-05-15 04:54:51.279106+00	311	1	2081	1	27f30b3f-9401-4b70-916c-54dfb6f471c8
-2081	2021-03-19 14:23:25.110844+00	2021-05-15 04:54:51.280436+00	309	1	\N	1	e4a67721-42e4-4f32-bdc8-4ac5e783fe90
-2080	2021-03-19 13:16:07.084627+00	2021-05-15 04:54:51.281786+00	311	1	2079	1	8ab38859-9dfb-439e-8796-6836e6c82b92
-2079	2021-03-19 13:16:07.078767+00	2021-05-15 04:54:51.284052+00	309	1	\N	1	24ff0219-2e71-428c-b933-29b6c683e667
-2056	2021-01-29 18:15:23.451444+00	2021-05-15 04:54:51.28721+00	316	1	2055	1	a07e9356-00de-4fca-a9c3-13757980a060
-2058	2021-01-29 18:15:23.539759+00	2021-05-15 04:54:51.288505+00	317	1	2055	1	b3085b3a-862a-4437-8e04-9d1b404f530a
-2059	2021-01-29 18:15:23.561223+00	2021-05-15 04:54:51.289913+00	310	1	2055	1	ab5edbaa-e096-4637-b7b0-8fb713f82a34
-2060	2021-01-29 18:15:23.684924+00	2021-05-15 04:54:51.291307+00	313	1	2055	1	a2ec4742-6027-4cdb-a9a8-402641c64454
-2071	2021-02-24 13:56:33.554906+00	2021-05-15 04:54:51.292658+00	312	1	2055	1	6c145d61-53fb-40d5-bac7-7ec14cc8fe17
-2055	2021-01-29 18:15:23.445831+00	2021-05-15 04:54:51.294+00	308	1	\N	1	6375dab8-c6bc-4fa7-b7fa-80b34fff0d04
-2067	2021-02-01 20:28:45.512162+00	2021-05-15 04:54:51.295361+00	313	1	2063	1	575d41e7-dcd6-4c29-b6c8-6c0ab666337a
-2066	2021-02-01 20:28:45.385733+00	2021-05-15 04:54:51.296718+00	310	1	2063	1	4db87601-748c-43e2-a6c7-64841ab822c0
-2065	2021-02-01 20:28:45.300076+00	2021-05-15 04:54:51.298065+00	316	1	2063	1	0ba1b269-2fda-43d1-accc-ad98d826832d
-2064	2021-02-01 20:28:45.278488+00	2021-05-15 04:54:51.300497+00	317	1	2063	1	1c88c727-4f23-4916-bbdd-07d6b4295000
-2063	2021-02-01 20:28:45.273274+00	2021-05-15 04:54:51.301934+00	308	1	\N	1	32ca5073-2837-40ff-be25-4bd3f80f6b22
-2041	2020-12-03 20:18:36.24286+00	2021-05-15 04:54:51.303329+00	316	1	2040	1	7162ddbd-c719-4971-86b7-b0fa034bb969
-2043	2020-12-03 20:18:36.380921+00	2021-05-15 04:54:51.304697+00	317	1	2040	1	dd55f202-a33b-4ac1-af81-ff426b65870f
-2044	2020-12-03 20:18:36.404391+00	2021-05-15 04:54:51.305981+00	310	1	2040	1	d85ce045-2d86-492f-bdc2-1fba7cf80d99
-2045	2020-12-03 20:18:36.525309+00	2021-05-15 04:54:51.30737+00	313	1	2040	1	22c88493-d09f-418b-b03e-1e621dc66645
-2070	2021-02-24 07:57:22.068383+00	2021-05-15 04:54:51.308727+00	315	1	2040	1	65f90cea-2fe6-470d-989f-9ae045f3ddab
-2040	2020-12-03 20:18:36.236853+00	2021-05-15 04:54:51.310114+00	308	1	\N	1	4d03ed72-5d7c-4534-a257-377246966e62
-2027	2020-12-03 20:02:54.065775+00	2021-05-15 04:54:51.31139+00	319	1	2026	1	0b35e178-4642-428e-b075-87604c61c666
-2026	2020-12-03 20:02:54.054347+00	2021-05-15 04:54:51.312684+00	318	1	\N	1	098e7de2-42ee-4d1a-b511-1fa8a395a419
-2050	2021-01-29 17:51:04.988523+00	2021-05-15 04:54:51.313971+00	319	1	2049	1	19c4f961-7fcc-47bd-8320-c842df228be0
-2049	2021-01-29 17:51:04.981766+00	2021-05-15 04:54:51.315261+00	318	1	\N	1	72b9528d-6b31-4430-b565-98a481118bb9
-2062	2021-02-01 20:28:09.440921+00	2021-05-15 04:54:51.316548+00	311	1	2061	1	1728c621-f46d-480f-b428-9582081601c3
-2061	2021-02-01 20:28:09.414263+00	2021-05-15 04:54:51.317931+00	309	1	\N	1	150ef45a-7105-4a2d-9530-a8a0b45c0c2d
-2031	2020-12-03 20:06:46.65917+00	2021-05-15 04:54:51.319292+00	319	1	2030	1	51208d22-4df8-4e84-8268-5cd4174d9139
-2030	2020-12-03 20:06:46.653522+00	2021-05-15 04:54:51.320659+00	318	1	\N	1	9deaf6af-3f56-4271-ad46-8cacf7105385
-2054	2021-01-29 18:14:32.188441+00	2021-05-15 04:54:51.322226+00	311	1	2053	1	b7f7da03-9e80-4be2-a302-0003ec9f0500
-2053	2021-01-29 18:14:32.183012+00	2021-05-15 04:54:51.324113+00	309	1	\N	1	8f017fbe-ac8b-4075-afe6-c0406c7e64a0
-2033	2020-12-03 20:08:06.762751+00	2021-05-15 04:54:51.325433+00	315	1	2032	1	651f3431-0027-4bf4-aeff-36e6c899b8df
-2034	2020-12-03 20:08:06.82616+00	2021-05-15 04:54:51.326782+00	316	1	2032	1	c4a156d4-2ca4-4eca-bb03-7789d405a09f
-2035	2020-12-03 20:08:06.915565+00	2021-05-15 04:54:51.328108+00	317	1	2032	1	06ea852d-cc67-42c3-8988-7fdd2d6b77f6
-2037	2020-12-03 20:08:07.047562+00	2021-05-15 04:54:51.329457+00	313	1	2032	1	ec5e491f-12be-48ba-8902-4354635aa609
-2036	2020-12-03 20:08:06.938191+00	2021-05-15 04:54:51.330768+00	310	1	2032	1	d6c71b3a-8892-4850-8e87-1338a58cb8d0
-2032	2020-12-03 20:08:06.756774+00	2021-05-15 04:54:51.332258+00	308	1	\N	1	1a17f36b-f688-4691-86dc-47f4ad33b774
-2052	2021-01-29 17:51:46.346493+00	2021-05-15 04:54:51.336168+00	319	1	2051	1	261ad1d9-a6de-42b8-9fcb-9ea140ffae37
-2051	2021-01-29 17:51:46.341118+00	2021-05-15 04:54:51.337538+00	318	1	\N	1	c1fc8a18-76e1-4a39-8283-b5129a00301d
-2048	2020-12-26 22:42:14.497554+00	2021-05-15 04:54:51.338852+00	322	1	2047	1	83fb7f50-e04a-4083-829d-80c55e39aff2
-2047	2020-12-26 22:42:14.490828+00	2021-05-15 04:54:51.340236+00	321	1	\N	1	961e2bcd-edb8-4fe4-a637-bbab8189b9c0
-2029	2020-12-03 20:05:17.689757+00	2021-05-15 04:54:51.341554+00	311	1	2028	1	b72a7232-df52-489d-8960-95e5ab293dce
-2028	2020-12-03 20:05:17.683648+00	2021-05-15 04:54:51.342892+00	309	1	\N	1	1e4a0c12-6b8c-4001-8eda-160964483b85
-2039	2020-12-03 20:16:43.738701+00	2021-05-15 04:54:51.34424+00	311	1	2038	1	1f0f4583-ac14-48ed-84cf-2ad2694af726
-2038	2020-12-03 20:16:43.732865+00	2021-05-15 04:54:51.345564+00	309	1	\N	1	a7c28976-a62d-4eac-b654-1f759456aab1
-142	2019-03-19 23:10:48.754889+00	2021-05-15 04:54:51.346937+00	15	15	\N	3	3ff8b009-c3d5-4ca0-b8a3-8a1521c01a28
-143	2019-03-19 23:10:48.76434+00	2021-05-15 04:54:51.355662+00	16	15	142	3	e74df90e-815c-43ac-8672-443a5548d1d6
-144	2019-03-19 23:10:48.819871+00	2021-05-15 04:54:51.356997+00	17	15	142	3	d82a6b39-657d-497a-8f6f-55144614e589
-137	2019-03-19 23:08:34.757027+00	2021-05-15 04:54:51.358402+00	15	15	\N	3	2466bd06-c602-4d57-92c8-261da94565a2
-138	2019-03-19 23:08:34.771584+00	2021-05-15 04:54:51.35984+00	16	15	137	3	16096747-8a14-4e6a-919f-0ffbd771fe46
-139	2019-03-19 23:08:34.828961+00	2021-05-15 04:54:51.361162+00	17	15	137	3	5f6aa668-eda5-4cee-a6bd-292c7092661b
-132	2019-03-19 23:05:57.556911+00	2021-05-15 04:54:51.362704+00	15	15	\N	3	dde8bf52-88c0-401d-baab-9fdee0678e8a
-133	2019-03-19 23:05:57.568195+00	2021-05-15 04:54:51.364071+00	16	15	132	3	36c0dcfe-3614-43eb-9066-0eaa6175198b
-134	2019-03-19 23:05:57.622764+00	2021-05-15 04:54:51.365369+00	17	15	132	3	3eb370a9-1080-4fb9-b876-ed1199c19189
-127	2019-03-19 23:00:15.728613+00	2021-05-15 04:54:51.366661+00	15	15	\N	3	874a0735-104e-41f0-9b60-8e4c75c1a4c0
-128	2019-03-19 23:00:15.739178+00	2021-05-15 04:54:51.367981+00	16	15	127	3	2a3cb65d-228e-4e15-a9ad-fd4cbe21f660
-129	2019-03-19 23:00:15.79378+00	2021-05-15 04:54:51.369242+00	17	15	127	3	0caa9bd0-894d-4334-b5fa-1771421f7bcd
-147	2019-03-19 23:17:30.763883+00	2021-05-15 04:54:51.370572+00	15	15	\N	3	25892dd6-5664-44d7-b144-6e1604f592c6
-148	2019-03-19 23:17:30.773826+00	2021-05-15 04:54:51.371905+00	16	15	147	3	b5e21cda-d623-4fc4-bd1b-f6324a1d2d80
-149	2019-03-19 23:17:30.830412+00	2021-05-15 04:54:51.373166+00	17	15	147	3	ac30ad37-7dca-4b87-b04e-44b3f86214b7
-152	2019-03-19 23:20:40.356518+00	2021-05-15 04:54:51.37459+00	15	15	\N	3	767a8155-708d-407b-9c7c-47ccbe192aa7
-153	2019-03-19 23:20:40.366982+00	2021-05-15 04:54:51.376038+00	16	15	152	3	500b925a-6468-416e-9601-0722a9e9fb54
-154	2019-03-19 23:20:40.428233+00	2021-05-15 04:54:51.377378+00	17	15	152	3	94094201-5ded-4700-9504-15aa8d330c81
-155	2019-03-19 23:22:45.680894+00	2021-05-15 04:54:51.378732+00	15	15	\N	3	fea8b871-b1f6-4bde-9597-0030e8169bff
-156	2019-03-19 23:22:45.69794+00	2021-05-15 04:54:51.380067+00	16	15	155	3	d6b292dd-fcc0-48e5-afed-8b4a01eceba9
-157	2019-03-19 23:22:45.745461+00	2021-05-15 04:54:51.381424+00	17	15	155	3	3c46b00b-e8ec-4243-968e-7c847b6ab080
-145	2019-03-19 23:16:44.689197+00	2021-05-15 04:54:51.382764+00	18	9	\N	1	7b0ae817-c610-482b-910b-f33941ef65af
-146	2019-03-19 23:16:44.698313+00	2021-05-15 04:54:51.384147+00	19	9	145	1	11606576-c613-48bd-9018-c7443a41ee79
-160	2019-03-21 04:02:20.46498+00	2021-05-15 04:54:51.385728+00	15	9	\N	1	5145a20b-a4e7-4166-b1a7-840329abf661
-161	2019-03-21 04:02:20.477472+00	2021-05-15 04:54:51.38705+00	16	9	160	1	3fea5eed-19d5-4fe0-85ef-818e5c01e7dd
-162	2019-03-21 04:02:20.528192+00	2021-05-15 04:54:51.388376+00	17	9	160	1	de49d8aa-2015-413d-a66b-5cf711062110
-179	2019-03-22 03:30:21.948837+00	2021-05-15 04:54:51.38971+00	15	9	\N	1	8d4617f5-f60f-4508-b0fc-db3d403f37ee
-180	2019-03-22 03:30:21.960789+00	2021-05-15 04:54:51.391012+00	16	9	179	1	97298572-4815-4286-a374-97cf5ddfe425
-181	2019-03-22 03:30:22.028243+00	2021-05-15 04:54:51.392313+00	17	9	179	1	996ff8b9-339d-4599-97f1-67f091b8d0ed
-150	2019-03-19 23:19:17.511358+00	2021-05-15 04:54:51.393613+00	18	9	\N	1	316ad950-4b39-4408-9d72-17575f9b9e21
-151	2019-03-19 23:19:17.521522+00	2021-05-15 04:54:51.398416+00	19	9	150	1	6fe26aa8-df0e-45bd-9999-e226a801e096
-158	2019-03-19 23:26:41.761835+00	2021-05-15 04:54:51.399777+00	18	9	\N	1	75f9890e-fae9-49a3-92ff-bd70275ebb66
-159	2019-03-19 23:26:41.771867+00	2021-05-15 04:54:51.401066+00	19	9	158	1	6a8ff3dd-7597-444e-9818-6d96558e02db
-140	2019-03-19 23:09:45.843191+00	2021-05-15 04:54:51.402417+00	18	9	\N	1	420a1ceb-7f76-4483-8a04-91c321463b9d
-141	2019-03-19 23:09:45.853446+00	2021-05-15 04:54:51.404362+00	19	9	140	1	c9760f05-4517-4928-8634-0c3677975ecb
-135	2019-03-19 23:07:05.902323+00	2021-05-15 04:54:51.4057+00	18	9	\N	1	ff357f18-1879-4922-bd56-0e2f4e03ad5d
-136	2019-03-19 23:07:05.913245+00	2021-05-15 04:54:51.407022+00	19	9	135	1	615162b5-79a7-4631-a6d6-1b96b40e5bc4
-130	2019-03-19 23:04:02.661386+00	2021-05-15 04:54:51.408303+00	18	9	\N	1	76350307-e717-48c0-bb19-120e04927d91
-131	2019-03-19 23:04:02.680081+00	2021-05-15 04:54:51.409655+00	19	9	130	1	bbb5d739-3d97-45c6-9811-d1752656e6fc
-125	2019-03-19 22:58:57.044049+00	2021-05-15 04:54:51.41098+00	18	9	\N	1	e1b62207-c79e-4ea4-a30c-6273ddbcd164
-126	2019-03-19 22:58:57.054698+00	2021-05-15 04:54:51.412323+00	19	9	125	1	5528b6a6-0798-45d8-98b7-77d79f9fd51f
-186	2019-03-23 18:32:35.725516+00	2021-05-15 04:54:51.413642+00	15	9	\N	1	a3ea65e3-0f43-420e-9f41-c39c89402435
-187	2019-03-23 18:32:35.740903+00	2021-05-15 04:54:51.415016+00	16	9	186	1	9ebd0ff5-bf99-40b8-9ff1-90e78e00e4ef
-188	2019-03-23 18:32:35.791052+00	2021-05-15 04:54:51.416354+00	17	9	186	1	19588036-e497-4da7-8f27-eb35ec032054
-189	2019-03-27 19:47:29.996554+00	2021-05-15 04:54:51.417714+00	18	15	\N	3	29008db9-eaed-4737-a6af-ae7b23ddbf37
-190	2019-03-27 19:47:30.144741+00	2021-05-15 04:54:51.419024+00	19	9	189	1	e61592dc-bb94-482a-b843-2042f20f504d
-191	2019-03-27 22:03:43.290123+00	2021-05-15 04:54:51.420514+00	15	15	\N	3	cab95a78-7101-41e2-8de2-85166c2821b7
-192	2019-03-27 22:03:43.308064+00	2021-05-15 04:54:51.421897+00	16	15	191	3	36faf0b2-aa01-424e-a9ef-f21c987de218
-193	2019-03-27 22:03:43.370662+00	2021-05-15 04:54:51.423204+00	17	15	191	3	94e46bff-9235-4525-bf56-622688efd3c5
-194	2019-03-27 23:26:13.225868+00	2021-05-15 04:54:51.425575+00	24	15	\N	3	c4a45222-ce71-48c3-a2b0-48a0e3af0382
-195	2019-03-27 23:26:13.241179+00	2021-05-15 04:54:51.426941+00	25	15	194	3	1a3f7f69-60ac-4e34-b09e-43bdb5ccd6b2
-196	2019-03-27 23:47:55.589846+00	2021-05-15 04:54:51.428309+00	24	15	\N	3	57420786-c7c4-4a90-be86-e4b31424a952
-197	2019-03-27 23:47:55.600955+00	2021-05-15 04:54:51.429645+00	25	15	196	3	24023587-7d6f-412f-86a0-7b0b4082feac
-198	2019-03-28 22:46:49.119631+00	2021-05-15 04:54:51.431009+00	15	9	\N	1	99a38651-5566-40e3-8c12-6b2241fbb0a1
-199	2019-03-28 22:46:49.141251+00	2021-05-15 04:54:51.432422+00	16	9	198	1	518ba244-bf36-4fda-9b55-d8898bcc49ba
-200	2019-03-28 22:46:49.185592+00	2021-05-15 04:54:51.434052+00	17	9	198	1	a8802e42-9b64-4e27-896e-cfb12491fb28
-201	2019-03-28 22:46:52.91383+00	2021-05-15 04:54:51.435699+00	15	9	\N	1	f235f9b3-bf9d-4a39-85f5-18432ce2a2cf
-202	2019-03-28 22:46:52.924218+00	2021-05-15 04:54:51.437215+00	16	9	201	1	7c22a1be-83cd-4a5a-89b7-725687f93ba6
-203	2019-03-28 22:46:52.976385+00	2021-05-15 04:54:51.438796+00	17	9	201	1	391c7395-b29a-4ae9-874a-e2a51ecebb2c
-204	2019-03-28 22:46:55.896221+00	2021-05-15 04:54:51.440369+00	15	9	\N	1	c83d4592-b753-4cbd-9dd8-991e17acaafb
-205	2019-03-28 22:46:55.90597+00	2021-05-15 04:54:51.441831+00	16	9	204	1	fa93fc64-209a-4ba6-abe0-f480492a3616
-206	2019-03-28 22:46:55.94598+00	2021-05-15 04:54:51.443301+00	17	9	204	1	76bbc8bc-e3bb-41ce-bd82-637f6a27ebd7
-210	2019-03-28 22:47:25.534507+00	2021-05-15 04:54:51.444895+00	15	9	\N	1	0c96adc3-78d5-429e-ad3e-b31008f8eb13
-211	2019-03-28 22:47:25.54413+00	2021-05-15 04:54:51.446616+00	16	9	210	1	16948981-f2b6-43b8-97ae-3cdc814b966a
-212	2019-03-28 22:47:25.601134+00	2021-05-15 04:54:51.448043+00	17	9	210	1	28de87c9-4b1b-4e01-ba5c-6a93355af4d2
-213	2019-03-28 22:47:29.300473+00	2021-05-15 04:54:51.449765+00	15	9	\N	1	30cfc5cb-28db-471a-b947-c4bc9be6859f
-214	2019-03-28 22:47:29.31286+00	2021-05-15 04:54:51.451231+00	16	9	213	1	744d25f9-ef31-497c-8d66-48c18e40b5bf
-215	2019-03-28 22:47:29.351775+00	2021-05-15 04:54:51.452683+00	17	9	213	1	b5823ea9-6c8c-44dd-955e-bc7eae99bb30
-216	2019-03-28 22:47:32.699517+00	2021-05-15 04:54:51.454313+00	15	9	\N	1	cc8c4a16-d9c7-4946-8402-2f527a8fe3bc
-217	2019-03-28 22:47:32.716995+00	2021-05-15 04:54:51.456387+00	16	9	216	1	3b573724-8530-452f-aa01-6997c19bf960
-218	2019-03-28 22:47:32.764443+00	2021-05-15 04:54:51.45776+00	17	9	216	1	18a2181a-d9ee-4c76-b678-da8dae6c528e
-219	2019-03-28 22:47:35.345617+00	2021-05-15 04:54:51.461606+00	15	9	\N	1	459a98fd-398a-4cd0-8876-d8562a5513d5
-220	2019-03-28 22:47:35.355017+00	2021-05-15 04:54:51.462999+00	16	9	219	1	bcfe42f3-fb69-4859-aafb-e1ea2bce7449
-221	2019-03-28 22:47:35.397906+00	2021-05-15 04:54:51.464345+00	17	9	219	1	484e3cfe-ea26-4d43-82ce-613ba169e9fb
-222	2019-03-28 22:47:38.583914+00	2021-05-15 04:54:51.46568+00	15	9	\N	1	59d907c0-3490-4074-92da-c475fba44db5
-223	2019-03-28 22:47:38.595366+00	2021-05-15 04:54:51.467058+00	16	9	222	1	0dba88f6-3841-410c-91d6-bce38adec66f
-224	2019-03-28 22:47:38.634097+00	2021-05-15 04:54:51.46838+00	17	9	222	1	224c757c-6ecd-49ab-a560-1931a444d8f8
-225	2019-03-28 22:47:41.45905+00	2021-05-15 04:54:51.469689+00	15	9	\N	1	a2d84455-3145-4670-9ea2-2ecbfb21ce20
-226	2019-03-28 22:47:41.468621+00	2021-05-15 04:54:51.471009+00	16	9	225	1	20361082-79f8-4d5b-b080-2ce789cc1851
-227	2019-03-28 22:47:41.513478+00	2021-05-15 04:54:51.472306+00	17	9	225	1	e614eeb9-3b72-4f3d-8136-f08849544b9e
-207	2019-03-28 22:46:58.981656+00	2021-05-15 04:54:51.473594+00	15	9	\N	1	dba3e787-bce4-4b3a-8dad-da3ba65c8719
-208	2019-03-28 22:46:58.991721+00	2021-05-15 04:54:51.475599+00	16	9	207	1	ca995077-5758-48a3-9bc7-94fc74c73ced
-209	2019-03-28 22:46:59.050773+00	2021-05-15 04:54:51.477109+00	17	9	207	1	d4aa6da9-0a58-41f7-ac19-c0c596bc79ad
-228	2019-03-28 22:53:20.295948+00	2021-05-15 04:54:51.478419+00	15	9	\N	1	7312151b-a5b8-4d27-8d30-e2b22de3283d
-229	2019-03-28 22:53:20.305425+00	2021-05-15 04:54:51.479824+00	16	9	228	1	ea41eecd-66ad-4301-b1f5-6090aaf23d83
-230	2019-03-28 22:53:20.348103+00	2021-05-15 04:54:51.481202+00	17	9	228	1	cfa58e4f-d60c-4e98-89fa-f8a4654482e5
-231	2019-03-28 22:53:23.383942+00	2021-05-15 04:54:51.48292+00	15	9	\N	1	a9f08b4d-3ae1-42f0-ac0b-711d0e4c807a
-232	2019-03-28 22:53:23.399604+00	2021-05-15 04:54:51.484984+00	16	9	231	1	83ecab4a-be11-443f-bde0-f97a02aaafe2
-233	2019-03-28 22:53:23.435633+00	2021-05-15 04:54:51.486432+00	17	9	231	1	c7eacec0-02d0-446f-935f-f44be4977ea8
-234	2019-03-28 22:53:25.765869+00	2021-05-15 04:54:51.487825+00	15	9	\N	1	2ebac943-1aec-4816-bc5a-2af2a65fdbdc
-235	2019-03-28 22:53:25.774957+00	2021-05-15 04:54:51.48942+00	16	9	234	1	4623b1bb-5354-4bc8-aa67-f4f71c20c8c8
-236	2019-03-28 22:53:25.805742+00	2021-05-15 04:54:51.491592+00	17	9	234	1	6dd27777-a03d-43b8-a4d7-566a1e1425d4
-237	2019-03-28 22:54:45.999262+00	2021-05-15 04:54:51.492975+00	15	9	\N	1	721bb53e-c6dc-4416-b620-53767ffe3432
-238	2019-03-28 22:54:46.013376+00	2021-05-15 04:54:51.494299+00	16	9	237	1	46460f78-cf5a-446c-ac34-1ee539f4bf4c
-239	2019-03-28 22:54:46.060719+00	2021-05-15 04:54:51.495664+00	17	9	237	1	3d3d1ac6-abcf-4e40-bb0c-eef6749b75b4
-240	2019-03-28 22:54:48.683558+00	2021-05-15 04:54:51.497789+00	15	9	\N	1	2f56d38a-0df0-4c90-8954-551673418b96
-241	2019-03-28 22:54:48.692404+00	2021-05-15 04:54:51.504506+00	16	9	240	1	e1734d14-1cff-40f6-816e-8b510d1511a8
-242	2019-03-28 22:54:48.728155+00	2021-05-15 04:54:51.505966+00	17	9	240	1	d2313486-0327-42c0-83a2-e01a905f3486
-243	2019-03-28 22:54:51.127275+00	2021-05-15 04:54:51.507311+00	15	9	\N	1	f892b36c-35f7-4646-8aed-f3da5e24c192
-244	2019-03-28 22:54:51.136768+00	2021-05-15 04:54:51.508678+00	16	9	243	1	ac208059-dcdd-4cb4-9a8d-5ab225502b61
-245	2019-03-28 22:54:51.168569+00	2021-05-15 04:54:51.509983+00	17	9	243	1	28f32669-bd78-4595-a0de-b66c32e8eb36
-249	2019-03-28 22:55:16.758887+00	2021-05-15 04:54:51.511455+00	15	9	\N	1	1f1cfaa1-a47b-494a-81c1-793d03b58812
-250	2019-03-28 22:55:16.769047+00	2021-05-15 04:54:51.512778+00	16	9	249	1	4cd66895-f4ca-497b-b981-9f951eb0108d
-251	2019-03-28 22:55:16.806273+00	2021-05-15 04:54:51.514124+00	17	9	249	1	d8cbb4a5-e463-435e-a2ab-edf675b7ace7
-252	2019-03-28 22:55:19.31601+00	2021-05-15 04:54:51.515467+00	15	9	\N	1	8f79c77c-8040-46a2-b07e-6a21d70a53e2
-253	2019-03-28 22:55:19.325095+00	2021-05-15 04:54:51.516818+00	16	9	252	1	9e576115-5910-4deb-a01b-4dbfecb2300a
-254	2019-03-28 22:55:19.356373+00	2021-05-15 04:54:51.518137+00	17	9	252	1	f407bc64-1c3b-406d-a2cf-b7e7305ca79b
-255	2019-03-28 22:55:21.902967+00	2021-05-15 04:54:51.519513+00	15	9	\N	1	c9896412-cc0c-4676-a526-3d2f1783628c
-256	2019-03-28 22:55:21.913282+00	2021-05-15 04:54:51.520832+00	16	9	255	1	fa78480f-94d1-40ca-8b36-08207b94f861
-257	2019-03-28 22:55:21.94435+00	2021-05-15 04:54:51.522087+00	17	9	255	1	e5629e6e-7fe3-41fe-a436-5b7f99289f8d
-258	2019-03-28 22:55:24.30178+00	2021-05-15 04:54:51.523463+00	15	9	\N	1	79a7107b-3d3e-424d-afbb-cc3cf4132182
-259	2019-03-28 22:55:24.315738+00	2021-05-15 04:54:51.524853+00	16	9	258	1	9a3191a3-f3bc-4152-8908-3bf78b62d76e
-260	2019-03-28 22:55:24.350619+00	2021-05-15 04:54:51.526247+00	17	9	258	1	4869a0b7-38f3-4b7d-8010-02e0855e83ce
-261	2019-03-28 22:56:51.320227+00	2021-05-15 04:54:51.527604+00	15	9	\N	1	b827a96d-75c8-4d63-b947-05ed8d04a402
-262	2019-03-28 22:56:51.328942+00	2021-05-15 04:54:51.528918+00	16	9	261	1	4bf95bc6-4a4c-484e-b65c-a18cf3449bf1
-263	2019-03-28 22:56:51.360034+00	2021-05-15 04:54:51.530236+00	17	9	261	1	b0328dd9-40c8-418f-8b67-46eface1ebdb
-264	2019-03-28 22:56:53.937211+00	2021-05-15 04:54:51.531496+00	15	9	\N	1	21825a1c-20f8-4577-ba55-19469ec09318
-265	2019-03-28 22:56:53.950551+00	2021-05-15 04:54:51.532838+00	16	9	264	1	67a21487-c8ef-487d-bc35-fa7aa4a58363
-266	2019-03-28 22:56:54.002468+00	2021-05-15 04:54:51.534109+00	17	9	264	1	ce1937e3-98d3-40c7-a01c-3ccf9da384a9
-267	2019-03-28 22:56:56.612183+00	2021-05-15 04:54:51.535415+00	15	9	\N	1	a3ef1053-2b88-4195-a2b1-51fa13aa648b
-268	2019-03-28 22:56:56.621406+00	2021-05-15 04:54:51.537247+00	16	9	267	1	17ca72d4-89b9-4001-ba83-7b325c7b212a
-269	2019-03-28 22:56:56.653339+00	2021-05-15 04:54:51.538587+00	17	9	267	1	1543bd37-1bc1-4a9b-9ad9-15bc103f6ad5
-270	2019-03-28 22:56:59.119104+00	2021-05-15 04:54:51.540284+00	15	9	\N	1	fafe319c-bd6a-40bd-aa3b-394ae71841e6
-271	2019-03-28 22:56:59.129395+00	2021-05-15 04:54:51.541594+00	16	9	270	1	e9373c06-7433-48e4-a34e-f71a3ce9002e
-272	2019-03-28 22:56:59.166189+00	2021-05-15 04:54:51.542905+00	17	9	270	1	1e5fbc8f-8a66-431c-b9be-6bc6d877ef7a
-273	2019-03-28 22:57:05.427915+00	2021-05-15 04:54:51.544205+00	15	9	\N	1	21301be2-4659-40b5-9cf5-d7136fc33757
-274	2019-03-28 22:57:05.438218+00	2021-05-15 04:54:51.545513+00	16	9	273	1	0928f8b2-8469-4c7c-81f7-8520b2297438
-275	2019-03-28 22:57:05.471552+00	2021-05-15 04:54:51.54696+00	17	9	273	1	f0d8be69-b38d-42ef-a17d-1482728809d3
-246	2019-03-28 22:54:54.092758+00	2021-05-15 04:54:51.548265+00	15	9	\N	1	cb08d4de-b7d7-4a38-8fb9-b5e667d79274
-247	2019-03-28 22:54:54.102038+00	2021-05-15 04:54:51.549556+00	16	9	246	1	fb1178aa-0c0c-46d1-89fc-52c15bae17d7
-248	2019-03-28 22:54:54.139028+00	2021-05-15 04:54:51.550881+00	17	9	246	1	317f9dbb-8d40-45b6-9b03-ca9637e01b62
-284	2019-04-06 19:18:35.883065+00	2021-05-15 04:54:51.552166+00	15	9	\N	1	42a7f5b0-919f-4e1d-ba96-842b513173af
-285	2019-04-06 19:18:36.406254+00	2021-05-15 04:54:51.553441+00	16	9	284	1	1a55b7f2-f34e-449b-be69-6e057f2b016a
-286	2019-04-06 19:18:36.444595+00	2021-05-15 04:54:51.554751+00	17	9	284	1	ddde137e-f75b-42ac-be49-5adcc1760306
-287	2019-04-06 19:23:13.147269+00	2021-05-15 04:54:51.556074+00	15	9	\N	1	072c7850-e5ee-4224-a794-1a44e41efac0
-288	2019-04-06 19:23:13.73542+00	2021-05-15 04:54:51.557459+00	16	9	287	1	b9b360d0-2f26-4591-a452-ff312012fc06
-289	2019-04-06 19:23:13.776483+00	2021-05-15 04:54:51.558907+00	17	9	287	1	2c74cec4-771a-4810-b083-c30cd83f6d14
-290	2019-04-06 20:15:29.886693+00	2021-05-15 04:54:51.560264+00	24	9	\N	1	cdbb0e2b-196b-4041-ab6c-6894fab56e3a
-291	2019-04-06 20:15:30.471733+00	2021-05-15 04:54:51.561598+00	25	9	290	1	cc4a8036-ee55-4eb1-b46d-d492ce171c15
-292	2019-04-07 18:57:14.114846+00	2021-05-15 04:54:51.562978+00	24	9	\N	1	29ce8438-c582-413e-af3e-4c191e8a6b83
-293	2019-04-07 18:57:14.764477+00	2021-05-15 04:54:51.564342+00	25	9	292	1	5508f5fb-cc42-46eb-8498-6892e0fe9562
-294	2019-04-07 19:32:11.663677+00	2021-05-15 04:54:51.566277+00	15	9	\N	1	26dfc250-bb14-4411-9e56-9fbf7d45be3b
-295	2019-04-07 19:32:12.072376+00	2021-05-15 04:54:51.567596+00	16	9	294	1	e713d626-6edf-43f4-a5d3-457488829913
-296	2019-04-07 19:32:12.123361+00	2021-05-15 04:54:51.568923+00	17	9	294	1	3ad16740-2f09-485a-87b5-48cf84b9cd67
-297	2019-04-08 00:02:38.577117+00	2021-05-15 04:54:51.570323+00	15	9	\N	1	cebb3294-826c-4a54-9494-c7fa8a628b3c
-298	2019-04-08 00:02:38.84796+00	2021-05-15 04:54:51.571852+00	16	9	297	1	364dbeb9-dd47-41eb-be8b-0c91cf661bb9
-299	2019-04-08 00:02:38.891014+00	2021-05-15 04:54:51.573123+00	17	9	297	1	d774da74-03f3-424a-a209-35e9a14df67f
-300	2019-04-08 00:49:20.177533+00	2021-05-15 04:54:51.574521+00	15	9	\N	1	d190e3c8-93fc-4816-ace1-768335c5cebb
-301	2019-04-08 00:49:20.375685+00	2021-05-15 04:54:51.575867+00	16	9	300	1	0992ef39-0316-408f-9c7a-18c200ae4b98
-302	2019-04-08 00:49:20.416542+00	2021-05-15 04:54:51.577261+00	17	9	300	1	7b54d7c0-5dfb-4d31-88b3-f9a2b2b79aa7
-304	2019-04-08 00:49:20.507608+00	2021-05-15 04:54:51.578794+00	30	9	300	1	9139a164-af97-48dd-b9ea-5343ead6fe02
-306	2019-04-08 19:37:10.159945+00	2021-05-15 04:54:51.580146+00	15	9	\N	1	3db1f94a-2fab-4459-a516-1f977a817340
-307	2019-04-08 19:37:10.397458+00	2021-05-15 04:54:51.581452+00	16	9	306	1	933537d9-8ab0-41e8-b88e-974e1393f1a7
-308	2019-04-08 19:37:10.44749+00	2021-05-15 04:54:51.582768+00	17	9	306	1	d6f6ec6a-5cec-4ae5-b1ee-6463a4d578d5
-310	2019-04-08 19:37:11.774858+00	2021-05-15 04:54:51.58412+00	30	9	306	1	71e40cf7-9c88-4cc5-9240-a68825987ea3
-312	2019-04-08 19:37:35.929338+00	2021-05-15 04:54:51.585461+00	15	9	\N	1	2e2e162e-13d6-4c5d-a46a-9a896c394bf1
-313	2019-04-08 19:37:36.128046+00	2021-05-15 04:54:51.586759+00	16	9	312	1	e4bdfc93-dfbe-44bf-ad69-5af5e03560ce
-314	2019-04-08 19:37:36.167419+00	2021-05-15 04:54:51.588123+00	17	9	312	1	36b15b64-6f51-4278-82e0-3624e03e5beb
-316	2019-04-08 19:37:36.994758+00	2021-05-15 04:54:51.589472+00	30	9	312	1	1ef4a7ac-4d7b-4d86-987d-83dc41803587
-318	2019-04-09 01:19:27.225999+00	2021-05-15 04:54:51.590918+00	15	9	\N	1	1dae31ca-e529-4035-a58f-0684c823c01b
-319	2019-04-09 01:19:27.398339+00	2021-05-15 04:54:51.592218+00	16	9	318	1	b5fb4231-0fdc-484a-8fa2-bfe82cf0ef21
-320	2019-04-09 01:19:27.438801+00	2021-05-15 04:54:51.593558+00	17	9	318	1	f8562a74-8343-4774-94a1-201ccb27a562
-321	2019-04-09 01:19:27.511664+00	2021-05-15 04:54:51.594914+00	30	9	318	1	b4afc19e-d597-403f-844a-28899b37af66
-322	2019-04-09 01:21:44.478726+00	2021-05-15 04:54:51.596225+00	15	9	\N	1	f31fc785-c594-4e1c-8523-277db5e75462
-323	2019-04-09 01:21:44.650734+00	2021-05-15 04:54:51.599037+00	16	9	322	1	fafaf878-0c83-4c65-a3f8-a099cb374a62
-324	2019-04-09 01:21:44.702802+00	2021-05-15 04:54:51.600461+00	17	9	322	1	5fe77e9c-535a-48bb-8b39-7994c4e43a6c
-325	2019-04-09 01:21:44.759959+00	2021-05-15 04:54:51.601794+00	30	9	322	1	ba39c535-e9ed-4c47-bc7e-464396c64866
-326	2019-04-09 01:23:07.686127+00	2021-05-15 04:54:51.603138+00	15	9	\N	1	2aa3125a-c0ee-414a-9177-2be7ac071c29
-327	2019-04-09 01:23:07.871773+00	2021-05-15 04:54:51.604476+00	16	9	326	1	fddd9a14-7547-4b7f-922b-eefdf5b639aa
-328	2019-04-09 01:23:07.906981+00	2021-05-15 04:54:51.605845+00	17	9	326	1	726e2510-5fa3-4463-8ba0-b6706dbc8997
-329	2019-04-09 01:23:07.963615+00	2021-05-15 04:54:51.607163+00	30	9	326	1	87742e6c-b90a-44a9-9b99-cc34a029acef
-330	2019-04-09 01:25:58.257515+00	2021-05-15 04:54:51.608476+00	15	9	\N	1	ca3e15ab-9530-4537-978a-30191ed8657e
-331	2019-04-09 01:25:58.420167+00	2021-05-15 04:54:51.609805+00	16	9	330	1	a643860a-1d91-4402-9650-827049a68afb
-332	2019-04-09 01:25:58.453016+00	2021-05-15 04:54:51.611175+00	17	9	330	1	f640022a-c739-4c7f-9bfd-71d3988aa3c5
-333	2019-04-09 01:25:58.508122+00	2021-05-15 04:54:51.61248+00	30	9	330	1	e24f96d9-714c-4bf8-aca8-7c3869c55df9
-334	2019-04-09 01:29:03.727223+00	2021-05-15 04:54:51.613805+00	15	9	\N	1	5e520198-1b3f-4cbc-84ea-1b03418612bd
-335	2019-04-09 01:29:03.888433+00	2021-05-15 04:54:51.615124+00	16	9	334	1	d69b1eea-d83d-4239-9911-fbeecf9b39e2
-336	2019-04-09 01:29:03.931176+00	2021-05-15 04:54:51.616462+00	17	9	334	1	ee41db0e-646e-46e7-a9ca-670924e1f4cb
-337	2019-04-09 01:29:03.996681+00	2021-05-15 04:54:51.618575+00	30	9	334	1	513e4d9f-cf18-405e-84fc-715cae9b913e
-338	2019-04-09 01:29:54.483313+00	2021-05-15 04:54:51.620711+00	15	9	\N	1	88f971b8-82c1-4e73-b7a7-33b11a5cebc2
-339	2019-04-09 01:29:54.647556+00	2021-05-15 04:54:51.622055+00	16	9	338	1	25fac4a8-6ba0-4e41-bd91-c2a0cbc7492d
-340	2019-04-09 01:29:54.676889+00	2021-05-15 04:54:51.623337+00	17	9	338	1	4465601c-1a3f-4086-95f0-f7a6a6e57626
-341	2019-04-09 01:29:54.725935+00	2021-05-15 04:54:51.624747+00	30	9	338	1	ac700f44-91f9-431b-b602-ac0d47ff4ab8
-342	2019-04-09 02:57:45.969525+00	2021-05-15 04:54:51.626103+00	15	9	\N	1	84dea7fa-3248-47ac-9782-5f1955a6ece5
-343	2019-04-09 02:57:46.14741+00	2021-05-15 04:54:51.62744+00	16	9	342	1	345a3bf4-ce0d-48cf-add1-f91d9f12b09a
-344	2019-04-09 02:57:46.179724+00	2021-05-15 04:54:51.628763+00	17	9	342	1	e27f580c-a157-47b8-b116-c19ef83862f6
-345	2019-04-09 02:57:46.23488+00	2021-05-15 04:54:51.630086+00	30	9	342	1	dff92f5f-1afb-4eb1-ab03-9e882a14085e
-346	2019-04-09 03:00:28.624223+00	2021-05-15 04:54:51.631425+00	15	9	\N	1	d2457730-1430-47dc-804f-290d971e1feb
-347	2019-04-09 03:00:28.927504+00	2021-05-15 04:54:51.632709+00	16	9	346	1	da1037a0-60f6-4e1b-8816-1745521105d2
-348	2019-04-09 03:00:28.959276+00	2021-05-15 04:54:51.634116+00	17	9	346	1	32823e38-22f1-4796-9090-d2f9c5c65bed
-349	2019-04-09 03:00:29.011334+00	2021-05-15 04:54:51.6355+00	30	9	346	1	91124d88-e059-4aae-b86f-24333d5e385a
-350	2019-04-09 03:01:43.891241+00	2021-05-15 04:54:51.636891+00	15	9	\N	1	ab58365f-390f-4cf3-8b2d-2740716de2af
-351	2019-04-09 03:01:44.076549+00	2021-05-15 04:54:51.638245+00	16	9	350	1	71ed9ff2-a010-4837-859e-1fcb4cd42956
-352	2019-04-09 03:01:44.114863+00	2021-05-15 04:54:51.639627+00	17	9	350	1	592dc371-3c2b-4ccc-9fba-e8808c7cd9c9
-353	2019-04-09 03:01:44.16693+00	2021-05-15 04:54:51.640975+00	30	9	350	1	94754231-6777-49f0-960c-4134e67a03fd
-354	2019-04-13 02:05:38.089695+00	2021-05-15 04:54:51.642324+00	15	9	\N	1	11c2b127-43b5-4a36-9832-5d0a9ac79394
-355	2019-04-13 02:05:38.75946+00	2021-05-15 04:54:51.643666+00	16	9	354	1	1dc59927-8cb0-4db5-9481-6973214aa546
-356	2019-04-13 02:05:38.828912+00	2021-05-15 04:54:51.645047+00	17	9	354	1	3c590d51-4362-4309-9af3-4a86c9c13b38
-357	2019-04-13 02:05:38.894274+00	2021-05-15 04:54:51.646758+00	30	9	354	1	39353305-8e09-4895-a934-5edcadbccb8e
-358	2019-04-13 02:05:43.629057+00	2021-05-15 04:54:51.648106+00	15	9	\N	1	e1f8e598-7f5b-4411-ab4d-07d56c14ad32
-359	2019-04-13 02:05:43.92048+00	2021-05-15 04:54:51.64948+00	16	9	358	1	2d85b1cb-2fd4-4c20-aaca-1f67432806f9
-360	2019-04-13 02:05:43.970205+00	2021-05-15 04:54:51.65089+00	17	9	358	1	6cd5c782-b457-4c87-b45c-4a740c2064ac
-361	2019-04-13 02:05:44.08561+00	2021-05-15 04:54:51.652264+00	30	9	358	1	53ab3044-601f-44fb-8189-3ffcad5ede57
-362	2019-04-13 02:05:47.547144+00	2021-05-15 04:54:51.653641+00	15	9	\N	1	42b4b829-104a-4526-af3d-617c661fcbe0
-363	2019-04-13 02:05:47.808912+00	2021-05-15 04:54:51.655003+00	16	9	362	1	23ce2d43-ed8a-4133-9de5-ee144602b8a1
-364	2019-04-13 02:05:47.854148+00	2021-05-15 04:54:51.656523+00	17	9	362	1	fb9fae29-3654-4ace-adfd-8d57593a5c82
-365	2019-04-13 02:05:47.931988+00	2021-05-15 04:54:51.657843+00	30	9	362	1	a41f992a-8f15-4a31-a657-0516ee60f41c
-366	2019-04-16 22:56:01.036959+00	2021-05-15 04:54:51.659145+00	15	9	\N	1	00b13f85-5da7-41cd-94ec-909e896baf14
-367	2019-04-16 22:56:01.297135+00	2021-05-15 04:54:51.660474+00	16	9	366	1	d5864f8e-70f1-43a0-938c-e392fe61c321
-368	2019-04-16 22:56:01.357136+00	2021-05-15 04:54:51.661776+00	17	9	366	1	7552f676-94ff-40a5-ab0e-9225334133bd
-369	2019-04-16 22:56:02.774473+00	2021-05-15 04:54:51.663037+00	30	9	366	1	949ba34e-e077-4857-9428-689039cfee92
-370	2019-04-16 23:21:52.815776+00	2021-05-15 04:54:51.664351+00	15	9	\N	1	730cf922-bfdf-4a34-ac42-061a4a7d3832
-371	2019-04-16 23:21:53.022633+00	2021-05-15 04:54:51.665642+00	16	9	370	1	0db5e96b-079f-4ef9-a359-a86a7177ae05
-372	2019-04-16 23:21:53.050527+00	2021-05-15 04:54:51.666921+00	17	9	370	1	27bba9c4-c417-438a-a504-0c7f9c71462c
-373	2019-04-16 23:21:53.109595+00	2021-05-15 04:54:51.668218+00	30	9	370	1	757d5f6f-98c8-4570-b04c-fd3d9ac6306b
-374	2019-04-16 23:26:00.807237+00	2021-05-15 04:54:51.669487+00	15	9	\N	1	14034f80-d08b-4f40-94b5-dcbfe82fb97f
-375	2019-04-16 23:26:01.032397+00	2021-05-15 04:54:51.670814+00	16	9	374	1	de772f60-b7f0-489a-8787-65ba739064a3
-376	2019-04-16 23:26:01.058236+00	2021-05-15 04:54:51.672129+00	17	9	374	1	b8fd0a4e-ca9d-4f75-91ba-1130b2438c5f
-377	2019-04-16 23:26:01.123671+00	2021-05-15 04:54:51.673423+00	30	9	374	1	de056bf4-953b-4cc4-af53-4fccb3b762dd
+COPY public.dynamic_forms (id, created_at, updated_at, company_id, depends_on_id, form_id, user_id, uuid) FROM stdin;
+2105	2021-05-26 22:29:00.510253+00	2021-05-27 21:43:57.178978+00	1	\N	332	1	00000000-0000-0000-0000-000000000835
+2109	2021-05-27 14:24:58.807438+00	2021-05-27 21:43:57.182742+00	1	2105	334	1	9e853e6a-1315-4bbf-a3db-33f9e4b9d3f0
+2106	2021-05-26 22:29:00.537947+00	2021-05-27 21:43:57.185823+00	1	2105	333	1	b1e89bfa-88a2-41e8-9ea0-c8fbda1f0bd8
+2103	2021-05-22 20:00:58.346066+00	2021-05-26 17:05:48.191267+00	1	\N	332	1	7ed8d817-c3a4-404f-9423-e590d91b4fde
+2104	2021-05-22 20:00:58.353189+00	2021-05-26 17:05:48.19609+00	1	2103	333	1	5533328c-e5a2-4501-aaa4-825721754def
+2107	2021-05-26 22:29:39.139874+00	2021-05-26 22:29:39.139915+00	1	\N	332	1	00000000-0000-0000-0000-000000000835
+2108	2021-05-26 22:29:39.143736+00	2021-05-26 22:29:39.143772+00	1	2107	333	1	b1e89bfa-88a2-41e8-9ea0-c8fbda1f0bd8
+2101	2021-05-22 19:58:13.546297+00	2021-05-26 22:31:33.399543+00	1	\N	332	1	692ea4cb-7f0b-420c-aa1c-326b655bbcee
+2102	2021-05-22 19:58:13.55194+00	2021-05-26 22:31:33.40359+00	1	2101	333	1	b1e89bfa-88a2-41e8-9ea0-c8fbda1f0bd8
 \.
 
 
@@ -12221,7 +11857,7 @@ COPY public.dynamic_forms (id, created_at, updated_at, form_id, user_id, depends
 -- Data for Name: extract_file_data; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.extract_file_data (id, created_at, updated_at, file, company_id, form_id, user_id, file_format, file_id) FROM stdin;
+COPY public.extract_file_data (id, created_at, updated_at, file_id, file, file_format, company_id, form_id, user_id) FROM stdin;
 \.
 
 
@@ -12229,96 +11865,15 @@ COPY public.extract_file_data (id, created_at, updated_at, file, company_id, for
 -- Data for Name: field; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.field (id, created_at, updated_at, name, type_id, enabled, required, label_name, placeholder, "order", form_field_as_option_id, label_is_hidden, form_id, field_is_hidden, is_unique, number_configuration_mask, date_configuration_auto_create, date_configuration_auto_update, date_configuration_date_format_type_id, period_configuration_period_interval_type_id, formula_configuration, number_configuration_allow_negative, number_configuration_allow_zero, number_configuration_number_format_type_id, uuid, is_long_text_rich_text) FROM stdin;
-734	2021-02-01 20:34:05.698768+00	2021-04-18 04:12:43.985229+00	datadepagamento	3	t	t	Data de pagamento	\N	0	\N	t	327	f	f	\N	f	f	1	\N	\N	t	t	\N	ec36051a-fc5f-4afd-80f3-140225437e32	f
-682	2020-12-03 16:28:12.271399+00	2021-04-18 04:12:43.997218+00	historico	7	t	f	Histórico	\N	0	\N	f	314	f	f	\N	f	f	\N	\N	\N	t	t	\N	9a67d4a5-c106-4cfa-94f0-77f366b722e3	f
-681	2020-12-03 16:28:12.116415+00	2021-04-18 04:12:44.004038+00	anexos	6	t	f	Anexos	\N	0	\N	t	313	f	f	\N	f	f	\N	\N	\N	t	t	\N	53f90227-7e25-4b02-bec5-229d6eeefadd	f
-735	2021-02-01 20:34:05.858299+00	2021-04-18 04:12:44.006307+00	anexos_492	6	t	f	Anexos	\N	0	\N	t	328	f	f	\N	f	f	\N	\N	\N	t	t	\N	426463d9-87df-4a67-a577-38ec78df5e7b	f
-118	2019-03-27 23:23:22.978802+00	2021-04-18 04:12:44.013088+00	apolice	2	t	t	Apólice	Insira o número da apólice	1	\N	f	25	f	f	\N	f	f	\N	\N	\N	t	t	\N	9e7e6d6c-badd-47ee-9cfd-acfb58d5daef	f
-695	2020-12-03 16:46:06.512152+00	2021-04-18 04:12:44.01916+00	planoi	5	t	t	Plano I		1	704	f	315	f	f	\N	f	f	1	4	\N	t	t	1	52dec51a-1a72-4838-85b9-e04acc8d8def	f
-752	2021-03-19 17:55:34.268916+00	2021-04-18 04:12:44.021344+00	movidoparanegocicaoem	3	t	f	Movido para Negocição em:		1	\N	f	331	f	f	\N	t	f	1	4	\N	t	t	1	980eec58-1396-48c3-94b4-223bb481baa7	f
-699	2020-12-03 16:48:08.799906+00	2021-04-18 04:12:44.027185+00	custoatual	1	t	t	Custo Atual		1	\N	f	316	f	f	\N	f	f	1	4	\N	t	t	2	4e598b51-0791-43b6-b4ae-29a67d8f5b3d	f
-703	2020-12-03 16:51:58.908542+00	2021-04-18 04:12:44.029299+00	beneficios	7	t	t	Benefícios		1	\N	f	317	f	f	\N	f	f	1	4	\N	t	t	1	a49724e0-7283-4d33-bd70-fac557cec3c0	f
-93	2019-03-19 22:34:22.67515+00	2021-04-18 04:12:44.03114+00	cliente	5	t	t	Cliente	\N	1	101	f	16	f	f	\N	f	f	\N	\N	\N	t	t	\N	5b7ea972-8919-40ac-bb31-f1016a37cbef	f
-736	2021-02-01 20:34:06.018122+00	2021-04-18 04:12:44.032946+00	cnpjcpf	1	t	t	CNPJ/ CPF	\N	1	\N	f	326	f	f	\N	f	f	\N	\N	\N	t	t	\N	e52c146a-6ac5-4ec2-bbb5-b4b863a327ed	f
-719	2020-12-26 22:40:31.698725+00	2021-04-18 04:12:44.034774+00	cliquenocampoparaeditar	3	t	t	Clique no campo para editar	\N	1	\N	f	322	f	f	\N	t	f	1	\N	\N	t	t	\N	3bc0b755-badd-4b76-94ae-63c750b0c2eb	f
-753	2021-03-19 18:02:21.340928+00	2021-04-18 04:12:44.036859+00	deondevoceconheceapanorama	4	t	t	De onde você conhece a Panorama?		1	\N	f	311	f	f	\N	f	f	1	4	\N	t	t	1	2fa584ce-3906-4d99-a3f4-b19a73402759	f
-721	2021-01-29 17:48:00.991956+00	2021-04-18 04:12:44.038884+00	dataderegistro_824	3	t	f	Data de Registro		1	\N	f	319	f	f	\N	t	f	1	4	\N	t	t	1	9199dd6a-dd29-4fbb-9f17-c54dc103c02a	f
-746	2021-03-19 15:12:00.310372+00	2021-04-18 04:12:44.04077+00	datadasolicitacao	3	t	f	Data da Solicitação	\N	1	\N	f	330	f	f	\N	t	f	1	\N	\N	t	t	\N	93513e46-912e-4b36-ab9f-dc9ba9c5feca	f
-680	2020-12-03 16:28:11.921246+00	2021-04-18 04:12:44.042596+00	motivodeperda	4	t	t	Motivo de Perda	\N	1	\N	f	312	f	f	\N	f	f	\N	\N	\N	t	t	\N	ed2d2839-1982-427b-a6d6-756948d8afe9	f
-690	2020-12-03 16:29:14.326705+00	2021-04-18 04:12:44.044507+00	dataderegistro	3	t	f	Data de Registro		1	\N	f	310	f	f	\N	t	f	1	4	\N	t	t	1	eacb669a-7869-4344-8a22-c2c8b2dbf2ed	f
-737	2021-02-01 20:34:06.171168+00	2021-04-18 04:12:44.046317+00	produto	4	t	t	Produto	\N	1	\N	f	325	f	f	\N	f	f	\N	\N	\N	t	t	\N	9776c227-42dc-4940-9536-2a81b8adb73e	f
-139	2019-04-17 01:24:12.096049+00	2021-04-18 04:12:44.048405+00	cliente_1	2	t	f	Cliente	\N	1	\N	f	34	f	f	\N	f	f	\N	\N	\N	t	t	\N	c9f89b83-b001-44be-85d2-d9ec706b5f06	f
-102	2019-03-19 22:56:44.112206+00	2021-04-18 04:12:44.05022+00	cpfcnpj	2	t	t	CPF/CNPJ	\N	1	\N	f	19	f	f	\N	f	f	\N	\N	\N	t	t	\N	3744a524-8bcd-4b40-8bad-7b5779bd6646	f
-698	2020-12-03 16:47:50.121682+00	2021-04-18 04:12:44.052054+00	valordonegocio	1	t	t	Valor do Negócio		2	\N	f	316	f	f	\N	f	f	1	4	\N	t	t	2	169e37b1-5697-424a-9af8-380157a87ecd	f
-738	2021-02-01 20:34:06.409219+00	2021-04-18 04:12:44.053931+00	valor	1	t	t	Valor	\N	2	\N	f	325	f	f	\N	f	f	\N	\N	\N	t	t	\N	3d695a4d-6b87-4788-b0e1-5af9e481586f	f
-691	2020-12-03 16:29:44.902015+00	2021-04-18 04:12:44.055939+00	datadeatualizacao	3	t	f	Data de Atualização		2	\N	f	310	f	f	\N	f	t	1	4	\N	t	t	1	8e554883-c8a5-478e-a8b4-0b0c36cfa123	f
-101	2019-03-19 22:54:40.76544+00	2021-04-18 04:12:44.057796+00	nomedocliente	2	t	t	Nome do Cliente	\N	2	\N	f	19	f	f	\N	f	f	\N	\N	\N	t	t	\N	1001488d-af56-4831-934f-0f437a9ab29e	f
-94	2019-03-19 22:36:17.376898+00	2021-04-18 04:12:44.063054+00	contato	2	t	t	Contato	Insira o nome do solicitante	2	\N	f	16	f	f	\N	f	f	\N	\N	\N	t	t	\N	1a62d53f-492a-4306-aeb3-ce60aa0aa8f5	f
-119	2019-03-27 23:23:22.995268+00	2021-04-18 04:12:44.065027+00	nomedosegurado	2	t	t	Nome do Segurado	\N	2	\N	f	25	f	f	\N	f	f	\N	\N	\N	t	t	\N	844fa4e0-0e0e-425d-a1ad-116730b147da	f
-747	2021-03-19 15:12:00.524342+00	2021-04-18 04:12:44.067161+00	nomedosolicitante	2	t	t	Nome do Solicitante	\N	2	\N	f	330	f	f	\N	f	f	1	\N	\N	t	t	\N	b4258ea1-9351-4d79-819c-01832514f157	f
-726	2021-01-29 17:53:01.303557+00	2021-04-18 04:12:44.069029+00	planoii	5	t	f	Plano II		2	704	f	315	f	f	\N	f	f	1	4	\N	t	t	1	8395db10-b549-48c6-9961-28d7018264ab	f
-685	2020-12-03 16:28:12.748822+00	2021-04-18 04:12:44.071016+00	comentarios	7	t	f	Comentários	\N	2	\N	f	312	f	f	\N	f	f	\N	\N	\N	t	t	\N	cdd29d9a-a9d0-4275-a3ca-a13e6992df84	f
-678	2020-12-03 16:28:10.974384+00	2021-04-18 04:12:44.072871+00	nomedocliente	2	t	t	Nome do Cliente	\N	2	\N	f	311	f	f	\N	f	f	\N	\N	\N	t	t	\N	48f284cc-c7fc-405e-a3f0-c2fd211b7b4b	f
-704	2020-12-03 19:47:30.221547+00	2021-04-18 04:12:44.074834+00	plano	2	t	t	Plano		2	\N	f	319	f	f	\N	f	f	1	4	\N	t	t	1	be6fc35c-2262-4526-ac27-99b2d26aaff6	f
-140	2019-04-17 01:24:12.114076+00	2021-04-18 04:12:44.079016+00	marcadocarro	4	t	t	Marca do Carro	\N	2	\N	f	34	f	f	\N	f	f	\N	\N	\N	t	t	\N	e3feedcd-4114-4486-8289-2c45ba3103b4	f
-720	2020-12-26 22:41:27.239924+00	2021-04-18 04:12:44.081908+00	conteudo	7	t	t	conteudo		2	\N	f	322	f	f	\N	f	f	1	4	\N	t	t	1	9936cf5a-fd35-40d7-b468-66534ebb72ce	f
-739	2021-02-01 20:34:06.574787+00	2021-04-18 04:12:44.084016+00	email_682	10	t	f	Email	\N	2	\N	f	326	f	f	\N	f	f	\N	\N	\N	t	t	\N	338eca2a-3be0-4adf-965b-d437d0fe259b	f
-694	2020-12-03 16:44:31.39544+00	2021-04-18 04:12:44.085856+00	iddonegocio	12	t	f	Id do Negócio		3	\N	f	310	f	f	\N	f	f	1	4	\N	t	t	1	b05c7b6e-10c5-49c9-8cfb-98fa33c84f2d	f
-141	2019-04-17 01:24:12.233068+00	2021-04-18 04:12:44.087734+00	fatura	1	t	t	Fatura	\N	3	\N	f	34	f	f	#.##0,00	f	f	\N	\N	\N	t	t	2	5752ce64-eaab-4026-b492-dc6990b19b8e	f
-692	2020-12-03 16:30:39.188374+00	2021-04-18 04:12:44.089712+00	cpfcnpj	2	t	t	CPF/ CNPJ		3	\N	f	311	f	f	\N	f	f	1	4	\N	t	t	1	09f54629-8140-432a-8b3e-47d2b58d025a	f
-745	2021-03-19 15:11:59.667784+00	2021-04-18 04:12:44.091577+00	emaildosolicitante	2	t	t	Email do Solicitante	\N	3	\N	f	330	f	f	\N	f	f	\N	\N	\N	t	t	\N	be6aebfb-747b-437f-8d8e-1d591b798768	f
-95	2019-03-19 22:38:51.204781+00	2021-04-18 04:12:44.093418+00	tipodedoce	4	t	t	Tipo de Doce	\N	3	\N	f	17	f	f	\N	f	f	\N	\N	\N	t	t	\N	a2d1a5d5-7199-4245-afcc-ae03c6c781e9	f
-741	2021-02-01 20:34:06.889801+00	2021-04-18 04:12:44.095265+00	vencimentodafatura	3	t	t	Vencimento da Fatura	\N	3	\N	f	325	f	f	\N	f	f	1	\N	\N	t	t	\N	6ba67814-93e7-4944-b9e3-4ac40bb32a8d	f
-722	2021-01-29 17:48:16.529944+00	2021-04-18 04:12:44.097148+00	quantidade	1	t	t	Quantidade		3	\N	f	319	f	f	\N	f	f	1	4	\N	t	t	1	673101f5-fed3-43e8-a0bb-897824ee615c	f
-740	2021-02-01 20:34:06.734547+00	2021-04-18 04:12:44.09901+00	telefone_69	1	t	t	Telefone	\N	3	\N	f	326	f	f	\N	f	f	\N	\N	\N	t	t	\N	1cbc03b1-fbbb-4ce5-9c9c-55887b4ea402	f
-103	2019-03-19 22:56:44.148384+00	2021-04-18 04:12:44.100875+00	endereco	2	t	t	Endereço	\N	3	\N	f	19	f	f	\N	f	f	\N	\N	\N	t	t	\N	9a8c8514-2be3-4fc3-a4da-3644d9cf670b	f
-120	2019-03-27 23:23:23.011989+00	2021-04-18 04:12:44.10282+00	valordereembolso	1	t	t	Valor de Reembolso	Insira o valor total do reembolso	3	\N	f	25	f	f	#.##0,00	f	f	\N	\N	\N	t	t	2	cffac5df-971b-4f2a-a2b2-d6990465f0ba	f
-727	2021-01-29 17:53:21.546515+00	2021-04-18 04:12:44.105013+00	planoiii	5	t	f	Plano III		3	704	f	315	f	f	\N	f	f	1	4	\N	t	t	2	ab76191c-bb44-4178-a0d8-1094b3aaba19	f
-700	2020-12-03 16:49:04.712953+00	2021-04-18 04:12:44.106944+00	economiamensal	1	t	f	Economia Mensal		3	\N	f	316	f	f	\N	f	f	1	4	{{699}}-{{698}}	t	t	2	bab1ca8f-5f40-4f3e-8db2-fab1a20ce3cf	f
-728	2021-01-29 17:53:59.125791+00	2021-04-18 04:12:44.109761+00	planoiv	5	t	f	Plano IV		4	704	f	315	f	f	\N	f	f	1	4	\N	t	t	1	4c242a4e-5005-4ac3-859c-380a811081ca	f
-142	2019-04-17 01:24:12.2454+00	2021-04-18 04:12:44.11167+00	documentosdocliente_attachment	6	t	f	Documentos do cliente	\N	4	\N	f	34	f	f	\N	f	f	\N	\N	\N	t	t	\N	f5e563f9-db68-422a-919a-adb79072139f	f
-121	2019-03-27 23:23:23.029155+00	2021-04-18 04:12:44.113515+00	status	4	t	t	Status	\N	4	\N	f	25	f	f	\N	f	f	\N	\N	\N	t	t	\N	43f3eeee-6d1a-4280-b961-4b53f63918f5	f
-104	2019-03-19 22:56:44.162843+00	2021-04-18 04:12:44.115476+00	telefone	2	t	t	Telefone	\N	4	\N	f	19	f	f	\N	f	f	\N	\N	\N	t	t	\N	c12022b2-1de1-4904-9575-236142c15ea4	f
-136	2019-04-13 13:53:32.346624+00	2021-04-18 04:12:44.117531+00	adicionais	11	t	t	Adicionais	Escolha as opções que desejar	4	\N	f	17	f	f	\N	f	f	\N	\N	\N	t	t	\N	db93e8b5-227f-4e14-aef7-efbbe5d03930	f
-701	2020-12-03 16:49:44.49139+00	2021-04-18 04:12:44.11965+00	economiaanual	1	t	f	Economia Anual		4	\N	f	316	f	f	\N	f	f	1	4	{{700}}*12	t	t	2	b0646607-5ae3-471e-887a-d9446e460078	f
-718	2020-12-14 14:21:30.049277+00	2021-04-18 04:12:44.121478+00	contato	2	t	t	Contato		4	\N	f	311	f	f	\N	f	f	1	4	\N	t	t	1	ce43b4e3-a83a-411d-8c0b-f2eafce583fb	f
-732	2021-02-01 20:34:04.937487+00	2021-04-18 04:12:44.123291+00	nomedocliente_454	2	t	t	Nome do Cliente	\N	4	\N	f	326	f	f	\N	f	f	\N	\N	\N	t	t	\N	0aa43e03-9e42-469a-b73b-38a4024eedb8	f
-742	2021-02-01 20:34:07.058502+00	2021-04-18 04:12:44.125557+00	metododepagamento	4	t	t	Método de Pagamento	\N	4	\N	f	325	f	f	\N	f	f	\N	\N	\N	t	t	\N	3eb1975d-73f4-411c-8fce-fec2a7ac68ea	f
-679	2020-12-03 16:28:11.718014+00	2021-04-18 04:12:44.127483+00	cliente	5	t	t	Cliente	\N	4	678	f	310	f	f	\N	f	f	\N	\N	\N	t	t	\N	da35cf26-0aad-46a1-baf9-86fadf59e29f	f
-723	2021-01-29 17:48:38.144669+00	2021-04-18 04:12:44.129323+00	valorunitario	1	t	t	Valor Unitário		4	\N	f	319	f	f	\N	f	f	1	4	\N	t	t	2	4f07767e-738a-49b9-923f-26b47031d1dd	f
-749	2021-03-19 15:14:18.81942+00	2021-04-18 04:12:44.131318+00	categoria	4	t	t	Categoria		4	\N	f	330	f	f	\N	f	f	1	4	\N	t	t	1	4de71df2-cfe2-4d32-8573-0bd22b4e2648	f
-107	2019-03-20 04:29:24.964949+00	2021-04-18 04:12:44.13319+00	quemvisualiza	4	t	t	Quem Visualiza?	Quem visualiza o cliente?	5	\N	f	19	f	f	\N	f	f	\N	\N	\N	t	t	\N	c7f87cfa-7a10-4752-9eec-e1f665870f4b	f
-684	2020-12-03 16:28:12.589079+00	2021-04-18 04:12:44.13516+00	proximofollowup	3	t	t	Próximo Follow-up	\N	5	\N	f	310	f	f	\N	f	f	1	\N	\N	t	t	\N	7c07e958-5ca0-4983-9e4f-b98a26adfb90	f
-683	2020-12-03 16:28:12.424944+00	2021-04-18 04:12:44.137093+00	email	10	t	f	Email	\N	5	\N	f	311	f	f	\N	f	f	\N	\N	\N	t	t	\N	3c1543cd-5c92-489f-bce3-110027b3a1e7	f
-750	2021-03-19 15:15:15.513137+00	2021-04-18 04:12:44.138978+00	dataparaconclusao	3	t	t	Data para Conclusão		5	\N	f	330	f	f	\N	f	f	1	4	\N	t	t	1	e07b7ede-1573-43a0-8919-7000f42ca29f	f
-702	2020-12-03 16:50:46.132723+00	2021-04-18 04:12:44.140854+00	percentualdereducao	1	t	f	Percentual de Redução		5	\N	f	316	f	f	\N	f	f	1	4	{{698}}/{{699}}-1	t	t	3	65f96700-6675-402c-8c88-072d72985079	f
-743	2021-02-01 20:34:07.259054+00	2021-04-18 04:12:44.142713+00	status_809	4	t	t	Status	\N	5	\N	f	325	f	f	\N	f	f	\N	\N	\N	t	t	\N	3f31b2ea-953f-4910-a399-1a790328e5bd	f
-724	2021-01-29 17:48:52.235654+00	2021-04-18 04:12:44.144623+00	desconto	1	t	t	Desconto		5	\N	f	319	f	f	\N	f	f	1	4	\N	t	t	2	5a3b442a-240b-4058-8b34-21ee6e7fff21	f
-105	2019-03-19 23:12:26.098967+00	2021-04-18 04:12:44.146709+00	faturamentodopedido	1	t	t	Faturamento do pedido	Insira o valor do pedido	5	\N	f	17	f	f	#.##0,00	f	f	\N	\N	\N	t	t	2	7ec017ac-fe7c-4e79-9fa6-b7ef637bfb9f	f
-729	2021-01-29 17:54:24.537371+00	2021-04-18 04:12:44.148617+00	planov	5	t	f	Plano V		5	704	f	315	f	f	\N	f	f	1	4	\N	t	t	1	13554973-70f5-4fa3-92a5-1d4b9dbb2c5a	f
-744	2021-02-11 21:04:16.507106+00	2021-04-18 04:12:44.150484+00	multiplasopcoes	11	t	f	Multiplas opções		5	\N	f	326	f	f	\N	f	f	1	4	\N	t	t	1	01b45238-019c-4889-9abb-d0a416641cbd	f
-122	2019-03-27 23:23:23.150344+00	2021-04-18 04:12:44.152369+00	anexos_attachment	6	t	f	Anexos	\N	5	\N	f	25	f	f	\N	f	f	\N	\N	\N	t	t	\N	1c490538-79ea-4833-aa55-94ae9ba6125c	f
-687	2020-12-03 16:28:13.06264+00	2021-04-18 04:12:44.154511+00	telefone	2	t	f	Telefone	\N	6	\N	f	311	f	f	\N	f	f	\N	\N	\N	t	t	\N	0dd29362-705f-4439-ab61-dc2c9abd3e77	f
-693	2020-12-03 16:34:55.674279+00	2021-04-18 04:12:44.156414+00	negociacao	4	t	t	Negociação		6	\N	f	310	f	f	\N	f	f	1	4	\N	t	t	1	4508c37d-65b8-4b8d-a92e-09abca7714cf	f
-97	2019-03-19 22:50:05.619414+00	2021-04-18 04:12:44.158311+00	desconto	1	t	f	Desconto	Insira o percentual de desconto	6	\N	f	17	f	f	000,00%	f	f	\N	\N	\N	t	t	3	50c382c9-053d-4c24-9f76-335861d6e928	f
-733	2021-02-01 20:34:05.536259+00	2021-04-18 04:12:44.160159+00	cliente_277	5	t	f	Cliente	\N	6	732	f	325	f	f	\N	f	f	\N	\N	\N	t	t	\N	767fbc72-6e23-49b1-a69c-f979ee4000e3	f
-730	2021-01-29 17:54:59.22225+00	2021-04-18 04:12:44.162037+00	planovi	5	t	f	Plano VI		6	704	f	315	f	f	\N	f	f	1	4	\N	t	t	1	1206f815-b3ab-42ba-9efb-f991be552470	f
-751	2021-03-19 15:15:29.751943+00	2021-04-18 04:12:44.16387+00	responsavel_933	13	t	t	Responsável		6	\N	f	330	f	f	\N	f	f	1	4	\N	t	t	1	23727fa0-e421-4cec-ace5-a8fe90c681e1	f
-725	2021-01-29 17:49:23.00006+00	2021-04-18 04:12:44.165746+00	total	1	t	f	Total		6	\N	f	319	f	f	\N	f	f	1	4	{{722}}*{{723}}-{{724}}	t	t	2	28db88a8-3a44-462b-8e85-1d1dbe3aa19f	f
-96	2019-03-19 22:39:39.042399+00	2021-04-18 04:12:44.167642+00	quantidade	1	t	t	Quantidade	Insira a quantidade	7	\N	f	17	f	f	9	f	f	\N	\N	\N	t	t	1	905b7fd7-5b13-4639-8ef2-06ac80bdd9df	f
-748	2021-03-19 15:12:00.701737+00	2021-04-18 04:12:44.169527+00	status_819	4	t	t	Status	\N	7	\N	f	330	f	f	\N	f	f	\N	\N	\N	t	t	\N	479c6e22-f82c-4bcd-a6c8-a7098dc1f10e	f
-688	2020-12-03 16:28:13.264383+00	2021-04-18 04:12:44.171426+00	endereco	2	t	f	Endereço	\N	7	\N	f	311	f	f	\N	f	f	\N	\N	\N	t	t	\N	ac3888a7-99d5-438c-8932-805d345fa495	f
-731	2021-01-29 18:12:42.484725+00	2021-04-18 04:12:44.173241+00	responsavel	4	t	t	Responsável		7	\N	f	310	f	f	\N	f	f	1	4	\N	t	t	1	b18b977c-533b-4190-93b7-0159258312d4	f
-689	2020-12-03 16:28:13.429859+00	2021-04-18 04:12:44.178025+00	status	4	t	t	Status	\N	8	\N	t	310	t	f	\N	f	f	\N	\N	\N	t	t	\N	d2a312f6-2d56-4c16-9095-f8bc27743836	f
-100	2019-03-19 22:52:34.03101+00	2021-04-18 04:12:44.18119+00	statusdopedido	4	t	t	Status do Pedido	\N	8	\N	f	17	f	f	\N	f	f	\N	\N	\N	t	t	\N	f0e538e7-339f-474f-bafa-a8c631a0ce99	f
-98	2019-03-19 22:50:05.635109+00	2021-04-18 04:12:44.183132+00	taxadeentrega	1	t	f	Taxa de entrega	\N	9	\N	f	17	f	f	#.##0,00	f	f	\N	\N	\N	t	t	2	3fb89abf-550b-464e-ad40-e7558546a54d	f
-755	2021-03-19 20:32:15.188684+00	2021-04-18 04:12:44.185055+00	asdasd	1	t	f	asdasd		9	\N	f	310	f	f	\N	f	f	1	4	\N	t	t	1	cc1ba3c6-e86e-476a-bcae-2ff1da2d1c0e	f
-99	2019-03-19 22:50:05.64951+00	2021-04-18 04:12:44.186917+00	observacao	7	t	f	Observação	\N	10	\N	f	17	f	f	\N	f	f	\N	\N	\N	t	t	\N	4b0ee10e-8d62-4df7-b326-a7ad04114a58	f
-128	2019-04-06 19:22:13.956576+00	2021-04-18 04:12:44.188756+00	anexo_attachment	6	t	f	Anexo	\N	11	\N	f	17	f	f	\N	f	f	\N	\N	\N	t	t	\N	457ab643-681b-48cd-ab64-0be62c7ed4b6	f
-137	2019-04-16 23:20:28.464024+00	2021-04-18 04:12:44.190648+00	formadepagamento	4	t	f	Forma de pagamento	\N	12	\N	f	30	f	f	\N	f	f	\N	\N	\N	t	t	\N	3cb38ef0-b497-4012-a5fe-b0f87361e898	f
-133	2019-04-08 00:33:10.346354+00	2021-04-18 04:12:44.192529+00	datadaentrega	3	t	t	Data da Entrega	\N	13	\N	f	30	f	f	\N	f	f	1	\N	\N	t	t	\N	e60c7323-1328-4c14-92f7-1adabc9e3512	f
-138	2019-04-16 23:20:28.551937+00	2021-04-18 04:12:44.194389+00	nomedoentregador	4	t	t	Nome do entregador	\N	14	\N	f	30	f	f	\N	f	f	\N	\N	\N	t	t	\N	2a6ee1f9-d4d0-4326-b0b6-81d469f97b6c	f
+COPY public.field (id, number_configuration_mask, formula_configuration, created_at, updated_at, name, label_name, placeholder, required, "order", is_unique, field_is_hidden, label_is_hidden, date_configuration_auto_create, date_configuration_auto_update, number_configuration_allow_negative, number_configuration_allow_zero, enabled, date_configuration_date_format_type_id, form_id, form_field_as_option_id, number_configuration_number_format_type_id, period_configuration_period_interval_type_id, type_id, uuid, is_long_text_rich_text) FROM stdin;
+756	\N	\N	2021-05-22 16:12:47.950406+00	2021-06-08 14:56:14.325521+00	nomedoevento	Nome do Evento	\N	f	1	f	f	f	f	f	t	t	t	\N	333	\N	\N	\N	2	2185956d-895d-4ade-8e90-75d77faaa358	f
+757	\N	\N	2021-05-22 19:56:49.128969+00	2021-06-08 14:56:14.327475+00	tipodoevento	Tipo do Evento		f	2	f	f	f	f	f	t	t	t	1	333	\N	1	4	4	ff0d0990-4d52-4de6-8361-57a0e41c4340	f
+758	\N	\N	2021-05-22 19:57:11.656485+00	2021-06-08 14:56:14.328948+00	datadoevento	Data do Evento		f	3	f	f	f	f	f	t	t	t	1	333	\N	1	4	3	7287c37f-b341-46e4-b5e9-89007ab0a271	f
+759	\N	\N	2021-05-22 19:57:26.599188+00	2021-06-08 14:56:14.330255+00	expectativadevalor	Expectativa de valor		f	4	f	f	f	f	f	t	t	t	1	333	\N	1	4	1	9ccd15b7-3098-4b35-bb8a-5ea2a518faa9	f
+763	\N	\N	2021-05-27 14:31:18.020511+00	2021-06-08 14:56:14.331578+00	porcentagem	Porcentagem		f	6	f	f	f	f	f	t	t	t	1	333	\N	3	4	1	00060280-d80e-489c-891e-69591a6033b0	f
+764	\N	\N	2021-05-31 15:43:22.558163+00	2021-06-08 14:56:14.333018+00	formula	Formula		f	7	f	f	f	f	f	t	t	t	1	333	\N	1	4	15	f7b0c74e-c22f-42a3-a1ca-7fea63ee6464	f
+760	\N	763 / 10\nasdasd\n\n\tasdasdasd\nasdasd\n{{}}\n{{nomedoevento}}	2021-05-25 22:14:45.694565+00	2021-06-08 14:56:14.334723+00	calculo1	Calculo1		f	5	f	f	f	f	f	t	t	t	1	333	\N	2	4	15	0d9c8194-0a80-4780-a351-646ce85f94ef	f
+761	\N	\N	2021-05-26 22:32:25.96631+00	2021-05-26 22:32:25.966348+00	nomedaempresa	Nome da Empresa		f	1	f	f	f	f	f	t	t	t	1	334	\N	1	4	2	57736f42-12e9-450d-85b3-fa1f09a5eedf	f
 \.
 
 
@@ -12336,10 +11891,11 @@ COPY public.field_date_format_type (id, type, label_name, format, "order") FROM 
 -- Data for Name: field_number_format_type; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.field_number_format_type (id, type, label_name, "precision", prefix, suffix, thousand_separator, decimal_separator, "order", base) FROM stdin;
-1	number	Numero	1	\N	\N	\N	\N	1	1
-2	currency	Moeda	100	\N	\N	.	,	2	1
-3	percentage	Porcentagem	100	\N	 %	\N	,	3	100
+COPY public.field_number_format_type (id, type, label_name, "precision", prefix, suffix, thousand_separator, decimal_separator, "order", base, has_to_enforce_decimal) FROM stdin;
+1	number	Numero	100000000	\N	\N	\N	,	1	1	f
+4	integer	Inteiro	1	\N	\N	\N	\N	2	1	f
+2	currency	Moeda	100	\N	\N	.	,	3	1	t
+3	percentage	Porcentagem	100	\N	 %	\N	,	4	100	t
 \.
 
 
@@ -12347,86 +11903,11 @@ COPY public.field_number_format_type (id, type, label_name, "precision", prefix,
 -- Data for Name: field_options; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.field_options (id, option, field_id, "order", created_at, updated_at, uuid) FROM stdin;
-2204	Fernando Dória	731	0	2021-02-27 15:19:51.276696+00	2021-02-27 15:19:55.050046+00	dd2269b2-9c18-4c57-ad80-f507c35748b7
-2206	Novo	693	0	2021-02-27 15:20:30.06371+00	2021-02-27 16:51:38.721933+00	77e96503-2c89-4fb5-9e14-2dedb1e29d84
-2220	Conexão da Internet	749	1	2021-03-19 15:14:38.888533+00	2021-03-19 15:15:04.872194+00	9afb35ed-9f6e-47b8-aa69-3b263f8fcc81
-2222	Instalação de Software	749	3	2021-03-19 15:14:48.829913+00	2021-03-19 15:15:04.881922+00	dbbaf81f-b671-4892-a291-701b93f6eb62
-2208	Valor alto	680	0	2021-02-27 16:52:16.646681+00	2021-02-27 16:52:42.606825+00	138b1228-db32-4536-be23-56305d16b6cc
-2210	Cliente desistiu de comprar o produto	680	2	2021-02-27 16:52:32.437301+00	2021-02-27 16:52:42.615991+00	fb2801df-d927-490d-8f22-807bce97440e
-2215	Solicitação	748	0	2021-03-19 15:12:00.843574+00	2021-03-19 15:16:00.352536+00	24ab6cbd-7851-468a-95ac-0b6b176c8fa6
-2216	Em Atendimento	748	1	2021-03-19 15:12:00.850414+00	2021-03-19 15:16:00.357181+00	cdff22e7-d9a3-4505-a688-66f7e563d2aa
-2217	Pendente	748	2	2021-03-19 15:12:00.856419+00	2021-03-19 15:16:00.362543+00	d9c269aa-218c-4383-8be2-3b87c4d071b9
-2218	Concluído	748	3	2021-03-19 15:12:00.862457+00	2021-03-19 15:16:00.367093+00	997ee4e4-b13b-4500-96c3-c7a1c3dc5be3
-2224	Google	753	0	2021-03-19 18:03:16.069014+00	2021-03-19 18:03:29.34315+00	94a29851-f7ac-4cef-aa94-b22815fd945e
-141	Preço Alto	133	0	2019-04-08 00:33:10.356423+00	2021-02-26 04:43:32.140041+00	9a4627f3-7906-4336-a557-631056e83842
-2178	Produto 01	737	0	2021-02-01 20:34:06.323575+00	2021-02-26 04:43:32.141941+00	5c490676-0b79-4837-80cd-d8eb3e810b57
-163	Dinheiro	137	0	2019-04-16 23:20:28.471395+00	2021-02-26 04:43:32.144856+00	e4f7009f-8e6a-4dfa-b5a3-17251bb98034
-2163	Prospecção	689	2	2020-12-03 16:28:13.60248+00	2021-04-17 20:25:49.611071+00	5c573de8-e6fa-467a-860c-460fe7c0966f
-166	Robson	138	0	2019-04-16 23:20:28.560704+00	2021-02-26 04:43:32.148917+00	a827f654-1456-400e-a17a-cf7e0fea41cf
-75	Balcão	93	0	2019-03-19 22:34:22.686192+00	2021-02-26 04:43:32.151647+00	5e305def-4193-4870-8921-52e885c99f17
-169	BMW	140	0	2019-04-17 01:24:12.128493+00	2021-02-26 04:43:32.153036+00	6b953917-2680-4e36-9806-c68c5173c48d
-154	Bolo	95	0	2019-04-13 13:44:25.270885+00	2021-02-26 04:43:32.154417+00	a9236311-6364-459c-9d31-a428e80e44b1
-2190	Lançamento	743	0	2021-02-01 20:34:07.400878+00	2021-02-26 04:43:32.155764+00	c15d8281-344e-48b2-80dd-cc8dc99a2932
-113	Solicitação	121	0	2019-03-27 23:23:23.041857+00	2021-02-26 04:43:32.157334+00	0364c96d-a891-4548-9bf9-1e79c0e047cb
-159	Chocolate	136	0	2019-04-13 13:53:32.355312+00	2021-02-26 04:43:32.158869+00	260cca92-5c5e-4f18-b70a-28489ad3d38b
-87	Eu	107	0	2019-03-20 04:29:24.974505+00	2021-02-26 04:43:32.160183+00	ffec85c4-5c57-441d-9463-df81690cfa5e
-2195	1	744	0	2021-02-11 21:04:26.11555+00	2021-02-26 04:43:32.161604+00	8b649bd3-abe0-48bb-ac9c-0553f0bbd6fb
-2186	Boleto	742	0	2021-02-01 20:34:07.210486+00	2021-02-26 04:43:32.162975+00	40c1529c-5ca1-42c9-822d-fa4e6b5bd256
-80	Orçamento	100	0	2019-03-19 22:52:34.042177+00	2021-02-26 04:43:32.164303+00	664ebfc0-73de-400f-afc3-272167ddfd8d
-2196	2	744	1	2021-02-11 21:04:26.121946+00	2021-02-26 04:43:32.165724+00	eca251a5-0826-4e51-a7a1-42afb5612d8e
-114	Triagem	121	1	2019-03-27 23:23:23.070241+00	2021-02-26 04:43:32.167105+00	a51ecc2b-aed4-42b1-965c-2cc9440d4646
-88	Todos	107	1	2019-03-20 04:29:24.995998+00	2021-02-26 04:43:32.16849+00	d6da8a89-e950-4ce4-983d-d540b02008a6
-142	Perda de Prazo	133	1	2019-04-08 00:33:10.386355+00	2021-02-26 04:43:32.171359+00	19f1774e-d36b-4f09-abb5-742d928b0a07
-155	Torta	95	1	2019-04-13 13:44:25.294127+00	2021-02-26 04:43:32.172778+00	914cb957-2213-4de4-9d25-4d1026926b19
-160	Caramelo	136	1	2019-04-13 13:53:32.379816+00	2021-02-26 04:43:32.17426+00	b792ab31-9846-451e-a511-a96b4e3bea4a
-157	Preparo	100	1	2019-04-13 13:44:25.42336+00	2021-02-26 04:43:32.17797+00	365e5166-ad32-404f-b946-d826d2180229
-164	Débito	137	1	2019-04-16 23:20:28.495769+00	2021-02-26 04:43:32.1793+00	74830a6a-3c6f-4e85-82be-4f524b2a4f34
-167	Jonas	138	1	2019-04-16 23:20:28.576888+00	2021-02-26 04:43:32.180707+00	ff4e2c36-11ba-473f-ac32-59629372a830
-170	FORD	140	1	2019-04-17 01:24:12.152997+00	2021-02-26 04:43:32.182108+00	63b87c2c-1ffe-4db7-a204-23c57e448b28
-2179	Produto 02	737	1	2021-02-01 20:34:06.3318+00	2021-02-26 04:43:32.184776+00	e4c6521d-a9ca-4cc8-9f7f-f04eca86b84f
-2187	Transferência Bancária	742	1	2021-02-01 20:34:07.217141+00	2021-02-26 04:43:32.186124+00	282bc006-83ec-49ee-b346-2fa53520f2ca
-2191	Cobrado	743	1	2021-02-01 20:34:07.406319+00	2021-02-26 04:43:32.189062+00	70cc303f-fd13-49df-93a6-92667785dd96
-165	Crédito	137	2	2019-04-16 23:20:28.51167+00	2021-02-26 04:43:32.192011+00	115242ed-b90c-41f5-a324-7c6a2b13a164
-158	Cobertura	100	2	2019-04-13 13:44:25.445287+00	2021-02-26 04:43:32.193401+00	1479aefa-78b1-4183-9a0c-ed399a8187e4
-2180	Produto 03	737	2	2021-02-01 20:34:06.338366+00	2021-02-26 04:43:32.194783+00	637ea34c-c44d-43c4-b73b-d82ca9bb04ce
-2188	Cartão de Crédito	742	2	2021-02-01 20:34:07.222442+00	2021-02-26 04:43:32.197703+00	8ada8a17-3c7d-47d0-a298-d7db1610c33a
-161	Nozes	136	2	2019-04-13 13:53:32.396915+00	2021-02-26 04:43:32.199087+00	2ce2d61d-acb1-4a9b-8453-090a2a875a25
-156	Cookie	95	2	2019-04-13 13:44:25.311335+00	2021-02-26 04:43:32.200507+00	c766b46d-f16f-48fd-9c31-d975b1b322ba
-143	Perdido para concorrente	133	2	2019-04-08 00:33:10.41318+00	2021-02-26 04:43:32.202104+00	c44572af-2e87-4650-af1c-50b9640806a5
-2197	3	744	2	2021-02-11 21:04:26.129231+00	2021-02-26 04:43:32.205107+00	fc563627-b540-4d49-a89e-32ec6b000f3a
-2192	Pendente	743	2	2021-02-01 20:34:07.411873+00	2021-02-26 04:43:32.206558+00	19c30a53-ec83-463a-a5b7-08dc836594df
-171	CHEVROLET	140	2	2019-04-17 01:24:12.172283+00	2021-02-26 04:43:32.208196+00	982deb38-a196-4937-bac6-27ba184367ea
-168	Mario	138	2	2019-04-16 23:20:28.592748+00	2021-02-26 04:43:32.209818+00	1c34a170-fcda-4cd9-baaa-8c82fa01cff3
-115	Enviado Seguradora	121	2	2019-03-27 23:23:23.095164+00	2021-02-26 04:43:32.211191+00	d48d4e0c-4ee1-499e-ae6e-f4fd893f3a99
-2189	Dinheiro	742	3	2021-02-01 20:34:07.228112+00	2021-02-26 04:43:32.212764+00	c92943a1-b204-4944-a4a2-07930c1de463
-83	Entrega	100	3	2019-03-19 22:52:34.112087+00	2021-02-26 04:43:32.215736+00	29f3a131-69d4-43b1-943d-7d3f6f204e19
-172	VOLKS	140	3	2019-04-17 01:24:12.189557+00	2021-02-26 04:43:32.219013+00	bf160f25-cbc8-43b2-9006-8639163f8461
-2181	Produto 04	737	3	2021-02-01 20:34:06.345552+00	2021-02-26 04:43:32.220369+00	46f9ae7e-178e-440b-8bf5-feb348b9d649
-162	M&M	136	3	2019-04-13 13:53:32.413589+00	2021-02-26 04:43:32.221854+00	b5cb8a8b-ee86-4730-882f-3a49b8b1ab36
-2198	4	744	3	2021-02-11 21:04:26.137045+00	2021-02-26 04:43:32.223271+00	ae98aa29-8fa4-42ad-a5ed-f63147f0d80a
-116	Pago	121	3	2019-03-27 23:23:23.119106+00	2021-02-26 04:43:32.224767+00	842c5e9e-1b21-40f7-9073-d7034ed074ad
-2193	Pago	743	3	2021-02-01 20:34:07.417545+00	2021-02-26 04:43:32.226146+00	7eceafb5-3b6c-45ce-a992-a13a854256fe
-2182	Produto 05	737	4	2021-02-01 20:34:06.35105+00	2021-02-26 04:43:32.227554+00	a2ebdff4-2eb4-4520-9423-3571b00773e6
-173	MERCEDES	140	4	2019-04-17 01:24:12.207511+00	2021-02-26 04:43:32.228902+00	b1dc1d44-9a84-4cd1-8a32-8c8e4e7c0309
-2183	Produto 06	737	5	2021-02-01 20:34:06.357738+00	2021-02-26 04:43:32.231761+00	5739922c-8b8b-43c3-8082-fb7526b44fc3
-2184	Produto 07	737	6	2021-02-01 20:34:06.363617+00	2021-02-26 04:43:32.23495+00	366bc981-a520-41be-8be0-1f2be81b13ea
-2185	Produto 08	737	7	2021-02-01 20:34:06.369701+00	2021-02-26 04:43:32.237811+00	2a678be8-8a4d-4fd1-a676-4eadbf492cc5
-2207	Renovação	693	1	2021-02-27 16:51:36.450682+00	2021-02-27 16:51:38.726656+00	299f97c7-98ef-4466-9a45-1f238c5aff24
-2219	Login de Usuário	749	0	2021-03-19 15:14:33.793576+00	2021-03-19 15:15:04.867389+00	76f27df9-d45c-441e-a45c-3fa667a298a9
-2221	Telefonia	749	2	2021-03-19 15:14:43.989564+00	2021-03-19 15:15:04.87703+00	2a71418b-c28d-4fa2-a00e-a00307b5a715
-2223	Instalação de Equipamento	749	4	2021-03-19 15:14:54.277614+00	2021-03-19 15:15:04.88849+00	87d0edac-15dc-43df-99ee-2317b5446b25
-2225	Facebook	753	1	2021-03-19 18:03:21.624231+00	2021-03-19 18:03:29.350119+00	45204c35-6f56-46e6-82df-33b28b0c18fc
-2226	Linkedin	753	2	2021-03-19 18:03:21.634964+00	2021-03-19 18:03:29.354726+00	30149f8b-3270-4e36-9f28-c4da2d1f3038
-2209	Não foi mais possível contatar o cliente	680	1	2021-02-27 16:52:29.934232+00	2021-02-27 16:52:42.61151+00	f310d62c-4923-4e5e-9348-64836c174417
-2211	Perda de Prazo	680	3	2021-02-27 16:52:35.163517+00	2021-02-27 16:52:42.620869+00	21ee9d3b-31aa-47dd-ab51-d25fb2879bcf
-2158	Proposta	689	0	2020-12-03 16:28:13.573112+00	2021-04-17 20:25:49.59878+00	faa25ff7-36d1-4003-9ff2-c8d18f9e3cb2
-2159	Negociação	689	1	2020-12-03 16:28:13.578937+00	2021-04-17 20:25:49.604772+00	48c6f844-5ee8-42a0-82c4-6f43563f44bf
-2199	Contato	689	3	2021-02-24 13:56:44.276573+00	2021-04-17 20:25:49.617301+00	022eed0d-0c41-48dc-a7c9-bad60b6684c0
-2164	Reunião	689	4	2020-12-03 16:28:13.612608+00	2021-04-17 20:25:49.623703+00	311eae54-4654-4aa2-ba0d-aee3d135fd87
-2161	Fechado	689	5	2020-12-03 16:28:13.59058+00	2021-04-17 20:25:49.62961+00	6b76f276-0e09-49d7-90a7-59c4f3365d7d
-2205	Lucas Melo	731	1	2021-02-27 15:19:52.695653+00	2021-02-27 15:19:55.054779+00	15add4af-28a2-4436-adc0-c3fd6f4ae668
-2162	Perdido	689	6	2020-12-03 16:28:13.596688+00	2021-04-17 20:25:49.635403+00	4726a58b-0316-4c16-9cd8-ac7be279d417
+COPY public.field_options (id, created_at, updated_at, option, "order", field_id, uuid) FROM stdin;
+2227	2021-05-22 19:56:49.142048+00	2021-05-26 22:33:59.36351+00	Festa de Casamento	0	757	aa99a7eb-475a-448a-8607-0e0e4753889f
+2228	2021-05-22 19:56:58.85194+00	2021-05-26 22:33:59.369528+00	Festa de aniversário	1	757	bcdde8d9-186c-471d-99c9-e2c5a4ba71b8
+2229	2021-05-22 19:56:58.855964+00	2021-05-26 22:33:59.375657+00	Formaturas	2	757	778b7a00-01f6-4920-98f7-a42e5d17d9f6
+2230	2021-05-22 19:57:01.977769+00	2021-05-26 22:33:59.382765+00	Comerciais	3	757	7391aeb7-0a7c-49b4-86de-8ae35941b920
 \.
 
 
@@ -12448,19 +11929,20 @@ COPY public.field_period_interval_type (id, type, label_name, in_seconds, "order
 -- Data for Name: field_type; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.field_type (id, type, label_name, "order") FROM stdin;
-1	number	Número	1
-2	text	Texto	1
-3	date	Data	1
-4	option	Opção	1
-5	form	Conexão com Formulário	1
-6	attachment	Anexo	1
-7	long_text	Texto Longo	1
-10	email	E-mail	1
-11	multi_option	Multiplas Opções	1
-12	id	ID	1
-13	user	Usuários	1
-14	period	Período	1
+COPY public.field_type (id, type, label_name, "order", is_dynamic_evaluated) FROM stdin;
+2	text	Texto	1	f
+1	number	Número	2	f
+7	long_text	Texto Longo	7	f
+6	attachment	Anexo	6	f
+14	period	Período	12	f
+11	multi_option	Multiplas Opções	9	f
+4	option	Opção	4	f
+13	user	Usuários	11	f
+3	date	Data	3	f
+10	email	E-mail	8	f
+5	form	Conexão com Formulário	5	f
+12	id	ID	10	f
+15	formula	Formula	13	f
 \.
 
 
@@ -12468,40 +11950,10 @@ COPY public.field_type (id, type, label_name, "order") FROM stdin;
 -- Data for Name: form; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.form (id, form_name, label_name, "order", company_id, depends_on_id, type_id, conditional_on_field_id, conditional_type_id, conditional_value, created_at, enabled, updated_at, group_id, uuid, conditional_excludes_data_if_not_set, show_label_name) FROM stdin;
-326	cadastro	Cadastro	0	1	324	1	\N	\N	\N	2021-02-01 20:34:04.891276+00	t	2021-04-18 04:12:44.228466+00	\N	d78f291c-baf3-4e96-bee7-8987d6558670	t	t
-329	controledechamados	Controle de Chamados	0	1	\N	1	\N	\N	\N	2021-03-19 15:11:59.575235+00	t	2021-04-18 04:12:44.230657+00	34	3a186cee-fccb-4adf-9fd6-54df21f766f3	t	t
-330	informacoesdochamado	Informações do Chamado	0	1	329	1	\N	\N	\N	2021-03-19 15:11:59.648032+00	t	2021-04-18 04:12:44.232515+00	\N	262cfc07-9f66-4fb2-929f-02302c745479	t	t
-311	informacoesdocliente	Informações do Cliente	0	1	309	1	\N	\N	\N	2020-12-03 16:28:10.912273+00	t	2021-04-18 04:12:44.234347+00	\N	5d65f75c-fb2b-4542-b512-b1ecec060091	t	t
-322	aulas	aulas	0	1	321	1	\N	\N	\N	2020-12-26 22:40:31.679206+00	t	2021-04-18 04:12:44.236187+00	\N	fdd15eac-0245-466b-9714-fb616bb8a3f4	t	t
-25	informacoesgerais_1	Informações Gerais	1	3	24	1	\N	\N	\N	2019-03-27 23:23:22.961716+00	t	2021-04-18 04:12:44.237939+00	2	7aa23850-51af-4a5d-a35e-6f83e4a82b77	t	t
-16	pedidosdebolo	Pedidos de Bolo	1	3	15	1	\N	\N	\N	2019-03-19 22:28:18.406809+00	t	2021-04-18 04:12:44.239707+00	2	3f49918b-7fef-4af9-8770-011f44a40df1	t	t
-34	informacoesgerais_1_1	Informações Gerais	1	3	33	1	\N	\N	\N	2019-04-17 01:22:22.924503+00	t	2021-04-18 04:12:44.241493+00	2	0ec0516e-7e6f-4682-956d-f490bba2a3fb	t	t
-33	pipelinecomercial	Pipeline Comercial	1	3	\N	1	\N	\N	\N	2019-04-17 01:22:08.36189+00	t	2021-04-18 04:12:44.246343+00	2	a90b03d3-0c70-4899-a435-a8056b989e52	t	t
-19	informacoesgerais	Informações Gerais	1	3	18	1	\N	\N	\N	2019-03-19 22:54:16.94281+00	t	2021-04-18 04:12:44.248191+00	2	a6c6b1a3-cf45-4c8c-820b-43f8ac63e2ce	t	t
-310	informacoesgerais	Informações Gerais	1	1	308	1	\N	\N	\N	2020-12-03 16:28:10.902279+00	t	2021-04-18 04:12:44.249914+00	\N	50e9d47c-fe45-4044-b651-bf2cf0f11930	t	t
-327	datadepagamento	Data de Pagamento	1	1	323	1	743	1	Pago	2021-02-01 20:34:04.903787+00	t	2021-04-18 04:12:44.251647+00	\N	b42fda61-fde2-4a66-858a-599cb8acb18f	t	t
-319	informacoesdoplano	Informações do Plano	1	1	318	1	\N	\N	\N	2020-12-03 19:47:23.643034+00	t	2021-04-18 04:12:44.253331+00	\N	88c4b821-d92a-4319-bc99-bcc058951770	t	t
-24	reembolso	Reembolso	2	3	\N	1	\N	\N	\N	2019-03-27 23:18:04.475521+00	f	2021-04-18 04:12:44.255022+00	2	1526f36d-2d3e-48e9-a0f3-c52757e40da1	t	t
-317	beneficiosdoplano	Benefícios do Plano	2	1	308	1	\N	\N	\N	2020-12-03 16:51:51.937846+00	t	2021-04-18 04:12:44.256718+00	\N	ba7b5ae0-3943-4d1a-a5b2-9825748efc61	t	t
-17	informacaodepedido	Informação de Pedido	2	3	15	1	\N	\N	\N	2019-03-19 22:36:45.522167+00	t	2021-04-18 04:12:44.258403+00	2	d27a2d66-7cd6-4679-9083-7c142e43fe64	t	t
-328	anexos	Anexos	2	1	323	1	\N	\N	\N	2021-02-01 20:34:04.918253+00	t	2021-04-18 04:12:44.260113+00	\N	bf7be147-aeb0-4136-acb5-5b29bfa579e3	t	t
-308	negocios	Negócios	2	1	\N	1	\N	\N	\N	2020-12-03 16:28:10.876263+00	t	2021-04-18 04:12:44.261773+00	31	cee3437a-b49d-4f9b-a79a-98fc60a0e179	t	t
-15	pedidos	Pedidos	3	3	\N	1	\N	\N	\N	2019-03-19 22:27:23.815488+00	t	2021-04-18 04:12:44.26346+00	2	d0b780ee-2add-4a04-8056-e49eb354fab4	t	t
-325	informacoesderecebiveis	Informações de Recebíveis	3	1	323	1	\N	\N	\N	2021-02-01 20:34:04.881762+00	t	2021-04-18 04:12:44.265137+00	\N	8c5df7b0-d97d-4ac0-a1c9-aefbabc56487	t	t
-309	clientes	Clientes	3	1	\N	1	\N	\N	\N	2020-12-03 16:28:10.888498+00	t	2021-04-18 04:12:44.266865+00	31	489a6861-c73f-4272-9cba-3c5ac178f479	t	t
-331	sladenegociacao	SLA de Negociação	3	1	308	1	689	1	Negociação	2021-03-19 17:54:58.191141+00	t	2021-04-18 04:12:44.268551+00	\N	305328ae-18e1-476b-99ed-b2acdebbab91	t	t
-30	detalhedeentrega	Detalhe de Entrega	3	3	15	1	100	1	Entrega	2019-04-08 00:33:10.312623+00	t	2021-04-18 04:12:44.270271+00	2	30a13b08-a987-4910-a714-456ea5410960	t	t
-312	detalhedeperda	Detalhe de Perda	4	1	308	1	689	1	Perdido	2020-12-03 16:28:10.926162+00	t	2021-04-18 04:12:44.272105+00	\N	e0772789-4ab3-46de-95b8-16178b6d5eac	t	t
-18	clientes	Clientes	4	3	\N	1	\N	\N	\N	2019-03-19 22:53:07.009014+00	t	2021-04-18 04:12:44.277724+00	2	20923d32-1ed8-4044-aff0-15ba53d6aa83	t	t
-318	planos	Planos	4	1	\N	1	\N	\N	\N	2020-12-03 19:46:57.716248+00	t	2021-04-18 04:12:44.279631+00	31	a2643bd7-c27b-41c3-8bf1-fe4116c89d28	t	t
-321	cliquenocardparaeditar	Clique no card para editar	5	1	\N	1	\N	\N	\N	2020-12-26 22:40:31.660616+00	t	2021-04-18 04:12:44.28138+00	32	b091527d-a5a9-44c9-b50f-26c340aee5ea	t	t
-315	planoscontratados	Planos Contratados	5	1	308	1	689	1	Proposta	2020-12-03 16:45:55.448327+00	t	2021-04-18 04:12:44.283102+00	\N	d73f67b3-2e51-4ee9-b540-6dfbe763ede8	t	t
-323	lancamentosderecebiveis	Lançamentos de Recebíveis	6	1	\N	1	\N	\N	\N	2021-02-01 20:34:04.846515+00	t	2021-04-18 04:12:44.284839+00	33	a6c2f585-abab-4af8-9e65-82762df35ba1	t	t
-313	anexos	Anexos	6	1	308	1	\N	\N	\N	2020-12-03 16:28:10.941778+00	t	2021-04-18 04:12:44.286554+00	\N	183d5c1e-31c7-43ef-8623-0ebe69ad896c	t	t
-324	cadastrodeclientes	Cadastro de Clientes	7	1	\N	1	\N	\N	\N	2021-02-01 20:34:04.869136+00	t	2021-04-18 04:12:44.28828+00	33	8f791603-969c-44a6-bb59-2c95b7b0e320	t	t
-316	valores	Valores	7	1	308	1	\N	\N	\N	2020-12-03 16:47:43.201074+00	t	2021-04-18 04:12:44.289982+00	\N	32b2769d-e94f-46a3-afca-f619ee808b57	t	t
-314	historico	Histórico	8	1	308	2	\N	\N	\N	2020-12-03 16:28:10.956116+00	t	2021-04-18 04:12:44.291694+00	\N	cd3f6d4f-7240-4e55-afb7-c2c170f2f7f3	t	t
+COPY public.form (id, created_at, updated_at, form_name, label_name, "order", conditional_value, enabled, company_id, conditional_on_field_id, conditional_type_id, depends_on_id, group_id, type_id, uuid, conditional_excludes_data_if_not_set, show_label_name) FROM stdin;
+332	2021-05-22 16:12:47.879549+00	2021-05-22 19:55:32.764471+00	eventos	Eventos	0	\N	t	1	\N	\N	\N	35	1	de82529d-bda2-434e-b5a8-56f36e37dba7	t	t
+333	2021-05-22 16:12:47.917369+00	2021-05-26 22:32:18.760912+00	informacoesdoevento	Informações do Evento	1	\N	t	1	\N	\N	332	\N	1	783e079f-2c46-41ae-8c41-3dd729e1fcdc	t	f
+334	2021-05-26 22:32:18.783441+00	2021-05-26 22:32:18.78349+00	festacomercial	Festa comercial	2	Comerciais	t	1	757	1	332	\N	1	d2efc2b0-d7e1-4cdf-87f1-5e25e9a4fd51	t	t
 \.
 
 
@@ -12509,24 +11961,8 @@ COPY public.form (id, form_name, label_name, "order", company_id, depends_on_id,
 -- Data for Name: form_accessed_by; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.form_accessed_by (id, form_id, user_id, created_at, updated_at) FROM stdin;
-55	33	12	2019-08-22 00:11:56.303691+00	2019-08-22 00:11:56.304013+00
-56	24	12	2019-08-22 00:11:56.311649+00	2019-08-22 00:11:56.311949+00
-57	15	12	2019-08-22 00:11:56.321507+00	2019-08-22 00:11:56.321827+00
-58	18	12	2019-08-22 00:11:56.331202+00	2019-08-22 00:11:56.331505+00
-59	33	13	2019-08-22 00:11:56.354332+00	2019-08-22 00:11:56.354659+00
-60	24	13	2019-08-22 00:11:56.364976+00	2019-08-22 00:11:56.365261+00
-61	15	13	2019-08-22 00:11:56.371128+00	2019-08-22 00:11:56.371412+00
-62	18	13	2019-08-22 00:11:56.37958+00	2019-08-22 00:11:56.379856+00
-25	24	15	2019-03-27 23:24:11.516427+00	2019-03-27 23:47:37.467247+00
-251	308	1	2020-12-03 16:28:10.877707+00	2020-12-03 16:28:10.877725+00
-252	309	1	2020-12-03 16:28:10.890143+00	2020-12-03 16:28:10.890161+00
-253	318	1	2020-12-03 19:46:57.718839+00	2020-12-03 19:46:57.718857+00
-254	321	1	2020-12-26 22:40:31.665369+00	2020-12-26 22:40:31.665388+00
-255	323	1	2021-02-01 20:34:04.851901+00	2021-02-01 20:34:04.85192+00
-256	324	1	2021-02-01 20:34:04.870271+00	2021-02-01 20:34:04.87029+00
-257	308	27	2021-02-27 14:28:42.955186+00	2021-02-27 14:28:42.955208+00
-258	329	1	2021-03-19 15:11:59.583946+00	2021-03-19 15:11:59.583965+00
+COPY public.form_accessed_by (id, created_at, updated_at, form_id, user_id) FROM stdin;
+259	2021-05-22 16:12:47.88226+00	2021-05-22 16:12:47.882281+00	332	1
 \.
 
 
@@ -12544,792 +11980,102 @@ COPY public.form_type (id, type, label_name, "order") FROM stdin;
 -- Data for Name: form_value; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.form_value (id, value, field_id, form_id, created_at, updated_at, field_type_id, date_configuration_date_format_type_id, period_configuration_period_interval_type_id, number_configuration_mask, formula_configuration, number_configuration_number_format_type_id, form_field_as_option_id, company_id, is_long_text_rich_text) FROM stdin;
-6071	2031	726	2033	2021-01-29 18:01:11.93869+00	2021-01-29 18:13:20.606894+00	5	1	4	\N	\N	1	704	1	f
-6117	Perda de Prazo	680	2071	2021-02-24 13:56:33.571185+00	2021-02-24 13:56:33.571209+00	4	\N	\N	\N	\N	\N	\N	1	f
-5989	Claro Ilimitado 15GB 	704	2027	2020-12-03 20:02:54.084865+00	2021-02-01 20:29:33.780262+00	2	1	4	\N	\N	1	\N	1	f
-6118	2021-03-19 00:00:00	690	2073	2021-03-19 13:09:11.066375+00	2021-03-19 17:56:48.996215+00	3	1	4	\N	\N	1	\N	1	f
-6119	2029	679	2073	2021-03-19 13:09:11.102915+00	2021-03-19 17:56:49.042312+00	5	\N	\N	\N	\N	\N	678	1	f
-6120	Negociação	689	2073	2021-03-19 13:09:11.121045+00	2021-03-19 17:56:49.101388+00	4	\N	\N	\N	\N	\N	\N	1	f
-5995	Transportadora Magalhaes	678	2029	2020-12-03 20:05:17.702949+00	2020-12-14 14:24:01.074521+00	2	\N	\N	\N	\N	\N	\N	1	f
-5996	490.290.099-10	692	2029	2020-12-03 20:05:17.72047+00	2020-12-14 14:24:01.090811+00	2	1	4	\N	\N	1	\N	1	f
-5997	lmelo@gmail.com	683	2029	2020-12-03 20:05:17.733168+00	2020-12-14 14:24:01.125117+00	10	\N	\N	\N	\N	\N	\N	1	f
-6072	Lucas Melo	731	2044	2021-01-29 18:13:11.532053+00	2021-02-24 07:57:22.197875+00	4	1	4	\N	\N	1	\N	1	f
-6121	2021-03-19 00:00:00	690	2075	2021-03-19 13:09:41.779266+00	2021-04-02 02:54:45.367521+00	3	1	4	\N	\N	1	\N	1	f
-6122	2039	679	2075	2021-03-19 13:09:41.79668+00	2021-04-02 02:54:45.410247+00	5	\N	\N	\N	\N	\N	678	1	f
-6123	Prospecção	689	2075	2021-03-19 13:09:41.815297+00	2021-04-02 02:54:45.465918+00	4	\N	\N	\N	\N	\N	\N	1	f
-1402		98	299	2019-04-08 00:02:38.941018+00	2020-02-09 15:54:48.230975+00	1	\N	\N	\N	\N	2	\N	1	f
-888	2400000000000	105	134	2019-03-19 23:14:41.400352+00	2020-02-09 15:54:48.304524+00	1	\N	\N	\N	\N	2	\N	3	f
-858	20000000	97	134	2019-03-19 23:05:57.683616+00	2020-02-09 15:54:48.331127+00	1	\N	\N	\N	\N	3	\N	3	f
-860	350000000000	98	134	2019-03-19 23:05:57.726165+00	2020-02-09 15:54:48.343592+00	1	\N	\N	\N	\N	2	\N	3	f
-889	1400000000000	105	129	2019-03-19 23:15:04.161347+00	2020-02-09 15:54:48.357734+00	1	\N	\N	\N	\N	2	\N	3	f
-846	10000000	97	129	2019-03-19 23:00:15.861955+00	2020-02-09 15:54:48.41+00	1	\N	\N	\N	\N	3	\N	3	f
-845	100000000000	96	129	2019-03-19 23:00:15.838044+00	2020-02-09 15:54:48.421968+00	1	\N	\N	\N	\N	1	\N	3	f
-848	250000000000	98	129	2019-03-19 23:00:15.915159+00	2020-02-09 15:54:48.446978+00	1	\N	\N	\N	\N	2	\N	3	f
-1045	50000000000	120	195	2019-03-27 23:26:14.846304+00	2020-02-09 15:54:48.458944+00	1	\N	\N	\N	\N	2	\N	3	f
-897	400000000000	105	149	2019-03-19 23:17:30.864131+00	2020-02-09 15:54:48.471419+00	1	\N	\N	\N	\N	2	\N	3	f
-898	15000000	97	149	2019-03-19 23:17:30.885645+00	2020-02-09 15:54:48.484423+00	1	\N	\N	\N	\N	3	\N	3	f
-901	400000000000	98	149	2019-03-19 23:17:30.947389+00	2020-02-09 15:54:48.496424+00	1	\N	\N	\N	\N	2	\N	3	f
-910	3000000000000	105	154	2019-03-19 23:20:40.461717+00	2020-02-09 15:54:48.508618+00	1	\N	\N	\N	\N	2	\N	3	f
-911	5000000	97	154	2019-03-19 23:20:40.484323+00	2020-02-09 15:54:48.523057+00	1	\N	\N	\N	\N	3	\N	3	f
-912	100000000000	96	154	2019-03-19 23:20:40.504006+00	2020-02-09 15:54:48.535207+00	1	\N	\N	\N	\N	1	\N	3	f
-914	200000000000	98	154	2019-03-19 23:20:40.546965+00	2020-02-09 15:54:48.547129+00	1	\N	\N	\N	\N	2	\N	3	f
-1210	15000000	97	251	2019-03-28 22:55:16.838893+00	2020-02-09 15:54:48.559829+00	1	\N	\N	\N	\N	3	\N	1	f
-919	4000000000000	105	157	2019-03-19 23:22:45.775477+00	2020-02-09 15:54:48.706938+00	1	\N	\N	\N	\N	2	\N	3	f
-920	5000000	97	157	2019-03-19 23:22:45.793693+00	2020-02-09 15:54:48.758959+00	1	\N	\N	\N	\N	3	\N	3	f
-921	100000000000	96	157	2019-03-19 23:22:45.812716+00	2020-02-09 15:54:48.783721+00	1	\N	\N	\N	\N	1	\N	3	f
-6073	Fernando Dória	731	2036	2021-01-29 18:13:20.4487+00	2021-01-29 18:13:20.448725+00	4	1	4	\N	\N	1	\N	1	f
-5998	Aparelho IPhone 12 Mini 128GB	704	2031	2020-12-03 20:06:46.676526+00	2021-02-01 20:21:38.511925+00	2	1	4	\N	\N	1	\N	1	f
-6130	2021-04-01 00:00:00	691	2075	2021-03-19 13:11:19.288099+00	2021-04-02 02:54:45.382437+00	3	1	4	\N	\N	1	\N	1	f
-6132	2021-03-24 00:00:00	684	2075	2021-03-19 13:11:19.330288+00	2021-04-02 02:54:45.422325+00	3	1	\N	\N	\N	\N	\N	1	f
-6133	Renovação	693	2075	2021-03-19 13:11:19.347544+00	2021-04-02 02:54:45.4372+00	4	1	4	\N	\N	1	\N	1	f
-6134	Lucas Melo	731	2075	2021-03-19 13:11:19.364312+00	2021-04-02 02:54:45.454444+00	4	1	4	\N	\N	1	\N	1	f
-6129	asdasdd	703	2077	2021-03-19 13:11:19.251379+00	2021-04-02 02:54:45.48551+00	7	1	4	\N	\N	1	\N	1	f
-6124	40000000000	699	2076	2021-03-19 13:11:19.161607+00	2021-04-02 02:54:45.504464+00	1	1	4	\N	\N	2	\N	1	f
-6125	20000000000	698	2076	2021-03-19 13:11:19.179229+00	2021-04-02 02:54:45.519321+00	1	1	4	\N	\N	2	\N	1	f
-6131	5	694	2075	2021-03-19 13:11:19.304377+00	2021-04-02 02:54:45.977338+00	12	1	4	\N	\N	1	\N	1	f
-6126	20000000000	700	2076	2021-03-19 13:11:19.195985+00	2021-04-02 02:54:46.005812+00	1	1	4	\N	{{699}}-{{698}}	2	\N	1	f
-6127	240000000000	701	2076	2021-03-19 13:11:19.212286+00	2021-04-02 02:54:46.024491+00	1	1	4	\N	{{700}}*12	2	\N	1	f
-6128	-50000000	702	2076	2021-03-19 13:11:19.229101+00	2021-04-02 02:54:46.045785+00	1	1	4	\N	{{698}}/{{699}}-1	3	\N	1	f
-1389	5000000	97	296	2019-04-07 22:47:21.940102+00	2020-02-09 15:54:49.983628+00	1	\N	\N	\N	\N	3	\N	1	f
-6135	Lucas Melo	678	2080	2021-03-19 13:16:07.101484+00	2021-03-19 13:16:07.101509+00	2	\N	\N	\N	\N	\N	\N	1	f
-6136	lmelo@gmail.com	683	2080	2021-03-19 13:16:07.117137+00	2021-03-19 13:16:07.117161+00	10	\N	\N	\N	\N	\N	\N	1	f
-6137	(11) 94262-2321	687	2080	2021-03-19 13:16:07.132177+00	2021-03-19 13:16:07.1322+00	2	\N	\N	\N	\N	\N	\N	1	f
-1392	2000000000	98	296	2019-04-07 22:47:21.967405+00	2020-02-09 15:54:49.998334+00	1	\N	\N	\N	\N	2	\N	1	f
-6016	2029	679	2036	2020-12-03 20:08:07.000066+00	2021-01-29 18:13:20.406146+00	5	\N	\N	\N	\N	\N	678	1	f
-6017	2020-12-11 00:00:00	684	2036	2020-12-03 20:08:07.013901+00	2021-01-29 18:13:20.417798+00	3	1	\N	\N	\N	\N	\N	1	f
-6018	Novo	693	2036	2020-12-03 20:08:07.030095+00	2021-01-29 18:13:20.432306+00	4	1	4	\N	\N	1	\N	1	f
-6019	Negociação	689	2036	2020-12-03 20:08:07.041974+00	2021-01-29 18:13:20.460051+00	4	\N	\N	\N	\N	\N	\N	1	f
-6012	7 LINHAS COM 15GB DE DADOS CADA + + REDES SOCIAIS + WAZE + LIGAÇÕES ILIMITADAS + WHATSAPP ILIMITADO + GESTOR ON LINE + 01 IPHONE 12 MINI 128GB + PÓS-VENDAS CONSULTING	703	2035	2020-12-03 20:08:06.932362+00	2021-01-29 18:13:20.485294+00	7	1	4	\N	\N	1	\N	1	f
-6013	2020-12-03 00:00:00	690	2036	2020-12-03 20:08:06.954345+00	2021-01-29 18:13:20.359412+00	3	1	4	\N	\N	1	\N	1	f
-6014	2021-01-29 00:00:00	691	2036	2020-12-03 20:08:06.970498+00	2021-01-29 18:13:20.377789+00	3	1	4	\N	\N	1	\N	1	f
-6008	80000000000	699	2034	2020-12-03 20:08:06.859196+00	2021-01-29 18:13:20.52013+00	1	1	4	\N	\N	2	\N	1	f
-6004	2027	695	2033	2020-12-03 20:08:06.782194+00	2021-01-29 18:13:20.590732+00	5	1	4	\N	\N	1	704	1	f
-6015	1	694	2036	2020-12-03 20:08:06.986525+00	2021-01-29 18:13:20.676673+00	12	1	4	\N	\N	1	\N	1	f
-6009	35000000000	700	2034	2020-12-03 20:08:06.87522+00	2021-01-29 18:13:20.696309+00	1	1	4	\N	{{699}}-{{698}}	2	\N	1	f
-6074	Unilever do Brasil	678	2054	2021-01-29 18:14:32.200623+00	2021-01-29 18:14:32.200646+00	2	\N	\N	\N	\N	\N	\N	1	f
-6075	99.999.999/0001-99	692	2054	2021-01-29 18:14:32.217057+00	2021-01-29 18:14:32.217079+00	2	1	4	\N	\N	1	\N	1	f
-6076	Maria Silva	718	2054	2021-01-29 18:14:32.232651+00	2021-01-29 18:14:32.232673+00	2	1	4	\N	\N	1	\N	1	f
-923	300000000000	98	157	2019-03-19 23:22:45.847237+00	2020-02-09 15:54:48.796986+00	1	\N	\N	\N	\N	2	\N	3	f
-1563	50000000000	105	332	2019-04-09 01:25:58.466569+00	2020-02-09 15:54:48.809929+00	1	\N	\N	\N	\N	2	\N	1	f
-1564	10000000	97	332	2019-04-09 01:25:58.473593+00	2020-02-09 15:54:48.827268+00	1	\N	\N	\N	\N	3	\N	1	f
-1567	2000000000	98	332	2019-04-09 01:25:58.49304+00	2020-02-09 15:54:48.839377+00	1	\N	\N	\N	\N	2	\N	1	f
-1585	20000000000	105	336	2019-04-09 01:29:42.006602+00	2020-02-09 15:54:48.851341+00	1	\N	\N	\N	\N	2	\N	1	f
-1060	2000000000	98	200	2019-03-28 22:46:49.280098+00	2020-02-09 15:54:48.863172+00	1	\N	\N	\N	\N	2	\N	1	f
-1065	45000000000	105	203	2019-03-28 22:46:53.016731+00	2020-02-09 15:54:48.891573+00	1	\N	\N	\N	\N	2	\N	1	f
-1066	23000000	97	203	2019-03-28 22:46:53.04331+00	2020-02-09 15:54:48.910082+00	1	\N	\N	\N	\N	3	\N	1	f
-1069	2000000000	98	203	2019-03-28 22:46:53.0945+00	2020-02-09 15:54:48.922061+00	1	\N	\N	\N	\N	2	\N	1	f
-1074	45000000000	105	206	2019-03-28 22:46:55.97084+00	2020-02-09 15:54:48.934118+00	1	\N	\N	\N	\N	2	\N	1	f
-1075	23000000	97	206	2019-03-28 22:46:55.985166+00	2020-02-09 15:54:48.946068+00	1	\N	\N	\N	\N	3	\N	1	f
-1078	2000000000	98	206	2019-03-28 22:46:56.065315+00	2020-02-09 15:54:48.957865+00	1	\N	\N	\N	\N	2	\N	1	f
-1000	8900000000	98	181	2019-03-22 03:30:22.190496+00	2020-02-09 15:54:48.970285+00	1	\N	\N	\N	\N	2	\N	1	f
-1092	2400000000000	105	212	2019-03-28 22:47:25.633105+00	2020-02-09 15:54:48.982589+00	1	\N	\N	\N	\N	2	\N	1	f
-1093	20000000	97	212	2019-03-28 22:47:25.647178+00	2020-02-09 15:54:48.994371+00	1	\N	\N	\N	\N	3	\N	1	f
-996	78900000000	105	181	2019-03-22 03:30:22.082544+00	2020-02-09 15:54:49.047122+00	1	\N	\N	\N	\N	2	\N	1	f
-997	15000000	97	181	2019-03-22 03:30:22.107741+00	2020-02-09 15:54:49.0592+00	1	\N	\N	\N	\N	3	\N	1	f
-1023	566600000000	105	188	2019-03-23 18:32:35.822634+00	2020-02-09 15:54:49.071054+00	1	\N	\N	\N	\N	2	\N	1	f
-1024	23000000	97	188	2019-03-23 18:32:35.842403+00	2020-02-09 15:54:49.082984+00	1	\N	\N	\N	\N	3	\N	1	f
-1096	350000000000	98	212	2019-03-28 22:47:25.690363+00	2020-02-09 15:54:49.094941+00	1	\N	\N	\N	\N	2	\N	1	f
-1027	500000000	98	188	2019-03-23 18:32:35.905755+00	2020-02-09 15:54:49.107564+00	1	\N	\N	\N	\N	2	\N	1	f
-1101	2400000000000	105	215	2019-03-28 22:47:29.380873+00	2020-02-09 15:54:49.120652+00	1	\N	\N	\N	\N	2	\N	1	f
-1102	20000000	97	215	2019-03-28 22:47:29.396555+00	2020-02-09 15:54:49.137317+00	1	\N	\N	\N	\N	3	\N	1	f
-1037	45000000000	105	193	2019-03-27 22:03:43.433872+00	2020-02-09 15:54:49.150311+00	1	\N	\N	\N	\N	2	\N	3	f
-1038	23000000	97	193	2019-03-27 22:03:43.457417+00	2020-02-09 15:54:49.163014+00	1	\N	\N	\N	\N	3	\N	3	f
-1105	350000000000	98	215	2019-03-28 22:47:29.440216+00	2020-02-09 15:54:49.175061+00	1	\N	\N	\N	\N	2	\N	1	f
-1041	2000000000	98	193	2019-03-27 22:03:43.540253+00	2020-02-09 15:54:49.186946+00	1	\N	\N	\N	\N	2	\N	3	f
-1110	2400000000000	105	218	2019-03-28 22:47:32.789236+00	2020-02-09 15:54:49.202822+00	1	\N	\N	\N	\N	2	\N	1	f
-1111	20000000	97	218	2019-03-28 22:47:32.803844+00	2020-02-09 15:54:49.216197+00	1	\N	\N	\N	\N	3	\N	1	f
-1114	350000000000	98	218	2019-03-28 22:47:32.856389+00	2020-02-09 15:54:49.24762+00	1	\N	\N	\N	\N	2	\N	1	f
-1119	2400000000000	105	221	2019-03-28 22:47:35.433969+00	2020-02-09 15:54:49.261076+00	1	\N	\N	\N	\N	2	\N	1	f
-1120	20000000	97	221	2019-03-28 22:47:35.460984+00	2020-02-09 15:54:49.317832+00	1	\N	\N	\N	\N	3	\N	1	f
-1123	350000000000	98	221	2019-03-28 22:47:35.499344+00	2020-02-09 15:54:49.36037+00	1	\N	\N	\N	\N	2	\N	1	f
-1128	2400000000000	105	224	2019-03-28 22:47:38.657933+00	2020-02-09 15:54:49.373075+00	1	\N	\N	\N	\N	2	\N	1	f
-1126	Julia Fedato	94	223	2019-03-28 22:47:38.621814+00	2020-02-09 15:54:49.386301+00	2	\N	\N	\N	\N	\N	\N	1	f
-1129	20000000	97	224	2019-03-28 22:47:38.670952+00	2020-02-09 15:54:49.399309+00	1	\N	\N	\N	\N	3	\N	1	f
-1146	3000000000000	105	230	2019-03-28 22:53:20.366912+00	2020-02-09 15:54:49.416253+00	1	\N	\N	\N	\N	2	\N	1	f
-1132	350000000000	98	224	2019-03-28 22:47:38.712859+00	2020-02-09 15:54:49.429985+00	1	\N	\N	\N	\N	2	\N	1	f
-1398	2400000000000	105	299	2019-04-08 00:02:38.90807+00	2020-02-09 15:54:50.103245+00	1	\N	\N	\N	\N	2	\N	1	f
-1399	23000000	97	299	2019-04-08 00:02:38.916476+00	2020-02-09 15:54:50.12095+00	1	\N	\N	\N	\N	3	\N	1	f
-6020	Fernando	678	2039	2020-12-03 20:16:43.751676+00	2020-12-03 20:16:43.751693+00	2	\N	\N	\N	\N	\N	\N	1	f
-6021	290.209.090-89	692	2039	2020-12-03 20:16:43.768455+00	2020-12-03 20:16:43.768476+00	2	1	4	\N	\N	1	\N	1	f
-6083	2021-01-29 00:00:00	690	2059	2021-01-29 18:15:23.576674+00	2021-02-24 13:56:33.596687+00	3	1	4	\N	\N	1	\N	1	f
-6084	2021-02-24 00:00:00	691	2059	2021-01-29 18:15:23.594174+00	2021-02-24 13:56:33.612136+00	3	1	4	\N	\N	1	\N	1	f
-6086	2054	679	2059	2021-01-29 18:15:23.623646+00	2021-02-24 13:56:33.639668+00	5	\N	\N	\N	\N	\N	678	1	f
-6087	2021-02-03 00:00:00	684	2059	2021-01-29 18:15:23.636748+00	2021-02-24 13:56:33.651998+00	3	1	\N	\N	\N	\N	\N	1	f
-6088	Novo	693	2059	2021-01-29 18:15:23.652313+00	2021-02-24 13:56:33.668307+00	4	1	4	\N	\N	1	\N	1	f
-6089	Fernando Dória	731	2059	2021-01-29 18:15:23.668221+00	2021-02-24 13:56:33.683531+00	4	1	4	\N	\N	1	\N	1	f
-6090	Perdido	689	2059	2021-01-29 18:15:23.679702+00	2021-02-24 13:56:33.694751+00	4	\N	\N	\N	\N	\N	\N	1	f
-6082	7 LINHAS COM 15GB DE DADOS CADA + + REDES SOCIAIS + WAZE + LIGAÇÕES ILIMITADAS + WHATSAPP ILIMITADO + GESTOR ON LINE + 01 IPHONE 12 MINI 128GB + PÓS-VENDAS CONSULTING	703	2058	2021-01-29 18:15:23.556119+00	2021-02-24 13:56:33.715288+00	7	1	4	\N	\N	1	\N	1	f
-6138	Jonatas Silva	678	2082	2021-03-19 14:23:25.131833+00	2021-03-19 14:23:25.131857+00	2	\N	\N	\N	\N	\N	\N	1	f
-6139	lmelo@gmail.com	683	2082	2021-03-19 14:23:25.146262+00	2021-03-19 14:23:25.146282+00	10	\N	\N	\N	\N	\N	\N	1	f
-6078	300000000000	699	2056	2021-01-29 18:15:23.484074+00	2021-02-24 13:56:33.735393+00	1	1	4	\N	\N	2	\N	1	f
-6140	(11) 94262-2321	687	2082	2021-03-19 14:23:25.16106+00	2021-03-19 14:23:25.161081+00	2	\N	\N	\N	\N	\N	\N	1	f
-6077	209400000000	698	2056	2021-01-29 18:15:23.468179+00	2021-02-24 13:56:33.810033+00	1	1	4	\N	\N	2	\N	1	f
-1147	5000000	97	230	2019-03-28 22:53:20.378191+00	2020-02-09 15:54:49.445271+00	1	\N	\N	\N	\N	3	\N	1	f
-1137	2400000000000	105	227	2019-03-28 22:47:41.53746+00	2020-02-09 15:54:49.473397+00	1	\N	\N	\N	\N	2	\N	1	f
-1138	20000000	97	227	2019-03-28 22:47:41.552455+00	2020-02-09 15:54:49.487812+00	1	\N	\N	\N	\N	3	\N	1	f
-1150	200000000000	98	230	2019-03-28 22:53:20.409973+00	2020-02-09 15:54:49.49983+00	1	\N	\N	\N	\N	2	\N	1	f
-1141	350000000000	98	227	2019-03-28 22:47:41.619661+00	2020-02-09 15:54:49.521073+00	1	\N	\N	\N	\N	2	\N	1	f
-1200	400000000000	105	248	2019-03-28 22:54:54.162734+00	2020-02-09 15:54:49.535022+00	1	\N	\N	\N	\N	2	\N	1	f
-1201	15000000	97	248	2019-03-28 22:54:54.172704+00	2020-02-09 15:54:49.547097+00	1	\N	\N	\N	\N	3	\N	1	f
-1155	3000000000000	105	233	2019-03-28 22:53:23.454069+00	2020-02-09 15:54:49.560001+00	1	\N	\N	\N	\N	2	\N	1	f
-1204	300000000000	98	248	2019-03-28 22:54:54.203089+00	2020-02-09 15:54:49.573284+00	1	\N	\N	\N	\N	2	\N	1	f
-1156	5000000	97	233	2019-03-28 22:53:23.464657+00	2020-02-09 15:54:49.585469+00	1	\N	\N	\N	\N	3	\N	1	f
-1159	200000000000	98	233	2019-03-28 22:53:23.495938+00	2020-02-09 15:54:49.597705+00	1	\N	\N	\N	\N	2	\N	1	f
-1164	3000000000000	105	236	2019-03-28 22:53:25.830624+00	2020-02-09 15:54:49.609695+00	1	\N	\N	\N	\N	2	\N	1	f
-1165	5000000	97	236	2019-03-28 22:53:25.844479+00	2020-02-09 15:54:49.622789+00	1	\N	\N	\N	\N	3	\N	1	f
-1168	200000000000	98	236	2019-03-28 22:53:25.874688+00	2020-02-09 15:54:49.635734+00	1	\N	\N	\N	\N	2	\N	1	f
-1173	400000000000	105	239	2019-03-28 22:54:46.083581+00	2020-02-09 15:54:49.6491+00	1	\N	\N	\N	\N	2	\N	1	f
-1174	15000000	97	239	2019-03-28 22:54:46.094352+00	2020-02-09 15:54:49.668562+00	1	\N	\N	\N	\N	3	\N	1	f
-1177	400000000000	98	239	2019-03-28 22:54:46.125573+00	2020-02-09 15:54:49.682735+00	1	\N	\N	\N	\N	2	\N	1	f
-1182	400000000000	105	242	2019-03-28 22:54:48.758019+00	2020-02-09 15:54:49.695262+00	1	\N	\N	\N	\N	2	\N	1	f
-1183	15000000	97	242	2019-03-28 22:54:48.767916+00	2020-02-09 15:54:49.714316+00	1	\N	\N	\N	\N	3	\N	1	f
-1186	400000000000	98	242	2019-03-28 22:54:48.799297+00	2020-02-09 15:54:49.729457+00	1	\N	\N	\N	\N	2	\N	1	f
-1191	400000000000	105	245	2019-03-28 22:54:51.188508+00	2020-02-09 15:54:49.744805+00	1	\N	\N	\N	\N	2	\N	1	f
-1192	15000000	97	245	2019-03-28 22:54:51.198978+00	2020-02-09 15:54:49.756721+00	1	\N	\N	\N	\N	3	\N	1	f
-1195	400000000000	98	245	2019-03-28 22:54:51.26364+00	2020-02-09 15:54:49.768992+00	1	\N	\N	\N	\N	2	\N	1	f
-1209	400000000000	105	251	2019-03-28 22:55:16.826667+00	2020-02-09 15:54:49.780732+00	1	\N	\N	\N	\N	2	\N	1	f
-1213	400000000000	98	251	2019-03-28 22:55:16.869657+00	2020-02-09 15:54:49.798976+00	1	\N	\N	\N	\N	2	\N	1	f
-1218	400000000000	105	254	2019-03-28 22:55:19.375662+00	2020-02-09 15:54:49.812625+00	1	\N	\N	\N	\N	2	\N	1	f
-1219	15000000	97	254	2019-03-28 22:55:19.390046+00	2020-02-09 15:54:49.827588+00	1	\N	\N	\N	\N	3	\N	1	f
-1238	2500000000	96	260	2019-03-28 22:55:24.390566+00	2020-02-09 15:54:49.840517+00	1	\N	\N	\N	\N	1	\N	1	f
-1222	400000000000	98	254	2019-03-28 22:55:19.423473+00	2020-02-09 15:54:49.855058+00	1	\N	\N	\N	\N	2	\N	1	f
-1227	400000000000	105	257	2019-03-28 22:55:21.96366+00	2020-02-09 15:54:49.867808+00	1	\N	\N	\N	\N	2	\N	1	f
-1228	15000000	97	257	2019-03-28 22:55:21.975275+00	2020-02-09 15:54:49.881533+00	1	\N	\N	\N	\N	3	\N	1	f
-1231	400000000000	98	257	2019-03-28 22:55:22.023901+00	2020-02-09 15:54:49.902135+00	1	\N	\N	\N	\N	2	\N	1	f
-1236	400000000000	105	260	2019-03-28 22:55:24.369011+00	2020-02-09 15:54:49.91519+00	1	\N	\N	\N	\N	2	\N	1	f
-1240	400000000000	98	260	2019-03-28 22:55:24.411419+00	2020-02-09 15:54:49.930121+00	1	\N	\N	\N	\N	2	\N	1	f
-1372	13123123000000	120	293	2019-04-07 20:26:37.085049+00	2020-02-09 15:54:49.947395+00	1	\N	\N	\N	\N	2	\N	1	f
-1388	400000000000	105	296	2019-04-07 22:47:21.930958+00	2020-02-09 15:54:49.965543+00	1	\N	\N	\N	\N	2	\N	1	f
-1427	300000000000	98	302	2019-04-08 19:18:58.742095+00	2020-02-09 15:54:50.136051+00	1	\N	\N	\N	\N	2	\N	1	f
-1530	40000000000	105	324	2019-04-09 01:21:44.716211+00	2020-02-09 15:54:50.161388+00	1	\N	\N	\N	\N	2	\N	1	f
-1531	5000000	97	324	2019-04-09 01:21:44.722823+00	2020-02-09 15:54:50.18381+00	1	\N	\N	\N	\N	3	\N	1	f
-1534	2000000000	98	324	2019-04-09 01:21:44.74407+00	2020-02-09 15:54:50.210675+00	1	\N	\N	\N	\N	2	\N	1	f
-1453	3000000000000	105	308	2019-04-08 19:37:20.881222+00	2020-02-09 15:54:50.245739+00	1	\N	\N	\N	\N	2	\N	1	f
-1454	10000000	97	308	2019-04-08 19:37:20.890228+00	2020-02-09 15:54:50.265136+00	1	\N	\N	\N	\N	3	\N	1	f
-1457	200000000000	98	308	2019-04-08 19:37:20.935476+00	2020-02-09 15:54:50.285372+00	1	\N	\N	\N	\N	2	\N	1	f
-1552	30000000000	105	328	2019-04-09 01:24:26.420617+00	2020-02-09 15:54:50.335294+00	1	\N	\N	\N	\N	2	\N	1	f
-1553	5000000	97	328	2019-04-09 01:24:26.427119+00	2020-02-09 15:54:50.357529+00	1	\N	\N	\N	\N	3	\N	1	f
-1468	3000000000000	105	314	2019-04-08 19:37:36.183603+00	2020-02-09 15:54:50.378486+00	1	\N	\N	\N	\N	2	\N	1	f
-1469	10000000	97	314	2019-04-08 19:37:36.191592+00	2020-02-09 15:54:50.402289+00	1	\N	\N	\N	\N	3	\N	1	f
-1472	200000000000	98	314	2019-04-08 19:37:36.218959+00	2020-02-09 15:54:50.451248+00	1	\N	\N	\N	\N	2	\N	1	f
-1556	2000000000	98	328	2019-04-09 01:24:26.446159+00	2020-02-09 15:54:50.482831+00	1	\N	\N	\N	\N	2	\N	1	f
-1608	4000000	97	344	2019-04-09 02:57:46.202083+00	2020-02-09 15:54:50.500027+00	1	\N	\N	\N	\N	3	\N	1	f
-6030	2020-12-03 00:00:00	690	2044	2020-12-03 20:18:36.426214+00	2021-02-24 07:57:22.111905+00	3	1	4	\N	\N	1	\N	1	f
-6031	2021-02-24 00:00:00	691	2044	2020-12-03 20:18:36.443486+00	2021-02-24 07:57:22.127372+00	3	1	4	\N	\N	1	\N	1	f
-6033	2039	679	2044	2020-12-03 20:18:36.475179+00	2021-02-24 07:57:22.155442+00	5	\N	\N	\N	\N	\N	678	1	f
-6034	2020-12-24 00:00:00	684	2044	2020-12-03 20:18:36.489289+00	2021-02-24 07:57:22.167516+00	3	1	\N	\N	\N	\N	\N	1	f
-6035	Novo	693	2044	2020-12-03 20:18:36.506087+00	2021-02-24 07:57:22.182561+00	4	1	4	\N	\N	1	\N	1	f
-6141	lucas	678	2084	2021-03-19 14:28:28.029884+00	2021-03-19 14:28:28.029908+00	2	\N	\N	\N	\N	\N	\N	1	f
-6036	Proposta	689	2044	2020-12-03 20:18:36.518693+00	2021-02-24 07:57:22.208382+00	4	\N	\N	\N	\N	\N	\N	1	f
-6029	asdadasdasdadadd	703	2043	2020-12-03 20:18:36.398157+00	2021-02-24 07:57:22.231937+00	7	1	4	\N	\N	1	\N	1	f
-1611	2000000000	98	344	2019-04-09 02:57:46.220564+00	2020-02-09 15:54:50.517372+00	1	\N	\N	\N	\N	2	\N	1	f
-1629	20000000000	105	348	2019-04-09 03:01:10.115979+00	2020-02-09 15:54:50.54467+00	1	\N	\N	\N	\N	2	\N	1	f
-1630	5000000	97	348	2019-04-09 03:01:10.122217+00	2020-02-09 15:54:50.557884+00	1	\N	\N	\N	\N	3	\N	1	f
-1633	2000000000	98	348	2019-04-09 03:01:10.14209+00	2020-02-09 15:54:50.572165+00	1	\N	\N	\N	\N	2	\N	1	f
-1640	20000000000	105	352	2019-04-09 03:01:44.127091+00	2020-02-09 15:54:50.627353+00	1	\N	\N	\N	\N	2	\N	1	f
-1641	5000000	97	352	2019-04-09 03:01:44.133209+00	2020-02-09 15:54:50.643052+00	1	\N	\N	\N	\N	3	\N	1	f
-1644	2000000000	98	352	2019-04-09 03:01:44.152388+00	2020-02-09 15:54:50.657444+00	1	\N	\N	\N	\N	2	\N	1	f
-1652	30000000000	105	356	2019-04-13 02:05:38.846717+00	2020-02-09 15:54:50.676502+00	1	\N	\N	\N	\N	2	\N	1	f
-1653	5000000	97	356	2019-04-13 02:05:38.854587+00	2020-02-09 15:54:50.690041+00	1	\N	\N	\N	\N	3	\N	1	f
-1656	2000000000	98	356	2019-04-13 02:05:38.877185+00	2020-02-09 15:54:50.704187+00	1	\N	\N	\N	\N	2	\N	1	f
-1664	30000000000	105	360	2019-04-13 02:05:43.985135+00	2020-02-09 15:54:50.715932+00	1	\N	\N	\N	\N	2	\N	1	f
-1665	5000000	97	360	2019-04-13 02:05:44.008797+00	2020-02-09 15:54:50.727483+00	1	\N	\N	\N	\N	3	\N	1	f
-1668	2000000000	98	360	2019-04-13 02:05:44.062499+00	2020-02-09 15:54:50.741042+00	1	\N	\N	\N	\N	2	\N	1	f
-1676	30000000000	105	364	2019-04-13 02:05:47.869111+00	2020-02-09 15:54:50.759944+00	1	\N	\N	\N	\N	2	\N	1	f
-1677	5000000	97	364	2019-04-13 02:05:47.876515+00	2020-02-09 15:54:50.793152+00	1	\N	\N	\N	\N	3	\N	1	f
-1680	2000000000	98	364	2019-04-13 02:05:47.898133+00	2020-02-09 15:54:50.810082+00	1	\N	\N	\N	\N	2	\N	1	f
-1237	15000000	97	260	2019-03-28 22:55:24.379991+00	2020-02-09 15:54:50.998018+00	1	\N	\N	\N	\N	3	\N	1	f
-872	300000000000	98	139	2019-03-19 23:08:34.933842+00	2020-02-09 15:54:51.06267+00	1	\N	\N	\N	\N	2	\N	3	f
-1243	Carlos Saldanha	94	262	2019-03-28 22:56:51.347531+00	2020-02-09 15:54:51.107451+00	2	\N	\N	\N	\N	\N	\N	1	f
-1401	Preparo	100	299	2019-04-08 00:02:38.932922+00	2020-02-09 15:54:51.11969+00	4	\N	\N	\N	\N	\N	\N	1	f
-1307	Design	95	286	2019-04-06 19:18:36.452753+00	2020-02-09 15:54:51.132344+00	2	\N	\N	\N	\N	\N	\N	1	f
-1423	45000000000	105	302	2019-04-08 19:18:58.703785+00	2020-02-09 15:54:51.197154+00	1	\N	\N	\N	\N	2	\N	1	f
-1424	15000000	97	302	2019-04-08 19:18:58.713543+00	2020-02-09 15:54:51.217186+00	1	\N	\N	\N	\N	3	\N	1	f
-1308	400000000000	105	286	2019-04-06 19:18:36.472853+00	2020-02-09 15:54:51.233093+00	1	\N	\N	\N	\N	2	\N	1	f
-1245	5000000000000	105	263	2019-03-28 22:56:51.38113+00	2020-02-09 15:54:51.264326+00	1	\N	\N	\N	\N	2	\N	1	f
-1309	10000000	97	286	2019-04-06 19:18:36.505787+00	2020-02-09 15:54:51.276169+00	1	\N	\N	\N	\N	3	\N	1	f
-1246	5000000	97	263	2019-03-28 22:56:51.391262+00	2020-02-09 15:54:51.288719+00	1	\N	\N	\N	\N	3	\N	1	f
-1312	4000000000	98	286	2019-04-06 19:18:36.551047+00	2020-02-09 15:54:51.300611+00	1	\N	\N	\N	\N	2	\N	1	f
-1249	300000000000	98	263	2019-03-28 22:56:51.431381+00	2020-02-09 15:54:51.312+00	1	\N	\N	\N	\N	2	\N	1	f
-1254	5000000000000	105	266	2019-03-28 22:56:54.064019+00	2020-02-09 15:54:51.33251+00	1	\N	\N	\N	\N	2	\N	1	f
-1255	5000000	97	266	2019-03-28 22:56:54.080024+00	2020-02-09 15:54:51.349429+00	1	\N	\N	\N	\N	3	\N	1	f
-1258	300000000000	98	266	2019-03-28 22:56:54.115146+00	2020-02-09 15:54:51.36084+00	1	\N	\N	\N	\N	2	\N	1	f
-1519	50000000000	105	320	2019-04-09 01:20:04.395077+00	2020-02-09 15:54:51.381194+00	1	\N	\N	\N	\N	2	\N	1	f
-1520	4000000	97	320	2019-04-09 01:20:04.401681+00	2020-02-09 15:54:51.397743+00	1	\N	\N	\N	\N	3	\N	1	f
-1263	5000000000000	105	269	2019-03-28 22:56:56.677464+00	2020-02-09 15:54:51.409766+00	1	\N	\N	\N	\N	2	\N	1	f
-1523	2000000000	98	320	2019-04-09 01:20:04.422759+00	2020-02-09 15:54:51.422041+00	1	\N	\N	\N	\N	2	\N	1	f
-1264	5000000	97	269	2019-03-28 22:56:56.68849+00	2020-02-09 15:54:51.433166+00	1	\N	\N	\N	\N	3	\N	1	f
-1267	300000000000	98	269	2019-03-28 22:56:56.725649+00	2020-02-09 15:54:51.445858+00	1	\N	\N	\N	\N	2	\N	1	f
-1272	5000000000000	105	272	2019-03-28 22:56:59.18807+00	2020-02-09 15:54:51.464054+00	1	\N	\N	\N	\N	2	\N	1	f
-1336	123123000000	120	291	2019-04-06 20:15:30.499757+00	2020-02-09 15:54:51.476584+00	1	\N	\N	\N	\N	2	\N	1	f
-1273	5000000	97	272	2019-03-28 22:56:59.197932+00	2020-02-09 15:54:51.487726+00	1	\N	\N	\N	\N	3	\N	1	f
-1276	300000000000	98	272	2019-03-28 22:56:59.22854+00	2020-02-09 15:54:51.501288+00	1	\N	\N	\N	\N	2	\N	1	f
-1342	400000000000	105	289	2019-04-07 18:48:31.098322+00	2020-02-09 15:54:51.517164+00	1	\N	\N	\N	\N	2	\N	1	f
-1281	5000000000000	105	275	2019-03-28 22:57:05.490955+00	2020-02-09 15:54:51.53205+00	1	\N	\N	\N	\N	2	\N	1	f
-1282	5000000	97	275	2019-03-28 22:57:05.502141+00	2020-02-09 15:54:51.543227+00	1	\N	\N	\N	\N	3	\N	1	f
-1346	350000000000	98	289	2019-04-07 18:48:31.132406+00	2020-02-09 15:54:51.55439+00	1	\N	\N	\N	\N	2	\N	1	f
-1285	300000000000	98	275	2019-03-28 22:57:05.533179+00	2020-02-09 15:54:51.565526+00	1	\N	\N	\N	\N	2	\N	1	f
-6142	lucass@gmail.com	683	2084	2021-03-19 14:28:28.044815+00	2021-03-19 14:28:28.044839+00	10	\N	\N	\N	\N	\N	\N	1	f
-1422	Banners	95	302	2019-04-08 19:18:58.69539+00	2020-02-09 15:54:51.601151+00	2	\N	\N	\N	\N	\N	\N	1	f
-1305	136	93	285	2019-04-06 19:18:36.425593+00	2020-02-09 15:54:51.624198+00	5	\N	\N	\N	\N	\N	101	1	f
-6085	3	694	2059	2021-01-29 18:15:23.610351+00	2021-02-24 13:56:33.948347+00	12	1	4	\N	\N	1	\N	1	f
-6079	90600000000	700	2056	2021-01-29 18:15:23.499101+00	2021-02-24 13:56:33.969762+00	1	1	4	\N	{{699}}-{{698}}	2	\N	1	f
-6080	1087200000000	701	2056	2021-01-29 18:15:23.514281+00	2021-02-24 13:56:33.990989+00	1	1	4	\N	{{700}}*12	2	\N	1	f
-6081	-30000000	702	2056	2021-01-29 18:15:23.52955+00	2021-02-24 13:56:34.016091+00	1	1	4	\N	{{698}}/{{699}}-1	3	\N	1	f
-1491	Rua Taciba, nº 345	103	151	2019-04-09 01:11:54.60045+00	2020-02-09 15:54:52.54606+00	2	\N	\N	\N	\N	\N	\N	1	f
-857	4300000000	96	134	2019-03-19 23:05:57.661577+00	2020-02-09 15:54:52.556696+00	1	\N	\N	\N	\N	1	\N	3	f
-849	Cartão fosco com verniz localizado	99	129	2019-03-19 23:00:15.937301+00	2020-02-09 15:54:52.568072+00	2	\N	\N	\N	\N	\N	\N	3	f
-1492	11328723251	104	151	2019-04-09 01:11:54.607395+00	2020-02-09 15:54:52.581606+00	2	\N	\N	\N	\N	\N	\N	1	f
-1493	Todos	107	151	2019-04-09 01:11:54.623203+00	2020-02-09 15:54:52.592359+00	4	\N	\N	\N	\N	\N	\N	1	f
-900	Entrega	100	149	2019-03-19 23:17:30.928087+00	2020-02-09 15:54:52.603008+00	4	\N	\N	\N	\N	\N	\N	3	f
-1047	\N	122	195	2019-03-27 23:26:14.894372+00	2020-02-09 15:54:52.615886+00	6	\N	\N	\N	\N	\N	\N	3	f
-895	Renato Kenji	94	148	2019-03-19 23:17:30.812802+00	2020-02-09 15:54:52.637289+00	2	\N	\N	\N	\N	\N	\N	3	f
-896	Banners	95	149	2019-03-19 23:17:30.842987+00	2020-02-09 15:54:52.648149+00	2	\N	\N	\N	\N	\N	\N	3	f
-6011	-44000000	702	2034	2020-12-03 20:08:06.909787+00	2021-01-29 18:13:20.736734+00	1	1	4	\N	{{698}}/{{699}}-1	3	\N	1	f
-6143	2021-03-19 00:00:00	746	2086	2021-03-19 15:24:30.355362+00	2021-03-19 15:24:30.355386+00	3	1	\N	\N	\N	\N	\N	1	f
-6144	Lucas Melo	747	2086	2021-03-19 15:24:30.37131+00	2021-03-19 15:24:30.371333+00	2	1	\N	\N	\N	\N	\N	1	f
-6145	lmelo@gmail.com	745	2086	2021-03-19 15:24:30.385753+00	2021-03-19 15:24:30.385776+00	2	\N	\N	\N	\N	\N	\N	1	f
-6146	Instalação de Software	749	2086	2021-03-19 15:24:30.404553+00	2021-03-19 15:24:30.404576+00	4	1	4	\N	\N	1	\N	1	f
-6147	Solicitação	748	2086	2021-03-19 15:24:30.419799+00	2021-03-19 15:24:30.419822+00	4	\N	\N	\N	\N	\N	\N	1	f
-6010	420000000000	701	2034	2020-12-03 20:08:06.89179+00	2021-01-29 18:13:20.71535+00	1	1	4	\N	{{700}}*12	2	\N	1	f
-887	5000000000000	105	139	2019-03-19 23:14:14.404394+00	2020-02-09 15:54:52.658874+00	1	\N	\N	\N	\N	2	\N	3	f
-902	Prazo de entrega para 30/03/2019	99	149	2019-03-19 23:17:30.969836+00	2020-02-09 15:54:52.66974+00	2	\N	\N	\N	\N	\N	\N	3	f
-862	45.230.342/0001-12	102	136	2019-03-19 23:07:05.936843+00	2020-02-09 15:54:52.680579+00	2	\N	\N	\N	\N	\N	\N	1	f
-863	Horti Fruti Galapagos	101	136	2019-03-19 23:07:05.960265+00	2020-02-09 15:54:52.691911+00	2	\N	\N	\N	\N	\N	\N	1	f
-864	Alameda Itu, nº 345	103	136	2019-03-19 23:07:05.981954+00	2020-02-09 15:54:52.702525+00	2	\N	\N	\N	\N	\N	\N	1	f
-865	11983231234	104	136	2019-03-19 23:07:06.011871+00	2020-02-09 15:54:52.71562+00	2	\N	\N	\N	\N	\N	\N	1	f
-850	23.230.394/0001-92	102	131	2019-03-19 23:04:02.696556+00	2020-02-09 15:54:52.726371+00	2	\N	\N	\N	\N	\N	\N	1	f
-851	Chocolates Juju	101	131	2019-03-19 23:04:02.721127+00	2020-02-09 15:54:52.736996+00	2	\N	\N	\N	\N	\N	\N	1	f
-908	Nicolas Albuquerque	94	153	2019-03-19 23:20:40.406701+00	2020-02-09 15:54:52.747585+00	2	\N	\N	\N	\N	\N	\N	3	f
-852	Alameda Franca, nº 39, Apto. 38A	103	131	2019-03-19 23:04:02.756905+00	2020-02-09 15:54:52.758124+00	2	\N	\N	\N	\N	\N	\N	1	f
-909	Cartões	95	154	2019-03-19 23:20:40.441923+00	2020-02-09 15:54:52.768926+00	2	\N	\N	\N	\N	\N	\N	3	f
-853	11983224751	104	131	2019-03-19 23:04:02.827682+00	2020-02-09 15:54:52.779596+00	2	\N	\N	\N	\N	\N	\N	1	f
-838	410.267.908-16	102	126	2019-03-19 22:58:57.069291+00	2020-02-09 15:54:52.790033+00	2	\N	\N	\N	\N	\N	\N	1	f
-839	Lucas Leal de Melo	101	126	2019-03-19 22:58:57.092119+00	2020-02-09 15:54:52.803916+00	2	\N	\N	\N	\N	\N	\N	1	f
-1569		133	333	2019-04-09 01:25:58.518592+00	2020-02-09 15:54:52.814697+00	3	1	\N	\N	\N	\N	\N	1	f
-840	Rua Frei Caneca, 96 B	103	126	2019-03-19 22:58:57.114394+00	2020-02-09 15:54:52.825235+00	2	\N	\N	\N	\N	\N	\N	1	f
-841	11942622321	104	126	2019-03-19 22:58:57.139465+00	2020-02-09 15:54:52.836408+00	2	\N	\N	\N	\N	\N	\N	1	f
-939	Orçamento	100	162	2019-03-21 04:02:21.496569+00	2020-02-09 15:54:52.847022+00	4	\N	\N	\N	\N	\N	\N	1	f
-847	Perdido	100	129	2019-03-19 23:00:15.890889+00	2020-02-09 15:54:52.869455+00	2	\N	\N	\N	\N	\N	\N	3	f
-915	Cartões devem ser feitos com borda arredonda	99	154	2019-03-19 23:20:40.568306+00	2020-02-09 15:54:52.880628+00	2	\N	\N	\N	\N	\N	\N	3	f
-917	Julia Fedato	94	156	2019-03-19 23:22:45.729113+00	2020-02-09 15:54:52.90388+00	2	\N	\N	\N	\N	\N	\N	3	f
-1046	Triagem	121	195	2019-03-27 23:26:14.871038+00	2020-02-09 15:54:52.917431+00	4	\N	\N	\N	\N	\N	\N	3	f
-918	Cartões	95	157	2019-03-19 23:22:45.757319+00	2020-02-09 15:54:52.930099+00	2	\N	\N	\N	\N	\N	\N	3	f
-854	131	93	133	2019-03-19 23:05:57.583483+00	2020-02-09 15:54:52.948313+00	5	\N	\N	\N	\N	\N	101	3	f
-883	Perdido	100	144	2019-03-19 23:10:48.896972+00	2020-02-09 15:54:52.960272+00	2	\N	\N	\N	\N	\N	\N	3	f
-842	126	93	128	2019-03-19 23:00:15.753292+00	2020-02-09 15:54:52.970579+00	5	\N	\N	\N	\N	\N	101	3	f
-894	146	93	148	2019-03-19 23:17:30.786697+00	2020-02-09 15:54:52.981064+00	5	\N	\N	\N	\N	\N	101	3	f
-907	151	93	153	2019-03-19 23:20:40.379874+00	2020-02-09 15:54:52.991381+00	5	\N	\N	\N	\N	\N	101	3	f
-859	Perdido	100	134	2019-03-19 23:05:57.704852+00	2020-02-09 15:54:53.002671+00	2	\N	\N	\N	\N	\N	\N	3	f
-1560	Carlos Saldanha	94	331	2019-04-09 01:25:58.433387+00	2020-02-09 15:54:53.013337+00	2	\N	\N	\N	\N	\N	\N	1	f
-913	Design	100	154	2019-03-19 23:20:40.527144+00	2020-02-09 15:54:53.023819+00	2	\N	\N	\N	\N	\N	\N	3	f
-916	131	93	156	2019-03-19 23:22:45.710603+00	2020-02-09 15:54:53.034188+00	5	\N	\N	\N	\N	\N	101	3	f
-924	cartoes arredondados	99	157	2019-03-19 23:22:45.864956+00	2020-02-09 15:54:53.045398+00	2	\N	\N	\N	\N	\N	\N	3	f
-1562	Cartões	95	332	2019-04-09 01:25:58.459233+00	2020-02-09 15:54:53.055875+00	2	\N	\N	\N	\N	\N	\N	1	f
-1559	141	93	331	2019-04-09 01:25:58.426952+00	2020-02-09 15:54:53.066236+00	5	\N	\N	\N	\N	\N	101	1	f
-1581	141	93	335	2019-04-09 01:29:41.952284+00	2020-02-09 15:54:53.079494+00	5	\N	\N	\N	\N	\N	101	1	f
-933	146	93	161	2019-03-21 04:02:20.488788+00	2020-02-09 15:54:53.100184+00	5	\N	\N	\N	\N	\N	101	1	f
-1568	Cartões vertorizados	99	332	2019-04-09 01:25:58.499563+00	2020-02-09 15:54:53.110595+00	2	\N	\N	\N	\N	\N	\N	1	f
-870	5000000	97	139	2019-03-19 23:08:34.888364+00	2020-02-09 15:54:53.121934+00	1	\N	\N	\N	\N	3	\N	3	f
-899	2500000000	96	149	2019-03-19 23:17:30.908653+00	2020-02-09 15:54:53.132464+00	1	\N	\N	\N	\N	1	\N	3	f
-1582	Carlos Saldanha	94	335	2019-04-09 01:29:41.961468+00	2020-02-09 15:54:53.145581+00	2	\N	\N	\N	\N	\N	\N	1	f
-1584	Cartões	95	336	2019-04-09 01:29:41.995949+00	2020-02-09 15:54:53.158027+00	2	\N	\N	\N	\N	\N	\N	1	f
-1565	40000000000	96	332	2019-04-09 01:25:58.480095+00	2020-02-09 15:54:53.177989+00	1	\N	\N	\N	\N	1	\N	1	f
-934	Lucas	94	161	2019-03-21 04:02:20.510245+00	2020-02-09 15:54:53.18854+00	2	\N	\N	\N	\N	\N	\N	1	f
-1040	Produção	100	193	2019-03-27 22:03:43.508141+00	2020-02-09 15:54:53.39678+00	2	\N	\N	\N	\N	\N	\N	3	f
-1061	\N	99	200	2019-03-28 22:46:49.294986+00	2020-02-09 15:54:53.407259+00	7	\N	\N	\N	\N	\N	\N	1	f
-1063	Renato Kenji	94	202	2019-03-28 22:46:52.960779+00	2020-02-09 15:54:53.428896+00	2	\N	\N	\N	\N	\N	\N	1	f
-1064	Design	95	203	2019-03-28 22:46:52.997414+00	2020-02-09 15:54:53.439313+00	2	\N	\N	\N	\N	\N	\N	1	f
-1026	Entrega	100	188	2019-03-23 18:32:35.885297+00	2020-02-09 15:54:53.449975+00	4	\N	\N	\N	\N	\N	\N	1	f
-1077	Entrega	100	206	2019-03-28 22:46:56.049241+00	2020-02-09 15:54:53.460827+00	4	\N	\N	\N	\N	\N	\N	1	f
-1070	\N	99	203	2019-03-28 22:46:53.110404+00	2020-02-09 15:54:53.471231+00	7	\N	\N	\N	\N	\N	\N	1	f
-1085	350000000000	96	209	2019-03-28 22:46:59.121083+00	2020-02-09 15:54:53.481646+00	1	\N	\N	\N	\N	1	\N	1	f
-1058	350000000000	96	200	2019-03-28 22:46:49.249407+00	2020-02-09 15:54:53.49203+00	1	\N	\N	\N	\N	1	\N	1	f
-1072	Renato Kenji	94	205	2019-03-28 22:46:55.932797+00	2020-02-09 15:54:53.502495+00	2	\N	\N	\N	\N	\N	\N	1	f
-1067	350000000000	96	203	2019-03-28 22:46:53.059986+00	2020-02-09 15:54:53.512978+00	1	\N	\N	\N	\N	1	\N	1	f
-1073	Design	95	206	2019-03-28 22:46:55.95679+00	2020-02-09 15:54:53.523308+00	2	\N	\N	\N	\N	\N	\N	1	f
-936	3500000000000	105	162	2019-03-21 04:02:21.435769+00	2020-02-09 15:54:53.533733+00	1	\N	\N	\N	\N	2	\N	1	f
-937	15000000	97	162	2019-03-21 04:02:21.455894+00	2020-02-09 15:54:53.55058+00	1	\N	\N	\N	\N	3	\N	1	f
-940	200000000000	98	162	2019-03-21 04:02:21.519006+00	2020-02-09 15:54:53.561118+00	1	\N	\N	\N	\N	2	\N	1	f
-1083	45000000000	105	209	2019-03-28 22:46:59.07606+00	2020-02-09 15:54:53.571604+00	1	\N	\N	\N	\N	2	\N	1	f
-1050	50000000000	120	197	2019-03-27 23:47:56.233285+00	2020-02-09 15:54:53.582835+00	1	\N	\N	\N	\N	2	\N	3	f
-1084	23000000	97	209	2019-03-28 22:46:59.095637+00	2020-02-09 15:54:53.593166+00	1	\N	\N	\N	\N	3	\N	1	f
-1079	\N	99	206	2019-03-28 22:46:56.079365+00	2020-02-09 15:54:53.603556+00	7	\N	\N	\N	\N	\N	\N	1	f
-1021	Julia Fedato	94	187	2019-03-23 18:32:35.774055+00	2020-02-09 15:54:53.613942+00	2	\N	\N	\N	\N	\N	\N	1	f
-1017	Eu	107	136	2019-03-23 17:40:45.454821+00	2020-02-09 15:54:53.624177+00	4	\N	\N	\N	\N	\N	\N	1	f
-1018	Eu	107	131	2019-03-23 17:40:58.642466+00	2020-02-09 15:54:53.634555+00	4	\N	\N	\N	\N	\N	\N	1	f
-1076	350000000000	96	206	2019-03-28 22:46:56.000171+00	2020-02-09 15:54:53.646462+00	1	\N	\N	\N	\N	1	\N	1	f
-1019	Eu	107	126	2019-03-23 17:41:09.260281+00	2020-02-09 15:54:53.656827+00	4	\N	\N	\N	\N	\N	\N	1	f
-1090	Julia Fedato	94	211	2019-03-28 22:47:25.579151+00	2020-02-09 15:54:53.680811+00	2	\N	\N	\N	\N	\N	\N	1	f
-6023	500000000000	699	2041	2020-12-03 20:18:36.278834+00	2021-02-24 07:57:22.251901+00	1	1	4	\N	\N	2	\N	1	f
-6022	209400000000	698	2041	2020-12-03 20:18:36.261214+00	2021-02-24 07:57:22.267101+00	1	1	4	\N	\N	2	\N	1	f
-6148	Jorge alves	747	2088	2021-03-19 17:01:41.411783+00	2021-03-19 17:30:23.155079+00	2	1	\N	\N	\N	\N	\N	1	f
-6149	jorge@gmail.com	745	2088	2021-03-19 17:01:41.426849+00	2021-03-19 17:30:23.16601+00	2	\N	\N	\N	\N	\N	\N	1	f
-6150	Instalação de Software	749	2088	2021-03-19 17:01:41.449212+00	2021-03-19 17:30:23.18176+00	4	1	4	\N	\N	1	\N	1	f
-6151	Solicitação	748	2088	2021-03-19 17:01:41.464444+00	2021-03-19 17:30:23.225981+00	4	\N	\N	\N	\N	\N	\N	1	f
-6024	290600000000	700	2041	2020-12-03 20:18:36.295429+00	2021-02-24 07:57:22.401993+00	1	1	4	\N	{{699}}-{{698}}	2	\N	1	f
-6025	3487200000000	701	2041	2020-12-03 20:18:36.312119+00	2021-02-24 07:57:22.42352+00	1	1	4	\N	{{700}}*12	2	\N	1	f
-6026	-58000000	702	2041	2020-12-03 20:18:36.329448+00	2021-02-24 07:57:22.442974+00	1	1	4	\N	{{698}}/{{699}}-1	3	\N	1	f
-1091	Plotagem	95	212	2019-03-28 22:47:25.618104+00	2020-02-09 15:54:53.692001+00	2	\N	\N	\N	\N	\N	\N	1	f
-994	Lucas	94	180	2019-03-22 03:30:22.00705+00	2020-02-09 15:54:53.704571+00	2	\N	\N	\N	\N	\N	\N	1	f
-995	Plotagem	95	181	2019-03-22 03:30:22.051432+00	2020-02-09 15:54:53.716766+00	2	\N	\N	\N	\N	\N	\N	1	f
-1056	45000000000	105	200	2019-03-28 22:46:49.216265+00	2020-02-09 15:54:53.727786+00	1	\N	\N	\N	\N	2	\N	1	f
-1001	olhjhjhkjhkjhkjhkjh	99	181	2019-03-22 03:30:22.216052+00	2020-02-09 15:54:53.737898+00	2	\N	\N	\N	\N	\N	\N	1	f
-1022	Plotagem	95	188	2019-03-23 18:32:35.802954+00	2020-02-09 15:54:53.748008+00	2	\N	\N	\N	\N	\N	\N	1	f
-1087	2000000000	98	209	2019-03-28 22:46:59.15571+00	2020-02-09 15:54:53.766478+00	1	\N	\N	\N	\N	2	\N	1	f
-1095	Perdido	100	212	2019-03-28 22:47:25.676704+00	2020-02-09 15:54:53.776549+00	2	\N	\N	\N	\N	\N	\N	1	f
-1097	Design deve ser feito apenas com tons de rosa	99	212	2019-03-28 22:47:25.703687+00	2020-02-09 15:54:53.786642+00	2	\N	\N	\N	\N	\N	\N	1	f
-1080	159	93	208	2019-03-28 22:46:59.020367+00	2020-02-09 15:54:53.797473+00	5	\N	\N	\N	\N	\N	101	1	f
-1028	Pedido é urgente	99	188	2019-03-23 18:32:35.924614+00	2020-02-09 15:54:53.807557+00	2	\N	\N	\N	\N	\N	\N	1	f
-1099	Julia Fedato	94	214	2019-03-28 22:47:29.339323+00	2020-02-09 15:54:53.817718+00	2	\N	\N	\N	\N	\N	\N	1	f
-999	Produção	100	181	2019-03-22 03:30:22.164925+00	2020-02-09 15:54:53.827854+00	2	\N	\N	\N	\N	\N	\N	1	f
-1100	Plotagem	95	215	2019-03-28 22:47:29.364554+00	2020-02-09 15:54:53.838025+00	2	\N	\N	\N	\N	\N	\N	1	f
-998	67800000000	96	181	2019-03-22 03:30:22.133483+00	2020-02-09 15:54:53.849797+00	1	\N	\N	\N	\N	1	\N	1	f
-1053	159	93	199	2019-03-28 22:46:49.154845+00	2020-02-09 15:54:53.860365+00	5	\N	\N	\N	\N	\N	101	1	f
-1143	151	93	229	2019-03-28 22:53:20.313113+00	2020-02-09 15:54:53.870326+00	5	\N	\N	\N	\N	\N	101	1	f
-1035	Renato Kenji	94	192	2019-03-27 22:03:43.349829+00	2020-02-09 15:54:53.880755+00	2	\N	\N	\N	\N	\N	\N	3	f
-1036	Design	95	193	2019-03-27 22:03:43.408962+00	2020-02-09 15:54:53.890864+00	2	\N	\N	\N	\N	\N	\N	3	f
-1094	4300000000	96	212	2019-03-28 22:47:25.662321+00	2020-02-09 15:54:53.900973+00	1	\N	\N	\N	\N	1	\N	1	f
-1062	159	93	202	2019-03-28 22:46:52.945765+00	2020-02-09 15:54:53.911786+00	5	\N	\N	\N	\N	\N	101	1	f
-1071	159	93	205	2019-03-28 22:46:55.917357+00	2020-02-09 15:54:53.921982+00	5	\N	\N	\N	\N	\N	101	1	f
-1104	Perdido	100	215	2019-03-28 22:47:29.424147+00	2020-02-09 15:54:53.932084+00	2	\N	\N	\N	\N	\N	\N	1	f
-1025	4500000000	96	188	2019-03-23 18:32:35.861674+00	2020-02-09 15:54:53.945129+00	1	\N	\N	\N	\N	1	\N	1	f
-1020	136	93	187	2019-03-23 18:32:35.753852+00	2020-02-09 15:54:53.955289+00	5	\N	\N	\N	\N	\N	101	1	f
-1089	131	93	211	2019-03-28 22:47:25.561781+00	2020-02-09 15:54:53.965443+00	5	\N	\N	\N	\N	\N	101	1	f
-993	146	93	180	2019-03-22 03:30:21.977759+00	2020-02-09 15:54:53.975622+00	5	\N	\N	\N	\N	\N	101	1	f
-1098	131	93	214	2019-03-28 22:47:29.325482+00	2020-02-09 15:54:53.985789+00	5	\N	\N	\N	\N	\N	101	1	f
-1034	159	93	192	2019-03-27 22:03:43.325034+00	2020-02-09 15:54:53.995812+00	5	\N	\N	\N	\N	\N	101	3	f
-1103	4300000000	96	215	2019-03-28 22:47:29.410303+00	2020-02-09 15:54:54.072038+00	1	\N	\N	\N	\N	1	\N	1	f
-1057	23000000	97	200	2019-03-28 22:46:49.234564+00	2020-02-09 15:54:54.088536+00	1	\N	\N	\N	\N	3	\N	1	f
-1130	4300000000	96	224	2019-03-28 22:47:38.684298+00	2020-02-09 15:54:54.343144+00	1	\N	\N	\N	\N	1	\N	1	f
-1230	Design	100	257	2019-03-28 22:55:22.013173+00	2020-02-09 15:54:54.353372+00	2	\N	\N	\N	\N	\N	\N	1	f
-1131	Perdido	100	224	2019-03-28 22:47:38.699083+00	2020-02-09 15:54:54.363506+00	2	\N	\N	\N	\N	\N	\N	1	f
-1133	Design deve ser feito apenas com tons de rosa	99	224	2019-03-28 22:47:38.737362+00	2020-02-09 15:54:54.37541+00	2	\N	\N	\N	\N	\N	\N	1	f
-1135	Julia Fedato	94	226	2019-03-28 22:47:41.500976+00	2020-02-09 15:54:54.386833+00	2	\N	\N	\N	\N	\N	\N	1	f
-1148	100000000000	96	230	2019-03-28 22:53:20.388639+00	2020-02-09 15:54:54.396848+00	1	\N	\N	\N	\N	1	\N	1	f
-1136	Plotagem	95	227	2019-03-28 22:47:41.523954+00	2020-02-09 15:54:54.406843+00	2	\N	\N	\N	\N	\N	\N	1	f
-1185	Produção	100	242	2019-03-28 22:54:48.788948+00	2020-02-09 15:54:54.416772+00	2	\N	\N	\N	\N	\N	\N	1	f
-1149	Design	100	230	2019-03-28 22:53:20.398589+00	2020-02-09 15:54:54.426813+00	2	\N	\N	\N	\N	\N	\N	1	f
-1139	4300000000	96	227	2019-03-28 22:47:41.568394+00	2020-02-09 15:54:54.436725+00	1	\N	\N	\N	\N	1	\N	1	f
-1140	Perdido	100	227	2019-03-28 22:47:41.601889+00	2020-02-09 15:54:54.446775+00	2	\N	\N	\N	\N	\N	\N	1	f
-1199	Banners	95	248	2019-03-28 22:54:54.150854+00	2020-02-09 15:54:54.456565+00	2	\N	\N	\N	\N	\N	\N	1	f
-1151	Cartões devem ser feitos com borda arredonda	99	230	2019-03-28 22:53:20.42059+00	2020-02-09 15:54:54.467279+00	2	\N	\N	\N	\N	\N	\N	1	f
-1142	Design deve ser feito apenas com tons de rosa	99	227	2019-03-28 22:47:41.632507+00	2020-02-09 15:54:54.477182+00	2	\N	\N	\N	\N	\N	\N	1	f
-1107	131	93	217	2019-03-28 22:47:32.736638+00	2020-02-09 15:54:54.491958+00	5	\N	\N	\N	\N	\N	101	1	f
-1153	Nicolas Albuquerque	94	232	2019-03-28 22:53:23.424917+00	2020-02-09 15:54:54.509446+00	2	\N	\N	\N	\N	\N	\N	1	f
-1202	2500000000	96	248	2019-03-28 22:54:54.182857+00	2020-02-09 15:54:54.519238+00	1	\N	\N	\N	\N	1	\N	1	f
-1154	Cartões	95	233	2019-03-28 22:53:23.443816+00	2020-02-09 15:54:54.530735+00	2	\N	\N	\N	\N	\N	\N	1	f
-1203	Entrega	100	248	2019-03-28 22:54:54.193589+00	2020-02-09 15:54:54.543797+00	4	\N	\N	\N	\N	\N	\N	1	f
-1116	131	93	220	2019-03-28 22:47:35.365715+00	2020-02-09 15:54:54.554925+00	5	\N	\N	\N	\N	\N	101	1	f
-1125	131	93	223	2019-03-28 22:47:38.60813+00	2020-02-09 15:54:54.570067+00	5	\N	\N	\N	\N	\N	101	1	f
-1242	136	93	262	2019-03-28 22:56:51.337214+00	2020-02-09 15:54:54.584177+00	5	\N	\N	\N	\N	\N	101	1	f
-1205	Prazo de entrega para 30/03/2019	99	248	2019-03-28 22:54:54.213591+00	2020-02-09 15:54:54.596159+00	2	\N	\N	\N	\N	\N	\N	1	f
-1157	100000000000	96	233	2019-03-28 22:53:23.474717+00	2020-02-09 15:54:54.611759+00	1	\N	\N	\N	\N	1	\N	1	f
-1304	Carlos Saldanha	94	285	2019-04-06 19:18:36.414977+00	2020-02-09 15:54:54.621769+00	2	\N	\N	\N	\N	\N	\N	1	f
-1212	Produção	100	251	2019-03-28 22:55:16.859685+00	2020-02-09 15:54:54.631564+00	2	\N	\N	\N	\N	\N	\N	1	f
-1134	131	93	226	2019-03-28 22:47:41.485583+00	2020-02-09 15:54:54.641303+00	5	\N	\N	\N	\N	\N	101	1	f
-1160	Cartões devem ser feitos com borda arredonda	99	233	2019-03-28 22:53:23.514477+00	2020-02-09 15:54:54.651193+00	2	\N	\N	\N	\N	\N	\N	1	f
-1197	146	93	247	2019-03-28 22:54:54.110484+00	2020-02-09 15:54:54.660932+00	5	\N	\N	\N	\N	\N	101	1	f
-1221	Entrega	100	254	2019-03-28 22:55:19.410503+00	2020-02-09 15:54:54.671147+00	4	\N	\N	\N	\N	\N	\N	1	f
-1162	Nicolas Albuquerque	94	235	2019-03-28 22:53:25.794795+00	2020-02-09 15:54:54.681025+00	2	\N	\N	\N	\N	\N	\N	1	f
-1163	Cartões	95	236	2019-03-28 22:53:25.817733+00	2020-02-09 15:54:54.691205+00	2	\N	\N	\N	\N	\N	\N	1	f
-1152	151	93	232	2019-03-28 22:53:23.413956+00	2020-02-09 15:54:54.71391+00	5	\N	\N	\N	\N	\N	101	1	f
-1161	151	93	235	2019-03-28 22:53:25.78381+00	2020-02-09 15:54:54.739193+00	5	\N	\N	\N	\N	\N	101	1	f
-1176	Entrega	100	239	2019-03-28 22:54:46.115587+00	2020-02-09 15:54:54.749154+00	4	\N	\N	\N	\N	\N	\N	1	f
-6152	2021-03-19 00:00:00	746	2088	2021-03-19 17:30:23.142232+00	2021-03-19 17:30:23.142254+00	3	1	\N	\N	\N	\N	\N	1	f
-6153	2021-03-25 00:00:00	750	2088	2021-03-19 17:30:23.197738+00	2021-03-19 17:30:23.197762+00	3	1	4	\N	\N	1	\N	1	f
-6154	25	751	2088	2021-03-19 17:30:23.214349+00	2021-03-19 17:30:23.214373+00	13	1	4	\N	\N	1	\N	1	f
-6032	2	694	2044	2020-12-03 20:18:36.460666+00	2021-02-24 07:57:22.383817+00	12	1	4	\N	\N	1	\N	1	f
-1166	100000000000	96	236	2019-03-28 22:53:25.854755+00	2020-02-09 15:54:54.758906+00	1	\N	\N	\N	\N	1	\N	1	f
-1167	Design	100	236	2019-03-28 22:53:25.864826+00	2020-02-09 15:54:54.769556+00	2	\N	\N	\N	\N	\N	\N	1	f
-1170	146	93	238	2019-03-28 22:54:46.029273+00	2020-02-09 15:54:54.779532+00	5	\N	\N	\N	\N	\N	101	1	f
-1169	Cartões devem ser feitos com borda arredonda	99	236	2019-03-28 22:53:25.885323+00	2020-02-09 15:54:54.790333+00	2	\N	\N	\N	\N	\N	\N	1	f
-1179	146	93	241	2019-03-28 22:54:48.7008+00	2020-02-09 15:54:54.800087+00	5	\N	\N	\N	\N	\N	101	1	f
-1171	Renato Kenji	94	238	2019-03-28 22:54:46.049333+00	2020-02-09 15:54:54.80974+00	2	\N	\N	\N	\N	\N	\N	1	f
-1172	Banners	95	239	2019-03-28 22:54:46.069152+00	2020-02-09 15:54:54.819279+00	2	\N	\N	\N	\N	\N	\N	1	f
-1175	2500000000	96	239	2019-03-28 22:54:46.105097+00	2020-02-09 15:54:54.8297+00	1	\N	\N	\N	\N	1	\N	1	f
-1178	Prazo de entrega para 30/03/2019	99	239	2019-03-28 22:54:46.135515+00	2020-02-09 15:54:54.839331+00	2	\N	\N	\N	\N	\N	\N	1	f
-1180	Renato Kenji	94	241	2019-03-28 22:54:48.713791+00	2020-02-09 15:54:54.876076+00	2	\N	\N	\N	\N	\N	\N	1	f
-1181	Banners	95	242	2019-03-28 22:54:48.744288+00	2020-02-09 15:54:54.886003+00	2	\N	\N	\N	\N	\N	\N	1	f
-1235	Banners	95	260	2019-03-28 22:55:24.358788+00	2020-02-09 15:54:55.166713+00	2	\N	\N	\N	\N	\N	\N	1	f
-1244	Banners	95	263	2019-03-28 22:56:51.3685+00	2020-02-09 15:54:55.176514+00	2	\N	\N	\N	\N	\N	\N	1	f
-1241	Prazo de entrega para 30/03/2019	99	260	2019-03-28 22:55:24.421449+00	2020-02-09 15:54:55.186145+00	2	\N	\N	\N	\N	\N	\N	1	f
-1525		133	321	2019-04-09 01:20:04.448654+00	2020-02-09 15:54:55.198758+00	3	1	\N	\N	\N	\N	\N	1	f
-1310	350000000000	96	286	2019-04-06 19:18:36.535149+00	2020-02-09 15:54:55.209018+00	1	\N	\N	\N	\N	1	\N	1	f
-1247	30000000000	96	263	2019-03-28 22:56:51.411136+00	2020-02-09 15:54:55.219996+00	1	\N	\N	\N	\N	1	\N	1	f
-1311	Produção	100	286	2019-04-06 19:18:36.542996+00	2020-02-09 15:54:55.230705+00	2	\N	\N	\N	\N	\N	\N	1	f
-1248	Design	100	263	2019-03-28 22:56:51.421398+00	2020-02-09 15:54:55.241207+00	2	\N	\N	\N	\N	\N	\N	1	f
-1313	Cartao arredondado	99	286	2019-04-06 19:18:36.559265+00	2020-02-09 15:54:55.272279+00	2	\N	\N	\N	\N	\N	\N	1	f
-1250	Banners deve ser em formato de frutas	99	263	2019-03-28 22:56:51.441429+00	2020-02-09 15:54:55.281778+00	2	\N	\N	\N	\N	\N	\N	1	f
-1494	23.230.394/0001-45	102	190	2019-04-09 01:12:16.736477+00	2020-02-09 15:54:55.293077+00	2	\N	\N	\N	\N	\N	\N	1	f
-1188	146	93	244	2019-03-28 22:54:51.147028+00	2020-02-09 15:54:55.303365+00	5	\N	\N	\N	\N	\N	101	1	f
-1495	Teste Agro	101	190	2019-04-09 01:12:16.744359+00	2020-02-09 15:54:55.313075+00	2	\N	\N	\N	\N	\N	\N	1	f
-1252	Carlos Saldanha	94	265	2019-03-28 22:56:53.9828+00	2020-02-09 15:54:55.322787+00	2	\N	\N	\N	\N	\N	\N	1	f
-1496	Rua Frei Caneca, 485	103	190	2019-04-09 01:12:16.751322+00	2020-02-09 15:54:55.332576+00	2	\N	\N	\N	\N	\N	\N	1	f
-1253	Banners	95	266	2019-03-28 22:56:54.052227+00	2020-02-09 15:54:55.342389+00	2	\N	\N	\N	\N	\N	\N	1	f
-1497	(11)23095303	104	190	2019-04-09 01:12:16.760486+00	2020-02-09 15:54:55.351997+00	2	\N	\N	\N	\N	\N	\N	1	f
-1206	146	93	250	2019-03-28 22:55:16.777835+00	2020-02-09 15:54:55.361725+00	5	\N	\N	\N	\N	\N	101	1	f
-1498	Eu	107	190	2019-04-09 01:12:16.767776+00	2020-02-09 15:54:55.371582+00	4	\N	\N	\N	\N	\N	\N	1	f
-1215	146	93	253	2019-03-28 22:55:19.334311+00	2020-02-09 15:54:55.381207+00	5	\N	\N	\N	\N	\N	101	1	f
-1224	146	93	256	2019-03-28 22:55:21.922623+00	2020-02-09 15:54:55.391194+00	5	\N	\N	\N	\N	\N	101	1	f
-1256	30000000000	96	266	2019-03-28 22:56:54.090868+00	2020-02-09 15:54:55.400849+00	1	\N	\N	\N	\N	1	\N	1	f
-1516	Julia Fedato	94	319	2019-04-09 01:20:04.361489+00	2020-02-09 15:54:55.410878+00	2	\N	\N	\N	\N	\N	\N	1	f
-1257	Design	100	266	2019-03-28 22:56:54.100598+00	2020-02-09 15:54:55.420993+00	2	\N	\N	\N	\N	\N	\N	1	f
-1233	146	93	259	2019-03-28 22:55:24.324812+00	2020-02-09 15:54:55.431547+00	5	\N	\N	\N	\N	\N	101	1	f
-1518	Banners	95	320	2019-04-09 01:20:04.388206+00	2020-02-09 15:54:55.441381+00	2	\N	\N	\N	\N	\N	\N	1	f
-1259	Banners deve ser em formato de frutas	99	266	2019-03-28 22:56:54.132422+00	2020-02-09 15:54:55.451835+00	2	\N	\N	\N	\N	\N	\N	1	f
-1251	136	93	265	2019-03-28 22:56:53.963792+00	2020-02-09 15:54:55.461757+00	5	\N	\N	\N	\N	\N	101	1	f
-1515	131	93	319	2019-04-09 01:20:04.354504+00	2020-02-09 15:54:55.471708+00	5	\N	\N	\N	\N	\N	101	1	f
-1260	136	93	268	2019-03-28 22:56:56.629588+00	2020-02-09 15:54:55.481674+00	5	\N	\N	\N	\N	\N	101	1	f
-1261	Carlos Saldanha	94	268	2019-03-28 22:56:56.643775+00	2020-02-09 15:54:55.491469+00	2	\N	\N	\N	\N	\N	\N	1	f
-1521	300000000	96	320	2019-04-09 01:20:04.408664+00	2020-02-09 15:54:55.501165+00	1	\N	\N	\N	\N	1	\N	1	f
-1262	Banners	95	269	2019-03-28 22:56:56.664218+00	2020-02-09 15:54:55.510775+00	2	\N	\N	\N	\N	\N	\N	1	f
-1269	136	93	271	2019-03-28 22:56:59.137707+00	2020-02-09 15:54:55.520623+00	5	\N	\N	\N	\N	\N	101	1	f
-1265	30000000000	96	269	2019-03-28 22:56:56.698418+00	2020-02-09 15:54:55.531368+00	1	\N	\N	\N	\N	1	\N	1	f
-1524	Banners azuis	99	320	2019-04-09 01:20:04.43083+00	2020-02-09 15:54:55.541224+00	2	\N	\N	\N	\N	\N	\N	1	f
-1266	Design	100	269	2019-03-28 22:56:56.714548+00	2020-02-09 15:54:55.551128+00	2	\N	\N	\N	\N	\N	\N	1	f
-1522	Design	100	320	2019-04-09 01:20:04.415226+00	2020-02-09 15:54:55.565363+00	2	\N	\N	\N	\N	\N	\N	1	f
-1158	Produção	100	233	2019-03-28 22:53:23.485404+00	2020-02-09 15:54:55.57515+00	2	\N	\N	\N	\N	\N	\N	1	f
-1268	Banners deve ser em formato de frutas	99	269	2019-03-28 22:56:56.735207+00	2020-02-09 15:54:55.584757+00	2	\N	\N	\N	\N	\N	\N	1	f
-1270	Carlos Saldanha	94	271	2019-03-28 22:56:59.149034+00	2020-02-09 15:54:55.594516+00	2	\N	\N	\N	\N	\N	\N	1	f
-1334	Teste	118	291	2019-04-06 20:15:30.480446+00	2020-02-09 15:54:55.60404+00	2	\N	\N	\N	\N	\N	\N	1	f
-1271	Banners	95	272	2019-03-28 22:56:59.176128+00	2020-02-09 15:54:55.61375+00	2	\N	\N	\N	\N	\N	\N	1	f
-1335	Teste	119	291	2019-04-06 20:15:30.492085+00	2020-02-09 15:54:55.636781+00	2	\N	\N	\N	\N	\N	\N	1	f
-1387	Cartões	95	296	2019-04-07 22:47:21.913687+00	2020-02-09 15:54:55.851041+00	2	\N	\N	\N	\N	\N	\N	1	f
-1390	100000000000	96	296	2019-04-07 22:47:21.949787+00	2020-02-09 15:54:55.860777+00	1	\N	\N	\N	\N	1	\N	1	f
-1391	Design	100	296	2019-04-07 22:47:21.958482+00	2020-02-09 15:54:55.870333+00	2	\N	\N	\N	\N	\N	\N	1	f
-1393		99	296	2019-04-07 22:47:21.982817+00	2020-02-09 15:54:55.87998+00	7	\N	\N	\N	\N	\N	\N	1	f
-1394	Jorge Lemann	94	298	2019-04-08 00:02:38.857988+00	2020-02-09 15:54:55.889624+00	2	\N	\N	\N	\N	\N	\N	1	f
-1397	Banners	95	299	2019-04-08 00:02:38.8998+00	2020-02-09 15:54:55.89922+00	2	\N	\N	\N	\N	\N	\N	1	f
-1536		133	325	2019-04-09 01:21:44.766837+00	2020-02-09 15:54:55.908782+00	3	1	\N	\N	\N	\N	\N	1	f
-1461		133	310	2019-04-08 19:37:21.047554+00	2020-02-09 15:54:55.919694+00	3	1	\N	\N	\N	\N	\N	1	f
-1400	2500000000	96	299	2019-04-08 00:02:38.924863+00	2020-02-09 15:54:55.929313+00	1	\N	\N	\N	\N	1	\N	1	f
-1558		133	329	2019-04-09 01:24:26.482885+00	2020-02-09 15:54:55.938863+00	3	1	\N	\N	\N	\N	\N	1	f
-1403		99	299	2019-04-08 00:02:38.954076+00	2020-02-09 15:54:55.948359+00	7	\N	\N	\N	\N	\N	\N	1	f
-1419	Julia Fedato	94	301	2019-04-08 19:18:58.657835+00	2020-02-09 15:54:55.957806+00	2	\N	\N	\N	\N	\N	\N	1	f
-1425	800000000000	96	302	2019-04-08 19:18:58.722059+00	2020-02-09 15:54:55.968057+00	1	\N	\N	\N	\N	1	\N	1	f
-1426	Perdido	100	302	2019-04-08 19:18:58.732767+00	2020-02-09 15:54:55.977681+00	2	\N	\N	\N	\N	\N	\N	1	f
-6095	Pepsico do Brasil	678	2062	2021-02-01 20:28:09.455178+00	2021-02-01 20:28:09.455202+00	2	\N	\N	\N	\N	\N	\N	1	f
-6096	99.999.999/0001-00	692	2062	2021-02-01 20:28:09.502232+00	2021-02-01 20:28:09.502258+00	2	1	4	\N	\N	1	\N	1	f
-6097	Lucas Silva	718	2062	2021-02-01 20:28:09.519311+00	2021-02-01 20:28:09.519336+00	2	1	4	\N	\N	1	\N	1	f
-1476		133	316	2019-04-08 19:37:37.002934+00	2020-02-09 15:54:55.987163+00	3	1	\N	\N	\N	\N	\N	1	f
-1428		99	302	2019-04-08 19:18:58.750713+00	2020-02-09 15:54:55.996804+00	7	\N	\N	\N	\N	\N	\N	1	f
-1499	32.230.768/0001-11	102	141	2019-04-09 01:15:18.59358+00	2020-02-09 15:54:56.013541+00	2	\N	\N	\N	\N	\N	\N	1	f
-1500	Padaria Moura B	101	141	2019-04-09 01:15:18.601859+00	2020-02-09 15:54:56.023519+00	2	\N	\N	\N	\N	\N	\N	1	f
-1431	Perda de Prazo	133	304	2019-04-08 19:19:00.303813+00	2020-02-09 15:54:56.032982+00	4	\N	\N	\N	\N	\N	\N	1	f
-1501	Rua das Olimpíadas, nº 123	103	141	2019-04-09 01:15:18.614125+00	2020-02-09 15:54:56.042497+00	2	\N	\N	\N	\N	\N	\N	1	f
-1502	1187432123	104	141	2019-04-09 01:15:18.624367+00	2020-02-09 15:54:56.05474+00	2	\N	\N	\N	\N	\N	\N	1	f
-1503	Todos	107	141	2019-04-09 01:15:18.633038+00	2020-02-09 15:54:56.064304+00	4	\N	\N	\N	\N	\N	\N	1	f
-1527	Carlos Saldanha	94	323	2019-04-09 01:21:44.686946+00	2020-02-09 15:54:56.073857+00	2	\N	\N	\N	\N	\N	\N	1	f
-1529	Cartões	95	324	2019-04-09 01:21:44.709525+00	2020-02-09 15:54:56.087324+00	2	\N	\N	\N	\N	\N	\N	1	f
-1532	30000000000	96	324	2019-04-09 01:21:44.729299+00	2020-02-09 15:54:56.096727+00	1	\N	\N	\N	\N	1	\N	1	f
-1535	Cartões Arredondados	99	324	2019-04-09 01:21:44.750889+00	2020-02-09 15:54:56.106191+00	2	\N	\N	\N	\N	\N	\N	1	f
-1549	Carlos Saldanha	94	327	2019-04-09 01:24:26.374223+00	2020-02-09 15:54:56.119559+00	2	\N	\N	\N	\N	\N	\N	1	f
-1449	Lucas	94	307	2019-04-08 19:37:20.826144+00	2020-02-09 15:54:56.129148+00	2	\N	\N	\N	\N	\N	\N	1	f
-1339	131	93	288	2019-04-07 18:48:31.05845+00	2020-02-09 15:54:56.140399+00	5	\N	\N	\N	\N	\N	101	1	f
-1452	Design	95	308	2019-04-08 19:37:20.866684+00	2020-02-09 15:54:56.150062+00	2	\N	\N	\N	\N	\N	\N	1	f
-1278	136	93	274	2019-03-28 22:57:05.446646+00	2020-02-09 15:54:56.159759+00	5	\N	\N	\N	\N	\N	101	1	f
-1385	136	93	295	2019-04-07 22:47:21.884588+00	2020-02-09 15:54:56.169406+00	5	\N	\N	\N	\N	\N	101	1	f
-1455	2500000000	96	308	2019-04-08 19:37:20.91038+00	2020-02-09 15:54:56.179227+00	1	\N	\N	\N	\N	1	\N	1	f
-1555	Orçamento	100	328	2019-04-09 01:24:26.439991+00	2020-02-09 15:54:56.189546+00	4	\N	\N	\N	\N	\N	\N	1	f
-1395	151	93	298	2019-04-08 00:02:38.870608+00	2020-02-09 15:54:56.199409+00	5	\N	\N	\N	\N	\N	101	1	f
-1458		99	308	2019-04-08 19:37:20.945238+00	2020-02-09 15:54:56.208935+00	7	\N	\N	\N	\N	\N	\N	1	f
-1551	Cartões	95	328	2019-04-09 01:24:26.397061+00	2020-02-09 15:54:56.218656+00	2	\N	\N	\N	\N	\N	\N	1	f
-1420	141	93	301	2019-04-08 19:18:58.666949+00	2020-02-09 15:54:56.228201+00	5	\N	\N	\N	\N	\N	101	1	f
-1526	151	93	323	2019-04-09 01:21:44.670042+00	2020-02-09 15:54:56.237738+00	5	\N	\N	\N	\N	\N	101	1	f
-1548	136	93	327	2019-04-09 01:24:26.366601+00	2020-02-09 15:54:56.247322+00	5	\N	\N	\N	\N	\N	101	1	f
-1554	20000000000	96	328	2019-04-09 01:24:26.433506+00	2020-02-09 15:54:56.258349+00	1	\N	\N	\N	\N	1	\N	1	f
-1464	Lucas	94	313	2019-04-08 19:37:36.137329+00	2020-02-09 15:54:56.268023+00	2	\N	\N	\N	\N	\N	\N	1	f
-1450	126	93	307	2019-04-08 19:37:20.835008+00	2020-02-09 15:54:56.277422+00	5	\N	\N	\N	\N	\N	101	1	f
-1467	Design	95	314	2019-04-08 19:37:36.175732+00	2020-02-09 15:54:56.287001+00	2	\N	\N	\N	\N	\N	\N	1	f
-1465	126	93	313	2019-04-08 19:37:36.145677+00	2020-02-09 15:54:56.296538+00	5	\N	\N	\N	\N	\N	101	1	f
-1470	2500000000	96	314	2019-04-08 19:37:36.20001+00	2020-02-09 15:54:56.306005+00	1	\N	\N	\N	\N	1	\N	1	f
-1343	10000000	97	289	2019-04-07 18:48:31.107128+00	2020-02-09 15:54:56.316348+00	1	\N	\N	\N	\N	3	\N	1	f
-1471	Design	100	314	2019-04-08 19:37:36.208174+00	2020-02-09 15:54:56.325644+00	2	\N	\N	\N	\N	\N	\N	1	f
-1473		99	314	2019-04-08 19:37:36.230439+00	2020-02-09 15:54:56.335064+00	7	\N	\N	\N	\N	\N	\N	1	f
-1557	Cartões arredondados	99	328	2019-04-09 01:24:26.452508+00	2020-02-09 15:54:56.345619+00	2	\N	\N	\N	\N	\N	\N	1	f
-1479	60.982.098/0001-09	102	146	2019-04-09 01:09:24.671056+00	2020-02-09 15:54:56.355472+00	2	\N	\N	\N	\N	\N	\N	1	f
-1480	TGF Seguros	101	146	2019-04-09 01:09:24.683042+00	2020-02-09 15:54:56.364954+00	2	\N	\N	\N	\N	\N	\N	1	f
-1481	Rua Sansão Alves dos Santos, nº 67	103	146	2019-04-09 01:09:24.690932+00	2020-02-09 15:54:56.374382+00	2	\N	\N	\N	\N	\N	\N	1	f
-1587	20000000000	96	336	2019-04-09 01:29:42.063056+00	2020-02-09 15:54:56.517343+00	1	\N	\N	\N	\N	1	\N	1	f
-1588	Produção	100	336	2019-04-09 01:29:42.068842+00	2020-02-09 15:54:56.526805+00	2	\N	\N	\N	\N	\N	\N	1	f
-6155	2021-03-19 00:00:00	746	2090	2021-03-19 17:41:11.718286+00	2021-03-19 17:41:55.162659+00	3	1	\N	\N	\N	\N	\N	1	f
-1590	Cartões azuis	99	336	2019-04-09 01:29:42.080646+00	2020-02-09 15:54:56.548134+00	2	\N	\N	\N	\N	\N	\N	1	f
-1593	Carlos Saldanha	94	339	2019-04-09 01:29:54.662173+00	2020-02-09 15:54:56.558503+00	2	\N	\N	\N	\N	\N	\N	1	f
-1600	2000000000	98	340	2019-04-09 01:29:54.712387+00	2020-02-09 15:54:56.568037+00	1	\N	\N	\N	\N	2	\N	1	f
-1595	Cartões	95	340	2019-04-09 01:29:54.682876+00	2020-02-09 15:54:56.577548+00	2	\N	\N	\N	\N	\N	\N	1	f
-6156	Barack Obama	747	2090	2021-03-19 17:41:11.735306+00	2021-03-19 17:41:55.175222+00	2	1	\N	\N	\N	\N	\N	1	f
-1598	20000000000	96	340	2019-04-09 01:29:54.700534+00	2020-02-09 15:54:56.606068+00	1	\N	\N	\N	\N	1	\N	1	f
-1599	Produção	100	340	2019-04-09 01:29:54.706228+00	2020-02-09 15:54:56.615547+00	2	\N	\N	\N	\N	\N	\N	1	f
-1601	Cartões azuis	99	340	2019-04-09 01:29:54.718275+00	2020-02-09 15:54:56.62519+00	2	\N	\N	\N	\N	\N	\N	1	f
-1604	Carlos Saldanha	94	343	2019-04-09 02:57:46.161188+00	2020-02-09 15:54:56.636493+00	2	\N	\N	\N	\N	\N	\N	1	f
-1606	Cartões	95	344	2019-04-09 02:57:46.185555+00	2020-02-09 15:54:56.646168+00	2	\N	\N	\N	\N	\N	\N	1	f
-1609	20000000000	96	344	2019-04-09 02:57:46.208002+00	2020-02-09 15:54:56.655653+00	1	\N	\N	\N	\N	1	\N	1	f
-1610	Design	100	344	2019-04-09 02:57:46.214526+00	2020-02-09 15:54:56.669227+00	2	\N	\N	\N	\N	\N	\N	1	f
-1612	Cartões arredondados	99	344	2019-04-09 02:57:46.226523+00	2020-02-09 15:54:56.679678+00	2	\N	\N	\N	\N	\N	\N	1	f
-1626	Jorge Lemann	94	347	2019-04-09 03:01:10.085642+00	2020-02-09 15:54:56.689028+00	2	\N	\N	\N	\N	\N	\N	1	f
-1628	Cartões	95	348	2019-04-09 03:01:10.108989+00	2020-02-09 15:54:56.699027+00	2	\N	\N	\N	\N	\N	\N	1	f
-1631	20000000000	96	348	2019-04-09 03:01:10.130332+00	2020-02-09 15:54:56.708516+00	1	\N	\N	\N	\N	1	\N	1	f
-1632	Produção	100	348	2019-04-09 03:01:10.136286+00	2020-02-09 15:54:56.717903+00	2	\N	\N	\N	\N	\N	\N	1	f
-1634	Cartão na cor verde	99	348	2019-04-09 03:01:10.148047+00	2020-02-09 15:54:56.727889+00	2	\N	\N	\N	\N	\N	\N	1	f
-1637	Lucas	94	351	2019-04-09 03:01:44.094054+00	2020-02-09 15:54:56.737184+00	2	\N	\N	\N	\N	\N	\N	1	f
-1639	Cartões	95	352	2019-04-09 03:01:44.120902+00	2020-02-09 15:54:56.746407+00	2	\N	\N	\N	\N	\N	\N	1	f
-1682		133	365	2019-04-13 02:05:47.941031+00	2020-02-09 15:54:56.755768+00	3	1	\N	\N	\N	\N	\N	1	f
-1642	30000000000	96	352	2019-04-09 03:01:44.139271+00	2020-02-09 15:54:56.765306+00	1	\N	\N	\N	\N	1	\N	1	f
-1643	Produção	100	352	2019-04-09 03:01:44.14543+00	2020-02-09 15:54:56.774731+00	2	\N	\N	\N	\N	\N	\N	1	f
-1613		133	345	2019-04-09 02:57:46.240943+00	2020-02-09 15:54:56.804057+00	3	1	\N	\N	\N	\N	\N	1	f
-1645	Cartão na cor verde	99	352	2019-04-09 03:01:44.159023+00	2020-02-09 15:54:56.813577+00	2	\N	\N	\N	\N	\N	\N	1	f
-1345	Entrega	100	289	2019-04-07 18:48:31.12412+00	2020-02-09 15:54:56.823078+00	4	\N	\N	\N	\N	\N	\N	1	f
-1649	Carlos Saldanha	94	355	2019-04-13 02:05:38.810297+00	2020-02-09 15:54:56.832699+00	2	\N	\N	\N	\N	\N	\N	1	f
-1703	Preparo	100	372	2019-04-16 23:21:53.089044+00	2020-02-09 15:54:56.843826+00	4	\N	\N	\N	\N	\N	\N	1	f
-1651	Cartões	95	356	2019-04-13 02:05:38.836673+00	2020-02-09 15:54:56.853172+00	2	\N	\N	\N	\N	\N	\N	1	f
-1646		133	353	2019-04-09 03:01:44.172849+00	2020-02-09 15:54:56.862613+00	3	1	\N	\N	\N	\N	\N	1	f
-1602		133	341	2019-04-09 01:29:54.732196+00	2020-02-09 15:54:56.871967+00	3	1	\N	\N	\N	\N	\N	1	f
-1654	20000000000	96	356	2019-04-13 02:05:38.862264+00	2020-02-09 15:54:56.881366+00	1	\N	\N	\N	\N	1	\N	1	f
-1679	Cobertura	100	364	2019-04-13 02:05:47.890627+00	2020-02-09 15:54:56.89075+00	4	\N	\N	\N	\N	\N	\N	1	f
-1670		133	361	2019-04-13 02:05:44.09365+00	2020-02-09 15:54:56.899965+00	3	1	\N	\N	\N	\N	\N	1	f
-1657	Cartões arredondados	99	356	2019-04-13 02:05:38.88456+00	2020-02-09 15:54:56.909204+00	2	\N	\N	\N	\N	\N	\N	1	f
-1667	Entrega	100	360	2019-04-13 02:05:44.054167+00	2020-02-09 15:54:56.918545+00	4	\N	\N	\N	\N	\N	\N	1	f
-1661	Carlos Saldanha	94	359	2019-04-13 02:05:43.949908+00	2020-02-09 15:54:56.927894+00	2	\N	\N	\N	\N	\N	\N	1	f
-1692	Cobertura	100	368	2019-04-16 22:56:01.618469+00	2020-02-09 15:54:56.93719+00	4	\N	\N	\N	\N	\N	\N	1	f
-1663	Cartões	95	360	2019-04-13 02:05:43.97772+00	2020-02-09 15:54:56.946519+00	2	\N	\N	\N	\N	\N	\N	1	f
-1635		133	349	2019-04-09 03:01:10.164193+00	2020-02-09 15:54:56.956399+00	3	1	\N	\N	\N	\N	\N	1	f
-1591		133	337	2019-04-09 01:29:42.096795+00	2020-02-09 15:54:56.967339+00	3	1	\N	\N	\N	\N	\N	1	f
-1666	20000000000	96	360	2019-04-13 02:05:44.045108+00	2020-02-09 15:54:56.982513+00	1	\N	\N	\N	\N	1	\N	1	f
-1658		133	357	2019-04-13 02:05:38.90519+00	2020-02-09 15:54:56.992163+00	3	1	\N	\N	\N	\N	\N	1	f
-1669	Cartões arredondados	99	360	2019-04-13 02:05:44.069669+00	2020-02-09 15:54:57.001345+00	2	\N	\N	\N	\N	\N	\N	1	f
-1673	Carlos Saldanha	94	363	2019-04-13 02:05:47.835999+00	2020-02-09 15:54:57.065185+00	2	\N	\N	\N	\N	\N	\N	1	f
-1675	Cartões	95	364	2019-04-13 02:05:47.861834+00	2020-02-09 15:54:57.074966+00	2	\N	\N	\N	\N	\N	\N	1	f
-1592	141	93	339	2019-04-09 01:29:54.655784+00	2020-02-09 15:54:57.084335+00	5	\N	\N	\N	\N	\N	101	1	f
-1678	20000000000	96	364	2019-04-13 02:05:47.883567+00	2020-02-09 15:54:57.110305+00	1	\N	\N	\N	\N	1	\N	1	f
-1603	141	93	343	2019-04-09 02:57:46.154298+00	2020-02-09 15:54:57.119632+00	5	\N	\N	\N	\N	\N	101	1	f
-1681	Cartões arredondados	99	364	2019-04-13 02:05:47.905386+00	2020-02-09 15:54:57.12881+00	2	\N	\N	\N	\N	\N	\N	1	f
-1625	141	93	347	2019-04-09 03:01:10.078207+00	2020-02-09 15:54:57.137932+00	5	\N	\N	\N	\N	\N	101	1	f
-1194	Produção	100	245	2019-03-28 22:54:51.219293+00	2020-02-09 15:54:57.147146+00	2	\N	\N	\N	\N	\N	\N	1	f
-1655	Cobertura	100	356	2019-04-13 02:05:38.869631+00	2020-02-09 15:54:57.156417+00	4	\N	\N	\N	\N	\N	\N	1	f
-1636	136	93	351	2019-04-09 03:01:44.087137+00	2020-02-09 15:54:57.165742+00	5	\N	\N	\N	\N	\N	101	1	f
-1684	Jorge Lemann	94	367	2019-04-16 22:56:01.335079+00	2020-02-09 15:54:57.175159+00	2	\N	\N	\N	\N	\N	\N	1	f
-1685	Bolo	95	368	2019-04-16 22:56:01.389158+00	2020-02-09 15:54:57.279498+00	4	\N	\N	\N	\N	\N	\N	1	f
-1686	Chocolate	136	368	2019-04-16 22:56:01.406505+00	2020-02-09 15:54:57.293276+00	11	\N	\N	\N	\N	\N	\N	1	f
-1607	20000000000	105	344	2019-04-09 02:57:46.195654+00	2020-02-09 15:54:57.302677+00	1	\N	\N	\N	\N	2	\N	1	f
-1648	136	93	355	2019-04-13 02:05:38.802329+00	2020-02-09 15:54:57.311798+00	5	\N	\N	\N	\N	\N	101	1	f
-1660	136	93	359	2019-04-13 02:05:43.942084+00	2020-02-09 15:54:57.321062+00	5	\N	\N	\N	\N	\N	101	1	f
-1672	136	93	363	2019-04-13 02:05:47.828614+00	2020-02-09 15:54:57.331265+00	5	\N	\N	\N	\N	\N	101	1	f
-1683	151	93	367	2019-04-16 22:56:01.312016+00	2020-02-09 15:54:57.342697+00	5	\N	\N	\N	\N	\N	101	1	f
-6098	7 LINHAS COM 15GB DE DADOS CADA + + REDES SOCIAIS + WAZE + LIGAÇÕES ILIMITADAS + WHATSAPP ILIMITADO + GESTOR ON LINE + 01 IPHONE 12 MINI 128GB + PÓS-VENDAS CONSULTING	703	2064	2021-02-01 20:28:45.294901+00	2021-02-24 07:57:39.684635+00	7	1	4	\N	\N	1	\N	1	f
-6099	500000000000	699	2065	2021-02-01 20:28:45.317178+00	2021-02-24 07:57:39.705629+00	1	1	4	\N	\N	2	\N	1	f
-6100	225000000000	698	2065	2021-02-01 20:28:45.333677+00	2021-02-24 07:57:39.721272+00	1	1	4	\N	\N	2	\N	1	f
-6104	2021-02-01 00:00:00	690	2066	2021-02-01 20:28:45.405093+00	2021-02-24 07:57:39.789854+00	3	1	4	\N	\N	1	\N	1	f
-6105	2021-02-24 00:00:00	691	2066	2021-02-01 20:28:45.421292+00	2021-02-24 07:57:39.805155+00	3	1	4	\N	\N	1	\N	1	f
-6107	2062	679	2066	2021-02-01 20:28:45.450054+00	2021-02-24 07:57:39.833555+00	5	\N	\N	\N	\N	\N	678	1	f
-6108	2021-02-03 00:00:00	684	2066	2021-02-01 20:28:45.462471+00	2021-02-24 07:57:39.845877+00	3	1	\N	\N	\N	\N	\N	1	f
-6109	Novo	693	2066	2021-02-01 20:28:45.478147+00	2021-02-24 07:57:39.861058+00	4	1	4	\N	\N	1	\N	1	f
-6110	Fernando Dória	731	2066	2021-02-01 20:28:45.494154+00	2021-02-24 07:57:39.876292+00	4	1	4	\N	\N	1	\N	1	f
-6111	Prospecção	689	2066	2021-02-01 20:28:45.50642+00	2021-02-24 07:57:39.887422+00	4	\N	\N	\N	\N	\N	\N	1	f
-6101	275000000000	700	2065	2021-02-01 20:28:45.34894+00	2021-02-24 07:57:39.988759+00	1	1	4	\N	{{699}}-{{698}}	2	\N	1	f
-6102	3300000000000	701	2065	2021-02-01 20:28:45.365137+00	2021-02-24 07:57:40.008279+00	1	1	4	\N	{{700}}*12	2	\N	1	f
-6103	-55000000	702	2065	2021-02-01 20:28:45.380669+00	2021-02-24 07:57:40.090288+00	1	1	4	\N	{{698}}/{{699}}-1	3	\N	1	f
-6106	4	694	2066	2021-02-01 20:28:45.436666+00	2021-02-24 07:57:40.092878+00	12	1	4	\N	\N	1	\N	1	f
-6157	barack@gmail.com	745	2090	2021-03-19 17:41:11.750546+00	2021-03-19 17:41:55.186046+00	2	\N	\N	\N	\N	\N	\N	1	f
-6158	Instalação de Software	749	2090	2021-03-19 17:41:11.769894+00	2021-03-19 17:41:55.201677+00	4	1	4	\N	\N	1	\N	1	f
-6160	2021-03-31 00:00:00	750	2090	2021-03-19 17:41:51.690149+00	2021-03-19 17:41:55.217409+00	3	1	4	\N	\N	1	\N	1	f
-6161	27	751	2090	2021-03-19 17:41:51.706505+00	2021-03-19 17:41:55.233126+00	13	1	4	\N	\N	1	\N	1	f
-6159	Pendente	748	2090	2021-03-19 17:41:11.784899+00	2021-03-19 17:41:55.244353+00	4	\N	\N	\N	\N	\N	\N	1	f
-6162	Lucas	678	2092	2021-03-19 17:45:58.606991+00	2021-03-19 17:45:58.607012+00	2	\N	\N	\N	\N	\N	\N	1	f
-6044	45000000000	698	2034	2020-12-13 20:46:47.887369+00	2021-01-29 18:13:20.504753+00	1	1	4	\N	\N	2	\N	1	f
-6163	12	692	2092	2021-03-19 17:45:58.625749+00	2021-03-19 17:45:58.625772+00	2	1	4	\N	\N	1	\N	1	f
-6164	23	718	2092	2021-03-19 17:45:58.642184+00	2021-03-19 17:45:58.642204+00	2	1	4	\N	\N	1	\N	1	f
-6165	30000000000	699	2093	2021-03-19 17:56:48.885251+00	2021-03-19 17:56:48.885274+00	1	1	4	\N	\N	2	\N	1	f
-6166	60000000000	698	2093	2021-03-19 17:56:48.902611+00	2021-03-19 17:56:48.902635+00	1	1	4	\N	\N	2	\N	1	f
-886	1000000000000	105	144	2019-03-19 23:13:06.543026+00	2020-02-09 15:54:52.187974+00	1	\N	\N	\N	\N	2	\N	3	f
-6170	asdsad	703	2094	2021-03-19 17:56:48.974999+00	2021-03-19 17:56:48.975021+00	7	1	4	\N	\N	1	\N	1	f
-6171	2021-03-19 00:00:00	691	2073	2021-03-19 17:56:49.012451+00	2021-03-19 17:56:49.012474+00	3	1	4	\N	\N	1	\N	1	f
-6173	2021-03-24 00:00:00	684	2073	2021-03-19 17:56:49.055425+00	2021-03-19 17:56:49.055443+00	3	1	\N	\N	\N	\N	\N	1	f
-6174	Renovação	693	2073	2021-03-19 17:56:49.071341+00	2021-03-19 17:56:49.07136+00	4	1	4	\N	\N	1	\N	1	f
-882	15000000	97	144	2019-03-19 23:10:48.875787+00	2020-02-09 15:54:52.19871+00	1	\N	\N	\N	\N	3	\N	3	f
-884	150000000000	98	144	2019-03-19 23:10:48.917979+00	2020-02-09 15:54:52.209787+00	1	\N	\N	\N	\N	2	\N	3	f
-6175	Fernando Dória	731	2073	2021-03-19 17:56:49.090058+00	2021-03-19 17:56:49.090081+00	4	1	4	\N	\N	1	\N	1	f
-6176	2021-03-19 00:00:00	752	2096	2021-03-19 17:56:49.128222+00	2021-03-19 17:56:49.128244+00	3	1	4	\N	\N	1	\N	1	f
-6167	-30000000000	700	2093	2021-03-19 17:56:48.920471+00	2021-03-19 17:56:49.224679+00	1	1	4	\N	{{699}}-{{698}}	2	\N	1	f
-6168	-360000000000	701	2093	2021-03-19 17:56:48.936999+00	2021-03-19 17:56:49.243306+00	1	1	4	\N	{{700}}*12	2	\N	1	f
-878	141	93	143	2019-03-19 23:10:48.777854+00	2020-02-09 15:54:52.273861+00	5	\N	\N	\N	\N	\N	101	3	f
-866	136	93	138	2019-03-19 23:08:34.786601+00	2020-02-09 15:54:52.284537+00	5	\N	\N	\N	\N	\N	101	3	f
-881	200000000	96	144	2019-03-19 23:10:48.854056+00	2020-02-09 15:54:52.295268+00	1	\N	\N	\N	\N	1	\N	3	f
-879	Jorge Lemann	94	143	2019-03-19 23:10:48.800659+00	2020-02-09 15:54:52.305981+00	2	\N	\N	\N	\N	\N	\N	3	f
-880	Design	95	144	2019-03-19 23:10:48.832968+00	2020-02-09 15:54:52.316698+00	2	\N	\N	\N	\N	\N	\N	3	f
-1489	45.095.987/0001-28	102	151	2019-04-09 01:11:54.586106+00	2020-02-09 15:54:52.328579+00	2	\N	\N	\N	\N	\N	\N	1	f
-885	Design apenas para site web	99	144	2019-03-19 23:10:48.940416+00	2020-02-09 15:54:52.339428+00	2	\N	\N	\N	\N	\N	\N	3	f
-6169	100000000	702	2093	2021-03-19 17:56:48.953429+00	2021-03-19 17:56:49.264165+00	1	1	4	\N	{{698}}/{{699}}-1	3	\N	1	f
-6172	6	694	2073	2021-03-19 17:56:49.02923+00	2021-03-19 17:56:49.271804+00	12	1	4	\N	\N	1	\N	1	f
-6046	Lucas Magalhaes	718	2029	2020-12-14 14:24:01.109083+00	2020-12-14 14:24:01.109108+00	2	1	4	\N	\N	1	\N	1	f
-6116	2031	695	2070	2021-02-24 07:57:22.087188+00	2021-02-24 07:57:22.087207+00	5	1	4	\N	\N	1	704	1	f
-922	Produção	100	157	2019-03-19 23:22:45.83011+00	2020-02-09 15:54:52.350116+00	2	\N	\N	\N	\N	\N	\N	3	f
-867	Carlos Saldanha	94	138	2019-03-19 23:08:34.809408+00	2020-02-09 15:54:52.362385+00	2	\N	\N	\N	\N	\N	\N	3	f
-6177	2021-03-19 00:00:00	746	2098	2021-03-19 22:19:51.56193+00	2021-03-19 22:20:32.56953+00	3	1	\N	\N	\N	\N	\N	1	f
-6178	Tereza	747	2098	2021-03-19 22:19:51.57745+00	2021-03-19 22:20:32.581537+00	2	1	\N	\N	\N	\N	\N	1	f
-6179	tereza@gmail.com	745	2098	2021-03-19 22:19:51.591968+00	2021-03-19 22:20:32.592362+00	2	\N	\N	\N	\N	\N	\N	1	f
-6180	Conexão da Internet	749	2098	2021-03-19 22:19:51.61105+00	2021-03-19 22:20:32.608277+00	4	1	4	\N	\N	1	\N	1	f
-6181	Em Atendimento	748	2098	2021-03-19 22:19:51.625185+00	2021-03-19 22:20:32.653802+00	4	\N	\N	\N	\N	\N	\N	1	f
-868	Banners	95	139	2019-03-19 23:08:34.844482+00	2020-02-09 15:54:52.373087+00	2	\N	\N	\N	\N	\N	\N	3	f
-1043	93139301931	118	195	2019-03-27 23:26:14.799991+00	2020-02-09 15:54:52.383829+00	2	\N	\N	\N	\N	\N	\N	3	f
-869	30000000000	96	139	2019-03-19 23:08:34.866568+00	2020-02-09 15:54:52.409838+00	1	\N	\N	\N	\N	1	\N	3	f
-871	Design	100	139	2019-03-19 23:08:34.910502+00	2020-02-09 15:54:52.423062+00	2	\N	\N	\N	\N	\N	\N	3	f
-873	Banners deve ser em formato de frutas	99	139	2019-03-19 23:08:34.955787+00	2020-02-09 15:54:52.433809+00	2	\N	\N	\N	\N	\N	\N	3	f
-855	Julia Fedato	94	133	2019-03-19 23:05:57.605329+00	2020-02-09 15:54:52.444743+00	2	\N	\N	\N	\N	\N	\N	3	f
-856	Plotagem	95	134	2019-03-19 23:05:57.639571+00	2020-02-09 15:54:52.456361+00	2	\N	\N	\N	\N	\N	\N	3	f
-1044	Lucas Leal de Melo	119	195	2019-03-27 23:26:14.823447+00	2020-02-09 15:54:52.467294+00	2	\N	\N	\N	\N	\N	\N	3	f
-1490	Baterias Heliaty	101	151	2019-04-09 01:11:54.59337+00	2020-02-09 15:54:52.478135+00	2	\N	\N	\N	\N	\N	\N	1	f
-861	Design deve ser feito apenas com tons de rosa	99	134	2019-03-19 23:05:57.749428+00	2020-02-09 15:54:52.488691+00	2	\N	\N	\N	\N	\N	\N	3	f
-843	Lucas	94	128	2019-03-19 23:00:15.775559+00	2020-02-09 15:54:52.499397+00	2	\N	\N	\N	\N	\N	\N	3	f
-844	Cartões	95	129	2019-03-19 23:00:15.815939+00	2020-02-09 15:54:52.509954+00	2	\N	\N	\N	\N	\N	\N	3	f
-1566	Preparo	100	332	2019-04-09 01:25:58.486315+00	2020-02-09 15:54:52.524606+00	4	\N	\N	\N	\N	\N	\N	1	f
-6047	2020-12-26 00:00:00	719	2048	2020-12-26 22:42:14.512922+00	2020-12-26 22:42:14.512943+00	3	1	\N	\N	\N	\N	\N	1	f
-6048	- descobrimento do brasil	720	2048	2020-12-26 22:42:14.532591+00	2020-12-26 22:42:14.532616+00	7	1	4	\N	\N	1	\N	1	f
-6182	2021-03-31 00:00:00	750	2098	2021-03-19 22:20:32.624735+00	2021-03-19 22:20:32.624757+00	3	1	4	\N	\N	1	\N	1	f
-6183	27	751	2098	2021-03-19 22:20:32.642203+00	2021-03-19 22:20:32.642227+00	13	1	4	\N	\N	1	\N	1	f
-935	Plotagem	95	162	2019-03-21 04:02:21.390462+00	2020-02-09 15:54:53.199591+00	2	\N	\N	\N	\N	\N	\N	1	f
-942	Cartão com verniz localizado	99	162	2019-03-21 04:02:21.552559+00	2020-02-09 15:54:53.220307+00	2	\N	\N	\N	\N	\N	\N	1	f
-1081	Renato Kenji	94	208	2019-03-28 22:46:59.037433+00	2020-02-09 15:54:53.230624+00	2	\N	\N	\N	\N	\N	\N	1	f
-1082	Design	95	209	2019-03-28 22:46:59.061711+00	2020-02-09 15:54:53.241002+00	2	\N	\N	\N	\N	\N	\N	1	f
-1052	\N	122	197	2019-03-27 23:47:56.278215+00	2020-02-09 15:54:53.251301+00	6	\N	\N	\N	\N	\N	\N	3	f
-1048	23123123	118	197	2019-03-27 23:47:56.18732+00	2020-02-09 15:54:53.261609+00	2	\N	\N	\N	\N	\N	\N	3	f
-1049	Lucas Leal de Melo	119	197	2019-03-27 23:47:56.210239+00	2020-02-09 15:54:53.277419+00	2	\N	\N	\N	\N	\N	\N	3	f
-1051	Solicitação	121	197	2019-03-27 23:47:56.255772+00	2020-02-09 15:54:53.2903+00	4	\N	\N	\N	\N	\N	\N	3	f
-1054	Renato Kenji	94	199	2019-03-28 22:46:49.171129+00	2020-02-09 15:54:53.301632+00	2	\N	\N	\N	\N	\N	\N	1	f
-1055	Design	95	200	2019-03-28 22:46:49.19805+00	2020-02-09 15:54:53.322854+00	2	\N	\N	\N	\N	\N	\N	1	f
-1086	Entrega	100	209	2019-03-28 22:46:59.141284+00	2020-02-09 15:54:53.33337+00	4	\N	\N	\N	\N	\N	\N	1	f
-938	16000000000	96	162	2019-03-21 04:02:21.475785+00	2020-02-09 15:54:53.343732+00	1	\N	\N	\N	\N	1	\N	1	f
-1088	asdsadsada	99	209	2019-03-28 22:46:59.169395+00	2020-02-09 15:54:53.354165+00	2	\N	\N	\N	\N	\N	\N	1	f
-1068	Produção	100	203	2019-03-28 22:46:53.078901+00	2020-02-09 15:54:53.375977+00	2	\N	\N	\N	\N	\N	\N	1	f
-1059	Entrega	100	200	2019-03-28 22:46:49.264441+00	2020-02-09 15:54:53.386441+00	4	\N	\N	\N	\N	\N	\N	1	f
-6184	2021-03-19 00:00:00	746	2100	2021-03-19 22:24:21.369817+00	2021-03-19 22:24:21.369841+00	3	1	\N	\N	\N	\N	\N	1	f
-6185	Jorge	747	2100	2021-03-19 22:24:21.38656+00	2021-03-19 22:24:21.386586+00	2	1	\N	\N	\N	\N	\N	1	f
-6186	jorge@gmail.com	745	2100	2021-03-19 22:24:21.401883+00	2021-03-19 22:24:21.40191+00	2	\N	\N	\N	\N	\N	\N	1	f
-6187	Instalação de Software	749	2100	2021-03-19 22:24:21.424987+00	2021-03-19 22:24:21.42501+00	4	1	4	\N	\N	1	\N	1	f
-6188	Solicitação	748	2100	2021-03-19 22:24:21.440945+00	2021-03-19 22:24:21.440968+00	4	\N	\N	\N	\N	\N	\N	1	f
-6049	2021-01-29 00:00:00	721	2027	2021-01-29 17:50:21.711873+00	2021-02-01 20:29:33.764591+00	3	1	4	\N	\N	1	\N	1	f
-6050	500000000	722	2027	2021-01-29 17:50:21.74819+00	2021-02-01 20:29:33.79435+00	1	1	4	\N	\N	1	\N	1	f
-6051	5400000000	723	2027	2021-01-29 17:50:21.764047+00	2021-02-01 20:29:33.80836+00	1	1	4	\N	\N	2	\N	1	f
-6052	0	724	2027	2021-01-29 17:50:21.779923+00	2021-02-01 20:29:33.823319+00	1	1	4	\N	\N	2	\N	1	f
-6053	27000000000	725	2027	2021-01-29 17:50:21.79626+00	2021-02-01 20:29:33.932091+00	1	1	4	\N	{{722}}*{{723}}-{{724}}	2	\N	1	f
-1039	350000000000	96	193	2019-03-27 22:03:43.480874+00	2020-02-09 15:54:54.099642+00	1	\N	\N	\N	\N	1	\N	3	f
-1042	\N	99	193	2019-03-27 22:03:43.568836+00	2020-02-09 15:54:54.129992+00	7	\N	\N	\N	\N	\N	\N	3	f
-1106	Design deve ser feito apenas com tons de rosa	99	215	2019-03-28 22:47:29.453457+00	2020-02-09 15:54:54.140134+00	2	\N	\N	\N	\N	\N	\N	1	f
-1108	Julia Fedato	94	217	2019-03-28 22:47:32.751892+00	2020-02-09 15:54:54.150292+00	2	\N	\N	\N	\N	\N	\N	1	f
-1109	Plotagem	95	218	2019-03-28 22:47:32.775237+00	2020-02-09 15:54:54.160343+00	2	\N	\N	\N	\N	\N	\N	1	f
-1112	4300000000	96	218	2019-03-28 22:47:32.820196+00	2020-02-09 15:54:54.19176+00	1	\N	\N	\N	\N	1	\N	1	f
-1113	Perdido	100	218	2019-03-28 22:47:32.835876+00	2020-02-09 15:54:54.204943+00	2	\N	\N	\N	\N	\N	\N	1	f
-1115	Design deve ser feito apenas com tons de rosa	99	218	2019-03-28 22:47:32.870384+00	2020-02-09 15:54:54.224752+00	2	\N	\N	\N	\N	\N	\N	1	f
-1117	Julia Fedato	94	220	2019-03-28 22:47:35.384724+00	2020-02-09 15:54:54.235006+00	2	\N	\N	\N	\N	\N	\N	1	f
-1118	Plotagem	95	221	2019-03-28 22:47:35.415748+00	2020-02-09 15:54:54.245164+00	2	\N	\N	\N	\N	\N	\N	1	f
-1121	4300000000	96	221	2019-03-28 22:47:35.474159+00	2020-02-09 15:54:54.255228+00	1	\N	\N	\N	\N	1	\N	1	f
-1122	Perdido	100	221	2019-03-28 22:47:35.486642+00	2020-02-09 15:54:54.265271+00	2	\N	\N	\N	\N	\N	\N	1	f
-1124	Design deve ser feito apenas com tons de rosa	99	221	2019-03-28 22:47:35.511729+00	2020-02-09 15:54:54.275794+00	2	\N	\N	\N	\N	\N	\N	1	f
-1198	Renato Kenji	94	247	2019-03-28 22:54:54.121057+00	2020-02-09 15:54:54.285836+00	2	\N	\N	\N	\N	\N	\N	1	f
-1127	Plotagem	95	224	2019-03-28 22:47:38.644976+00	2020-02-09 15:54:54.295944+00	2	\N	\N	\N	\N	\N	\N	1	f
-1144	Nicolas Albuquerque	94	229	2019-03-28 22:53:20.33244+00	2020-02-09 15:54:54.306352+00	2	\N	\N	\N	\N	\N	\N	1	f
-1145	Cartões	95	230	2019-03-28 22:53:20.356425+00	2020-02-09 15:54:54.323317+00	2	\N	\N	\N	\N	\N	\N	1	f
-6054	2021-01-29 00:00:00	721	2031	2021-01-29 17:50:40.754974+00	2021-02-01 20:21:38.498201+00	3	1	4	\N	\N	1	\N	1	f
-6055	700000000	722	2031	2021-01-29 17:50:40.785146+00	2021-02-01 20:21:38.525801+00	1	1	4	\N	\N	1	\N	1	f
-6056	28000000000	723	2031	2021-01-29 17:50:40.799931+00	2021-02-01 20:21:38.53969+00	1	1	4	\N	\N	2	\N	1	f
-6057	0	724	2031	2021-01-29 17:50:40.81524+00	2021-02-01 20:21:38.553394+00	1	1	4	\N	\N	2	\N	1	f
-6058	196000000000	725	2031	2021-01-29 17:50:40.830795+00	2021-02-01 20:21:38.657129+00	1	1	4	\N	{{722}}*{{723}}-{{724}}	2	\N	1	f
-1184	2500000000	96	242	2019-03-28 22:54:48.778015+00	2020-02-09 15:54:54.895681+00	1	\N	\N	\N	\N	1	\N	1	f
-1187	Prazo de entrega para 30/03/2019	99	242	2019-03-28 22:54:48.809194+00	2020-02-09 15:54:54.905349+00	2	\N	\N	\N	\N	\N	\N	1	f
-1189	Renato Kenji	94	244	2019-03-28 22:54:51.15761+00	2020-02-09 15:54:54.924617+00	2	\N	\N	\N	\N	\N	\N	1	f
-1190	Banners	95	245	2019-03-28 22:54:51.176863+00	2020-02-09 15:54:54.934396+00	2	\N	\N	\N	\N	\N	\N	1	f
-1193	2500000000	96	245	2019-03-28 22:54:51.208992+00	2020-02-09 15:54:54.955246+00	1	\N	\N	\N	\N	1	\N	1	f
-1196	Prazo de entrega para 30/03/2019	99	245	2019-03-28 22:54:51.291935+00	2020-02-09 15:54:54.965+00	2	\N	\N	\N	\N	\N	\N	1	f
-1207	Renato Kenji	94	250	2019-03-28 22:55:16.788651+00	2020-02-09 15:54:54.974718+00	2	\N	\N	\N	\N	\N	\N	1	f
-1208	Banners	95	251	2019-03-28 22:55:16.813908+00	2020-02-09 15:54:54.984391+00	2	\N	\N	\N	\N	\N	\N	1	f
-1211	2500000000	96	251	2019-03-28 22:55:16.849401+00	2020-02-09 15:54:54.994025+00	1	\N	\N	\N	\N	1	\N	1	f
-1214	Prazo de entrega para 30/03/2019	99	251	2019-03-28 22:55:16.883327+00	2020-02-09 15:54:55.027762+00	2	\N	\N	\N	\N	\N	\N	1	f
-1216	Renato Kenji	94	253	2019-03-28 22:55:19.345716+00	2020-02-09 15:54:55.060155+00	2	\N	\N	\N	\N	\N	\N	1	f
-1217	Banners	95	254	2019-03-28 22:55:19.365027+00	2020-02-09 15:54:55.069738+00	2	\N	\N	\N	\N	\N	\N	1	f
-1220	2500000000	96	254	2019-03-28 22:55:19.400165+00	2020-02-09 15:54:55.079361+00	1	\N	\N	\N	\N	1	\N	1	f
-1223	Prazo de entrega para 30/03/2019	99	254	2019-03-28 22:55:19.433164+00	2020-02-09 15:54:55.088828+00	2	\N	\N	\N	\N	\N	\N	1	f
-1225	Renato Kenji	94	256	2019-03-28 22:55:21.933306+00	2020-02-09 15:54:55.108424+00	2	\N	\N	\N	\N	\N	\N	1	f
-1226	Banners	95	257	2019-03-28 22:55:21.95287+00	2020-02-09 15:54:55.118924+00	2	\N	\N	\N	\N	\N	\N	1	f
-1229	2500000000	96	257	2019-03-28 22:55:21.993512+00	2020-02-09 15:54:55.128656+00	1	\N	\N	\N	\N	1	\N	1	f
-1232	Prazo de entrega para 30/03/2019	99	257	2019-03-28 22:55:22.035127+00	2020-02-09 15:54:55.138645+00	2	\N	\N	\N	\N	\N	\N	1	f
-1234	Renato Kenji	94	259	2019-03-28 22:55:24.339091+00	2020-02-09 15:54:55.1486+00	2	\N	\N	\N	\N	\N	\N	1	f
-6059	2021-01-29 00:00:00	721	2050	2021-01-29 17:51:05.041232+00	2021-02-01 20:29:21.087767+00	3	1	4	\N	\N	1	\N	1	f
-6060	Aparelho Samsung S10 128GB	704	2050	2021-01-29 17:51:05.05764+00	2021-02-01 20:29:21.101321+00	2	1	4	\N	\N	1	\N	1	f
-6061	900000000	722	2050	2021-01-29 17:51:05.072769+00	2021-02-01 20:29:21.117025+00	1	1	4	\N	\N	1	\N	1	f
-6062	25000000000	723	2050	2021-01-29 17:51:05.08832+00	2021-02-01 20:29:21.134558+00	1	1	4	\N	\N	2	\N	1	f
-6063	0	724	2050	2021-01-29 17:51:05.10381+00	2021-02-01 20:29:21.149461+00	1	1	4	\N	\N	2	\N	1	f
-6064	225000000000	725	2050	2021-01-29 17:51:05.119812+00	2021-02-01 20:29:21.255277+00	1	1	4	\N	{{722}}*{{723}}-{{724}}	2	\N	1	f
-1337	Solicitação	121	291	2019-04-06 20:15:30.507844+00	2020-02-09 15:54:55.64672+00	4	\N	\N	\N	\N	\N	\N	1	f
-1274	30000000000	96	272	2019-03-28 22:56:59.209512+00	2020-02-09 15:54:55.656259+00	1	\N	\N	\N	\N	1	\N	1	f
-1338	Carlos Saldanha	94	288	2019-04-07 18:48:31.048558+00	2020-02-09 15:54:55.665802+00	2	\N	\N	\N	\N	\N	\N	1	f
-1275	Design	100	272	2019-03-28 22:56:59.218984+00	2020-02-09 15:54:55.680173+00	2	\N	\N	\N	\N	\N	\N	1	f
-1277	Banners deve ser em formato de frutas	99	272	2019-03-28 22:56:59.23787+00	2020-02-09 15:54:55.699145+00	2	\N	\N	\N	\N	\N	\N	1	f
-1341	Design	95	289	2019-04-07 18:48:31.089352+00	2020-02-09 15:54:55.708805+00	2	\N	\N	\N	\N	\N	\N	1	f
-1279	Carlos Saldanha	94	274	2019-03-28 22:57:05.458827+00	2020-02-09 15:54:55.728128+00	2	\N	\N	\N	\N	\N	\N	1	f
-1280	Banners	95	275	2019-03-28 22:57:05.480623+00	2020-02-09 15:54:55.737683+00	2	\N	\N	\N	\N	\N	\N	1	f
-1344	30000000000	96	289	2019-04-07 18:48:31.11581+00	2020-02-09 15:54:55.748173+00	1	\N	\N	\N	\N	1	\N	1	f
-1283	30000000000	96	275	2019-03-28 22:57:05.512567+00	2020-02-09 15:54:55.759069+00	1	\N	\N	\N	\N	1	\N	1	f
-1347		99	289	2019-04-07 18:48:31.141866+00	2020-02-09 15:54:55.768782+00	7	\N	\N	\N	\N	\N	\N	1	f
-1286	Banners deve ser em formato de frutas	99	275	2019-03-28 22:57:05.545429+00	2020-02-09 15:54:55.778624+00	2	\N	\N	\N	\N	\N	\N	1	f
-1239	Design	100	260	2019-03-28 22:55:24.401213+00	2020-02-09 15:54:55.788028+00	2	\N	\N	\N	\N	\N	\N	1	f
-1370	Teste	118	293	2019-04-07 20:26:37.065181+00	2020-02-09 15:54:55.801898+00	2	\N	\N	\N	\N	\N	\N	1	f
-1371	teste	119	293	2019-04-07 20:26:37.076618+00	2020-02-09 15:54:55.811791+00	2	\N	\N	\N	\N	\N	\N	1	f
-1373	Solicitação	121	293	2019-04-07 20:26:37.093632+00	2020-02-09 15:54:55.821546+00	4	\N	\N	\N	\N	\N	\N	1	f
-1284	Produção	100	275	2019-03-28 22:57:05.523+00	2020-02-09 15:54:55.831198+00	2	\N	\N	\N	\N	\N	\N	1	f
-1384	Julia Fedato	94	295	2019-04-07 22:47:21.875706+00	2020-02-09 15:54:55.840893+00	2	\N	\N	\N	\N	\N	\N	1	f
-6065	2021-01-29 00:00:00	721	2052	2021-01-29 17:51:46.364265+00	2021-01-29 17:51:46.364287+00	3	1	4	\N	\N	1	\N	1	f
-6066	Notebook Dell Intel Core I7	704	2052	2021-01-29 17:51:46.37908+00	2021-01-29 17:51:46.379103+00	2	1	4	\N	\N	1	\N	1	f
-6067	500000000	722	2052	2021-01-29 17:51:46.394026+00	2021-01-29 17:51:46.394048+00	1	1	4	\N	\N	1	\N	1	f
-6068	50000000000	723	2052	2021-01-29 17:51:46.409594+00	2021-01-29 17:51:46.409613+00	1	1	4	\N	\N	2	\N	1	f
-6069	0	724	2052	2021-01-29 17:51:46.426653+00	2021-01-29 17:51:46.426676+00	1	1	4	\N	\N	2	\N	1	f
-6070	250000000000	725	2052	2021-01-29 17:51:46.442036+00	2021-01-29 17:51:46.464524+00	1	1	4	\N	{{722}}*{{723}}-{{724}}	2	\N	1	f
-1482	11982424521	104	146	2019-04-09 01:09:24.700169+00	2020-02-09 15:54:56.383731+00	2	\N	\N	\N	\N	\N	\N	1	f
-1483	Todos	107	146	2019-04-09 01:09:24.708847+00	2020-02-09 15:54:56.393198+00	4	\N	\N	\N	\N	\N	\N	1	f
-1484	23.230.394/0001-45	102	159	2019-04-09 01:10:09.967736+00	2020-02-09 15:54:56.402652+00	2	\N	\N	\N	\N	\N	\N	1	f
-1485	BYU Seguros	101	159	2019-04-09 01:10:09.976026+00	2020-02-09 15:54:56.412007+00	2	\N	\N	\N	\N	\N	\N	1	f
-1486	Avenida Faria Lima, 1455	103	159	2019-04-09 01:10:09.991898+00	2020-02-09 15:54:56.421424+00	2	\N	\N	\N	\N	\N	\N	1	f
-1487	11942622321	104	159	2019-04-09 01:10:09.999979+00	2020-02-09 15:54:56.431732+00	2	\N	\N	\N	\N	\N	\N	1	f
-1488	Todos	107	159	2019-04-09 01:10:10.050904+00	2020-02-09 15:54:56.44119+00	4	\N	\N	\N	\N	\N	\N	1	f
-1533	Cobertura	100	324	2019-04-09 01:21:44.735781+00	2020-02-09 15:54:56.450458+00	4	\N	\N	\N	\N	\N	\N	1	f
-1456	Preparo	100	308	2019-04-08 19:37:20.926388+00	2020-02-09 15:54:56.460009+00	4	\N	\N	\N	\N	\N	\N	1	f
-1586	5000000	97	336	2019-04-09 01:29:42.056629+00	2020-02-09 15:54:56.46927+00	1	\N	\N	\N	\N	3	\N	1	f
-1589	2000000000	98	336	2019-04-09 01:29:42.0748+00	2020-02-09 15:54:56.478477+00	1	\N	\N	\N	\N	2	\N	1	f
-1596	20000000000	105	340	2019-04-09 01:29:54.688827+00	2020-02-09 15:54:56.487733+00	1	\N	\N	\N	\N	2	\N	1	f
-1597	5000000	97	340	2019-04-09 01:29:54.694618+00	2020-02-09 15:54:56.498255+00	1	\N	\N	\N	\N	3	\N	1	f
-1687	Caramelo	136	368	2019-04-16 22:56:01.489604+00	2020-02-09 15:54:57.351982+00	11	\N	\N	\N	\N	\N	\N	1	f
-1688	M&M	136	368	2019-04-16 22:56:01.543259+00	2020-02-09 15:54:57.361265+00	11	\N	\N	\N	\N	\N	\N	1	f
-1691	200000000	96	368	2019-04-16 22:56:01.596423+00	2020-02-09 15:54:57.371407+00	1	\N	\N	\N	\N	1	\N	1	f
-1694	Bolo deve ser entregue em pacote verde	99	368	2019-04-16 22:56:01.69066+00	2020-02-09 15:54:57.40163+00	2	\N	\N	\N	\N	\N	\N	1	f
-1697	Nicolas Albuquerque	94	371	2019-04-16 23:21:53.042107+00	2020-02-09 15:54:57.418487+00	2	\N	\N	\N	\N	\N	\N	1	f
-1698	Torta	95	372	2019-04-16 23:21:53.05712+00	2020-02-09 15:54:57.435125+00	4	\N	\N	\N	\N	\N	\N	1	f
-1699	Chocolate	136	372	2019-04-16 23:21:53.063453+00	2020-02-09 15:54:57.45324+00	4	\N	\N	\N	\N	\N	\N	1	f
-1705	dasdsdsd	99	372	2019-04-16 23:21:53.101251+00	2020-02-09 15:54:57.496425+00	2	\N	\N	\N	\N	\N	\N	1	f
-1706	Dinheiro	137	373	2019-04-16 23:21:53.118651+00	2020-02-09 15:54:57.505742+00	4	\N	\N	\N	\N	\N	\N	1	f
-1708	Jonas	138	373	2019-04-16 23:21:53.130788+00	2020-02-09 15:54:57.514963+00	4	\N	\N	\N	\N	\N	\N	1	f
-1710	Nicolas Albuquerque	94	375	2019-04-16 23:26:01.04937+00	2020-02-09 15:54:57.524364+00	2	\N	\N	\N	\N	\N	\N	1	f
-1711	Torta	95	376	2019-04-16 23:26:01.064998+00	2020-02-09 15:54:57.533685+00	4	\N	\N	\N	\N	\N	\N	1	f
-1712	Chocolate	136	376	2019-04-16 23:26:01.071339+00	2020-02-09 15:54:57.543106+00	4	\N	\N	\N	\N	\N	\N	1	f
-1702	200000000	96	372	2019-04-16 23:21:53.083045+00	2020-02-09 15:54:57.552441+00	1	\N	\N	\N	\N	1	\N	1	f
-1716	Entrega	100	376	2019-04-16 23:26:01.100025+00	2020-02-09 15:54:57.570716+00	4	\N	\N	\N	\N	\N	\N	1	f
-1718	dasdsdsd	99	376	2019-04-16 23:26:01.114185+00	2020-02-09 15:54:57.579775+00	2	\N	\N	\N	\N	\N	\N	1	f
-1719	Dinheiro	137	377	2019-04-16 23:26:01.130887+00	2020-02-09 15:54:57.588947+00	4	\N	\N	\N	\N	\N	\N	1	f
-1721	Jonas	138	377	2019-04-16 23:26:01.145409+00	2020-02-09 15:54:57.598299+00	4	\N	\N	\N	\N	\N	\N	1	f
-1715	200000000	96	376	2019-04-16 23:26:01.092331+00	2020-02-09 15:54:57.617817+00	1	\N	\N	\N	\N	1	\N	1	f
-1689	24000000000	105	368	2019-04-16 22:56:01.563629+00	2020-02-09 15:54:57.62717+00	1	\N	\N	\N	\N	2	\N	1	f
-1690	5000000	97	368	2019-04-16 22:56:01.582016+00	2020-02-09 15:54:57.638646+00	1	\N	\N	\N	\N	3	\N	1	f
-1693	2000000000	98	368	2019-04-16 22:56:01.666432+00	2020-02-09 15:54:57.64774+00	1	\N	\N	\N	\N	2	\N	1	f
-1700	20000000000	105	372	2019-04-16 23:21:53.069979+00	2020-02-09 15:54:57.657038+00	1	\N	\N	\N	\N	2	\N	1	f
-1701	5000000	97	372	2019-04-16 23:21:53.076255+00	2020-02-09 15:54:57.666353+00	1	\N	\N	\N	\N	3	\N	1	f
-1704	2000000000	98	372	2019-04-16 23:21:53.095149+00	2020-02-09 15:54:57.675511+00	1	\N	\N	\N	\N	2	\N	1	f
-1707	2019-04-16 00:00:00	133	373	2019-04-16 23:21:53.124573+00	2020-02-09 15:54:57.684696+00	3	1	\N	\N	\N	\N	\N	1	f
-1720	2019-04-16 00:00:00	133	377	2019-04-16 23:26:01.138835+00	2020-02-09 15:54:57.694121+00	3	1	\N	\N	\N	\N	\N	1	f
-1695		133	369	2019-04-16 22:56:02.78103+00	2020-02-09 15:54:57.703248+00	3	1	\N	\N	\N	\N	\N	1	f
-1713	20000000000	105	376	2019-04-16 23:26:01.077579+00	2020-02-09 15:54:57.712662+00	1	\N	\N	\N	\N	2	\N	1	f
-1696	141	93	371	2019-04-16 23:21:53.02927+00	2020-02-09 15:54:57.722032+00	5	\N	\N	\N	\N	\N	101	1	f
-1709	141	93	375	2019-04-16 23:26:01.039087+00	2020-02-09 15:54:57.731216+00	5	\N	\N	\N	\N	\N	101	1	f
-1714	5000000	97	376	2019-04-16 23:26:01.084081+00	2020-02-09 15:54:57.74141+00	1	\N	\N	\N	\N	3	\N	1	f
-1717	2000000000	98	376	2019-04-16 23:26:01.107035+00	2020-02-09 15:54:57.750704+00	1	\N	\N	\N	\N	2	\N	1	f
+COPY public.form_value (id, number_configuration_mask, formula_configuration, created_at, updated_at, value, company_id, date_configuration_date_format_type_id, field_id, field_type_id, form_id, form_field_as_option_id, number_configuration_number_format_type_id, period_configuration_period_interval_type_id, is_long_text_rich_text) FROM stdin;
+6199	\N	\N	2021-05-26 22:29:00.556315+00	2021-05-27 21:43:57.20164+00	Festa de casamento do nicolas	1	\N	756	2	2106	\N	\N	\N	f
+6200	\N	\N	2021-05-26 22:29:00.5909+00	2021-05-27 21:43:57.228355+00	Comerciais	1	1	757	4	2106	\N	1	4	f
+6201	\N	\N	2021-05-26 22:29:00.613342+00	2021-05-27 21:43:57.248992+00	2021-05-28 00:00:00	1	1	758	3	2106	\N	1	4	f
+6202	\N	\N	2021-05-26 22:29:00.640169+00	2021-05-27 21:43:57.26903+00	0	1	1	759	1	2106	\N	1	4	f
+6212	\N	\N	2021-05-27 14:36:04.237999+00	2021-05-27 21:43:57.303823+00	200000000	1	1	763	1	2106	\N	3	4	f
+6203	\N	{{763}} / 10	2021-05-26 22:29:00.662264+00	2021-05-27 21:43:58.859409+00	20000000	1	1	760	1	2106	\N	2	4	f
+6192	\N	\N	2021-05-22 19:58:13.622745+00	2021-05-26 22:31:33.471158+00	1234123000000	1	1	759	1	2102	\N	1	4	f
+6193	\N	\N	2021-05-22 20:00:58.367487+00	2021-05-26 17:05:48.208794+00	Festa de Formatura EACH USP	1	\N	756	2	2104	\N	\N	\N	f
+6194	\N	\N	2021-05-22 20:00:58.385223+00	2021-05-26 17:05:48.224839+00	Formaturas	1	1	757	4	2104	\N	1	4	f
+6195	\N	\N	2021-05-22 20:00:58.401543+00	2021-05-26 17:05:48.240999+00	2021-05-29 00:00:00	1	1	758	3	2104	\N	1	4	f
+6196	\N	\N	2021-05-22 20:00:58.418182+00	2021-05-26 17:05:48.256721+00	200000000	1	1	759	1	2104	\N	1	4	f
+6198	\N	1 + {{759}}	2021-05-25 22:16:00.454064+00	2021-05-26 17:05:49.305557+00	300000000	1	1	760	1	2104	\N	2	4	f
+6204	\N	\N	2021-05-26 22:29:39.15739+00	2021-05-26 22:29:39.157431+00	Festa de casamento do nicolas	1	\N	756	2	2108	\N	\N	\N	f
+6205	\N	\N	2021-05-26 22:29:39.176341+00	2021-05-26 22:29:39.176381+00	Festa de aniversário	1	1	757	4	2108	\N	1	4	f
+6206	\N	\N	2021-05-26 22:29:39.193336+00	2021-05-26 22:29:39.193376+00	2021-05-28 00:00:00	1	1	758	3	2108	\N	1	4	f
+6207	\N	\N	2021-05-26 22:29:39.210158+00	2021-05-26 22:29:39.210194+00	123412300000000	1	1	759	1	2108	\N	1	4	f
+6208	\N	1 + {{759}}	2021-05-26 22:29:39.227408+00	2021-05-26 22:29:40.189235+00	123412400000000	1	1	760	1	2108	\N	2	4	f
+6189	\N	\N	2021-05-22 19:58:13.572772+00	2021-05-26 22:31:33.414385+00	Festa de casamento do nicolas	1	\N	756	2	2102	\N	\N	\N	f
+6190	\N	\N	2021-05-22 19:58:13.590182+00	2021-05-26 22:31:33.434593+00	Festa de aniversário	1	1	757	4	2102	\N	1	4	f
+6191	\N	\N	2021-05-22 19:58:13.606557+00	2021-05-26 22:31:33.449521+00	2021-05-28 00:00:00	1	1	758	3	2102	\N	1	4	f
+6209	\N	1 + {{759}}	2021-05-26 22:31:33.489542+00	2021-05-26 22:31:34.8743+00	123412400000000	1	1	760	1	2102	\N	2	4	f
+\.
+
+
+--
+-- Data for Name: formula_attribute_type; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.formula_attribute_type (id, name, "order") FROM stdin;
+1	conjunction	1
+2	disjunction	2
+3	inversion	3
+4	block_do	4
+5	block_end	5
+6	null	6
+7	boolean_true	7
+8	boolean_false	8
+9	if_if	9
+10	if_else	10
+11	function	11
+12	decimal_point_separator	12
+13	positional_argument_separator	13
+\.
+
+
+--
+-- Data for Name: formula_context_attribute_type; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.formula_context_attribute_type (id, translation, attribute_type_id, context_type_id) FROM stdin;
+1	and	1	1
+2	or	2	1
+3	not	3	1
+4	do	4	1
+5	end	5	1
+6	None	6	1
+7	True	7	1
+8	False	8	1
+9	if	9	1
+10	else	10	1
+11	function	11	1
+12	.	12	1
+13	,	13	1
+14	e	1	2
+15	ou	2	2
+16	nao	3	2
+17	faz	4	2
+18	fim	5	2
+19	Vazio	6	2
+20	Verdadeiro	7	2
+21	Falso	8	2
+22	se	9	2
+23	senao	10	2
+24	funcao	11	2
+25	,	12	2
+26	;	13	2
+\.
+
+
+--
+-- Data for Name: formula_context_for_company; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.formula_context_for_company (id, company_id, context_type_id) FROM stdin;
+1	1	1
+\.
+
+
+--
+-- Data for Name: formula_context_type; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.formula_context_type (id, language, name, "order") FROM stdin;
+2	portugues	portugues	2
+1	english	english	1
 \.
 
 
@@ -13342,13 +12088,12 @@ COPY public.formula_parameters_type (id, name, formula_type_id, raw_data_type_id
 
 
 --
--- Data for Name: formula_type; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: formula_variable; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.formula_type (id, name, label_name, "order") FROM stdin;
-1	AVAREGE	MEDIA	1
-2	SUM	SOMA	1
-3	COUNT	CONTA	1
+COPY public.formula_variable (id, "order", field_id, variable_id) FROM stdin;
+18	0	760	756
+20	1	760	756
 \.
 
 
@@ -13356,12 +12101,9 @@ COPY public.formula_type (id, name, label_name, "order") FROM stdin;
 -- Data for Name: group; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."group" (id, name, enabled, company_id, "order") FROM stdin;
-2	Novo Grupo	t	3	1
-31	Vendas	t	1	1
-32	Outro	t	1	2
-33	Financeiro	t	1	3
-34	Chamados de TI	t	1	4
+COPY public."group" (id, name, enabled, "order", company_id) FROM stdin;
+2	Novo Grupo	t	1	3
+35	Gestão de Eventos	t	5	1
 \.
 
 
@@ -13394,76 +12136,8 @@ COPY public.invoice_date_type (id, date, "order") FROM stdin;
 -- Data for Name: kanban_card; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.kanban_card (id, created_at, updated_at, user_id, "default", company_id, form_id) FROM stdin;
-46	2019-05-29 14:20:39.664993+00	2019-05-29 14:20:39.665164+00	1	t	\N	\N
-109	2020-09-08 18:23:33.542884+00	2020-09-08 20:27:33.752696+00	1	t	\N	\N
-110	2020-12-03 16:28:13.668213+00	2020-12-03 16:28:13.668234+00	20	t	\N	\N
-44	2019-05-08 03:00:02.47247+00	2019-05-08 03:00:02.472751+00	1	t	\N	\N
-111	2020-12-03 16:28:13.703646+00	2020-12-03 16:28:13.703665+00	25	t	\N	\N
-37	2019-03-27 23:26:34.513355+00	2019-03-27 23:26:34.513544+00	9	t	\N	\N
-38	2019-03-27 23:28:41.424638+00	2019-03-27 23:28:41.424808+00	15	t	\N	\N
-43	2019-05-03 02:12:05.940544+00	2019-05-03 02:12:05.940717+00	9	t	\N	\N
-113	2020-12-03 16:28:13.746088+00	2020-12-03 16:28:13.746108+00	27	t	\N	\N
-83	2020-05-11 15:00:11.433648+00	2020-05-11 15:00:11.433847+00	20	t	\N	\N
-41	2019-03-30 19:41:15.782434+00	2019-03-30 19:41:15.782586+00	9	t	\N	\N
-29	2019-03-26 17:00:28.925932+00	2019-03-26 17:00:28.926189+00	9	t	\N	\N
-33	2019-03-26 19:25:11.95104+00	2019-03-26 19:25:11.95132+00	9	f	\N	\N
-61	2019-10-25 14:44:58.081371+00	2019-10-25 14:44:58.081547+00	1	t	\N	\N
-39	2019-03-30 19:17:58.583261+00	2019-03-30 19:17:58.583538+00	9	t	\N	\N
-36	2019-03-27 14:41:23.188459+00	2019-03-27 14:41:23.188704+00	15	t	\N	\N
-114	2021-02-01 20:34:07.47005+00	2021-02-01 20:34:07.470074+00	1	t	\N	\N
-115	2021-02-01 20:34:07.489135+00	2021-02-01 20:34:07.489154+00	20	t	\N	\N
-64	2019-12-22 14:42:50.46434+00	2019-12-22 14:42:50.464527+00	20	t	\N	\N
-65	2019-12-22 14:42:50.486977+00	2019-12-22 14:42:50.487182+00	20	t	\N	\N
-66	2019-12-22 14:42:50.510702+00	2019-12-22 14:42:50.510901+00	20	t	\N	\N
-47	2019-06-09 15:23:56.583106+00	2019-06-09 15:23:56.583253+00	1	t	\N	\N
-67	2019-12-22 14:48:39.579247+00	2019-12-22 14:48:39.579426+00	20	t	\N	\N
-34	2019-03-26 23:00:32.59915+00	2019-03-26 23:00:32.599444+00	15	t	\N	\N
-68	2019-12-22 14:51:00.951002+00	2019-12-22 14:51:00.951219+00	20	t	\N	\N
-69	2019-12-22 14:53:20.869672+00	2019-12-22 14:53:20.869859+00	20	t	\N	\N
-35	2019-03-27 02:52:23.220496+00	2019-03-27 02:52:23.220803+00	9	t	\N	\N
-10	2019-03-16 22:59:32.176372+00	2019-03-16 22:59:32.176579+00	15	f	\N	\N
-82	2020-05-04 00:58:12.857414+00	2020-05-04 00:58:12.857634+00	1	t	\N	\N
-84	2020-07-09 16:31:27.282076+00	2020-07-09 16:31:27.282103+00	20	f	\N	\N
-116	2021-02-01 20:34:07.508027+00	2021-02-01 20:34:07.508047+00	25	t	\N	\N
-70	2019-12-22 15:15:54.388689+00	2019-12-22 15:15:54.388874+00	20	t	\N	\N
-86	2020-07-09 16:31:27.335031+00	2020-07-09 16:31:27.335056+00	25	f	\N	\N
-11	2019-03-17 00:36:23.785218+00	2019-03-17 00:36:23.785453+00	9	f	\N	\N
-12	2019-03-17 22:19:31.087926+00	2019-03-17 22:19:31.088141+00	9	f	\N	\N
-42	2019-04-17 01:01:03.894885+00	2019-04-17 01:01:03.89507+00	9	t	\N	\N
-117	2021-02-01 20:34:07.526616+00	2021-02-01 20:34:07.526636+00	27	t	\N	\N
-77	2020-04-10 22:14:06.110641+00	2020-04-10 22:14:06.110838+00	1	t	\N	\N
-112	2020-12-03 16:28:13.7251+00	2021-02-27 14:35:06.191492+00	1	t	\N	\N
-57	2019-10-19 00:09:26.722948+00	2019-10-19 00:09:26.723176+00	1	t	\N	\N
-48	2019-07-11 23:38:42.955293+00	2019-07-11 23:38:42.955456+00	1	t	\N	\N
-119	2021-02-27 15:18:20.188976+00	2021-02-27 15:18:20.189003+00	1	f	\N	\N
-88	2020-07-09 17:17:09.813344+00	2020-07-09 17:17:09.813371+00	20	f	\N	\N
-62	2019-10-25 14:44:58.106671+00	2019-10-25 14:44:58.106842+00	20	t	\N	\N
-54	2019-08-14 01:13:46.63672+00	2019-08-14 01:13:46.636941+00	1	t	\N	\N
-55	2019-10-19 00:09:26.658402+00	2019-10-19 00:09:26.658622+00	20	t	\N	\N
-120	2021-03-19 15:12:00.916089+00	2021-03-19 15:12:00.916116+00	20	f	\N	\N
-121	2021-03-19 15:12:00.966373+00	2021-03-19 15:12:00.966402+00	25	f	\N	\N
-122	2021-03-19 15:12:00.995377+00	2021-03-19 15:12:00.995403+00	27	f	\N	\N
-58	2019-10-20 14:18:46.144615+00	2019-10-20 14:18:46.144803+00	20	t	\N	\N
-90	2020-07-09 17:17:09.868297+00	2020-07-09 17:17:09.868322+00	25	f	\N	\N
-91	2020-07-09 17:17:09.899651+00	2020-07-09 17:17:09.899679+00	1	f	\N	\N
-123	2021-03-19 15:12:01.022608+00	2021-03-19 17:30:00.29802+00	1	f	\N	\N
-71	2020-02-17 14:42:38.5219+00	2020-02-17 14:42:38.522084+00	20	t	\N	\N
-87	2020-07-09 16:31:27.357432+00	2020-07-10 18:13:32.025246+00	1	t	\N	\N
-92	2020-07-16 18:04:33.129327+00	2020-07-16 18:04:33.129359+00	20	f	\N	\N
-72	2020-02-17 14:43:10.626379+00	2020-02-17 14:43:10.626575+00	1	t	\N	\N
-94	2020-07-16 18:04:33.176706+00	2020-07-16 18:04:33.176737+00	25	f	\N	\N
-95	2020-07-16 18:04:33.207025+00	2020-07-16 18:04:33.207055+00	1	t	\N	\N
-96	2020-07-22 22:56:59.306037+00	2020-07-22 22:56:59.306066+00	20	f	\N	\N
-98	2020-07-22 22:56:59.374246+00	2020-07-22 22:56:59.374275+00	25	f	\N	\N
-99	2020-07-22 22:56:59.397572+00	2020-07-22 22:56:59.397595+00	1	f	\N	\N
-100	2020-07-24 13:14:47.828292+00	2020-07-24 13:14:47.828319+00	1	t	\N	\N
-101	2020-07-24 14:45:33.262989+00	2020-07-24 14:45:33.263009+00	20	f	\N	\N
-103	2020-07-24 14:45:33.307793+00	2020-07-24 14:45:33.307813+00	25	f	\N	\N
-104	2020-07-24 14:45:33.329866+00	2020-07-24 14:45:33.329886+00	1	f	\N	\N
-105	2020-07-30 15:52:34.97589+00	2020-07-30 15:52:34.975921+00	20	f	\N	\N
-107	2020-07-30 15:52:35.06883+00	2020-07-30 15:52:35.068857+00	25	f	\N	\N
-108	2020-07-30 15:52:35.091653+00	2020-07-30 15:52:35.091681+00	1	f	\N	\N
+COPY public.kanban_card (id, created_at, updated_at, "default", user_id, company_id, form_id) FROM stdin;
+124	2021-05-26 22:26:25.784764+00	2021-05-26 22:26:25.784809+00	f	1	\N	\N
 \.
 
 
@@ -13471,67 +12145,10 @@ COPY public.kanban_card (id, created_at, updated_at, user_id, "default", company
 -- Data for Name: kanban_card_field; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.kanban_card_field (id, field_id, kanban_card_id, created_at, updated_at, "order") FROM stdin;
-250	102	33	2019-03-26 19:25:11.962884+00	2021-02-24 07:42:34.252393+00	0
-251	103	33	2019-03-26 19:25:11.974453+00	2021-02-24 07:42:34.255236+00	1
-260	93	34	2019-03-26 23:00:32.61142+00	2021-02-24 07:42:34.258096+00	0
-261	95	34	2019-03-26 23:00:32.63431+00	2021-02-24 07:42:34.261735+00	1
-262	98	34	2019-03-26 23:00:32.645576+00	2021-02-24 07:42:34.264559+00	2
-266	118	37	2019-03-27 23:26:34.524243+00	2021-02-24 07:42:34.267229+00	0
-267	119	37	2019-03-27 23:26:34.534332+00	2021-02-24 07:42:34.271731+00	1
-268	120	37	2019-03-27 23:26:34.544212+00	2021-02-24 07:42:34.274512+00	2
-269	118	38	2019-03-27 23:28:41.436402+00	2021-02-24 07:42:34.277126+00	0
-270	119	38	2019-03-27 23:28:41.448055+00	2021-02-24 07:42:34.279862+00	1
-271	120	38	2019-03-27 23:28:41.459092+00	2021-02-24 07:42:34.283721+00	2
-272	101	39	2019-03-30 19:17:58.593091+00	2021-02-24 07:42:34.286437+00	0
-273	102	39	2019-03-30 19:17:58.601359+00	2021-02-24 07:42:34.289209+00	1
-274	103	39	2019-03-30 19:17:58.609437+00	2021-02-24 07:42:34.291973+00	2
-283	93	42	2019-04-17 01:01:03.902751+00	2021-02-24 07:42:34.295068+00	0
-284	95	42	2019-04-17 01:01:03.909933+00	2021-02-24 07:42:34.299114+00	1
-285	105	42	2019-04-17 01:01:03.917361+00	2021-02-24 07:42:34.301961+00	2
-286	99	42	2019-04-17 01:01:03.924524+00	2021-02-24 07:42:34.304749+00	3
-684	679	110	2020-12-03 16:28:13.674782+00	2021-02-24 07:42:34.307567+00	0
-685	684	110	2020-12-03 16:28:13.680231+00	2021-02-24 07:42:34.311729+00	1
-687	679	111	2020-12-03 16:28:13.706387+00	2021-02-24 07:42:34.314413+00	0
-688	684	111	2020-12-03 16:28:13.707473+00	2021-02-24 07:42:34.317036+00	1
-693	679	113	2020-12-03 16:28:13.74904+00	2021-02-24 07:42:34.332821+00	0
-694	684	113	2020-12-03 16:28:13.750098+00	2021-02-24 07:42:34.335676+00	1
-715	733	114	2021-02-01 20:34:07.473427+00	2021-02-24 07:42:34.33848+00	0
-716	737	114	2021-02-01 20:34:07.474627+00	2021-02-24 07:42:34.342262+00	1
-717	741	114	2021-02-01 20:34:07.475667+00	2021-02-24 07:42:34.345021+00	2
-718	738	114	2021-02-01 20:34:07.476648+00	2021-02-24 07:42:34.347787+00	3
-719	733	115	2021-02-01 20:34:07.493165+00	2021-02-24 07:42:34.350558+00	0
-720	737	115	2021-02-01 20:34:07.494188+00	2021-02-24 07:42:34.355052+00	1
-721	741	115	2021-02-01 20:34:07.495162+00	2021-02-24 07:42:34.357798+00	2
-722	738	115	2021-02-01 20:34:07.496188+00	2021-02-24 07:42:34.360543+00	3
-723	733	116	2021-02-01 20:34:07.51056+00	2021-02-24 07:42:34.363161+00	0
-724	737	116	2021-02-01 20:34:07.511673+00	2021-02-24 07:42:34.366239+00	1
-725	741	116	2021-02-01 20:34:07.512723+00	2021-02-24 07:42:34.369741+00	2
-726	738	116	2021-02-01 20:34:07.513737+00	2021-02-24 07:42:34.372507+00	3
-727	733	117	2021-02-01 20:34:07.529061+00	2021-02-24 07:42:34.375743+00	0
-728	737	117	2021-02-01 20:34:07.530069+00	2021-02-24 07:42:34.379723+00	1
-729	741	117	2021-02-01 20:34:07.531141+00	2021-02-24 07:42:34.382698+00	2
-730	738	117	2021-02-01 20:34:07.532181+00	2021-02-24 07:42:34.385514+00	3
-731	698	112	2021-02-27 14:35:06.194037+00	2021-02-27 14:35:06.194056+00	0
-732	679	112	2021-02-27 14:35:06.197721+00	2021-02-27 14:35:06.197739+00	1
-733	684	112	2021-02-27 14:35:06.198934+00	2021-02-27 14:35:06.198952+00	2
-734	731	112	2021-02-27 14:35:06.200048+00	2021-02-27 14:35:06.200066+00	3
-738	679	119	2021-02-27 15:18:20.192247+00	2021-02-27 15:18:20.192266+00	0
-739	690	119	2021-02-27 15:18:20.193628+00	2021-02-27 15:18:20.193647+00	1
-740	699	119	2021-02-27 15:18:20.194888+00	2021-02-27 15:18:20.194907+00	2
-741	745	120	2021-03-19 15:12:00.923271+00	2021-03-19 15:12:00.92329+00	0
-742	746	120	2021-03-19 15:12:00.928935+00	2021-03-19 15:12:00.928962+00	1
-743	747	120	2021-03-19 15:12:00.930176+00	2021-03-19 15:12:00.930195+00	2
-744	745	121	2021-03-19 15:12:00.969946+00	2021-03-19 15:12:00.969968+00	0
-745	746	121	2021-03-19 15:12:00.971214+00	2021-03-19 15:12:00.971232+00	1
-746	747	121	2021-03-19 15:12:00.972386+00	2021-03-19 15:12:00.972404+00	2
-747	745	122	2021-03-19 15:12:00.998084+00	2021-03-19 15:12:00.998103+00	0
-748	746	122	2021-03-19 15:12:00.999296+00	2021-03-19 15:12:00.999314+00	1
-749	747	122	2021-03-19 15:12:01.000404+00	2021-03-19 15:12:01.000421+00	2
-753	747	123	2021-03-19 17:30:00.300732+00	2021-03-19 17:30:00.300753+00	0
-754	745	123	2021-03-19 17:30:00.302058+00	2021-03-19 17:30:00.302076+00	1
-755	749	123	2021-03-19 17:30:00.303165+00	2021-03-19 17:30:00.303184+00	2
-756	746	123	2021-03-19 17:30:00.304297+00	2021-03-19 17:30:00.304315+00	3
+COPY public.kanban_card_field (id, created_at, updated_at, field_id, kanban_card_id, "order") FROM stdin;
+757	2021-05-26 22:26:25.788241+00	2021-05-26 22:26:25.788277+00	756	124	0
+758	2021-05-26 22:26:25.790831+00	2021-05-26 22:26:25.790865+00	757	124	1
+759	2021-05-26 22:26:25.791542+00	2021-05-26 22:26:25.791645+00	758	124	2
 \.
 
 
@@ -13540,7 +12157,6 @@ COPY public.kanban_card_field (id, field_id, kanban_card_id, created_at, updated
 --
 
 COPY public.kanban_collapsed_option (id, company_id, field_option_id, user_id) FROM stdin;
-6	1	2164	1
 \.
 
 
@@ -13549,12 +12165,7 @@ COPY public.kanban_collapsed_option (id, company_id, field_option_id, user_id) F
 --
 
 COPY public.kanban_default (id, company_id, form_id, kanban_card_id, kanban_dimension_id, user_id) FROM stdin;
-2	1	323	114	743	1
-3	1	329	120	748	20
-4	1	329	121	748	25
-5	1	329	122	748	27
-6	1	329	123	748	1
-1	1	308	119	689	1
+7	1	332	124	757	1
 \.
 
 
@@ -13562,51 +12173,7 @@ COPY public.kanban_default (id, company_id, form_id, kanban_card_id, kanban_dime
 -- Data for Name: kanban_dimension_order; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.kanban_dimension_order (id, options, dimension_id, user_id, "order", "default", created_at, updated_at) FROM stdin;
-737	Pago	743	1	3	t	2021-02-01 20:34:07.453764+00	2021-02-01 20:34:07.453785+00
-735	Cobrado	743	1	1	t	2021-02-01 20:34:07.445685+00	2021-02-01 20:34:07.445705+00
-736	Pendente	743	1	2	t	2021-02-01 20:34:07.448463+00	2021-02-01 20:34:07.448482+00
-734	Lançamento	743	1	0	t	2021-02-01 20:34:07.442028+00	2021-02-01 20:34:07.442054+00
-702	Cliente Potencial	689	20	0	t	2020-12-03 16:28:13.632456+00	2020-12-03 16:28:13.632479+00
-703	Contatado	689	20	1	t	2020-12-03 16:28:13.636484+00	2020-12-03 16:28:13.636502+00
-704	Reunião Marcada	689	20	2	t	2020-12-03 16:28:13.639616+00	2020-12-03 16:28:13.639634+00
-705	Proposta Feita	689	20	3	t	2020-12-03 16:28:13.64255+00	2020-12-03 16:28:13.642568+00
-706	Em negociação	689	20	4	t	2020-12-03 16:28:13.645403+00	2020-12-03 16:28:13.64542+00
-707	Fechado	689	20	5	t	2020-12-03 16:28:13.648482+00	2020-12-03 16:28:13.6485+00
-708	Perdido	689	20	6	t	2020-12-03 16:28:13.651286+00	2020-12-03 16:28:13.651303+00
-709	Cliente Potencial	689	25	0	t	2020-12-03 16:28:13.688317+00	2020-12-03 16:28:13.688335+00
-710	Contatado	689	25	1	t	2020-12-03 16:28:13.691079+00	2020-12-03 16:28:13.691097+00
-711	Reunião Marcada	689	25	2	t	2020-12-03 16:28:13.692329+00	2020-12-03 16:28:13.692346+00
-712	Proposta Feita	689	25	3	t	2020-12-03 16:28:13.693454+00	2020-12-03 16:28:13.693471+00
-713	Em negociação	689	25	4	t	2020-12-03 16:28:13.694666+00	2020-12-03 16:28:13.694688+00
-714	Fechado	689	25	5	t	2020-12-03 16:28:13.695776+00	2020-12-03 16:28:13.695793+00
-715	Perdido	689	25	6	t	2020-12-03 16:28:13.6969+00	2020-12-03 16:28:13.696917+00
-723	Cliente Potencial	689	27	0	t	2020-12-03 16:28:13.732991+00	2020-12-03 16:28:13.73301+00
-724	Contatado	689	27	1	t	2020-12-03 16:28:13.734176+00	2020-12-03 16:28:13.734193+00
-725	Reunião Marcada	689	27	2	t	2020-12-03 16:28:13.735283+00	2020-12-03 16:28:13.7353+00
-726	Proposta Feita	689	27	3	t	2020-12-03 16:28:13.736389+00	2020-12-03 16:28:13.73641+00
-727	Em negociação	689	27	4	t	2020-12-03 16:28:13.737521+00	2020-12-03 16:28:13.737538+00
-728	Fechado	689	27	5	t	2020-12-03 16:28:13.738669+00	2020-12-03 16:28:13.738686+00
-729	Perdido	689	27	6	t	2020-12-03 16:28:13.739768+00	2020-12-03 16:28:13.739785+00
-738	Lançamento	743	20	0	t	2021-02-01 20:34:07.479487+00	2021-02-01 20:34:07.479505+00
-739	Cobrado	743	20	1	t	2021-02-01 20:34:07.480942+00	2021-02-01 20:34:07.48096+00
-740	Pendente	743	20	2	t	2021-02-01 20:34:07.482014+00	2021-02-01 20:34:07.482032+00
-741	Pago	743	20	3	t	2021-02-01 20:34:07.483023+00	2021-02-01 20:34:07.48304+00
-742	Lançamento	743	25	0	t	2021-02-01 20:34:07.499012+00	2021-02-01 20:34:07.499031+00
-743	Cobrado	743	25	1	t	2021-02-01 20:34:07.500098+00	2021-02-01 20:34:07.500116+00
-744	Pendente	743	25	2	t	2021-02-01 20:34:07.501172+00	2021-02-01 20:34:07.501191+00
-745	Pago	743	25	3	t	2021-02-01 20:34:07.502217+00	2021-02-01 20:34:07.502236+00
-746	Lançamento	743	27	0	t	2021-02-01 20:34:07.516581+00	2021-02-01 20:34:07.5166+00
-747	Cobrado	743	27	1	t	2021-02-01 20:34:07.517993+00	2021-02-01 20:34:07.518015+00
-748	Pendente	743	27	2	t	2021-02-01 20:34:07.519194+00	2021-02-01 20:34:07.519213+00
-749	Pago	743	27	3	t	2021-02-01 20:34:07.520383+00	2021-02-01 20:34:07.520402+00
-730	Contatado	689	1	0	t	2020-12-03 16:28:28.018762+00	2021-02-17 16:08:55.079499+00
-722	Fechado	689	1	1	t	2020-12-03 16:28:13.718571+00	2021-02-17 16:08:55.080988+00
-731	Proposta	689	1	2	t	2020-12-03 16:28:28.020663+00	2021-02-17 16:08:55.082304+00
-732	Negociação	689	1	3	t	2020-12-03 16:28:28.023054+00	2021-02-17 16:08:55.083588+00
-717	Prospecção	689	1	4	t	2020-12-03 16:28:13.712673+00	2021-02-17 16:08:55.084886+00
-721	Perdido	689	1	5	t	2020-12-03 16:28:13.717423+00	2021-02-17 16:08:55.08617+00
-733	Reunião	689	1	6	t	2020-12-03 16:28:28.024759+00	2021-02-17 16:08:55.087413+00
+COPY public.kanban_dimension_order (id, created_at, updated_at, options, "order", "default", dimension_id, user_id) FROM stdin;
 \.
 
 
@@ -13697,6 +12264,14 @@ COPY public.listing_selected_fields (id, field_id, user_id, is_selected) FROM st
 2317	753	1	t
 2318	752	1	t
 2319	755	1	t
+2320	756	1	t
+2321	757	1	t
+2322	758	1	t
+2323	759	1	t
+2324	760	1	t
+2325	761	1	t
+2326	763	1	t
+2327	764	1	t
 \.
 
 
@@ -13733,276 +12308,23 @@ COPY public.notification_configuration_variable (id, field_id, notification_conf
 -- Data for Name: option_accessed_by; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.option_accessed_by (id, field_option_id, user_id, created_at, updated_at) FROM stdin;
-1369	159	6	2019-04-13 13:53:32.365181+00	2019-04-13 13:53:32.365331+00
-1370	159	12	2019-04-13 13:53:32.365515+00	2019-04-13 13:53:32.36565+00
-1371	159	13	2019-04-13 13:53:32.365826+00	2019-04-13 13:53:32.365956+00
-1372	159	10	2019-04-13 13:53:32.368308+00	2019-04-13 13:53:32.370261+00
-1047	113	6	2019-03-27 23:23:23.054618+00	2019-03-27 23:23:23.054836+00
-1048	113	12	2019-03-27 23:23:23.055087+00	2019-03-27 23:23:23.055268+00
-1373	159	8	2019-04-13 13:53:32.370533+00	2019-04-13 13:53:32.370679+00
-1051	113	13	2019-03-27 23:23:23.056332+00	2019-03-27 23:23:23.056512+00
-1052	113	10	2019-03-27 23:23:23.056737+00	2019-03-27 23:23:23.056911+00
-1053	113	8	2019-03-27 23:23:23.057134+00	2019-03-27 23:23:23.057311+00
-1054	114	6	2019-03-27 23:23:23.079927+00	2019-03-27 23:23:23.080167+00
-1055	114	12	2019-03-27 23:23:23.080427+00	2019-03-27 23:23:23.08061+00
-1374	159	15	2019-04-13 13:53:32.370845+00	2019-04-13 13:53:32.370962+00
-1058	114	13	2019-03-27 23:23:23.081697+00	2019-03-27 23:23:23.081876+00
-1059	114	10	2019-03-27 23:23:23.082105+00	2019-03-27 23:23:23.082283+00
-1060	114	8	2019-03-27 23:23:23.082516+00	2019-03-27 23:23:23.082758+00
-1061	115	6	2019-03-27 23:23:23.10349+00	2019-03-27 23:23:23.103719+00
-1062	115	12	2019-03-27 23:23:23.103978+00	2019-03-27 23:23:23.104184+00
-9111	2204	20	2021-02-27 15:19:51.290654+00	2021-02-27 15:19:51.290673+00
-1065	115	13	2019-03-27 23:23:23.105227+00	2019-03-27 23:23:23.105403+00
-1376	160	6	2019-04-13 13:53:32.387017+00	2019-04-13 13:53:32.387169+00
-1377	160	12	2019-04-13 13:53:32.387346+00	2019-04-13 13:53:32.387477+00
-1378	160	13	2019-04-13 13:53:32.387636+00	2019-04-13 13:53:32.387774+00
-1379	160	10	2019-04-13 13:53:32.387932+00	2019-04-13 13:53:32.388043+00
-1380	160	8	2019-04-13 13:53:32.388207+00	2019-04-13 13:53:32.388335+00
-1381	160	15	2019-04-13 13:53:32.388487+00	2019-04-13 13:53:32.388606+00
-9114	2204	25	2021-02-27 15:19:51.299668+00	2021-02-27 15:19:51.299687+00
-9117	2204	1	2021-02-27 15:19:51.308747+00	2021-02-27 15:19:51.308764+00
-1066	115	10	2019-03-27 23:23:23.105627+00	2019-03-27 23:23:23.105814+00
-1067	115	8	2019-03-27 23:23:23.106044+00	2019-03-27 23:23:23.10622+00
-1068	116	6	2019-03-27 23:23:23.127461+00	2019-03-27 23:23:23.127678+00
-1069	116	12	2019-03-27 23:23:23.127923+00	2019-03-27 23:23:23.128128+00
-1383	161	6	2019-04-13 13:53:32.404185+00	2019-04-13 13:53:32.404335+00
-1072	116	13	2019-03-27 23:23:23.129174+00	2019-03-27 23:23:23.129349+00
-1073	116	10	2019-03-27 23:23:23.129572+00	2019-03-27 23:23:23.129751+00
-1074	116	8	2019-03-27 23:23:23.129973+00	2019-03-27 23:23:23.130149+00
-1384	161	12	2019-04-13 13:53:32.404511+00	2019-04-13 13:53:32.404633+00
-1385	161	13	2019-04-13 13:53:32.404814+00	2019-04-13 13:53:32.404939+00
-1386	161	10	2019-04-13 13:53:32.405119+00	2019-04-13 13:53:32.405237+00
-1387	161	8	2019-04-13 13:53:32.405399+00	2019-04-13 13:53:32.405533+00
-1388	161	15	2019-04-13 13:53:32.40571+00	2019-04-13 13:53:32.405828+00
-1390	162	6	2019-04-13 13:53:32.421877+00	2019-04-13 13:53:32.422044+00
-1391	162	12	2019-04-13 13:53:32.422208+00	2019-04-13 13:53:32.422319+00
-1392	162	13	2019-04-13 13:53:32.422489+00	2019-04-13 13:53:32.422598+00
-1393	162	10	2019-04-13 13:53:32.422743+00	2019-04-13 13:53:32.422846+00
-1394	162	8	2019-04-13 13:53:32.422994+00	2019-04-13 13:53:32.423096+00
-1395	162	15	2019-04-13 13:53:32.423259+00	2019-04-13 13:53:32.42336+00
-9120	2204	27	2021-02-27 15:19:51.319493+00	2021-02-27 15:19:51.319512+00
-1439	169	6	2019-04-17 01:24:12.140379+00	2019-04-17 01:24:12.140571+00
-1440	169	12	2019-04-17 01:24:12.140736+00	2019-04-17 01:24:12.140847+00
-1441	169	13	2019-04-17 01:24:12.140987+00	2019-04-17 01:24:12.1411+00
-1442	169	10	2019-04-17 01:24:12.141237+00	2019-04-17 01:24:12.141341+00
-1443	169	8	2019-04-17 01:24:12.141478+00	2019-04-17 01:24:12.141591+00
-1444	169	15	2019-04-17 01:24:12.141728+00	2019-04-17 01:24:12.141835+00
-9137	2207	20	2021-02-27 16:51:36.455372+00	2021-02-27 16:51:36.455391+00
-1446	170	6	2019-04-17 01:24:12.160982+00	2019-04-17 01:24:12.161151+00
-1447	170	12	2019-04-17 01:24:12.161314+00	2019-04-17 01:24:12.161425+00
-1448	170	13	2019-04-17 01:24:12.161573+00	2019-04-17 01:24:12.161683+00
-963	83	15	2019-03-22 03:56:23.138909+00	2019-03-27 23:47:37.532491+00
-1449	170	10	2019-04-17 01:24:12.161825+00	2019-04-17 01:24:12.161934+00
-965	88	15	2019-03-22 03:56:23.177494+00	2019-03-27 23:47:37.556213+00
-1049	113	15	2019-03-27 23:23:23.055498+00	2019-03-27 23:47:37.568772+00
-1450	170	8	2019-04-17 01:24:12.16207+00	2019-04-17 01:24:12.162172+00
-1451	170	15	2019-04-17 01:24:12.162305+00	2019-04-17 01:24:12.162409+00
-9138	2207	25	2021-02-27 16:51:36.455431+00	2021-02-27 16:51:36.455442+00
-1453	171	6	2019-04-17 01:24:12.179878+00	2019-04-17 01:24:12.180049+00
-1454	171	12	2019-04-17 01:24:12.18021+00	2019-04-17 01:24:12.180329+00
-1455	171	13	2019-04-17 01:24:12.180474+00	2019-04-17 01:24:12.180582+00
-1456	171	10	2019-04-17 01:24:12.180719+00	2019-04-17 01:24:12.180832+00
-1457	171	8	2019-04-17 01:24:12.180965+00	2019-04-17 01:24:12.181067+00
-1458	171	15	2019-04-17 01:24:12.181211+00	2019-04-17 01:24:12.181317+00
-9139	2207	1	2021-02-27 16:51:36.455458+00	2021-02-27 16:51:36.455466+00
-1460	172	6	2019-04-17 01:24:12.197106+00	2019-04-17 01:24:12.197266+00
-1461	172	12	2019-04-17 01:24:12.197433+00	2019-04-17 01:24:12.197544+00
-1462	172	13	2019-04-17 01:24:12.197697+00	2019-04-17 01:24:12.197809+00
-1334	154	6	2019-04-13 13:44:25.283709+00	2019-04-13 13:44:25.283918+00
-1335	154	12	2019-04-13 13:44:25.284153+00	2019-04-13 13:44:25.284308+00
-1336	154	13	2019-04-13 13:44:25.284485+00	2019-04-13 13:44:25.284648+00
-1337	154	10	2019-04-13 13:44:25.284829+00	2019-04-13 13:44:25.284973+00
-1338	154	8	2019-04-13 13:44:25.285177+00	2019-04-13 13:44:25.285315+00
-1339	154	15	2019-04-13 13:44:25.285504+00	2019-04-13 13:44:25.285638+00
-9140	2207	27	2021-02-27 16:51:36.455481+00	2021-02-27 16:51:36.455488+00
-1341	155	6	2019-04-13 13:44:25.300995+00	2019-04-13 13:44:25.301165+00
-1463	172	10	2019-04-17 01:24:12.197945+00	2019-04-17 01:24:12.198052+00
-1464	172	8	2019-04-17 01:24:12.198193+00	2019-04-17 01:24:12.198297+00
-1465	172	15	2019-04-17 01:24:12.198437+00	2019-04-17 01:24:12.198571+00
-8925	2158	20	2020-12-03 16:28:13.617554+00	2020-12-03 16:28:13.617592+00
-1467	173	6	2019-04-17 01:24:12.215513+00	2019-04-17 01:24:12.215677+00
-1468	173	12	2019-04-17 01:24:12.215843+00	2019-04-17 01:24:12.215956+00
-1469	173	13	2019-04-17 01:24:12.216094+00	2019-04-17 01:24:12.2162+00
-1470	173	10	2019-04-17 01:24:12.216341+00	2019-04-17 01:24:12.216449+00
-1471	173	8	2019-04-17 01:24:12.216584+00	2019-04-17 01:24:12.216688+00
-1472	173	15	2019-04-17 01:24:12.216822+00	2019-04-17 01:24:12.21693+00
-8926	2158	25	2020-12-03 16:28:13.617618+00	2020-12-03 16:28:13.617627+00
-8927	2158	1	2020-12-03 16:28:13.617644+00	2020-12-03 16:28:13.617652+00
-8928	2158	27	2020-12-03 16:28:13.617667+00	2020-12-03 16:28:13.617675+00
-8929	2159	20	2020-12-03 16:28:13.617689+00	2020-12-03 16:28:13.617696+00
-8930	2159	25	2020-12-03 16:28:13.617711+00	2020-12-03 16:28:13.617718+00
-8931	2159	1	2020-12-03 16:28:13.617733+00	2020-12-03 16:28:13.617741+00
-1342	155	12	2019-04-13 13:44:25.301367+00	2019-04-13 13:44:25.301515+00
-1343	155	13	2019-04-13 13:44:25.302475+00	2019-04-13 13:44:25.302649+00
-1344	155	10	2019-04-13 13:44:25.302843+00	2019-04-13 13:44:25.30298+00
-1345	155	8	2019-04-13 13:44:25.303181+00	2019-04-13 13:44:25.303312+00
-1346	155	15	2019-04-13 13:44:25.303483+00	2019-04-13 13:44:25.303618+00
-9149	2210	20	2021-02-27 16:52:32.441713+00	2021-02-27 16:52:32.441732+00
-1348	156	6	2019-04-13 13:44:25.31819+00	2019-04-13 13:44:25.318373+00
-9150	2210	25	2021-02-27 16:52:32.441757+00	2021-02-27 16:52:32.441766+00
-9151	2210	1	2021-02-27 16:52:32.441782+00	2021-02-27 16:52:32.441789+00
-9152	2210	27	2021-02-27 16:52:32.441804+00	2021-02-27 16:52:32.441811+00
-1349	156	12	2019-04-13 13:44:25.318598+00	2019-04-13 13:44:25.318755+00
-1350	156	13	2019-04-13 13:44:25.31895+00	2019-04-13 13:44:25.319088+00
-1351	156	10	2019-04-13 13:44:25.319262+00	2019-04-13 13:44:25.319407+00
-1352	156	8	2019-04-13 13:44:25.319581+00	2019-04-13 13:44:25.319715+00
-1353	156	15	2019-04-13 13:44:25.319902+00	2019-04-13 13:44:25.320046+00
-1355	157	6	2019-04-13 13:44:25.434891+00	2019-04-13 13:44:25.435383+00
-1356	157	12	2019-04-13 13:44:25.435603+00	2019-04-13 13:44:25.435747+00
-1357	157	13	2019-04-13 13:44:25.435931+00	2019-04-13 13:44:25.436074+00
-1358	157	10	2019-04-13 13:44:25.43626+00	2019-04-13 13:44:25.436393+00
-1359	157	8	2019-04-13 13:44:25.436571+00	2019-04-13 13:44:25.436712+00
-1360	157	15	2019-04-13 13:44:25.436896+00	2019-04-13 13:44:25.437035+00
-1362	158	6	2019-04-13 13:44:25.45216+00	2019-04-13 13:44:25.452333+00
-1363	158	12	2019-04-13 13:44:25.452526+00	2019-04-13 13:44:25.452664+00
-1364	158	13	2019-04-13 13:44:25.452843+00	2019-04-13 13:44:25.452988+00
-1365	158	10	2019-04-13 13:44:25.453163+00	2019-04-13 13:44:25.453297+00
-1366	158	8	2019-04-13 13:44:25.453478+00	2019-04-13 13:44:25.453613+00
-1367	158	15	2019-04-13 13:44:25.453788+00	2019-04-13 13:44:25.453928+00
-1397	163	6	2019-04-16 23:20:28.485762+00	2019-04-16 23:20:28.485919+00
-1398	163	12	2019-04-16 23:20:28.486066+00	2019-04-16 23:20:28.486175+00
-1399	163	13	2019-04-16 23:20:28.486311+00	2019-04-16 23:20:28.486412+00
-1400	163	10	2019-04-16 23:20:28.486567+00	2019-04-16 23:20:28.486672+00
-1401	163	8	2019-04-16 23:20:28.486799+00	2019-04-16 23:20:28.486905+00
-1402	163	15	2019-04-16 23:20:28.487036+00	2019-04-16 23:20:28.487143+00
-8932	2159	27	2020-12-03 16:28:13.617755+00	2020-12-03 16:28:13.617765+00
-1404	164	6	2019-04-16 23:20:28.502754+00	2019-04-16 23:20:28.502901+00
-1405	164	12	2019-04-16 23:20:28.503051+00	2019-04-16 23:20:28.503156+00
-1406	164	13	2019-04-16 23:20:28.503283+00	2019-04-16 23:20:28.503393+00
-1407	164	10	2019-04-16 23:20:28.503515+00	2019-04-16 23:20:28.503623+00
-1408	164	8	2019-04-16 23:20:28.503753+00	2019-04-16 23:20:28.503858+00
-1409	164	15	2019-04-16 23:20:28.503986+00	2019-04-16 23:20:28.504086+00
-9121	2205	20	2021-02-27 15:19:52.70523+00	2021-02-27 15:19:52.70525+00
-1411	165	6	2019-04-16 23:20:28.518433+00	2019-04-16 23:20:28.518592+00
-1412	165	12	2019-04-16 23:20:28.518733+00	2019-04-16 23:20:28.518842+00
-1413	165	13	2019-04-16 23:20:28.518978+00	2019-04-16 23:20:28.51908+00
-1414	165	10	2019-04-16 23:20:28.519218+00	2019-04-16 23:20:28.51932+00
-1415	165	8	2019-04-16 23:20:28.519444+00	2019-04-16 23:20:28.519545+00
-1416	165	15	2019-04-16 23:20:28.519677+00	2019-04-16 23:20:28.519777+00
-9122	2205	25	2021-02-27 15:19:52.712288+00	2021-02-27 15:19:52.712307+00
-1418	166	6	2019-04-16 23:20:28.567736+00	2019-04-16 23:20:28.567883+00
-1419	166	12	2019-04-16 23:20:28.568024+00	2019-04-16 23:20:28.568135+00
-1420	166	13	2019-04-16 23:20:28.568262+00	2019-04-16 23:20:28.568363+00
-1421	166	10	2019-04-16 23:20:28.568502+00	2019-04-16 23:20:28.568624+00
-1422	166	8	2019-04-16 23:20:28.568749+00	2019-04-16 23:20:28.568849+00
-1423	166	15	2019-04-16 23:20:28.568979+00	2019-04-16 23:20:28.569078+00
-9123	2205	1	2021-02-27 15:19:52.721502+00	2021-02-27 15:19:52.721522+00
-1425	167	6	2019-04-16 23:20:28.583902+00	2019-04-16 23:20:28.584035+00
-1426	167	12	2019-04-16 23:20:28.584176+00	2019-04-16 23:20:28.58435+00
-1427	167	13	2019-04-16 23:20:28.584504+00	2019-04-16 23:20:28.584599+00
-1428	167	10	2019-04-16 23:20:28.584717+00	2019-04-16 23:20:28.58484+00
-1429	167	8	2019-04-16 23:20:28.584975+00	2019-04-16 23:20:28.585076+00
-1430	167	15	2019-04-16 23:20:28.5852+00	2019-04-16 23:20:28.585298+00
-9124	2205	27	2021-02-27 15:19:52.728342+00	2021-02-27 15:19:52.728361+00
-1432	168	6	2019-04-16 23:20:28.60225+00	2019-04-16 23:20:28.602391+00
-1433	168	12	2019-04-16 23:20:28.602563+00	2019-04-16 23:20:28.602686+00
-1434	168	13	2019-04-16 23:20:28.602822+00	2019-04-16 23:20:28.60293+00
-1435	168	10	2019-04-16 23:20:28.603068+00	2019-04-16 23:20:28.603171+00
-1436	168	8	2019-04-16 23:20:28.603305+00	2019-04-16 23:20:28.603411+00
-1437	168	15	2019-04-16 23:20:28.603544+00	2019-04-16 23:20:28.603648+00
-8937	2161	20	2020-12-03 16:28:13.617867+00	2020-12-03 16:28:13.617875+00
-8938	2161	25	2020-12-03 16:28:13.617889+00	2020-12-03 16:28:13.617896+00
-8939	2161	1	2020-12-03 16:28:13.617911+00	2020-12-03 16:28:13.617918+00
-8940	2161	27	2020-12-03 16:28:13.617932+00	2020-12-03 16:28:13.617939+00
-8941	2162	20	2020-12-03 16:28:13.617954+00	2020-12-03 16:28:13.617961+00
-8942	2162	25	2020-12-03 16:28:13.617976+00	2020-12-03 16:28:13.617983+00
-8943	2162	1	2020-12-03 16:28:13.617997+00	2020-12-03 16:28:13.618005+00
-8944	2162	27	2020-12-03 16:28:13.618019+00	2020-12-03 16:28:13.618026+00
-8945	2163	20	2020-12-03 16:28:13.61804+00	2020-12-03 16:28:13.618047+00
-8946	2163	25	2020-12-03 16:28:13.618062+00	2020-12-03 16:28:13.618069+00
-8947	2163	1	2020-12-03 16:28:13.618083+00	2020-12-03 16:28:13.618091+00
-8948	2163	27	2020-12-03 16:28:13.618104+00	2020-12-03 16:28:13.618112+00
-8949	2164	20	2020-12-03 16:28:13.618126+00	2020-12-03 16:28:13.618133+00
-8950	2164	25	2020-12-03 16:28:13.618148+00	2020-12-03 16:28:13.618155+00
-8951	2164	1	2020-12-03 16:28:13.61817+00	2020-12-03 16:28:13.618177+00
-8952	2164	27	2020-12-03 16:28:13.618191+00	2020-12-03 16:28:13.618198+00
-9141	2208	20	2021-02-27 16:52:16.651256+00	2021-02-27 16:52:16.651275+00
-9142	2208	25	2021-02-27 16:52:16.6513+00	2021-02-27 16:52:16.651309+00
-9143	2208	1	2021-02-27 16:52:16.651324+00	2021-02-27 16:52:16.651332+00
-9144	2208	27	2021-02-27 16:52:16.651346+00	2021-02-27 16:52:16.651354+00
-9153	2211	20	2021-02-27 16:52:35.168178+00	2021-02-27 16:52:35.168253+00
-9154	2211	25	2021-02-27 16:52:35.168283+00	2021-02-27 16:52:35.168292+00
-9155	2211	1	2021-02-27 16:52:35.168308+00	2021-02-27 16:52:35.168316+00
-9156	2211	27	2021-02-27 16:52:35.168331+00	2021-02-27 16:52:35.168338+00
-9169	2215	20	2021-03-19 15:12:00.867065+00	2021-03-19 15:12:00.867084+00
-9170	2215	25	2021-03-19 15:12:00.867109+00	2021-03-19 15:12:00.867118+00
-9171	2215	27	2021-03-19 15:12:00.867133+00	2021-03-19 15:12:00.867141+00
-9172	2215	1	2021-03-19 15:12:00.867155+00	2021-03-19 15:12:00.867163+00
-9173	2216	20	2021-03-19 15:12:00.867178+00	2021-03-19 15:12:00.867185+00
-9174	2216	25	2021-03-19 15:12:00.867199+00	2021-03-19 15:12:00.867207+00
-9175	2216	27	2021-03-19 15:12:00.867221+00	2021-03-19 15:12:00.867229+00
-9176	2216	1	2021-03-19 15:12:00.867243+00	2021-03-19 15:12:00.86725+00
-9177	2217	20	2021-03-19 15:12:00.867265+00	2021-03-19 15:12:00.867272+00
-9178	2217	25	2021-03-19 15:12:00.867286+00	2021-03-19 15:12:00.867294+00
-9179	2217	27	2021-03-19 15:12:00.867308+00	2021-03-19 15:12:00.867315+00
-9180	2217	1	2021-03-19 15:12:00.867329+00	2021-03-19 15:12:00.867337+00
-9181	2218	20	2021-03-19 15:12:00.867351+00	2021-03-19 15:12:00.867358+00
-9182	2218	25	2021-03-19 15:12:00.867373+00	2021-03-19 15:12:00.867381+00
-9183	2218	27	2021-03-19 15:12:00.867395+00	2021-03-19 15:12:00.867403+00
-9184	2218	1	2021-03-19 15:12:00.867417+00	2021-03-19 15:12:00.867425+00
-9189	2220	20	2021-03-19 15:14:38.893328+00	2021-03-19 15:14:38.893347+00
-9190	2220	25	2021-03-19 15:14:38.893372+00	2021-03-19 15:14:38.893381+00
-9191	2220	27	2021-03-19 15:14:38.893397+00	2021-03-19 15:14:38.893405+00
-9192	2220	1	2021-03-19 15:14:38.89342+00	2021-03-19 15:14:38.893428+00
-9197	2222	20	2021-03-19 15:14:48.834378+00	2021-03-19 15:14:48.834397+00
-9198	2222	25	2021-03-19 15:14:48.834422+00	2021-03-19 15:14:48.834431+00
-9199	2222	27	2021-03-19 15:14:48.834448+00	2021-03-19 15:14:48.834455+00
-9200	2222	1	2021-03-19 15:14:48.83447+00	2021-03-19 15:14:48.834478+00
-9205	2224	20	2021-03-19 18:03:16.074005+00	2021-03-19 18:03:16.074026+00
-9206	2224	25	2021-03-19 18:03:16.074053+00	2021-03-19 18:03:16.074063+00
-9207	2224	27	2021-03-19 18:03:16.074079+00	2021-03-19 18:03:16.074088+00
-9208	2224	1	2021-03-19 18:03:16.074104+00	2021-03-19 18:03:16.074112+00
-1244	141	6	2019-04-08 00:33:10.367642+00	2019-04-08 00:33:10.367744+00
-1245	141	12	2019-04-08 00:33:10.367887+00	2019-04-08 00:33:10.367987+00
-1246	141	13	2019-04-08 00:33:10.368124+00	2019-04-08 00:33:10.368224+00
-1247	141	10	2019-04-08 00:33:10.368362+00	2019-04-08 00:33:10.368462+00
-1248	141	8	2019-04-08 00:33:10.368608+00	2019-04-08 00:33:10.368707+00
-1249	141	15	2019-04-08 00:33:10.368846+00	2019-04-08 00:33:10.368949+00
-1251	142	6	2019-04-08 00:33:10.396755+00	2019-04-08 00:33:10.39687+00
-1252	142	12	2019-04-08 00:33:10.397213+00	2019-04-08 00:33:10.397504+00
-1253	142	13	2019-04-08 00:33:10.397847+00	2019-04-08 00:33:10.398143+00
-1254	142	10	2019-04-08 00:33:10.398487+00	2019-04-08 00:33:10.398777+00
-1255	142	8	2019-04-08 00:33:10.399107+00	2019-04-08 00:33:10.399401+00
-1256	142	15	2019-04-08 00:33:10.399742+00	2019-04-08 00:33:10.400021+00
-1258	143	6	2019-04-08 00:33:10.419352+00	2019-04-08 00:33:10.419438+00
-1259	143	12	2019-04-08 00:33:10.419561+00	2019-04-08 00:33:10.419644+00
-1260	143	13	2019-04-08 00:33:10.419765+00	2019-04-08 00:33:10.419845+00
-1261	143	10	2019-04-08 00:33:10.419965+00	2019-04-08 00:33:10.420046+00
-1262	143	8	2019-04-08 00:33:10.420166+00	2019-04-08 00:33:10.420246+00
-1263	143	15	2019-04-08 00:33:10.420372+00	2019-04-08 00:33:10.420455+00
-9127	2206	20	2021-02-27 15:20:30.075886+00	2021-02-27 15:20:30.075904+00
-9130	2206	25	2021-02-27 15:20:30.084864+00	2021-02-27 15:20:30.084882+00
-9133	2206	1	2021-02-27 15:20:30.094212+00	2021-02-27 15:20:30.09423+00
-9136	2206	27	2021-02-27 15:20:30.103312+00	2021-02-27 15:20:30.10333+00
-9145	2209	20	2021-02-27 16:52:29.938705+00	2021-02-27 16:52:29.938725+00
-9146	2209	25	2021-02-27 16:52:29.93875+00	2021-02-27 16:52:29.938759+00
-9147	2209	1	2021-02-27 16:52:29.938775+00	2021-02-27 16:52:29.938782+00
-9148	2209	27	2021-02-27 16:52:29.938797+00	2021-02-27 16:52:29.938805+00
-9185	2219	20	2021-03-19 15:14:33.798068+00	2021-03-19 15:14:33.798088+00
-9186	2219	25	2021-03-19 15:14:33.798113+00	2021-03-19 15:14:33.798122+00
-9187	2219	27	2021-03-19 15:14:33.798137+00	2021-03-19 15:14:33.798145+00
-9188	2219	1	2021-03-19 15:14:33.798159+00	2021-03-19 15:14:33.798166+00
-9193	2221	20	2021-03-19 15:14:43.994134+00	2021-03-19 15:14:43.994153+00
-9194	2221	25	2021-03-19 15:14:43.994178+00	2021-03-19 15:14:43.994186+00
-9195	2221	27	2021-03-19 15:14:43.994202+00	2021-03-19 15:14:43.99421+00
-9196	2221	1	2021-03-19 15:14:43.994225+00	2021-03-19 15:14:43.994232+00
-9201	2223	20	2021-03-19 15:14:54.282376+00	2021-03-19 15:14:54.282395+00
-9202	2223	25	2021-03-19 15:14:54.28242+00	2021-03-19 15:14:54.282429+00
-9203	2223	27	2021-03-19 15:14:54.282444+00	2021-03-19 15:14:54.282451+00
-9204	2223	1	2021-03-19 15:14:54.282466+00	2021-03-19 15:14:54.282473+00
-9209	2225	20	2021-03-19 18:03:21.639722+00	2021-03-19 18:03:21.639743+00
-9210	2225	25	2021-03-19 18:03:21.639769+00	2021-03-19 18:03:21.639779+00
-9211	2225	27	2021-03-19 18:03:21.639795+00	2021-03-19 18:03:21.639804+00
-9212	2225	1	2021-03-19 18:03:21.639819+00	2021-03-19 18:03:21.639827+00
-9213	2226	20	2021-03-19 18:03:21.639842+00	2021-03-19 18:03:21.63985+00
-9214	2226	25	2021-03-19 18:03:21.639865+00	2021-03-19 18:03:21.639873+00
-9215	2226	27	2021-03-19 18:03:21.639888+00	2021-03-19 18:03:21.639896+00
-9216	2226	1	2021-03-19 18:03:21.639911+00	2021-03-19 18:03:21.639918+00
-9089	2199	20	2021-02-24 13:56:44.280936+00	2021-02-24 13:56:44.280955+00
-9090	2199	1	2021-02-24 13:56:44.28098+00	2021-02-24 13:56:44.280989+00
-9091	2199	25	2021-02-24 13:56:44.281005+00	2021-02-24 13:56:44.281012+00
-9092	2199	27	2021-02-24 13:56:44.281027+00	2021-02-24 13:56:44.281034+00
+COPY public.option_accessed_by (id, created_at, updated_at, field_option_id, user_id) FROM stdin;
+9217	2021-05-22 19:56:49.146471+00	2021-05-22 19:56:49.146534+00	2227	20
+9218	2021-05-22 19:56:49.146567+00	2021-05-22 19:56:49.146577+00	2227	25
+9219	2021-05-22 19:56:49.146597+00	2021-05-22 19:56:49.146607+00	2227	27
+9220	2021-05-22 19:56:49.146626+00	2021-05-22 19:56:49.146635+00	2227	1
+9221	2021-05-22 19:56:58.859064+00	2021-05-22 19:56:58.859083+00	2228	20
+9222	2021-05-22 19:56:58.85911+00	2021-05-22 19:56:58.85912+00	2228	25
+9223	2021-05-22 19:56:58.85914+00	2021-05-22 19:56:58.859149+00	2228	27
+9224	2021-05-22 19:56:58.859169+00	2021-05-22 19:56:58.859182+00	2228	1
+9225	2021-05-22 19:56:58.859201+00	2021-05-22 19:56:58.859211+00	2229	20
+9226	2021-05-22 19:56:58.85923+00	2021-05-22 19:56:58.859239+00	2229	25
+9227	2021-05-22 19:56:58.859258+00	2021-05-22 19:56:58.859268+00	2229	27
+9228	2021-05-22 19:56:58.859287+00	2021-05-22 19:56:58.859296+00	2229	1
+9229	2021-05-22 19:57:01.985263+00	2021-05-22 19:57:01.985297+00	2230	20
+9230	2021-05-22 19:57:01.985333+00	2021-05-22 19:57:01.985344+00	2230	25
+9231	2021-05-22 19:57:01.985365+00	2021-05-22 19:57:01.985374+00	2230	27
+9232	2021-05-22 19:57:01.985394+00	2021-05-22 19:57:01.985404+00	2230	1
 \.
 
 
@@ -14181,11 +12503,11 @@ COPY public.pre_notification (id, "when", notification_configuration_id, user_id
 -- Data for Name: profiles; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.profiles (id, name, can_edit, label_name, "order") FROM stdin;
-2	coordinator	t	Coordenador	1
-3	admin	t	Admin	1
-4	simple_user	t	Analista	1
-1	Technician	f	\N	1
+COPY public.profiles (id, name, label_name, can_edit, "order") FROM stdin;
+2	coordinator	Coordenador	t	1
+3	admin	Admin	t	1
+4	simple_user	Analista	t	1
+1	Technician	\N	f	1
 \.
 
 
@@ -14194,7 +12516,6 @@ COPY public.profiles (id, name, can_edit, label_name, "order") FROM stdin;
 --
 
 COPY public.public_access (id, public_key, company_id, user_id) FROM stdin;
-1	69cccf21-a116-4308-a1c0-76898b895cda	1	1
 \.
 
 
@@ -14203,14 +12524,6 @@ COPY public.public_access (id, public_key, company_id, user_id) FROM stdin;
 --
 
 COPY public.public_access_field (id, field_id, public_access_id, public_form_id) FROM stdin;
-11	678	1	3
-14	683	1	3
-15	687	1	3
-23	753	1	3
-32	690	1	9
-33	679	1	9
-34	693	1	9
-37	689	1	9
 \.
 
 
@@ -14219,8 +12532,6 @@ COPY public.public_access_field (id, field_id, public_access_id, public_form_id)
 --
 
 COPY public.public_access_form (id, form_id, public_access_id, description_message, greetings_message, is_to_submit_another_response_button) FROM stdin;
-3	309	1	Formulário para solicitação de contato	Em breve entraremos em contato!	t
-9	308	1	Formulário de solicitação de contato.	Obrigado! Em breve entraremos em contato!	f
 \.
 
 
@@ -16430,6 +14741,14 @@ COPY public.theme_form (id, created_at, updated_at, form_name, label_name, "orde
 
 
 --
+-- Data for Name: theme_formula_variable; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.theme_formula_variable (id, "order", field_id, variable_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: theme_kanban_card; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -16687,7 +15006,6 @@ COPY public.theme_type (id, name, label_name, "order") FROM stdin;
 7	operations	Operações	1
 8	projects	Projetos	1
 9	finance	Financeiro	1
-5	design	Design	1
 \.
 
 
@@ -16696,70 +15014,6 @@ COPY public.theme_type (id, name, label_name, "order") FROM stdin;
 --
 
 COPY public.user_accessed_by (id, created_at, updated_at, field_id, user_id, user_option_id) FROM stdin;
-1	2021-05-10 01:28:11.95112+00	2021-05-10 01:28:11.951146+00	751	18	18
-2	2021-05-10 01:28:11.958213+00	2021-05-10 01:28:11.958233+00	751	18	20
-3	2021-05-10 01:28:11.964208+00	2021-05-10 01:28:11.964227+00	751	18	9
-4	2021-05-10 01:28:11.970139+00	2021-05-10 01:28:11.970159+00	751	18	16
-5	2021-05-10 01:28:11.97627+00	2021-05-10 01:28:11.976291+00	751	18	17
-6	2021-05-10 01:28:11.983772+00	2021-05-10 01:28:11.983793+00	751	18	25
-7	2021-05-10 01:28:11.990518+00	2021-05-10 01:28:11.990539+00	751	18	27
-8	2021-05-10 01:28:11.996457+00	2021-05-10 01:28:11.996477+00	751	18	1
-9	2021-05-10 01:28:12.002721+00	2021-05-10 01:28:12.002747+00	751	20	18
-10	2021-05-10 01:28:12.012432+00	2021-05-10 01:28:12.012458+00	751	20	20
-11	2021-05-10 01:28:12.018863+00	2021-05-10 01:28:12.018891+00	751	20	9
-12	2021-05-10 01:28:12.025353+00	2021-05-10 01:28:12.025378+00	751	20	16
-13	2021-05-10 01:28:12.032594+00	2021-05-10 01:28:12.032617+00	751	20	17
-14	2021-05-10 01:28:12.039121+00	2021-05-10 01:28:12.039144+00	751	20	25
-15	2021-05-10 01:28:12.045522+00	2021-05-10 01:28:12.045547+00	751	20	27
-16	2021-05-10 01:28:12.051969+00	2021-05-10 01:28:12.05199+00	751	20	1
-17	2021-05-10 01:28:12.060241+00	2021-05-10 01:28:12.060265+00	751	9	18
-18	2021-05-10 01:28:12.067593+00	2021-05-10 01:28:12.067615+00	751	9	20
-19	2021-05-10 01:28:12.074426+00	2021-05-10 01:28:12.074447+00	751	9	9
-20	2021-05-10 01:28:12.081488+00	2021-05-10 01:28:12.08151+00	751	9	16
-21	2021-05-10 01:28:12.087651+00	2021-05-10 01:28:12.087672+00	751	9	17
-22	2021-05-10 01:28:12.094269+00	2021-05-10 01:28:12.094293+00	751	9	25
-23	2021-05-10 01:28:12.100689+00	2021-05-10 01:28:12.100711+00	751	9	27
-24	2021-05-10 01:28:12.108044+00	2021-05-10 01:28:12.108068+00	751	9	1
-25	2021-05-10 01:28:12.116874+00	2021-05-10 01:28:12.1169+00	751	16	18
-26	2021-05-10 01:28:12.123464+00	2021-05-10 01:28:12.123488+00	751	16	20
-27	2021-05-10 01:28:12.132222+00	2021-05-10 01:28:12.132249+00	751	16	9
-28	2021-05-10 01:28:12.138889+00	2021-05-10 01:28:12.138912+00	751	16	16
-29	2021-05-10 01:28:12.145162+00	2021-05-10 01:28:12.145186+00	751	16	17
-30	2021-05-10 01:28:12.151343+00	2021-05-10 01:28:12.151365+00	751	16	25
-31	2021-05-10 01:28:12.157536+00	2021-05-10 01:28:12.15756+00	751	16	27
-32	2021-05-10 01:28:12.163947+00	2021-05-10 01:28:12.163971+00	751	16	1
-33	2021-05-10 01:28:12.169922+00	2021-05-10 01:28:12.169942+00	751	17	18
-34	2021-05-10 01:28:12.180155+00	2021-05-10 01:28:12.180189+00	751	17	20
-35	2021-05-10 01:28:12.186684+00	2021-05-10 01:28:12.186707+00	751	17	9
-36	2021-05-10 01:28:12.194065+00	2021-05-10 01:28:12.194095+00	751	17	16
-37	2021-05-10 01:28:12.200506+00	2021-05-10 01:28:12.200531+00	751	17	17
-38	2021-05-10 01:28:12.206812+00	2021-05-10 01:28:12.206872+00	751	17	25
-39	2021-05-10 01:28:12.213416+00	2021-05-10 01:28:12.21344+00	751	17	27
-40	2021-05-10 01:28:12.219702+00	2021-05-10 01:28:12.21973+00	751	17	1
-41	2021-05-10 01:28:12.226283+00	2021-05-10 01:28:12.226306+00	751	25	18
-42	2021-05-10 01:28:12.23316+00	2021-05-10 01:28:12.233205+00	751	25	20
-43	2021-05-10 01:28:12.239559+00	2021-05-10 01:28:12.239579+00	751	25	9
-44	2021-05-10 01:28:12.245939+00	2021-05-10 01:28:12.245958+00	751	25	16
-45	2021-05-10 01:28:12.25227+00	2021-05-10 01:28:12.252291+00	751	25	17
-46	2021-05-10 01:28:12.25852+00	2021-05-10 01:28:12.258539+00	751	25	25
-47	2021-05-10 01:28:12.264672+00	2021-05-10 01:28:12.26469+00	751	25	27
-48	2021-05-10 01:28:12.271395+00	2021-05-10 01:28:12.271415+00	751	25	1
-49	2021-05-10 01:28:12.277412+00	2021-05-10 01:28:12.27743+00	751	27	18
-50	2021-05-10 01:28:12.283344+00	2021-05-10 01:28:12.283363+00	751	27	20
-51	2021-05-10 01:28:12.289368+00	2021-05-10 01:28:12.289388+00	751	27	9
-52	2021-05-10 01:28:12.295757+00	2021-05-10 01:28:12.295776+00	751	27	16
-53	2021-05-10 01:28:12.305262+00	2021-05-10 01:28:12.305283+00	751	27	17
-54	2021-05-10 01:28:12.311529+00	2021-05-10 01:28:12.31155+00	751	27	25
-55	2021-05-10 01:28:12.318204+00	2021-05-10 01:28:12.318226+00	751	27	27
-56	2021-05-10 01:28:12.324276+00	2021-05-10 01:28:12.324309+00	751	27	1
-57	2021-05-10 01:28:12.330749+00	2021-05-10 01:28:12.330767+00	751	1	18
-58	2021-05-10 01:28:12.337079+00	2021-05-10 01:28:12.337099+00	751	1	20
-59	2021-05-10 01:28:12.34376+00	2021-05-10 01:28:12.343836+00	751	1	9
-60	2021-05-10 01:28:12.350063+00	2021-05-10 01:28:12.350083+00	751	1	16
-61	2021-05-10 01:28:12.35627+00	2021-05-10 01:28:12.35629+00	751	1	17
-62	2021-05-10 01:28:12.362097+00	2021-05-10 01:28:12.362116+00	751	1	25
-63	2021-05-10 01:28:12.371566+00	2021-05-10 01:28:12.37159+00	751	1	27
-64	2021-05-10 01:28:12.378064+00	2021-05-10 01:28:12.378086+00	751	1	1
 \.
 
 
@@ -16775,28 +15029,28 @@ COPY public.user_notification (id, created_at, updated_at, notification_id, user
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.users (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined, phone, is_admin, company_id, profile_id, temp_password, data_type_id, timezone) FROM stdin;
-18	pbkdf2_sha256$120000$LsI9UJ5mxt9F$1U+9PthPE937MkIAXD5Hbb0PtqfGyRnv8onp/nqMoBo=	\N	f	[18]nicolasmelo12@gmail.com	asdasdasd	Teste	nicolasmelo12@gmail.com	f	f	2019-05-07 17:57:32.143744+00	11111111	f	1	3	\N	\N	-3
-12	pbkdf2_sha256$120000$BLU7k0dyVlYF$DenUAO2ujLjqxAPRqbG87WEFsvl+4FaG8IB/UQJJn08=	\N	f	justnava@hotmail.com	Naget	Melo	justnava@hotmail.com	f	t	2019-01-26 23:43:15.576961+00	11111111	f	3	3	\N	\N	-3
-24	pbkdf2_sha256$150000$FceNIQGma28P$31E81Cl8hXfVp+vE4LJtoDtoR+bC84030UFIIWREpj4=	2019-11-05 16:48:35.416909+00	f	teste@teste123.com.br	Nicolas	Melo	teste@teste123.com.br	f	t	2019-11-05 16:48:17.065573+00	1123123123	f	8	3	\N	\N	-3
-13	pbkdf2_sha256$120000$jfk4wQfTxwvz$xlPjptsdFfXvF3Go5WGcs9kYAKT3p/lVI8kYuptJzG0=	\N	f	lleal.melo@gmail.com	LUCAS	DE MELO	lleal.melo@gmail.com	f	t	2019-02-02 17:25:39.310883+00	11111111	f	3	3	\N	\N	-3
-20	pbkdf2_sha256$150000$14glOygLdx26$e+hj9UNbbZ5cfCJ3mrx0va4nHwOxBDNKA7zWvE8DZcU=	2019-05-27 18:57:46.506701+00	f	nicolas.melo@usp.br	Reflow	Teste	nicolas.melo@usp.br	f	t	2019-05-07 19:18:33.2047+00	11111111	f	1	4	\N	2	-3
-23	pbkdf2_sha256$150000$I0fvTQ7hi0Qx$+0bdjfkjvTWGXKwR2Aecpzabu9upl7zwLufAOGkNTKI=	\N	f	lleal.melo@outlook.com	asdasda	asdasdasd	lleal.melo@outlook.com	f	t	2019-07-29 19:00:39.579262+00	11111111	f	7	3	\N	\N	-3
-9	pbkdf2_sha256$120000$Dogfa99vv3P1$hPT3z5DVQl4u9xKr7PZQ9XStCbaEL5JkCWcVcywG/DI=	2019-05-03 01:51:32.940119+00	t	[9]nicolasmelo12@gmail.com	Nicolas	Melo	nicolasmelo12@gmail.com	t	f	2018-07-18 06:50:19.733+00		t	1	3	\N	\N	-3
-16	pbkdf2_sha256$120000$XYdlMFYFMJgX$0rXpIWvlQT1aJcTpKu2PqPbiX/NsfFlnGlbSZMGrAKQ=	\N	f	[16]nicolasmelo12@gmail.com	Nicolas	Melo	nicolasmelo12@gmail.com	f	f	2019-05-07 16:08:01.614617+00	11111111	f	1	3	\N	\N	-3
-17	pbkdf2_sha256$120000$dcsYq81dTvFj$bCVQFNiG+hrofboavSNEpf6LMre+E1uriV4S19yAwSM=	\N	f	[17]nicolasmelo12@gmail.com	asdasdasd	Teste	nicolasmelo12@gmail.com	f	f	2019-05-07 16:23:13.391075+00	11111111	f	1	3	\N	\N	-3
-22	pbkdf2_sha256$150000$iLkoiAYVAZeT$rnFa7WwOulx8gTN0FJ9JPurQzKULmluLyydUcb3xtK0=	2019-07-28 15:01:44.307286+00	f	reflow.crm@gmail.com	asdasdasdasd	asdasdasdasdasd	reflow.crm@gmail.com	f	t	2019-07-28 14:25:22.138575+00	11111111	f	6	3	\N	\N	-3
-25		\N	f	barack.obama@gmail.com	Barack	Obama	barack.obama@gmail.com	f	t	2020-05-18 01:12:23.468094+00	\N	f	1	2	pbkdf2_sha256$150000$UeaXCrNJN6Hx$WkVJb7Gp9+lcinWHjAc0l1AQwJFe8BeovisHo/4HiAQ=	\N	-3
-27		\N	f	nicolasmelo12@gmail.com	Nicolas	Melo	nicolasmelo12@gmail.com	f	t	2020-08-19 19:17:19.608669+00	\N	f	1	3	eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MjcsImV4cCI6MTU5Nzk1MTAzOSwidHlwZSI6ImFjY2VzcyJ9.tHUxE9tcC06DW6fnkvHLP8sC7vyeU95pHo-mS7ikdsg	\N	-3
-7	pbkdf2_sha256$120000$Hldnl21KrszQ$jEZT+4cFz7LnQ/Iuq3J4U428nKXFBULTLLA9krMNC30=	2019-01-03 06:15:43.131235+00	f	[7]nicolas.melo@99app.com	Nicolas Teste	Teste	nicolas.melo@99app.com	f	f	2019-01-03 06:14:50.851429+00	11111111	f	3	2	\N	\N	-3
-6	pbkdf2_sha256$120000$v8EhCRTv8xum$7/j2RqzVzctp8R/xfMQO0zJbttmCiMM/Rc1WEdDVJn4=	\N	f	patricia.sbena@gmail.com	Patricia	Bena	patricia.sbena@gmail.com	f	t	2018-12-29 11:29:59.929555+00	11111111	f	3	2	\N	\N	-3
-5	Luquinha123	2018-12-26 23:13:53+00	t	[5]luksinho1	Lucas	Leal	lleal_melo@hotmail.com	t	f	2018-12-26 23:13:36+00	11970852396	t	3	2	\N	\N	-3
-11	pbkdf2_sha256$120000$6B49SSiHPEEt$w1rMdWE54UH31FGwcE++W0fXUaqOzlMMJIxh5zaZR/8=	2019-01-13 21:12:13.1123+00	f	[11]mbenevides@berkley.com.br	Marcelo	Benevides	mbenevides@berkley.com.br	f	f	2019-01-13 21:09:54.542836+00	11111111	f	3	2	\N	\N	-3
-10	pbkdf2_sha256$120000$puMilRr2oXoD$wytSo5p9qnUOjznOMiG55WW6EKb9bzbP0VcsbIgG2yE=	\N	f	viviane.gennari@hotmail.com	Viviane	Gennari	viviane.gennari@hotmail.com	f	t	2019-01-05 18:35:45.532371+00	11111111	f	3	2	\N	\N	-3
-1	pbkdf2_sha256$216000$YH66ExJGPLPO$KdZ/UNZW0qbdPub0o0ydXb7iAzQcWGcUSu1EacjqGdc=	2021-05-21 12:40:17.300516+00	t	reflow@reflow.com.br	reflow	admin	reflow@reflow.com.br	t	t	2019-03-20 21:23:25.369+00	\N	t	1	3	eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNTk4OTEzNTcxLCJ0eXBlIjoiYWNjZXNzIn0.6P0Kw-S2n3RMRGMLJsekwomjlghnDWw-X4bNM1OQ_98	2	-3
-8	pbkdf2_sha256$120000$RxHxxFpnsJoe$N/KX52vCgL2rgdp3DZZhYq1UFrHp4XqAMCN/JdVmmFc=	2019-02-21 14:12:23.556747+00	f	nicolas.melo@99app.com	Samuel Ribeiro	Leal	nicolas.melo@99app.com	f	t	2019-01-03 16:28:23.951029+00	11111111	f	3	2	\N	\N	-3
-15	pbkdf2_sha256$120000$G6812SV2eIRG$FVjP0LANR3E4nuQEOHvYxVysMg/2ScVFiO/YRrO7v0I=	2019-04-21 19:31:23.646582+00	f	lleal_melo@hotmail.com	Lucas	Melo	lleal_melo@hotmail.com	f	t	2019-02-22 13:08:23.445408+00	11111111	f	3	2	\N	\N	-3
-28	pbkdf2_sha256$216000$dXKkA5ZwjXaZ$WfkGqr01uVdyewbx2IwdtmaWJQLRm8BradISKXakJNM=	2020-10-04 01:52:41.537169+00	f	teste123@teste.com	teste	teste123	teste123@teste.com	f	t	2020-09-29 23:01:05.308641+00	11970852396	f	9	3	\N	\N	-3
+COPY public.users (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined, phone, timezone, is_admin, temp_password, company_id, data_type_id, profile_id) FROM stdin;
+18	pbkdf2_sha256$120000$LsI9UJ5mxt9F$1U+9PthPE937MkIAXD5Hbb0PtqfGyRnv8onp/nqMoBo=	\N	f	[18]nicolasmelo12@gmail.com	asdasdasd	Teste	nicolasmelo12@gmail.com	f	f	2019-05-07 17:57:32.143744+00	11111111	-3	f	\N	1	\N	3
+12	pbkdf2_sha256$120000$BLU7k0dyVlYF$DenUAO2ujLjqxAPRqbG87WEFsvl+4FaG8IB/UQJJn08=	\N	f	justnava@hotmail.com	Naget	Melo	justnava@hotmail.com	f	t	2019-01-26 23:43:15.576961+00	11111111	-3	f	\N	3	\N	3
+24	pbkdf2_sha256$150000$FceNIQGma28P$31E81Cl8hXfVp+vE4LJtoDtoR+bC84030UFIIWREpj4=	2019-11-05 16:48:35.416909+00	f	teste@teste123.com.br	Nicolas	Melo	teste@teste123.com.br	f	t	2019-11-05 16:48:17.065573+00	1123123123	-3	f	\N	8	\N	3
+13	pbkdf2_sha256$120000$jfk4wQfTxwvz$xlPjptsdFfXvF3Go5WGcs9kYAKT3p/lVI8kYuptJzG0=	\N	f	lleal.melo@gmail.com	LUCAS	DE MELO	lleal.melo@gmail.com	f	t	2019-02-02 17:25:39.310883+00	11111111	-3	f	\N	3	\N	3
+20	pbkdf2_sha256$150000$14glOygLdx26$e+hj9UNbbZ5cfCJ3mrx0va4nHwOxBDNKA7zWvE8DZcU=	2019-05-27 18:57:46.506701+00	f	nicolas.melo@usp.br	Reflow	Teste	nicolas.melo@usp.br	f	t	2019-05-07 19:18:33.2047+00	11111111	-3	f	\N	1	2	4
+23	pbkdf2_sha256$150000$I0fvTQ7hi0Qx$+0bdjfkjvTWGXKwR2Aecpzabu9upl7zwLufAOGkNTKI=	\N	f	lleal.melo@outlook.com	asdasda	asdasdasd	lleal.melo@outlook.com	f	t	2019-07-29 19:00:39.579262+00	11111111	-3	f	\N	7	\N	3
+9	pbkdf2_sha256$120000$Dogfa99vv3P1$hPT3z5DVQl4u9xKr7PZQ9XStCbaEL5JkCWcVcywG/DI=	2019-05-03 01:51:32.940119+00	t	[9]nicolasmelo12@gmail.com	Nicolas	Melo	nicolasmelo12@gmail.com	t	f	2018-07-18 06:50:19.733+00		-3	t	\N	1	\N	3
+16	pbkdf2_sha256$120000$XYdlMFYFMJgX$0rXpIWvlQT1aJcTpKu2PqPbiX/NsfFlnGlbSZMGrAKQ=	\N	f	[16]nicolasmelo12@gmail.com	Nicolas	Melo	nicolasmelo12@gmail.com	f	f	2019-05-07 16:08:01.614617+00	11111111	-3	f	\N	1	\N	3
+17	pbkdf2_sha256$120000$dcsYq81dTvFj$bCVQFNiG+hrofboavSNEpf6LMre+E1uriV4S19yAwSM=	\N	f	[17]nicolasmelo12@gmail.com	asdasdasd	Teste	nicolasmelo12@gmail.com	f	f	2019-05-07 16:23:13.391075+00	11111111	-3	f	\N	1	\N	3
+22	pbkdf2_sha256$150000$iLkoiAYVAZeT$rnFa7WwOulx8gTN0FJ9JPurQzKULmluLyydUcb3xtK0=	2019-07-28 15:01:44.307286+00	f	reflow.crm@gmail.com	asdasdasdasd	asdasdasdasdasd	reflow.crm@gmail.com	f	t	2019-07-28 14:25:22.138575+00	11111111	-3	f	\N	6	\N	3
+25		\N	f	barack.obama@gmail.com	Barack	Obama	barack.obama@gmail.com	f	t	2020-05-18 01:12:23.468094+00	\N	-3	f	pbkdf2_sha256$150000$UeaXCrNJN6Hx$WkVJb7Gp9+lcinWHjAc0l1AQwJFe8BeovisHo/4HiAQ=	1	\N	2
+27		\N	f	nicolasmelo12@gmail.com	Nicolas	Melo	nicolasmelo12@gmail.com	f	t	2020-08-19 19:17:19.608669+00	\N	-3	f	eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MjcsImV4cCI6MTU5Nzk1MTAzOSwidHlwZSI6ImFjY2VzcyJ9.tHUxE9tcC06DW6fnkvHLP8sC7vyeU95pHo-mS7ikdsg	1	\N	3
+7	pbkdf2_sha256$120000$Hldnl21KrszQ$jEZT+4cFz7LnQ/Iuq3J4U428nKXFBULTLLA9krMNC30=	2019-01-03 06:15:43.131235+00	f	[7]nicolas.melo@99app.com	Nicolas Teste	Teste	nicolas.melo@99app.com	f	f	2019-01-03 06:14:50.851429+00	11111111	-3	f	\N	3	\N	2
+6	pbkdf2_sha256$120000$v8EhCRTv8xum$7/j2RqzVzctp8R/xfMQO0zJbttmCiMM/Rc1WEdDVJn4=	\N	f	patricia.sbena@gmail.com	Patricia	Bena	patricia.sbena@gmail.com	f	t	2018-12-29 11:29:59.929555+00	11111111	-3	f	\N	3	\N	2
+5	Luquinha123	2018-12-26 23:13:53+00	t	[5]luksinho1	Lucas	Leal	lleal_melo@hotmail.com	t	f	2018-12-26 23:13:36+00	11970852396	-3	t	\N	3	\N	2
+11	pbkdf2_sha256$120000$6B49SSiHPEEt$w1rMdWE54UH31FGwcE++W0fXUaqOzlMMJIxh5zaZR/8=	2019-01-13 21:12:13.1123+00	f	[11]mbenevides@berkley.com.br	Marcelo	Benevides	mbenevides@berkley.com.br	f	f	2019-01-13 21:09:54.542836+00	11111111	-3	f	\N	3	\N	2
+10	pbkdf2_sha256$120000$puMilRr2oXoD$wytSo5p9qnUOjznOMiG55WW6EKb9bzbP0VcsbIgG2yE=	\N	f	viviane.gennari@hotmail.com	Viviane	Gennari	viviane.gennari@hotmail.com	f	t	2019-01-05 18:35:45.532371+00	11111111	-3	f	\N	3	\N	2
+8	pbkdf2_sha256$120000$RxHxxFpnsJoe$N/KX52vCgL2rgdp3DZZhYq1UFrHp4XqAMCN/JdVmmFc=	2019-02-21 14:12:23.556747+00	f	nicolas.melo@99app.com	Samuel Ribeiro	Leal	nicolas.melo@99app.com	f	t	2019-01-03 16:28:23.951029+00	11111111	-3	f	\N	3	\N	2
+15	pbkdf2_sha256$120000$G6812SV2eIRG$FVjP0LANR3E4nuQEOHvYxVysMg/2ScVFiO/YRrO7v0I=	2019-04-21 19:31:23.646582+00	f	lleal_melo@hotmail.com	Lucas	Melo	lleal_melo@hotmail.com	f	t	2019-02-22 13:08:23.445408+00	11111111	-3	f	\N	3	\N	2
+28	pbkdf2_sha256$216000$dXKkA5ZwjXaZ$WfkGqr01uVdyewbx2IwdtmaWJQLRm8BradISKXakJNM=	2020-10-04 01:52:41.537169+00	f	teste123@teste.com	teste	teste123	teste123@teste.com	f	t	2020-09-29 23:01:05.308641+00	11970852396	-3	f	\N	9	\N	3
+1	pbkdf2_sha256$216000$YH66ExJGPLPO$KdZ/UNZW0qbdPub0o0ydXb7iAzQcWGcUSu1EacjqGdc=	2021-06-07 17:56:49.966382+00	t	reflow@reflow.com.br	reflow	admin	reflow@reflow.com.br	t	t	2019-03-20 21:23:25.369+00	\N	-3	t	eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNTk4OTEzNTcxLCJ0eXBlIjoiYWNjZXNzIn0.6P0Kw-S2n3RMRGMLJsekwomjlghnDWw-X4bNM1OQ_98	1	2	3
 \.
 
 
@@ -16862,7 +15116,7 @@ SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.auth_permission_id_seq', 828, true);
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 1008, true);
 
 
 --
@@ -16890,7 +15144,7 @@ SELECT pg_catalog.setval('public.chart_type_id_seq', 4, true);
 -- Name: client_value_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.client_value_id_seq', 6188, true);
+SELECT pg_catalog.setval('public.client_value_id_seq', 6212, true);
 
 
 --
@@ -16919,6 +15173,13 @@ SELECT pg_catalog.setval('public.company_charge_id_seq', 8, true);
 --
 
 SELECT pg_catalog.setval('public.company_coupon_id_seq', 1, false);
+
+
+--
+-- Name: company_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.company_id_seq', 1, false);
 
 
 --
@@ -16961,6 +15222,13 @@ SELECT pg_catalog.setval('public.current_company_charge_id_seq', 108, true);
 --
 
 SELECT pg_catalog.setval('public.dashboard_chart_configuration_id_seq', 47, true);
+
+
+--
+-- Name: data_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.data_type_id_seq', 1, false);
 
 
 --
@@ -17023,14 +15291,14 @@ SELECT pg_catalog.setval('public.django_celery_results_taskresult_id_seq', 1, fa
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_content_type_id_seq', 199, true);
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 244, true);
 
 
 --
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 657, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 670, true);
 
 
 --
@@ -17051,7 +15319,7 @@ SELECT pg_catalog.setval('public.draft_type_id_seq', 2, true);
 -- Name: dynamic_forms_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.dynamic_forms_id_seq', 2100, true);
+SELECT pg_catalog.setval('public.dynamic_forms_id_seq', 2109, true);
 
 
 --
@@ -17062,10 +15330,17 @@ SELECT pg_catalog.setval('public.extract_file_data_id_seq', 57, true);
 
 
 --
+-- Name: field_date_format_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.field_date_format_type_id_seq', 1, false);
+
+
+--
 -- Name: field_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.field_id_seq', 755, true);
+SELECT pg_catalog.setval('public.field_id_seq', 764, true);
 
 
 --
@@ -17079,28 +15354,35 @@ SELECT pg_catalog.setval('public.field_number_format_type_id_seq', 3, true);
 -- Name: field_options_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.field_options_id_seq', 2226, true);
+SELECT pg_catalog.setval('public.field_options_id_seq', 2230, true);
+
+
+--
+-- Name: field_period_interval_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.field_period_interval_type_id_seq', 1, false);
 
 
 --
 -- Name: field_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.field_type_id_seq', 14, true);
+SELECT pg_catalog.setval('public.field_type_id_seq', 15, true);
 
 
 --
 -- Name: form_accessed_by_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.form_accessed_by_id_seq', 258, true);
+SELECT pg_catalog.setval('public.form_accessed_by_id_seq', 259, true);
 
 
 --
 -- Name: form_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.form_id_seq', 331, true);
+SELECT pg_catalog.setval('public.form_id_seq', 334, true);
 
 
 --
@@ -17111,6 +15393,41 @@ SELECT pg_catalog.setval('public.form_type_id_seq', 2, true);
 
 
 --
+-- Name: form_value_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.form_value_id_seq', 1, false);
+
+
+--
+-- Name: formula_attribute_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.formula_attribute_type_id_seq', 13, true);
+
+
+--
+-- Name: formula_context_attribute_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.formula_context_attribute_type_id_seq', 26, true);
+
+
+--
+-- Name: formula_context_for_company_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.formula_context_for_company_id_seq', 1, true);
+
+
+--
+-- Name: formula_context_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.formula_context_type_id_seq', 1, false);
+
+
+--
 -- Name: formula_parameters_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -17118,17 +15435,17 @@ SELECT pg_catalog.setval('public.formula_parameters_type_id_seq', 1, false);
 
 
 --
--- Name: formula_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: formula_variable_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.formula_type_id_seq', 3, true);
+SELECT pg_catalog.setval('public.formula_variable_id_seq', 24, true);
 
 
 --
 -- Name: group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.group_id_seq', 34, true);
+SELECT pg_catalog.setval('public.group_id_seq', 35, true);
 
 
 --
@@ -17149,14 +15466,14 @@ SELECT pg_catalog.setval('public.invoice_date_type_id_seq', 4, true);
 -- Name: kanban_card_field_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.kanban_card_field_id_seq', 756, true);
+SELECT pg_catalog.setval('public.kanban_card_field_id_seq', 759, true);
 
 
 --
 -- Name: kanban_card_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.kanban_card_id_seq', 123, true);
+SELECT pg_catalog.setval('public.kanban_card_id_seq', 124, true);
 
 
 --
@@ -17170,7 +15487,7 @@ SELECT pg_catalog.setval('public.kanban_collapsed_option_id_seq', 13, true);
 -- Name: kanban_default_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.kanban_default_id_seq', 6, true);
+SELECT pg_catalog.setval('public.kanban_default_id_seq', 7, true);
 
 
 --
@@ -17184,7 +15501,7 @@ SELECT pg_catalog.setval('public.kanban_dimension_order_id_seq', 749, true);
 -- Name: listing_selected_fields_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.listing_selected_fields_id_seq', 2319, true);
+SELECT pg_catalog.setval('public.listing_selected_fields_id_seq', 2327, true);
 
 
 --
@@ -17212,7 +15529,7 @@ SELECT pg_catalog.setval('public.notification_id_seq', 330, true);
 -- Name: option_accessed_by_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.option_accessed_by_id_seq', 9216, true);
+SELECT pg_catalog.setval('public.option_accessed_by_id_seq', 9232, true);
 
 
 --
@@ -17447,6 +15764,13 @@ SELECT pg_catalog.setval('public.theme_form_id_seq', 213, true);
 
 
 --
+-- Name: theme_formula_variable_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.theme_formula_variable_id_seq', 1, false);
+
+
+--
 -- Name: theme_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -17547,14 +15871,6 @@ ALTER TABLE ONLY public.aggregation_type
 
 
 --
--- Name: data_type app_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.data_type
-    ADD CONSTRAINT app_pkey PRIMARY KEY (id);
-
-
---
 -- Name: attachments attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -17635,22 +15951,6 @@ ALTER TABLE ONLY public.chart_type
 
 
 --
--- Name: form_value client_value_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.form_value
-    ADD CONSTRAINT client_value_pkey PRIMARY KEY (id);
-
-
---
--- Name: company companies_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.company
-    ADD CONSTRAINT companies_pkey PRIMARY KEY (id);
-
-
---
 -- Name: company_billing company_billing_company_id_41cfc942_uniq; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -17691,19 +15991,19 @@ ALTER TABLE ONLY public.company_invoice_mails
 
 
 --
--- Name: theme_type company_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: company company_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.theme_type
-    ADD CONSTRAINT company_type_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.company
+    ADD CONSTRAINT company_pkey PRIMARY KEY (id);
 
 
 --
--- Name: company_type company_type_pkey1; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: company_type company_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.company_type
-    ADD CONSTRAINT company_type_pkey1 PRIMARY KEY (id);
+    ADD CONSTRAINT company_type_pkey PRIMARY KEY (id);
 
 
 --
@@ -17731,11 +16031,11 @@ ALTER TABLE ONLY public.dashboard_chart_configuration
 
 
 --
--- Name: field_date_format_type date_format_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: data_type data_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.field_date_format_type
-    ADD CONSTRAINT date_format_type_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.data_type
+    ADD CONSTRAINT data_type_pkey PRIMARY KEY (id);
 
 
 --
@@ -17776,6 +16076,14 @@ ALTER TABLE ONLY public.discount_by_individual_value_quantity
 
 ALTER TABLE ONLY public.discount_coupon
     ADD CONSTRAINT discount_coupon_name_1e6c0f03_uniq UNIQUE (name);
+
+
+--
+-- Name: discount_coupon discount_coupon_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.discount_coupon
+    ADD CONSTRAINT discount_coupon_name_key UNIQUE (name);
 
 
 --
@@ -17875,6 +16183,14 @@ ALTER TABLE ONLY public.extract_file_data
 
 
 --
+-- Name: field_date_format_type field_date_format_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.field_date_format_type
+    ADD CONSTRAINT field_date_format_type_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: field_number_format_type field_number_format_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -17888,6 +16204,14 @@ ALTER TABLE ONLY public.field_number_format_type
 
 ALTER TABLE ONLY public.field_options
     ADD CONSTRAINT field_options_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: field_period_interval_type field_period_interval_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.field_period_interval_type
+    ADD CONSTRAINT field_period_interval_type_pkey PRIMARY KEY (id);
 
 
 --
@@ -17931,6 +16255,54 @@ ALTER TABLE ONLY public.form_type
 
 
 --
+-- Name: form_value form_value_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.form_value
+    ADD CONSTRAINT form_value_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: formula_attribute_type formula_attribute_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_attribute_type
+    ADD CONSTRAINT formula_attribute_type_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: formula_context_attribute_type formula_context_attribute_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_context_attribute_type
+    ADD CONSTRAINT formula_context_attribute_type_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: formula_context_for_company formula_context_for_company_company_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_context_for_company
+    ADD CONSTRAINT formula_context_for_company_company_id_key UNIQUE (company_id);
+
+
+--
+-- Name: formula_context_for_company formula_context_for_company_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_context_for_company
+    ADD CONSTRAINT formula_context_for_company_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: formula_context_type formula_context_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_context_type
+    ADD CONSTRAINT formula_context_type_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: formula_parameters_type formula_parameters_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -17939,11 +16311,11 @@ ALTER TABLE ONLY public.formula_parameters_type
 
 
 --
--- Name: formula_type formula_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: formula_variable formula_variable_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.formula_type
-    ADD CONSTRAINT formula_type_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.formula_variable
+    ADD CONSTRAINT formula_variable_pkey PRIMARY KEY (id);
 
 
 --
@@ -18096,14 +16468,6 @@ ALTER TABLE ONLY public.pdf_template_configuration
 
 ALTER TABLE ONLY public.pdf_template_configuration_variables
     ADD CONSTRAINT pdf_template_configuration_variables_pkey PRIMARY KEY (id);
-
-
---
--- Name: field_period_interval_type period_interval_type_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.field_period_interval_type
-    ADD CONSTRAINT period_interval_type_pkey PRIMARY KEY (id);
 
 
 --
@@ -18320,6 +16684,14 @@ ALTER TABLE ONLY public.theme_field
 
 ALTER TABLE ONLY public.theme_form
     ADD CONSTRAINT theme_form_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: theme_formula_variable theme_formula_variable_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.theme_formula_variable
+    ADD CONSTRAINT theme_formula_variable_pkey PRIMARY KEY (id);
 
 
 --
@@ -18968,6 +17340,20 @@ CREATE INDEX field_date_configuration_date_format_type_id_ccea048c ON public.fie
 
 
 --
+-- Name: field_date_format_type_type_c330157a; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX field_date_format_type_type_c330157a ON public.field_date_format_type USING btree (type);
+
+
+--
+-- Name: field_date_format_type_type_c330157a_like; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX field_date_format_type_type_c330157a_like ON public.field_date_format_type USING btree (type varchar_pattern_ops);
+
+
+--
 -- Name: field_enabled_9d39cb49; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -19049,6 +17435,20 @@ CREATE INDEX field_options_option_fa45a392_like ON public.field_options USING bt
 --
 
 CREATE INDEX field_period_configuration_period_interval_type_id_4f8c8b02 ON public.field USING btree (period_configuration_period_interval_type_id);
+
+
+--
+-- Name: field_period_interval_type_type_a05d7b19; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX field_period_interval_type_type_a05d7b19 ON public.field_period_interval_type USING btree (type);
+
+
+--
+-- Name: field_period_interval_type_type_a05d7b19_like; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX field_period_interval_type_type_a05d7b19_like ON public.field_period_interval_type USING btree (type varchar_pattern_ops);
 
 
 --
@@ -19164,10 +17564,24 @@ CREATE INDEX form_value_company_id_a82640de ON public.form_value USING btree (co
 
 
 --
+-- Name: form_value_date_configuration_date_format_type_id_44da5d52; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX form_value_date_configuration_date_format_type_id_44da5d52 ON public.form_value USING btree (date_configuration_date_format_type_id);
+
+
+--
 -- Name: form_value_date_format_type_id_29e254d1; Type: INDEX; Schema: public; Owner: postgres
 --
 
 CREATE INDEX form_value_date_format_type_id_29e254d1 ON public.form_value USING btree (date_configuration_date_format_type_id);
+
+
+--
+-- Name: form_value_field_id_9fa432fe; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX form_value_field_id_9fa432fe ON public.form_value USING btree (field_id);
 
 
 --
@@ -19199,10 +17613,38 @@ CREATE INDEX form_value_number_configuration_number_format_type_id_a91154d8 ON p
 
 
 --
+-- Name: form_value_period_configuration_perio_2f38b2dd; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX form_value_period_configuration_perio_2f38b2dd ON public.form_value USING btree (period_configuration_period_interval_type_id);
+
+
+--
 -- Name: form_value_period_interval_type_id_395ee092; Type: INDEX; Schema: public; Owner: postgres
 --
 
 CREATE INDEX form_value_period_interval_type_id_395ee092 ON public.form_value USING btree (period_configuration_period_interval_type_id);
+
+
+--
+-- Name: formula_context_attribute_type_attribute_type_id_0d76f692; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX formula_context_attribute_type_attribute_type_id_0d76f692 ON public.formula_context_attribute_type USING btree (attribute_type_id);
+
+
+--
+-- Name: formula_context_attribute_type_context_type_id_fe8c0a50; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX formula_context_attribute_type_context_type_id_fe8c0a50 ON public.formula_context_attribute_type USING btree (context_type_id);
+
+
+--
+-- Name: formula_context_for_company_context_type_id_702ab3dc; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX formula_context_for_company_context_type_id_702ab3dc ON public.formula_context_for_company USING btree (context_type_id);
 
 
 --
@@ -19217,6 +17659,20 @@ CREATE INDEX formula_parameters_type_formula_type_id_ae2a8404 ON public.formula_
 --
 
 CREATE INDEX formula_parameters_type_raw_data_type_id_c92e728a ON public.formula_parameters_type USING btree (raw_data_type_id);
+
+
+--
+-- Name: formula_variable_field_id_1e593a29; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX formula_variable_field_id_1e593a29 ON public.formula_variable USING btree (field_id);
+
+
+--
+-- Name: formula_variable_variable_id_01badc58; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX formula_variable_variable_id_01badc58 ON public.formula_variable USING btree (variable_id);
 
 
 --
@@ -19955,6 +18411,20 @@ CREATE INDEX theme_form_type_id_4bac8752 ON public.theme_form USING btree (type_
 
 
 --
+-- Name: theme_formula_variable_field_id_7bb08f75; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX theme_formula_variable_field_id_7bb08f75 ON public.theme_formula_variable USING btree (field_id);
+
+
+--
+-- Name: theme_formula_variable_variable_id_c787db1f; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX theme_formula_variable_variable_id_c787db1f ON public.theme_formula_variable USING btree (variable_id);
+
+
+--
 -- Name: theme_kanban_card_field_field_id_b38ea031; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -20679,11 +19149,35 @@ ALTER TABLE ONLY public.form_value
 
 
 --
--- Name: formula_parameters_type formula_parameters_t_formula_type_id_ae2a8404_fk_formula_t; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: formula_context_attribute_type formula_context_attr_attribute_type_id_0d76f692_fk_formula_a; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.formula_parameters_type
-    ADD CONSTRAINT formula_parameters_t_formula_type_id_ae2a8404_fk_formula_t FOREIGN KEY (formula_type_id) REFERENCES public.formula_type(id) DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE ONLY public.formula_context_attribute_type
+    ADD CONSTRAINT formula_context_attr_attribute_type_id_0d76f692_fk_formula_a FOREIGN KEY (attribute_type_id) REFERENCES public.formula_attribute_type(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: formula_context_attribute_type formula_context_attr_context_type_id_fe8c0a50_fk_formula_c; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_context_attribute_type
+    ADD CONSTRAINT formula_context_attr_context_type_id_fe8c0a50_fk_formula_c FOREIGN KEY (context_type_id) REFERENCES public.formula_context_type(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: formula_context_for_company formula_context_for__context_type_id_702ab3dc_fk_formula_c; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_context_for_company
+    ADD CONSTRAINT formula_context_for__context_type_id_702ab3dc_fk_formula_c FOREIGN KEY (context_type_id) REFERENCES public.formula_context_type(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: formula_context_for_company formula_context_for_company_company_id_85894e11_fk_company_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_context_for_company
+    ADD CONSTRAINT formula_context_for_company_company_id_85894e11_fk_company_id FOREIGN KEY (company_id) REFERENCES public.company(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
@@ -20692,6 +19186,22 @@ ALTER TABLE ONLY public.formula_parameters_type
 
 ALTER TABLE ONLY public.formula_parameters_type
     ADD CONSTRAINT formula_parameters_t_raw_data_type_id_c92e728a_fk_raw_data_ FOREIGN KEY (raw_data_type_id) REFERENCES public.raw_data_type(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: formula_variable formula_variable_field_id_1e593a29_fk_field_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_variable
+    ADD CONSTRAINT formula_variable_field_id_1e593a29_fk_field_id FOREIGN KEY (field_id) REFERENCES public.field(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: formula_variable formula_variable_variable_id_01badc58_fk_field_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.formula_variable
+    ADD CONSTRAINT formula_variable_variable_id_01badc58_fk_field_id FOREIGN KEY (variable_id) REFERENCES public.field(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
@@ -20839,14 +19349,6 @@ ALTER TABLE ONLY public.kanban_dimension_order
 
 
 --
--- Name: listing_selected_fields listing_selected_fields_field_id_72001c52_fk_field_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.listing_selected_fields
-    ADD CONSTRAINT listing_selected_fields_field_id_72001c52_fk_field_id FOREIGN KEY (field_id) REFERENCES public.field(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
 -- Name: listing_selected_fields listing_selected_fields_user_id_8b799c65_fk_users_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -20855,35 +19357,11 @@ ALTER TABLE ONLY public.listing_selected_fields
 
 
 --
--- Name: notification_configuration_variable notification_configu_field_id_7c30a815_fk_field_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.notification_configuration_variable
-    ADD CONSTRAINT notification_configu_field_id_7c30a815_fk_field_id FOREIGN KEY (field_id) REFERENCES public.field(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
 -- Name: notification_configuration_variable notification_configu_notification_configu_b14b5183_fk_notificat; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.notification_configuration_variable
     ADD CONSTRAINT notification_configu_notification_configu_b14b5183_fk_notificat FOREIGN KEY (notification_configuration_id) REFERENCES public.notification_configuration(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- Name: notification_configuration notification_configuration_field_id_557c4e2d_fk_field_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.notification_configuration
-    ADD CONSTRAINT notification_configuration_field_id_557c4e2d_fk_field_id FOREIGN KEY (field_id) REFERENCES public.field(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- Name: notification_configuration notification_configuration_form_id_2f860863_fk_form_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.notification_configuration
-    ADD CONSTRAINT notification_configuration_form_id_2f860863_fk_form_id FOREIGN KEY (form_id) REFERENCES public.form(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
@@ -20975,14 +19453,6 @@ ALTER TABLE ONLY public.pdf_template_allowed_text_block
 
 
 --
--- Name: pdf_template_configuration_variables pdf_template_configu_field_id_25245e76_fk_field_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.pdf_template_configuration_variables
-    ADD CONSTRAINT pdf_template_configu_field_id_25245e76_fk_field_id FOREIGN KEY (field_id) REFERENCES public.field(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
 -- Name: pdf_template_configuration_variables pdf_template_configu_pdf_template_id_db06b600_fk_pdf_templ; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -21004,14 +19474,6 @@ ALTER TABLE ONLY public.pdf_template_configuration
 
 ALTER TABLE ONLY public.pdf_template_configuration
     ADD CONSTRAINT pdf_template_configuration_company_id_31b02fed_fk_company_id FOREIGN KEY (company_id) REFERENCES public.company(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- Name: pdf_template_configuration pdf_template_configuration_form_id_4c85a2fc_fk_form_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.pdf_template_configuration
-    ADD CONSTRAINT pdf_template_configuration_form_id_4c85a2fc_fk_form_id FOREIGN KEY (form_id) REFERENCES public.form(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
@@ -21423,6 +19885,22 @@ ALTER TABLE ONLY public.theme_form
 
 
 --
+-- Name: theme_formula_variable theme_formula_variable_field_id_7bb08f75_fk_theme_field_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.theme_formula_variable
+    ADD CONSTRAINT theme_formula_variable_field_id_7bb08f75_fk_theme_field_id FOREIGN KEY (field_id) REFERENCES public.theme_field(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: theme_formula_variable theme_formula_variable_variable_id_c787db1f_fk_theme_field_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.theme_formula_variable
+    ADD CONSTRAINT theme_formula_variable_variable_id_c787db1f_fk_theme_field_id FOREIGN KEY (variable_id) REFERENCES public.theme_field(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
 -- Name: theme_kanban_card_field theme_kanban_card_fi_kanban_card_id_ac80ab91_fk_theme_kan; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -21532,14 +20010,6 @@ ALTER TABLE ONLY public.theme_notification_configuration_variable
 
 ALTER TABLE ONLY public.theme_photos
     ADD CONSTRAINT theme_photos_theme_id_a48cfec5_fk_theme_id FOREIGN KEY (theme_id) REFERENCES public.theme(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- Name: theme theme_theme_type_id_b6316ae6_fk_theme_type_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.theme
-    ADD CONSTRAINT theme_theme_type_id_b6316ae6_fk_theme_type_id FOREIGN KEY (theme_type_id) REFERENCES public.theme_type(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
