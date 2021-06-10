@@ -49,7 +49,7 @@
     "s3_bucket": "reflow-crm",
     "localstack": {
         "endpoint": "localstack",
-        "port": 4572 
+        "port": 4566 
     }
   },
   "channels": {

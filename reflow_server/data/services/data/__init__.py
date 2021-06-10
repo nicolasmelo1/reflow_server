@@ -1,12 +1,13 @@
 from reflow_server.data.services.data.sort import DataSort
 from reflow_server.data.services.data.search import DataSearch
+from reflow_server.data.services.data.data import FieldData
 from reflow_server.data.models import FormValue, DynamicForm
 from reflow_server.formulary.models import OptionAccessedBy, Field, FieldOptions, UserAccessedBy
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.authentication.models import UserExtended
 
+
 from datetime import datetime, timedelta
-import time
 
 
 class DataService(DataSort, DataSearch):
@@ -192,16 +193,24 @@ class DataService(DataSort, DataSearch):
         self._fields = Field.objects.filter(
             form__company_id=self.company_id,
             form__depends_on_id=form_id
-        ).values('id', 'name', 'type__type', 'date_configuration_date_format_type__format', 'form_field_as_option')
+        ).values(
+            'id', 
+            'name', 
+            'type__type', 
+            'date_configuration_date_format_type_id', 
+            'number_configuration_number_format_type_id', 
+            'form_field_as_option_id'
+        )
 
         # fields become a dict with each name becoming each key of the dict.
         self._fields = {
-            field['name']: {
-                'id': field['id'],
-                'type': field['type__type'],
-                'date_configuration_date_format_type_format': field['date_configuration_date_format_type__format'],
-                'form_field_as_option_id': field['form_field_as_option']
-            } for field in self._fields
+            field['name']: FieldData(
+                field['id'],
+                field['type__type'], 
+                field['date_configuration_date_format_type_id'],
+                field['number_configuration_number_format_type_id'],
+                field['form_field_as_option_id']
+            ) for field in self._fields
         }
 
         if from_date and to_date:

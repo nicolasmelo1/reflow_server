@@ -129,9 +129,7 @@ class FieldSerializer(serializers.ModelSerializer):
             )
 
         field_formula_variables_ids = list()
-        print(self.validated_data.get('field_formula_variables', list()))
         for field_formula_variable in self.validated_data.get('field_formula_variables', list()):
-            print(field_formula_variable)
             if field_formula_variable.get('variable_id', None):
                 field_formula_variables_ids.append(field_formula_variable.get('variable_id'))
         

@@ -78,7 +78,8 @@ class PostSave:
         if process.form_value_instance.field.formula_configuration not in ('', None):
             formula = FormulaService(
                 process.form_value_instance.field.formula_configuration, 
-                dynamic_form_id=process.section_instance.depends_on.id
+                dynamic_form_id=process.section_instance.depends_on.id,
+                field_id=process.form_value_instance.field_id
             )
             formula_result = formula.evaluate()
             value = ''
@@ -95,8 +96,6 @@ class PostSave:
                         value = formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
                     elif formula_result.get('type') == 'float':
                         splitted_value = str(formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
-                        print(splitted_value)
-                        print('BREAKPOINT')
                         value = splitted_value[0]
             else:
                 value = formula_result

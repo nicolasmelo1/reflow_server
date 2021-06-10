@@ -315,6 +315,7 @@ class FormValueDataManager(models.Manager):
                 **search_value_dict
             ).values_list('form', flat=True)
         )
+        print(real_search_values)
         return self.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(company_id, depends_on_forms, [field_id], [field_type])\
             .filter(value__in=real_search_values)\
             .values_list('form__depends_on__id', flat=True)
@@ -580,4 +581,5 @@ class FormValueDataManager(models.Manager):
         """
         return self.form_values_by_value_field_id_and_section_id(value, field_id, section_id).exclude(id=form_value_id).exists()
     # ------------------------------------------------------------------------------------------
-    
+    def latest_form_value_field_type_by_field_id(self, field_id):
+        return self.get_queryset().filter(field_id=field_id).latest('updated_at')

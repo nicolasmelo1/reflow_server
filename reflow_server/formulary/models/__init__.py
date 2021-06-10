@@ -1,4 +1,3 @@
-from reflow_server.formulary.managers.formula_variable import FormulaVariableFormularyManager
 from django.conf import settings
 from django.db import models
 
@@ -9,9 +8,9 @@ from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldP
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
 from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager, \
     PublicAccessFormFormularyManager, FormAccessedByFormularyManager, DefaultValueFieldAttachmentsFormularyManager, \
-    DefaultFieldValueFormularyManager, FieldFormularyManager, UserAccessedByFormularyManager
+    DefaultFieldValueFormularyManager, FieldFormularyManager, UserAccessedByFormularyManager, FormulaVariableFormularyManager
 from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager, DefaultFieldValueDataManager
-
+from reflow_server.formula.managers import FormulaVariableFormulaManager
 
 ############################################################################################
 class SectionType(models.Model):
@@ -501,3 +500,4 @@ class FormulaVariable(AbstractFormulaVariable):
 
     objects = models.Manager()
     formulary_ = FormulaVariableFormularyManager()
+    formula_ = FormulaVariableFormulaManager()
