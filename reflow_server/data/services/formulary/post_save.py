@@ -87,16 +87,21 @@ class PostSave:
                 if formula_result.get('type') in ['int', 'float']:
                     
                     number_field_type = FieldType.objects.filter(type='number').first()
-                    number_format_type = FieldNumberFormatType.objects.filter(type='currency').first()
+                    number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
                     process.form_value_instance.field_type = number_field_type
                     process.form_value_instance.number_configuration_number_format_type = number_format_type
 
                     if formula_result.get('type') == 'int':
-                        process.form_value_instance.field_type
                         value = formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
                     elif formula_result.get('type') == 'float':
                         splitted_value = str(formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
                         value = splitted_value[0]
+                if formula_result.get('type') == 'string':
+                    string_field_type = FieldType.objects.filter(type='text').first()
+                    process.form_value_instance.field_type = string_field_type
+                    print('BREAKPOINT')
+                    print(formula_result.get('value'))
+                    value = formula_result.get('value')
             else:
                 value = formula_result
             
