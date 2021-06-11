@@ -138,6 +138,7 @@ class FieldSerializer(serializers.ModelSerializer):
             company_id=self.context['company_id'], 
             form_id=self.context['form_id']
         )
+        
         instance = field_service.save_field(
             enabled=self.validated_data['enabled'],
             label_name=self.validated_data['label_name'],

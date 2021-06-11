@@ -5,20 +5,6 @@ class FieldThemeManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
     
-    def update_theme_field_formula_configuration(self, field_id, formula_configuration):
-        """
-        This is used for updating the `formula_configuration` parameter. `formula_configuration` is a string, where  between
-        each {{}} exists an id. Since it's only a raw string, and does not have dependencies like notifications. 
-
-        Args:
-            field_id (int): This is the id of the Field instance you want to update
-            formula_configuration (str): The updated `formula_configuration` string
-
-        Returns:
-            int: Returns the number of affected rows, usually 1: https://docs.djangoproject.com/en/dev/ref/models/querysets/#update
-        """
-        return self.get_queryset().filter(id=field_id).update(formula_configuration=formula_configuration)
-
     def update_field_form_field_as_option_id(self, field_id, form_field_as_option_id):
         """
         Updates a single Field instance form_field_as_option_id parameter.

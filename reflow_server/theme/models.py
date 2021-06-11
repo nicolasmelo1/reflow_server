@@ -1,7 +1,7 @@
 from django.db import models
 
 from reflow_server.theme.managers import ThemeThemeManager, ThemeFormThemeManager, ThemeFieldThemeManager, \
-    ThemeFieldOptionThemeManager, ThemeKanbanCardThemeManager, \
+    ThemeFieldOptionThemeManager, ThemeKanbanCardThemeManager, ThemeFormulaVariableThemeManager, \
     ThemeKanbanCardFieldThemeManager, ThemeNotificationConfigurationThemeManager, \
     ThemeNotificationConfigurationVariableThemeManager, ThemeTypeThemeManager, ThemeDashboardChartConfigurationThemeManager, \
     ThemeKanbanDefaultManager
@@ -107,6 +107,9 @@ class ThemeFormulaVariable(AbstractFormulaVariable):
         ordering = ('order',)
         db_table = 'theme_formula_variable'
 
+    objects = models.Manager()
+    theme_ = ThemeFormulaVariableThemeManager()
+    
 
 class ThemeField(AbstractField):
     """

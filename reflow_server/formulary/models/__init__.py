@@ -3,7 +3,8 @@ from django.db import models
 
 from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldOptions, \
     AbstractDefaultFieldValue, AbstractFormulaVariable
-from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, FormAccessedByThemeManager
+from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, \
+    FormAccessedByThemeManager, FormulaVariableThemeManager
 from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
 from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager, \
@@ -501,3 +502,4 @@ class FormulaVariable(AbstractFormulaVariable):
     objects = models.Manager()
     formulary_ = FormulaVariableFormularyManager()
     formula_ = FormulaVariableFormulaManager()
+    theme_ = FormulaVariableThemeManager()
