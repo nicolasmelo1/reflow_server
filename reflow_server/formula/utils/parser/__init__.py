@@ -117,10 +117,10 @@ class Parser:
         """
         if TokenType.ELSE == self.current_token.token_type:
             self.get_next_token(TokenType.ELSE)
-            self.get_next_token(TokenType.DO)
             if TokenType.IF == self.current_token.token_type:
-                return self.block()
+                return self.if_statement()
             else:
+                self.get_next_token(TokenType.DO)
                 node = self.block() 
                 self.get_next_token(TokenType.END)
                 return node

@@ -395,10 +395,10 @@ const errors = require('../errors')
     const elseStatement = () => {
         if (settings().TOKEN_TYPES.ELSE === currentToken.tokenType) {
             getNextToken(settings().TOKEN_TYPES.ELSE)
-            getNextToken(settings().TOKEN_TYPES.DO)
             if (settings().TOKEN_TYPES.IF === currentToken.tokenType) {
-                return block()
+                return ifStatement()
             } else {
+                getNextToken(settings().TOKEN_TYPES.DO)
                 const node = block() 
                 getNextToken(settings().TOKEN_TYPES.END)
                 return node
