@@ -284,7 +284,7 @@ const errors = require('../errors')
     }
 
     /**
-     * inversion: (NOT) inversion
+     * inversion: INVERSION inversion
      *            | comparison
      */
     const inversion = () => {
@@ -521,8 +521,8 @@ const errors = require('../errors')
      * program: block END_OF_FILE
      */
     const program = () => {
-        block_node = block()
-        program_node = Program(block_node)
+        const block_node = block()
+        const program_node = Program(block_node)
         if (currentToken.tokenType !== settings().TOKEN_TYPES.END_OF_FILE) {
             throw SyntaxError('Unexpected end of file, this means your program cannot be executed and was ended abruptly')
         }
