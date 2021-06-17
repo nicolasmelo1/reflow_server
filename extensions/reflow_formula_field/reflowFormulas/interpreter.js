@@ -79,6 +79,9 @@ const interpreter = (ast) => {
         let lastValue = none.__initialize__()
         for (let i=0; i<node.instructions.length; i++) {
             lastValue = interpret(node.instructions[i])
+            if (lastValue && lastValue.type && lastValue.value)  {
+                break
+            }
         }
         return lastValue
     }
@@ -170,8 +173,8 @@ const interpreter = (ast) => {
      * - Only power of numbers are supported
      */
     const handleBinaryOperation = (node) => {
-        const valueLeft = interpret(node.left)
-        const valueRight = interpret(node.right)
+        let valueLeft = interpret(node.left)
+        let valueRight = interpret(node.right)
 
         switch (node.operation.tokenType) {
             case settings().TOKEN_TYPES.MULTIPLICATION:
@@ -181,7 +184,13 @@ const interpreter = (ast) => {
             case settings().TOKEN_TYPES.SUBTRACTION:
                 return valueLeft.__subtract__(valueRight)
             case settings().TOKEN_TYPES.SUM:
-                return valueLeft.__add__(valueRight)
+                try {
+                    return valueLeft.__add__(valueRight)
+                } catch {
+                    if (typeof valueLeft === 'function') valueLeft = valueLeft()
+                    if (typeof valueRight === 'function') valueRight = valueRight()
+                    return valueLeft.__add__(valueRight)
+                }
             case settings().TOKEN_TYPES.POWER:
                 return valueLeft.__power__(valueRight)
         }
@@ -219,39 +228,65 @@ const interpreter = (ast) => {
         return functionValue
     }
 
+    // AQUI QUE TA O PROBLEMA, ELE CHAMA RECURSIVAMENTE UMA FUNÇÃO, FICA QUASE IMPOSSIVEL FAZER RECURSÃO
     const handleFunctionCall = (node) => {
         const functionName = node.name
         const record = globalMemory.stack.peek()
         const functionObject = record.get(functionName)
-        let functionRecord = globalMemory.record(functionName,'FUNCTION')
         
-        // Define the scope of the function in the new function call stack
-        Object.keys(functionObject.scope.members).forEach(key => {
-            functionRecord.assign(key, functionObject.scope.members[key])
-        })
+        const createFunctionRecord = () => {
+            let functionRecord = globalMemory.record(functionName,'FUNCTION')
+            // Define the scope of the function in the new function call stack
+            Object.keys(functionObject.scope.members).forEach(key => {
+                functionRecord.assign(key, functionObject.scope.members[key])
+            })
 
-        // Gets the positional parameters and also the values parameters
-        for (let i=0; i<functionObject.parameters.length; i++) {
-            let parameterName = null
-            let parameterValue = null
-            if (node.parameters[i]) {
-                parameterName = functionObject.parameters[i].value.value 
-                parameterValue = interpret(node.parameters[i])
-            } else if (functionObject.parameters[i].nodeType === settings().NODE_TYPES.ASSIGN) {
-                parameterName = functionObject.parameters[i].left.value.value 
-                parameterValue = interpret(functionObject.parameters[i].right)
-            } else {
-                throw SyntaxError(`missing parameter of function "${functionName}"`)
+            // Gets the positional parameters and also the values parameters
+            for (let i=0; i<functionObject.parameters.length; i++) {
+                let parameterName = null
+                let parameterValue = null
+                if (node.parameters[i]) {
+                    if (functionObject.parameters[i].nodeType === settings().NODE_TYPES.ASSIGN) {
+                        parameterName = functionObject.parameters[i].left.value.value 
+                    } else {
+                        parameterName = functionObject.parameters[i].value.value 
+                    }
+                    parameterValue = interpret(node.parameters[i])
+                } else if (functionObject.parameters[i].nodeType === settings().NODE_TYPES.ASSIGN) {
+                    parameterName = functionObject.parameters[i].left.value.value 
+                    parameterValue = interpret(functionObject.parameters[i].right)
+                } else {
+                    throw SyntaxError(`missing parameter of function "${functionName}"`)
+                }
+                functionRecord.assign(parameterName, parameterValue)
             }
-           
-            functionRecord.assign(parameterName, parameterValue)
+
+            return functionRecord
         }
 
+        const toEvaluateFunction = (pushToCurrent = false) => {
+            globalMemory.stack.pushToCurrent(createFunctionRecord())        
+            const result = interpret(functionObject.astFunction.block)
+            if (typeof result !== 'function') {
+                const record = globalMemory.stack.peekAux()
+                globalMemory.stack.pushToCurrent(record)
+            }
+            console.log(result)
+            return result
+        }
 
-        globalMemory.stack.push(functionRecord)
-        const result = interpret(functionObject.astFunction.block)
-        globalMemory.stack.pop()
-        return result
+        if (functionName === record.name) {
+            return toEvaluateFunction
+        } else {
+            const functionRecord = createFunctionRecord()
+            globalMemory.stack.push(functionRecord)
+            let result = interpret(functionObject.astFunction.block)
+            while (typeof result === 'function') {
+                result = result()
+            }
+            globalMemory.stack.pop()
+            return result
+        }
     }
 
     const handleAssign = (node) => {
@@ -266,6 +301,7 @@ const interpreter = (ast) => {
     const handleVariable = (node) => {
         const variableName = node.value.value
         const record = globalMemory.stack.peek()
+        //console.log(record.get(variableName))
         return record.get(variableName)
     }
 

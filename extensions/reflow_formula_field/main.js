@@ -63,19 +63,35 @@ console.log(newContext.eval(fomula5))
 console.log(`-----------------------`)
 */
 const fomula5 = `
-function hello() do
-    x = 2
-    function greetings() do
-        x + 1
+function fibonacci(n; a=0; b=1) do
+    if n == 0 do
+        a
+    end
+
+    if n == 1 do
+        b
+    end
+
+    fibonacci(n - 1; b; a + b)
+end
+
+fibonacci(20000)
+`
+
+
+const fomula6 = `
+function fibonacci(n) do
+    if n <= 1 do
+        n
+    else do
+        fibonacci(n - 1) + fibonacci(n - 2)
     end
 end
 
-teste = hello()
-
-teste()
+fibonacci(5)
 `
 
-console.log(JSON.stringify(newContext.eval(fomula5)))
+console.log(JSON.stringify(newContext.eval(fomula6)))
 //console.log(evaluator('1 + 2 - 3 and 3 + 5 + 0'))
 //console.log(evaluator('"a" * 3'))
 //console.log(evaluator('2 < Sum(2;3) and - 6 < 3'))
