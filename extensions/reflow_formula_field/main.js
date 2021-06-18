@@ -66,16 +66,14 @@ const fomula5 = `
 function fibonacci(n; a=0; b=1) do
     if n == 0 do
         a
-    end
-
-    if n == 1 do
+    else if n == 1 do
         b
+    else do
+        fibonacci(n - 1; b; a + b)
     end
-
-    fibonacci(n - 1; b; a + b)
 end
 
-fibonacci(20000)
+fibonacci(30)
 `
 
 
@@ -88,10 +86,10 @@ function fibonacci(n) do
     end
 end
 
-fibonacci(5)
+fibonacci(30)
 `
 
-console.log(JSON.stringify(newContext.eval(fomula6)))
+console.log(JSON.stringify(newContext.eval(fomula5)))
 //console.log(evaluator('1 + 2 - 3 and 3 + 5 + 0'))
 //console.log(evaluator('"a" * 3'))
 //console.log(evaluator('2 < Sum(2;3) and - 6 < 3'))

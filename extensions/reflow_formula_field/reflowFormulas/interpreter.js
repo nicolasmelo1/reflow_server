@@ -27,10 +27,15 @@ const interpreter = (ast) => {
      * 
      * @returns {Any} - Returns the result of the interpret.
      */
-    const interpret = (node) => {
+    const interpret = (node, returnFunction=false) => {
         switch (node.nodeType) {
             case settings().NODE_TYPES.FUNCTION_CALL:
-                return handleFunctionCall(node)
+                let functionReturn = handleFunctionCall(node)
+                if (returnFunction && typeof functionReturn === 'function') {
+                    return functionReturn()
+                } else {
+                    return functionReturn
+                }
             case settings().NODE_TYPES.FUNCTION_DEFINITION:
                 return handleFunctionDefinition(node)
             case settings().NODE_TYPES.IF_STATEMENT:
@@ -79,9 +84,6 @@ const interpreter = (ast) => {
         let lastValue = none.__initialize__()
         for (let i=0; i<node.instructions.length; i++) {
             lastValue = interpret(node.instructions[i])
-            if (lastValue && lastValue.type && lastValue.value)  {
-                break
-            }
         }
         return lastValue
     }
@@ -96,7 +98,7 @@ const interpreter = (ast) => {
     }
 
     const handleUnaryOperation = (node) => {
-        const value = interpret(node.value)
+        const value = interpret(node.value, true)
         
         switch (node.operation.tokenType) {
             case settings().TOKEN_TYPES.SUM:
@@ -114,7 +116,7 @@ const interpreter = (ast) => {
     const handleUnaryConditional = (node) => {
         switch (node.operation.tokenType) {
             case settings().TOKEN_TYPES.INVERSION:
-                const value = interpret(node.value)
+                const value = interpret(node.value, true)
                 return value.__boolean__().__not__()
         }
     }
@@ -130,8 +132,8 @@ const interpreter = (ast) => {
             settings().TOKEN_TYPES.LESS_THAN_EQUAL,
             settings().TOKEN_TYPES.GREATER_THAN_EQUAL
         ].includes(node.operation.tokenType)) {
-            const valueLeft = interpret(node.left)
-            const valueRight = interpret(node.right)
+            const valueLeft = interpret(node.left, true)
+            const valueRight = interpret(node.right, true)
 
             switch (node.operation.tokenType) {
                 case settings().TOKEN_TYPES.EQUAL:
@@ -173,8 +175,8 @@ const interpreter = (ast) => {
      * - Only power of numbers are supported
      */
     const handleBinaryOperation = (node) => {
-        let valueLeft = interpret(node.left)
-        let valueRight = interpret(node.right)
+        let valueLeft = interpret(node.left, true)
+        let valueRight = interpret(node.right, true)
 
         switch (node.operation.tokenType) {
             case settings().TOKEN_TYPES.MULTIPLICATION:
@@ -184,13 +186,7 @@ const interpreter = (ast) => {
             case settings().TOKEN_TYPES.SUBTRACTION:
                 return valueLeft.__subtract__(valueRight)
             case settings().TOKEN_TYPES.SUM:
-                try {
-                    return valueLeft.__add__(valueRight)
-                } catch {
-                    if (typeof valueLeft === 'function') valueLeft = valueLeft()
-                    if (typeof valueRight === 'function') valueRight = valueRight()
-                    return valueLeft.__add__(valueRight)
-                }
+                return valueLeft.__add__(valueRight)
             case settings().TOKEN_TYPES.POWER:
                 return valueLeft.__power__(valueRight)
         }
@@ -200,8 +196,8 @@ const interpreter = (ast) => {
      * Handle Conjunction or disjunction. Conjunction is "and" operator and disjunction is "or" operator.
      */
     const handleBooleanOperation = (node) => {
-        const valueLeft = interpret(node.left)
-        const valueRight = interpret(node.right)
+        const valueLeft = interpret(node.left, true)
+        const valueRight = interpret(node.right, true)
 
         switch (node.operation.tokenType) {
             case settings().TOKEN_TYPES.CONJUNCTION:
@@ -228,7 +224,6 @@ const interpreter = (ast) => {
         return functionValue
     }
 
-    // AQUI QUE TA O PROBLEMA, ELE CHAMA RECURSIVAMENTE UMA FUNÇÃO, FICA QUASE IMPOSSIVEL FAZER RECURSÃO
     const handleFunctionCall = (node) => {
         const functionName = node.name
         const record = globalMemory.stack.peek()
@@ -265,16 +260,17 @@ const interpreter = (ast) => {
         }
 
         const toEvaluateFunction = (pushToCurrent = false) => {
-            globalMemory.stack.pushToCurrent(createFunctionRecord())        
+            const record = createFunctionRecord()
+
+            if (pushToCurrent) globalMemory.stack.pushToCurrent(record)        
+            else globalMemory.stack.push(record)        
+
             const result = interpret(functionObject.astFunction.block)
-            if (typeof result !== 'function') {
-                const record = globalMemory.stack.peekAux()
-                globalMemory.stack.pushToCurrent(record)
-            }
-            console.log(result)
+            
+        if (pushToCurrent === false) globalMemory.stack.pop()        
             return result
         }
-
+        // If this condition is set this means we are inside a recursion (we are in a function named fibonacci, and calling it again)
         if (functionName === record.name) {
             return toEvaluateFunction
         } else {
@@ -282,7 +278,7 @@ const interpreter = (ast) => {
             globalMemory.stack.push(functionRecord)
             let result = interpret(functionObject.astFunction.block)
             while (typeof result === 'function') {
-                result = result()
+                result = result(true)
             }
             globalMemory.stack.pop()
             return result
@@ -301,7 +297,6 @@ const interpreter = (ast) => {
     const handleVariable = (node) => {
         const variableName = node.value.value
         const record = globalMemory.stack.peek()
-        //console.log(record.get(variableName))
         return record.get(variableName)
     }
 

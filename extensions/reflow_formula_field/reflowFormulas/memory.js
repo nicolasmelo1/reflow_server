@@ -52,31 +52,22 @@ const memory = () => {
 
     const callStack = () => {
         const records = []
-        const auxiliaryRecords = []
         
         const pushToCurrent = (record) => {
-            auxiliaryRecords.push(record)
             records.splice(records.length - 1, 1, record)
         }
 
         const push = (record) => {
             record.setNestingLevel(records.length)
-            //if (records.length < 1000) {
-            records.push(record)
-            auxiliaryRecords.push(record)
-            //} else {
-            //    throw Error('Stack is full, this means you are calling too many functions at once, try optimizing your code')
-            //}
+            if (records.length < 600) {
+                records.push(record)
+            } else {
+                throw Error('Stack is full, this means you are calling too many functions at once, try optimizing your code')
+            }
         }
         
         const pop = () => {
             records.pop()
-            auxiliaryRecords.pop()
-        }
-
-        const peekAux = () => {
-            auxiliaryRecords.pop()
-            return auxiliaryRecords[auxiliaryRecords.length - 1]
         }
 
         const peek = () => {
@@ -84,7 +75,7 @@ const memory = () => {
         }
 
         return {
-            push, pop, peek, records, pushToCurrent, peekAux
+            push, pop, peek, records, pushToCurrent
         }
     }
 
