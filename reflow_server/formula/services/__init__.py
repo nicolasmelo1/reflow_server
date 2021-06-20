@@ -64,6 +64,9 @@ class FormulaService:
                     value = value if value.isdigit() else '1'
                     value = (int(value)/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)
                     formula = formula.replace(variables[index], str('%f' % value).replace('.', self.context.data['keywords']['decimal_point_separator']), 1)
+                if values[0]['field_type__type'] == 'text':
+                    value = '"{}"'.format(values[0]['value'])
+                    formula = formula.replace(variables[index], value, 1)
         return formula
 
     def evaluate(self):

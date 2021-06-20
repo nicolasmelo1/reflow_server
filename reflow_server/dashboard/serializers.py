@@ -3,6 +3,7 @@ from rest_framework import serializers
 from reflow_server.dashboard.services import DashboardChartConfigurationService
 from reflow_server.dashboard.models import DashboardChartConfiguration
 from reflow_server.formulary.models import Field
+from reflow_server.formulary.services.fields import FieldService
 from reflow_server.data.models import FormValue
 
 
@@ -63,14 +64,11 @@ class DashboardFieldsSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
 
     def get_type(self, obj):
-        if obj.type.type == 'formula':
-            try:
-                latest_form_value = FormValue.objects.filter(field_id=obj.id).latest('updated_at')         
-                if latest_form_value:   
-                    return latest_form_value.field_type_id
-            except:
-                pass
-        return obj.type_id
+        field_type = FieldService.retrieve_actual_field_type_for_field(obj.id, obj.type)
+        if field_type:
+            return field_type.id
+        else:
+            return None
 
     class Meta:
         model = Field

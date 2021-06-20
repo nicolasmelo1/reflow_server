@@ -5,6 +5,7 @@ from reflow_server.data.services.representation import RepresentationService
 from reflow_server.data.services.data import DataService
 from reflow_server.data.models import FormValue
 from reflow_server.formulary.models import Field, FieldOptions
+from reflow_server.formulary.services.fields import FieldService
 
 import functools
 import decimal
@@ -132,10 +133,13 @@ class AggregationService:
         key_field = Field.objects.filter(id=field_id_key).first()
         value_field = Field.objects.filter(id=field_id_value).first()
         
+        key_field_type = FieldService.retrieve_actual_field_type_for_field(key_field.id, key_field.type)
+        value_field_type = FieldService.retrieve_actual_field_type_for_field(value_field.id, value_field.type)
+
         keys_ordering = self.__order_keys(key_field)
         keys_values = FormValue.data_.distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty_ordered(
             depends_on_ids=self.dynamic_form_ids_to_aggregate, 
-            field_type_id=key_field.type.id, 
+            field_type_id=key_field_type.id, 
             field_id=key_field.id, 
             order=keys_ordering
         )
@@ -143,15 +147,6 @@ class AggregationService:
         for key_value, key_form_data_id in keys_values:
             aggregation_data.add_key(key=key_value, form_data_id=key_form_data_id)
         
-        value_field_type = value_field.type
-        if value_field_type.is_dynamic_evaluated:
-            try:
-                latest_form_value = FormValue.objects.filter(field=value_field).latest('updated_at')         
-                if latest_form_value:   
-                    value_field_type = latest_form_value.field_type
-            except:
-                pass
-
         value_values = FormValue.data_.value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(
             depends_on_ids=self.dynamic_form_ids_to_aggregate, 
             field_type_id=value_field_type.id, 

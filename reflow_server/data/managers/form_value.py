@@ -584,4 +584,4 @@ class FormValueDataManager(models.Manager):
         try:
             return self.get_queryset().filter(field_id=field_id).latest('updated_at')
         except:
-            pass
+            return None

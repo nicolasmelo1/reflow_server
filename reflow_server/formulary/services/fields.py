@@ -2,6 +2,7 @@ from django.db import transaction
 
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.data.services.representation import RepresentationService
+from reflow_server.data.models import FormValue
 from reflow_server.draft.services import DraftService
 from reflow_server.draft.models import Draft
 from reflow_server.authentication.models import UserExtended
@@ -236,6 +237,22 @@ class FieldService(Settings):
     # ------------------------------------------------------------------------------------------
     @staticmethod
     def is_label_name_not_unique(field_id, company_id, section_id, label_name):
+        """
+        Checks is the label name already exists in the formulary. Every formulary can have one and just one
+        field name, it is not possible to have 2 equal field names on the same formulary.
+
+        Args:
+            field_id (int): A Field instance id, we use this to exclude the actual field_id that is being updated
+                            Imagine we are updating the field 'Status' which already exists, this field should be 
+                            excluded to evaluate if the name exists.
+            company_id (int): A Company instance id, don't have much to say, it just enables a better filtering of the data.
+            section_id (int): A Form instance id with depends_on as NOT NULL. we use this to retrieve the MAIN Form instance id.
+            label_name (str): And last but not least the label_name of the field, the new label_name or the updated label name,
+                              we compare it with all of the other fields of the formulary.
+
+        Returns:
+            bool: Returns True if the label_name IS NOT unique and False if it is unique. False is good, True is bad.
+        """
         section = Form.objects.filter(id=section_id, depends_on__group__company_id=company_id).first()
         if section:
             main_form_id = section.depends_on_id
@@ -247,3 +264,12 @@ class FieldService(Settings):
             )
         else:
             return False
+    # ------------------------------------------------------------------------------------------
+    @staticmethod
+    def retrieve_actual_field_type_for_field(field_id, field_type):
+        if field_type.is_dynamic_evaluated:
+            latest_form_value = FormValue.formulary_.latest_form_value_field_type_by_field_id(field_id)
+            if latest_form_value:
+                return latest_form_value.field_type
+    
+        return field_type
