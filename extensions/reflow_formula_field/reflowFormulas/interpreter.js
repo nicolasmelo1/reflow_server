@@ -267,7 +267,7 @@ const interpreter = (ast) => {
 
             const result = interpret(functionObject.astFunction.block)
             
-        if (pushToCurrent === false) globalMemory.stack.pop()        
+            if (pushToCurrent === false) globalMemory.stack.pop()        
             return result
         }
         // If this condition is set this means we are inside a recursion (we are in a function named fibonacci, and calling it again)

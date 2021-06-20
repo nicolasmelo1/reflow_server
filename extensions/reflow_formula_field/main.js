@@ -73,7 +73,7 @@ function fibonacci(n; a=0; b=1) do
     end
 end
 
-fibonacci(30)
+fibonacci(25)
 `
 
 
@@ -86,7 +86,7 @@ function fibonacci(n) do
     end
 end
 
-fibonacci(30)
+fibonacci(25)
 `
 
 console.log(JSON.stringify(newContext.eval(fomula5)))

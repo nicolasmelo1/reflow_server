@@ -1,6 +1,7 @@
 from settings import TokenType, NodeType
 from . import nodes
 
+
 class Parser:
     def __init__(self, lexer, settings):
         self.lexer = lexer
@@ -354,4 +355,3 @@ class Parser:
     
     def variable(self):
         return nodes.Variable(self.current_token)
-
