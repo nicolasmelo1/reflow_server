@@ -1,3 +1,4 @@
+from reflow_server.data.managers import field
 from django.conf import settings
 from django.db.models import Case, When, Q
 
@@ -154,7 +155,14 @@ class AggregationService:
 
         for value_value, value_form_data_id in value_values:
             aggregation_data.add_value(value=value_value, form_data_id=value_form_data_id)
-        aggregation_result_data = method_handler(aggregation_data.aggregated, value_field.type.type)
+
+        field_type = value_field.type.type
+        if field_type == 'formula':
+            latest_form_value = FormValue.objects.filter(field_id=value_field).latest('updated_at')         
+            if latest_form_value:   
+                field_type = latest_form_value.field_type.type
+
+        aggregation_result_data = method_handler(aggregation_data.aggregated, field_type)
         formated_aggregation_result_data = {}
         if formated:
             for key, value in aggregation_result_data.items():

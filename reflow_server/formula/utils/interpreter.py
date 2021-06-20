@@ -339,7 +339,6 @@ class Interpreter:
 
     def handle_unary_operation(self, node):
         value = self.evaluate(node.value, True)
-        
         if node.operation.token_type == TokenType.SUM:
             return value._unaryplus_()
         elif node.operation.token_type == TokenType.SUBTRACTION:
