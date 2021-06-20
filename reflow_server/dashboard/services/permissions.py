@@ -1,5 +1,6 @@
 from reflow_server.dashboard.models import DashboardChartConfiguration
-from reflow_server.billing.models import CurrentCompanyCharge
+from reflow_server.billing.models import CurrentCompanyCharge, CompanyBilling
+
 
 class DashboardPermissionsService:
     @staticmethod
@@ -81,36 +82,39 @@ class DashboardPermissionsService:
         Returns:
             bool: True if it is valid, and false if it is invalid.
         """
-        charts_quantity_permission = CurrentCompanyCharge.objects.filter(company_id=company_id)
-        charts_quantity_permission_for_company = charts_quantity_permission\
-                                                .filter(individual_charge_value_type__name='per_chart_company')\
-                                                .order_by('-quantity')\
-                                                .values_list('quantity', flat=True).first()
-        charts_quantity_permission_for_user = charts_quantity_permission\
-                                    .filter(individual_charge_value_type__name='per_chart_user')\
-                                    .order_by('-quantity')\
-                                    .values_list('quantity', flat=True).first()
-
-        current_charts_quantity_for_user = DashboardChartConfiguration.objects.filter(
-            company_id=company_id, 
-            form__form_name=form_name,
-            user_id=user_id, 
-            for_company=False
-        ).exclude(id=dashboard_configuration_id).count()
-        current_charts_quantity_for_company = DashboardChartConfiguration.objects.filter(
-            company_id=company_id, 
-            form__form_name=form_name,
-            for_company=True
-        ).exclude(id=dashboard_configuration_id).count()
-        
-        if not dashboard_configuration_id:
-            if not for_company and current_charts_quantity_for_user + 1 > charts_quantity_permission_for_user:
-                return False
-            if for_company and current_charts_quantity_for_company + 1 > charts_quantity_permission_for_company:
-                return False
+        if CompanyBilling.objects.filter(company_id=company_id, is_supercompany=True).exists():
+            return True
         else:
-            if not for_company and current_charts_quantity_for_user >= charts_quantity_permission_for_user:
-                return False
-            if for_company and current_charts_quantity_for_company >= charts_quantity_permission_for_company:
-                return False
-        return True
+            charts_quantity_permission = CurrentCompanyCharge.objects.filter(company_id=company_id)
+            charts_quantity_permission_for_company = charts_quantity_permission\
+                                                    .filter(individual_charge_value_type__name='per_chart_company')\
+                                                    .order_by('-quantity')\
+                                                    .values_list('quantity', flat=True).first()
+            charts_quantity_permission_for_user = charts_quantity_permission\
+                                        .filter(individual_charge_value_type__name='per_chart_user')\
+                                        .order_by('-quantity')\
+                                        .values_list('quantity', flat=True).first()
+
+            current_charts_quantity_for_user = DashboardChartConfiguration.objects.filter(
+                company_id=company_id, 
+                form__form_name=form_name,
+                user_id=user_id, 
+                for_company=False
+            ).exclude(id=dashboard_configuration_id).count()
+            current_charts_quantity_for_company = DashboardChartConfiguration.objects.filter(
+                company_id=company_id, 
+                form__form_name=form_name,
+                for_company=True
+            ).exclude(id=dashboard_configuration_id).count()
+            
+            if not dashboard_configuration_id:
+                if not for_company and current_charts_quantity_for_user + 1 > charts_quantity_permission_for_user:
+                    return False
+                if for_company and current_charts_quantity_for_company + 1 > charts_quantity_permission_for_company:
+                    return False
+            else:
+                if not for_company and current_charts_quantity_for_user >= charts_quantity_permission_for_user:
+                    return False
+                if for_company and current_charts_quantity_for_company >= charts_quantity_permission_for_company:
+                    return False
+            return True

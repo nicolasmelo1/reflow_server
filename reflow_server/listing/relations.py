@@ -11,9 +11,12 @@ class ListingHeaderFieldsRelation(serializers.ModelSerializer):
 
     def get_type(self, obj):
         if obj.type.type == 'formula':
-            latest_form_value = FormValue.objects.filter(field_id=obj.id).latest('updated_at')         
-            if latest_form_value:   
-                return latest_form_value.field_type_id
+            try:
+                latest_form_value = FormValue.objects.filter(field_id=obj.id).latest('updated_at')         
+                if latest_form_value:   
+                    return latest_form_value.field_type_id
+            except:
+                pass
         return obj.type_id
     
     def get_conditional(self, obj):

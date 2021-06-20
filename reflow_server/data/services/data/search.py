@@ -30,8 +30,6 @@ class DataSearch:
     def __search_exact(self, search_item, value=None):
         # Searchs for the exact value or parcial value, parcial also ignores the case
         value = value if value else search_item.value 
-        print(value)
-        print(type(value))
         if search_item.exact:
             return {
                 'value': value

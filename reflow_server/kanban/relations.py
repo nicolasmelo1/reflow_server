@@ -17,9 +17,12 @@ class KanbanFieldsRelation(serializers.ModelSerializer):
         if isinstance(obj, OrderedDict):
             obj = Field.objects.filter(id=obj['id']).first()
         if obj.type.type == 'formula':
-            latest_form_value = FormValue.objects.filter(field_id=obj.id).latest('updated_at')         
-            if latest_form_value:   
-                return latest_form_value.field_type_id
+            try:
+                latest_form_value = FormValue.objects.filter(field_id=obj.id).latest('updated_at')         
+                if latest_form_value:   
+                    return latest_form_value.field_type_id
+            except:
+                pass
         return obj.type_id
 
     class Meta:
