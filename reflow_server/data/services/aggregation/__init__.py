@@ -158,7 +158,7 @@ class AggregationService:
 
         field_type = value_field.type.type
         if field_type == 'formula':
-            latest_form_value = FormValue.objects.filter(field_id=value_field).latest('updated_at')         
+            latest_form_value = FormValue.objects.filter(field=value_field).latest('updated_at')         
             if latest_form_value:   
                 field_type = latest_form_value.field_type.type
 
