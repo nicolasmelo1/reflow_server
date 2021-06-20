@@ -315,7 +315,6 @@ class FormValueDataManager(models.Manager):
                 **search_value_dict
             ).values_list('form', flat=True)
         )
-        print(real_search_values)
         return self.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(company_id, depends_on_forms, [field_id], [field_type])\
             .filter(value__in=real_search_values)\
             .values_list('form__depends_on__id', flat=True)

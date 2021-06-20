@@ -99,8 +99,6 @@ class PostSave:
                 if formula_result.get('type') == 'string':
                     string_field_type = FieldType.objects.filter(type='text').first()
                     process.form_value_instance.field_type = string_field_type
-                    print('BREAKPOINT')
-                    print(formula_result.get('value'))
                     value = formula_result.get('value')
             else:
                 value = formula_result
