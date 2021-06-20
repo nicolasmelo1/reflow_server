@@ -84,6 +84,8 @@ class PostSave:
             formula_result = formula.evaluate()
             value = ''
             if isinstance(formula_result, dict):
+                print('BREAKPOINT')
+                print(formula_result)
                 if formula_result.get('type') in ['int', 'float']:
                     
                     number_field_type = FieldType.objects.filter(type='number').first()
@@ -98,8 +100,10 @@ class PostSave:
                         value = splitted_value[0]
                 if formula_result.get('type') == 'string':
                     string_field_type = FieldType.objects.filter(type='text').first()
+                    print(string_field_type)
                     process.form_value_instance.field_type = string_field_type
                     value = formula_result.get('value')
+                    print(value)
             else:
                 value = formula_result
             
