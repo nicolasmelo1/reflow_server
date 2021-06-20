@@ -135,7 +135,13 @@ class AggregationService:
         
         key_field_type = FieldService.retrieve_actual_field_type_for_field(key_field.id, key_field.type)
         value_field_type = FieldService.retrieve_actual_field_type_for_field(value_field.id, value_field.type)
+        print('BREAKPOINT')
 
+        print(key_field.label_name)
+        print(key_field_type.type)
+
+        print(value_field.label_name)
+        print(value_field_type.type)
         keys_ordering = self.__order_keys(key_field)
         keys_values = FormValue.data_.distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty_ordered(
             depends_on_ids=self.dynamic_form_ids_to_aggregate, 
