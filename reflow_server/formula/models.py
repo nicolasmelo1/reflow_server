@@ -1,5 +1,7 @@
 from django.db import models
 
+from reflow_server.formula.managers import FormulaContextForCompanyFormulaManager
+
 
 class FormulaContextForCompany(models.Model):
     company = models.OneToOneField('authentication.Company', on_delete=models.CASCADE, db_index=True)
@@ -7,6 +9,9 @@ class FormulaContextForCompany(models.Model):
 
     class Meta:
         db_table = 'formula_context_for_company'
+
+    objects = models.Manager()
+    formula_ = FormulaContextForCompanyFormulaManager()
 
 
 class FormulaContextType(models.Model):
