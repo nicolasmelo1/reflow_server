@@ -228,7 +228,7 @@ const interpreter = (ast) => {
         const functionName = node.name
         const record = globalMemory.stack.peek()
         const functionObject = record.get(functionName)
-        
+
         const createFunctionRecord = () => {
             let functionRecord = globalMemory.record(functionName,'FUNCTION')
             // Define the scope of the function in the new function call stack

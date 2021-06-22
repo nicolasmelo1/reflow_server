@@ -1,7 +1,8 @@
 from django.conf import settings
 
 from reflow_server.data.models import FormValue
-from reflow_server.formulary.models import FormulaVariable
+from reflow_server.formulary.models import FormulaVariable, FieldType, FieldNumberFormatType
+
 from reflow_server.formula.models import FormulaContextForCompany, FormulaContextAttributeType
 
 import logging
@@ -10,6 +11,14 @@ import json
 import base64
 import re
 
+
+class InternalValue:
+    def __init__(self, value, field_type, number_format_type=None, date_format_type=None):
+        self.value = value
+        self.field_type = field_type
+        self.number_format_type = number_format_type
+        self.date_format_type = date_format_type
+        
 
 class Context:
     def __init__(self, conjunction='and', disjunction='or', inversion='not', 
@@ -83,7 +92,7 @@ class FormulaService:
                 handler = getattr(self, '_clean_formula_%s' % values[0]['field_type__type'], None)
                 if handler:
                     formula = handler(formula, values[0], variables[index])
-                    
+
         return formula
 
     def _clean_formula_number(self, formula, value, variable):
@@ -95,6 +104,63 @@ class FormulaService:
     def _clean_formula_text(self, formula, value, variable):
         value = '"{}"'.format(value['value'])
         return formula.replace(variable, value, 1)
+    
+    def _clean_formula_option(self, formula, value, variable):
+        return self._clean_formula_text(formula, value, variable)
+
+    def evaluate_to_internal_value(self):
+        """
+        Evaluate the formula and transform the result to internal value.
+
+        Returns:
+            reflow_server.formula.services.InternalValue: Returns a handy internal value object with the value, the field type
+                                                          and the number format type and so on.
+        """
+        result = self.evaluate()
+        result = self.to_internal_value(result)
+        return result
+
+    def to_internal_value(self, formula_result):
+        """
+        Transform the result of the formula to internal value accepted by reflow. In other words we convert the 
+        int to a number with the DEFAULT_BASE_NUMBER_FIELD_FORMAT settings. We format the settings and so on. 
+        Since formulas are dynamically evaluated we evaluate automatically the type retrieved by the formula to the 
+        field type reflow accept.
+
+        Args:
+            formula_result (dict): Usually a dict with the type of the result and the actual machine value
+
+        Returns:
+            reflow_server.formula.services.InternalValue: Returns a handy internal value object with the value, the field type
+                                                          and the number format type and so on.
+        """
+        if isinstance(formula_result, dict):
+            handler = getattr(self, '_to_internal_value_%s' % formula_result.get('type'), None)
+            if handler:
+                return handler(formula_result)               
+        
+        return InternalValue('', None)
+
+    def _to_internal_value_int(self, formula_result):
+        field_type = FieldType.objects.filter(type='number').first()
+        number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
+        value = formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
+
+        return InternalValue(value, field_type, number_format_type=number_format_type)
+
+    def _to_internal_value_float(self, formula_result):
+        field_type = FieldType.objects.filter(type='number').first()
+        number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
+        splitted_value = str(formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
+        value = splitted_value[0]     
+
+        return InternalValue(value, field_type, number_format_type=number_format_type)
+
+    def _to_internal_value_string(self, formula_result):
+        field_type = FieldType.objects.filter(type='text').first()
+        value = formula_result.get('value')
+
+        return InternalValue(value, field_type)
 
     def evaluate(self):
         try: 

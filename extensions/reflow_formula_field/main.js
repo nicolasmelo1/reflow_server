@@ -73,9 +73,24 @@ function fibonacci(n; a=0; b=1) do
     end
 end
 
-fibonacci(25)
+fibonacci(5)
 `
 
+
+const formula7 = `
+function create_function() do
+    number = 3
+
+    function run() do
+        number
+    end
+
+    run
+end
+
+variable = create_function()
+variable()
+`
 
 const fomula6 = `
 function fibonacci(n) do
@@ -86,10 +101,10 @@ function fibonacci(n) do
     end
 end
 
-fibonacci(25)
+fibonacci(1000)
 `
 
-console.log(JSON.stringify(newContext.eval(fomula5)))
+console.log(JSON.stringify(newContext.eval(formula7)))
 //console.log(evaluator('1 + 2 - 3 and 3 + 5 + 0'))
 //console.log(evaluator('"a" * 3'))
 //console.log(evaluator('2 < Sum(2;3) and - 6 < 3'))

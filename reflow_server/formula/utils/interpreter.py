@@ -187,7 +187,7 @@ class Interpreter:
         return self.evaluate(node)
 
     def handle_block(self, node):
-        none = builtins.none()
+        none = builtins.objects.none()
         last_value = none._initialize_()
         for instrunction in  node.instructions:
             last_value = self.evaluate(instrunction)
@@ -195,7 +195,7 @@ class Interpreter:
 
     def handle_function_definition(self, node):
         function_name = node.variable.value.value
-        function = builtins.functions()
+        function = builtins.objects.functions()
 
         record = self.global_memory.stack.peek()
         function_value = function._initialize_(node, record, node.parameters)
@@ -273,7 +273,7 @@ class Interpreter:
         record = self.global_memory.stack.peek()
         record.assign(variable_name, variable_value)
         
-        none = builtins.none()
+        none = builtins.objects.none()
         return none._initialize_()
     
     def handle_variable(self, node):
@@ -345,19 +345,37 @@ class Interpreter:
             return value._unary_minus_()
     
     def handle_null(self, node):
-        pass
+        null = builtins.objects.Null()
+        return null._initialize_()
 
     def handle_string(self, node):
-        pass
+        if helpers.isString(node.value):
+            string = builtins.objects.String()
+            return string._initialize_(node.value)
+        else:
+            raise Exception('Cannot interpret string')
 
     def handle_integer(self, node):
-        pass
+        if helpers.is_integer(node.value):
+            integer = builtins.objects.Integer()
+            return integer._initialize_(node.value)
+        else:
+            raise Exception('Cannot interpret integer')
 
     def handle_float(self, node):
-        pass
+        value = node.value.replace(self.settings.decimal_point_character, '.')
+        if helpers.isFloat(value):
+            float_value = builtins.objects.Float()
+            return float_value._initialize_(value)
+        else:
+            raise Exception('Cannot interpret float')
 
     def handle_boolean(self, node):
-        pass
+        if helpers.isBoolean(node.value):
+            boolean = builtins.objects.Boolean()
+            return boolean._initialize_(node.value)
+        else:
+            raise Exception('Cannot interpret boolean')
 
 """
 const interpreter = (ast) => {
