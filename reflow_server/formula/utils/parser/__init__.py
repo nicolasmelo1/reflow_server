@@ -1,5 +1,5 @@
-from settings import TokenType, NodeType
-from . import nodes
+from reflow_server.formula.utils.settings import TokenType, NodeType
+from reflow_server.formula.utils.parser import nodes
 
 
 class Parser:
@@ -27,7 +27,6 @@ class Parser:
         """
         block_node = self.block()
         program_node = nodes.Program(block_node)
-        print(self.current_token.__dict__)
         if self.current_token.token_type != TokenType.END_OF_FILE:
             raise Exception('Unexpected end of file, this means your program cannot be executed and was ended abruptly')
 
@@ -37,7 +36,7 @@ class Parser:
         """
         block: statements_list 
         """
-        instructions = self.statements_list()
+        instructions = self.statements_list([])
         return nodes.Block(instructions)
 
     def statements_list(self, instructions = []):
@@ -45,7 +44,7 @@ class Parser:
         statement_list: (statement NEWLINE)*
         """
         node = self.statement()
-        if node:
+        if node != None:
             instructions.append(node)
         if (TokenType.NEWLINE == self.current_token.token_type):
             self.get_next_token(TokenType.NEWLINE)
@@ -86,7 +85,6 @@ class Parser:
             left = node
             self.get_next_token(self.current_token.token_type)
             right = self.expression()
-            print(left.node_type)
             if (left.node_type != NodeType.VARIABLE):
                 raise Exception("Cannot assign, needs to assign value to a variable")
             elif (right == None):
@@ -110,7 +108,7 @@ class Parser:
                 else_statement = self.else_statement()
             else:
                 self.get_next_token(TokenType.END)
-            return self.if_statement(expression, block, else_statement)
+            return nodes.IfStatement(expression, block, else_statement)
     
     def else_statement(self):
         """
@@ -140,7 +138,7 @@ class Parser:
 
             parameters = list()
             if TokenType.IDENTITY == self.current_token.token_type:
-                parameters = self.parameters()
+                parameters = self.parameters([])
 
             self.get_next_token(TokenType.RIGHT_PARENTHESIS)
             self.get_next_token(TokenType.DO)
@@ -157,8 +155,8 @@ class Parser:
         if TokenType.IDENTITY == self.current_token.token_type:
             node = self.assignment()
             parameters_list.append(node)
-            if TokenType.POSITIONAL_SEPARATOR == self.current_token.token_type:
-                self.get_next_token(TokenType.POSITIONAL_SEPARATOR)
+            if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
+                self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
                 return self.parameters(parameters_list)
             else:
                 return parameters_list
@@ -321,9 +319,8 @@ class Parser:
     
     def atom(self):
         token = self.current_token
-
-        if TokenType.IDENTITY == self.current_token.token_type and self.lexer.peek_and_validate('('):
-            return self.function_call_statement()
+        if TokenType.IDENTITY == self.current_token.token_type and self.lexer.peek_and_validate('(', 0):
+            return self.function_call_statement(None, [])
         elif TokenType.BOOLEAN == self.current_token.token_type:
             node = nodes.Boolean(token)
             self.get_next_token(self.current_token.token_type)

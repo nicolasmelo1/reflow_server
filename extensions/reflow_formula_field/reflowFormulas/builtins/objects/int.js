@@ -153,7 +153,7 @@ class int extends object {
      * @returns {object<boolean>} - Returns a boolean object representing either True or False
      */
     __boolean__() {
-        const representation = this.representation()
+        const representation = this.__representation__()
         if (representation === 0) {
             return super.newBoolean(false)
         } else {

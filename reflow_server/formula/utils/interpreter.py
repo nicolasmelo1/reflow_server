@@ -1,12 +1,13 @@
-from settings import NodeType, TokenType
-from memory import Memory
+from reflow_server.formula.utils.settings import NodeType, TokenType
+from reflow_server.formula.utils.memory import Memory, Record
+from reflow_server.formula.utils import builtins
+from reflow_server.formula.utils import helpers
 
 import types
 
 
 class Interpreter:
-    def __init__(self, ast, settings):
-        self.ast = ast
+    def __init__(self, settings):
         self.settings = settings
         self.global_memory = Memory()
 
@@ -144,7 +145,7 @@ class Interpreter:
         if node.node_type == NodeType.FUNCTION_CALL:
             function_evaluated_value = self.handle_function_call(node)
             if evaluate_function_call and isinstance(function_evaluated_value, types.FunctionType):
-                return function_evaluated_value()
+                return function_evaluated_value(False)
             else:
                 return function_evaluated_value
         elif node.node_type == NodeType.FUNCTION_DEFINITION:
@@ -183,11 +184,12 @@ class Interpreter:
             return node
     
     def handle_program(self, node):
-        self.global_memory.stack.push('MAIN', 'PROGRAM')
-        return self.evaluate(node)
+        record = Record('MAIN', 'PROGRAM')
+        self.global_memory.stack.push(record)
+        return self.evaluate(node.block)
 
     def handle_block(self, node):
-        none = builtins.objects.none()
+        none = builtins.objects.Null(self.settings)
         last_value = none._initialize_()
         for instrunction in  node.instructions:
             last_value = self.evaluate(instrunction)
@@ -195,8 +197,7 @@ class Interpreter:
 
     def handle_function_definition(self, node):
         function_name = node.variable.value.value
-        function = builtins.objects.functions()
-
+        function = builtins.objects.Function(self.settings)
         record = self.global_memory.stack.peek()
         function_value = function._initialize_(node, record, node.parameters)
         record.assign(function_name, function_value)
@@ -207,26 +208,23 @@ class Interpreter:
         function_name = node.name
         record = self.global_memory.stack.peek()
         function_object = record.get(function_name)
-        
-        def create_function_record(push_to_current=False):
-            if push_to_current:
-                function_record = self.global_memory.stack.push_to_current(function_name,'FUNCTION')
-            else:
-                function_record = self.global_memory.stack.push(function_name,'FUNCTION')
+
+        def create_function_record():
+            function_record = Record(function_name,'FUNCTION')
 
             # Define the scope of the function in the new function call stack
             for key, value in function_object.scope.members.items():
                 function_record.assign(key, value)
 
             # Gets the positional parameters and also the values parameters
-            for index in range(0, len(function_object.parameters)):
+            for index in range(len(function_object.parameters)):
                 parameter_name = None
                 parameter_value = None
                 if index < len(node.parameters):
                     if function_object.parameters[index].node_type == NodeType.ASSIGN:
                         parameter_name = function_object.parameters[index].left.value.value 
                     else:
-                        parameter_value = function_object.parameters[index].value.value 
+                        parameter_name = function_object.parameters[index].value.value 
                     parameter_value = self.evaluate(node.parameters[index])
                 elif function_object.parameters[index].node_type == NodeType.ASSIGN:
                     parameter_name = function_object.parameters[index].left.value.value 
@@ -234,15 +232,19 @@ class Interpreter:
                 else:
                     raise Exception('missing parameter of function "{function_name}"'.format(function_name=function_name))
                 function_record.assign(parameter_name, parameter_value)
-
             return function_record
         
         def to_evaluate_function(push_to_current=False):
-            create_function_record(push_to_current)
+            record = create_function_record()
+            if push_to_current:
+                self.global_memory.stack.push_to_current(record)
+            else:
+                self.global_memory.stack.push(record)
+
             result = self.evaluate(function_object.ast_function.block)
             
             if push_to_current == False:
-                self.global_memory.stack.pop()        
+                self.global_memory.stack.pop()  
             return result
 
         # If this condition is set this means we are inside a recursion (we are in a function named fibonacci, and calling it again)
@@ -251,7 +253,9 @@ class Interpreter:
         if is_in_recursion:
             return to_evaluate_function
         else:
-            create_function_record()
+            record = create_function_record()
+            self.global_memory.stack.push(record)
+
             result = self.evaluate(function_object.ast_function.block)
             while isinstance(result, types.FunctionType):
                 result = result(True)
@@ -268,13 +272,12 @@ class Interpreter:
     
     def handle_assign(self, node):
         variable_name = node.left.value.value
-        variable_value = self.evaluate(node.right)
+        variable_value = self.evaluate(node.right, True)
         
         record = self.global_memory.stack.peek()
         record.assign(variable_name, variable_value)
         
-        none = builtins.objects.none()
-        return none._initialize_()
+        return variable_value
     
     def handle_variable(self, node):
         variable_name = node.value.value
@@ -284,7 +287,6 @@ class Interpreter:
     def handle_binary_operation(self, node):
         value_left = self.evaluate(node.left, True)
         value_right = self.evaluate(node.right, True)
-
         if node.operation.token_type == TokenType.MULTIPLICATION:
             return value_left._multiply_(value_right)
         elif node.operation.token_type == TokenType.DIVISION:
@@ -292,7 +294,7 @@ class Interpreter:
         elif node.operation.token_type == TokenType.SUBTRACTION:
             return value_left._subtract_(value_right)
         elif node.operation.token_type == TokenType.SUM:
-            return value_left._sum_(value_right)
+            return value_left._add_(value_right)
         elif node.operation.token_type == TokenType.POWER:
             return value_left._power_(value_right)
         elif node.operation.token_type == TokenType.REMAINDER:
@@ -345,372 +347,35 @@ class Interpreter:
             return value._unary_minus_()
     
     def handle_null(self, node):
-        null = builtins.objects.Null()
+        null = builtins.objects.Null(self.settings)
         return null._initialize_()
 
     def handle_string(self, node):
-        if helpers.isString(node.value):
-            string = builtins.objects.String()
-            return string._initialize_(node.value)
+        if helpers.is_string(node.value.value):
+            string = builtins.objects.String(self.settings)
+            return string._initialize_(node.value.value)
         else:
             raise Exception('Cannot interpret string')
 
     def handle_integer(self, node):
-        if helpers.is_integer(node.value):
-            integer = builtins.objects.Integer()
-            return integer._initialize_(node.value)
+        if helpers.is_integer(node.value.value):
+            integer = builtins.objects.Integer(self.settings)
+            return integer._initialize_(node.value.value)
         else:
             raise Exception('Cannot interpret integer')
 
     def handle_float(self, node):
-        value = node.value.replace(self.settings.decimal_point_character, '.')
-        if helpers.isFloat(value):
-            float_value = builtins.objects.Float()
-            return float_value._initialize_(value)
+        value = node.value.value.replace(self.settings.decimal_point_character, '.')
+        if helpers.is_float(value):
+            float_value = builtins.objects.Float(self.settings)
+            return float_value._initialize_(node.value.value)
         else:
             raise Exception('Cannot interpret float')
 
     def handle_boolean(self, node):
-        if helpers.isBoolean(node.value):
-            boolean = builtins.objects.Boolean()
-            return boolean._initialize_(node.value)
+        if helpers.is_boolean(node.value.value):
+            boolean = builtins.objects.Boolean(self.settings)
+            return boolean._initialize_(node.value.value)
         else:
             raise Exception('Cannot interpret boolean')
 
-"""
-const interpreter = (ast) => {
-    const globalMemory = memory()
-
-    /**
-     * Main function of the interpreter, if you check the return of the `interpreter` function it is the result of this
-     * function.
-     * 
-     * This works recusively, if you see clearly, whenever we handle a node we call this function is called again. By making this way 
-     * this we can interpret the hole Abstract Syntax Tree of the program. Also by returning EVERY handle call, we guarantee that the
-     * program t will return something to the user.
-     * 
-     * @param {Object} node - you can check each node object in parser/nodes.js file.
-     * 
-     * @returns {Any} - Returns the result of the interpret.
-     */
-    const interpret = (node, returnFunction=false) => {
-        switch (node.nodeType) {
-            case settings().NODE_TYPES.FUNCTION_CALL:
-                let functionReturn = handleFunctionCall(node)
-                if (returnFunction && typeof functionReturn === 'function') {
-                    return functionReturn()
-                } else {
-                    return functionReturn
-                }
-            case settings().NODE_TYPES.FUNCTION_DEFINITION:
-                return handleFunctionDefinition(node)
-            case settings().NODE_TYPES.IF_STATEMENT:
-                return handleIfStatement(node)
-            case settings().NODE_TYPES.PROGRAM:
-                return handleProgram(node)
-            case settings().NODE_TYPES.VARIABLE:
-                return handleVariable(node)
-            case settings().NODE_TYPES.ASSIGN:
-                return handleAssign(node)
-            case settings().NODE_TYPES.BLOCK:
-                return handleBlock(node)
-            case settings().NODE_TYPES.UNARY_OPERATION:
-                return handleUnaryOperation(node)
-            case settings().NODE_TYPES.UNARY_CONDITIONAL:
-                return handleUnaryConditional(node)
-            case settings().NODE_TYPES.BINARY_CONDITIONAL:
-                return handleBinaryConditional(node)
-            case settings().NODE_TYPES.BINARY_OPERATION:
-                return handleBinaryOperation(node)
-            case settings().NODE_TYPES.BOOLEAN_OPERATION:
-                return handleBooleanOperation(node)
-            case settings().NODE_TYPES.NULL:
-                return handleNull(node)
-            case settings().NODE_TYPES.STRING:
-                return handleString(node)
-            case settings().NODE_TYPES.FLOAT:
-                return handleFloat(node)
-            case settings().NODE_TYPES.INTEGER:
-                return handleInteger(node)
-            case settings().NODE_TYPES.BOOLEAN:
-                return handleBoolean(node)
-            default:
-                return node
-        }
-    }
-
-    const handleProgram = (node) => {
-        const programRecord = globalMemory.record("MAIN",'PROGRAM', 1)
-        globalMemory.stack.push(programRecord)
-        return interpret(node.block)
-    }
-
-    const handleBlock = (node) => {
-        const none = new builtins.objects.none()
-        let lastValue = none.__initialize__()
-        for (let i=0; i<node.instructions.length; i++) {
-            lastValue = interpret(node.instructions[i])
-        }
-        return lastValue
-    }
-
-    const handleIfStatement = (node) => {
-        const expressionValue = interpret(node.expression)
-        if (expressionValue.__boolean__().__representation__()) {
-            return interpret(node.block)
-        } else if (node.elseStatement) {
-            return interpret(node.elseStatement)
-        }
-    }
-
-    const handleUnaryOperation = (node) => {
-        const value = interpret(node.value, true)
-        
-        switch (node.operation.tokenType) {
-            case settings().TOKEN_TYPES.SUM:
-                return value.__unaryPlus__()
-            case settings().TOKEN_TYPES.SUBTRACTION:
-                return value.__unaryMinus__()
-        }
-    }
-
-    /**
-     * Handles inversion in conditionals. Like "not value".
-     * 
-     * @returns {builtins.objects.boolean} - returns a new boolean instance.
-     */
-    const handleUnaryConditional = (node) => {
-        switch (node.operation.tokenType) {
-            case settings().TOKEN_TYPES.INVERSION:
-                const value = interpret(node.value, true)
-                return value.__boolean__().__not__()
-        }
-    }
-
-    /**
-     * Interprets the Binary Conditionals.
-     */
-    const handleBinaryConditional = (node) => {
-        if ([settings().TOKEN_TYPES.EQUAL, 
-            settings().TOKEN_TYPES.DIFFERENT, 
-            settings().TOKEN_TYPES.LESS_THAN,
-            settings().TOKEN_TYPES.GREATER_THAN,
-            settings().TOKEN_TYPES.LESS_THAN_EQUAL,
-            settings().TOKEN_TYPES.GREATER_THAN_EQUAL
-        ].includes(node.operation.tokenType)) {
-            const valueLeft = interpret(node.left, true)
-            const valueRight = interpret(node.right, true)
-
-            switch (node.operation.tokenType) {
-                case settings().TOKEN_TYPES.EQUAL:
-                    return valueLeft.__equals__(valueRight)
-                case settings().TOKEN_TYPES.DIFFERENT:
-                    return valueLeft.__difference__(valueRight)
-                case settings().TOKEN_TYPES.LESS_THAN:
-                    return valueLeft.__lessThan__(valueRight)
-                case settings().TOKEN_TYPES.GREATER_THAN:
-                    return valueLeft.__greaterThan__(valueRight)
-                case settings().TOKEN_TYPES.LESS_THAN_EQUAL:
-                    return valueLeft.__lessThanEqual__(valueRight)
-                case settings().TOKEN_TYPES.GREATER_THAN_EQUAL:
-                    return valueLeft.__greaterThanEqual__(valueRight)
-            }
-        }
-    }
-
-    /**
-     * Handles when we sum, multiplies, power, division, subtraction of numbers.
-     * 
-     * MULTIPLICATION:
-     * - Multiplying an int with an string repeats the string n times.
-     * - We can only multiply strings with integers, otherwise throws an error.
-     * - Only multiplication with ints and floats accepted
-     * 
-     * DIVISION:
-     * - Division is only supported by ints or floats
-     * 
-     * SUBTRACTION:
-     * - Subtraction is only supported by ints or floats
-     * 
-     * SUM:
-     * - Sum of two strings concatenates strings
-     * - Sum of ints or floats adds them
-     * - Sum of other types are not supported
-     * 
-     * POWER:
-     * - Only power of numbers are supported
-     */
-    const handleBinaryOperation = (node) => {
-        let valueLeft = interpret(node.left, true)
-        let valueRight = interpret(node.right, true)
-
-        switch (node.operation.tokenType) {
-            case settings().TOKEN_TYPES.MULTIPLICATION:
-                return valueLeft.__multiply__(valueRight)
-            case settings().TOKEN_TYPES.DIVISION:
-                return valueLeft.__divide__(valueRight)
-            case settings().TOKEN_TYPES.SUBTRACTION:
-                return valueLeft.__subtract__(valueRight)
-            case settings().TOKEN_TYPES.SUM:
-                return valueLeft.__add__(valueRight)
-            case settings().TOKEN_TYPES.POWER:
-                return valueLeft.__power__(valueRight)
-        }
-    }
-
-    /**
-     * Handle Conjunction or disjunction. Conjunction is "and" operator and disjunction is "or" operator.
-     */
-    const handleBooleanOperation = (node) => {
-        const valueLeft = interpret(node.left, true)
-        const valueRight = interpret(node.right, true)
-
-        switch (node.operation.tokenType) {
-            case settings().TOKEN_TYPES.CONJUNCTION:
-                return valueLeft.__and__(valueRight)
-            case settings().TOKEN_TYPES.DISJUNCTION:
-                return valueLeft.__or__(valueRight)
-        }
-    }
-
-    /**
-     * When we define a function we add the node
-     * @param {*} node 
-     * @returns 
-     */
-    const handleFunctionDefinition = (node) => {
-        const functionName = node.variable.value.value
-        const func = new builtins.objects.functions()
-
-        const record = globalMemory.stack.peek()
-
-        const functionValue = func.__initialize__(node, record, node.parameters)
-
-        record.assign(functionName, functionValue)
-        return functionValue
-    }
-
-    const handleFunctionCall = (node) => {
-        const functionName = node.name
-        const record = globalMemory.stack.peek()
-        const functionObject = record.get(functionName)
-        
-        const createFunctionRecord = () => {
-            let functionRecord = globalMemory.record(functionName,'FUNCTION')
-            // Define the scope of the function in the new function call stack
-            Object.keys(functionObject.scope.members).forEach(key => {
-                functionRecord.assign(key, functionObject.scope.members[key])
-            })
-
-            // Gets the positional parameters and also the values parameters
-            for (let i=0; i<functionObject.parameters.length; i++) {
-                let parameterName = null
-                let parameterValue = null
-                if (node.parameters[i]) {
-                    if (functionObject.parameters[i].nodeType === settings().NODE_TYPES.ASSIGN) {
-                        parameterName = functionObject.parameters[i].left.value.value 
-                    } else {
-                        parameterName = functionObject.parameters[i].value.value 
-                    }
-                    parameterValue = interpret(node.parameters[i])
-                } else if (functionObject.parameters[i].nodeType === settings().NODE_TYPES.ASSIGN) {
-                    parameterName = functionObject.parameters[i].left.value.value 
-                    parameterValue = interpret(functionObject.parameters[i].right)
-                } else {
-                    throw SyntaxError(`missing parameter of function "${functionName}"`)
-                }
-                functionRecord.assign(parameterName, parameterValue)
-            }
-
-            return functionRecord
-        }
-
-        const toEvaluateFunction = (pushToCurrent = false) => {
-            const record = createFunctionRecord()
-
-            if (pushToCurrent) globalMemory.stack.pushToCurrent(record)        
-            else globalMemory.stack.push(record)        
-
-            const result = interpret(functionObject.astFunction.block)
-            
-        if (pushToCurrent === false) globalMemory.stack.pop()        
-            return result
-        }
-        // If this condition is set this means we are inside a recursion (we are in a function named fibonacci, and calling it again)
-        if (functionName === record.name) {
-            return toEvaluateFunction
-        } else {
-            const functionRecord = createFunctionRecord()
-            globalMemory.stack.push(functionRecord)
-            let result = interpret(functionObject.astFunction.block)
-            while (typeof result === 'function') {
-                result = result(true)
-            }
-            globalMemory.stack.pop()
-            return result
-        }
-    }
-
-    const handleAssign = (node) => {
-        const variableName = node.left.value.value
-        const variableValue = interpret(node.right)
-        const record = globalMemory.stack.peek()
-        record.assign(variableName, variableValue)
-        const none = new builtins.objects.none()
-        return none.__initialize__()
-    }
-
-    const handleVariable = (node) => {
-        const variableName = node.value.value
-        const record = globalMemory.stack.peek()
-        return record.get(variableName)
-    }
-
-    const handleInteger = (node) => {
-        if (helpers.isInteger(node.value)) {
-            const int = new builtins.objects.int()
-            return int.__initialize__(node.value)
-        }
-        else {
-            throw SyntaxError('Cannot interpret integer')
-        }
-    }
-
-    const handleBoolean = (node) => {
-        if (helpers.isBoolean(node.value)) {
-            const boolean = new builtins.objects.boolean()
-            return boolean.__initialize__(node.value)
-        } else {
-            throw SyntaxError('Cannot interpret boolean')
-        }
-    }
-
-    const handleString = (node) => {
-        if (helpers.isString(node.value)) {
-            const string = new builtins.objects.string()
-            return string.__initialize__(node.value)
-        } else {
-            throw SyntaxError('Cannot interpret string')
-        }
-    }
-
-    const handleFloat = (node) => {
-        const value = node.value.replace(settings().DECIMAL_POINT_CHARACTER, '.')
-        if (helpers.isFloat(value)) {
-            const float = new builtins.objects.float()
-            return float.__initialize__(value)
-        } else {
-            throw SyntaxError('Cannot interpret float')
-        }
-    }
-
-    const handleNull = () => {
-        const none = new builtins.objects.none()
-        return none.__initialize__()
-    }
-
-    return interpret(ast)
-}
-
-module.exports = interpreter
-"""

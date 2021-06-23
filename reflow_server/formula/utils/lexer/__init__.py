@@ -1,5 +1,6 @@
-from .tokens import Token
-from settings import TokenType
+from reflow_server.formula.utils.lexer.tokens import Token
+from reflow_server.formula.utils.settings import TokenType
+
 
 class Lexer:
     def __init__(self, expression, settings):
@@ -49,7 +50,7 @@ class Lexer:
                 return Token(TokenType.RIGHT_PARENTHESIS, ')')
             elif self.expression[self.current_position] == self.settings.positional_argument_separator:
                 self.advance_next_position()
-                return Token(TokenType.POSITIONAL_SEPARATOR, self.settings.positional_argument_separator)
+                return Token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR, self.settings.positional_argument_separator)
             else:
                 raise Exception('invalid character')
         return Token(TokenType.END_OF_FILE, None)

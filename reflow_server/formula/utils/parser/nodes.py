@@ -1,4 +1,4 @@
-from settings import NodeType
+from reflow_server.formula.utils.settings import NodeType
 
 
 class Program:
@@ -21,7 +21,7 @@ class IfStatement:
     def __init__(self, expression, block, else_statement=None):
         self.expression = expression
         self.block = block
-        self.else_statament = else_statement
+        self.else_statement = else_statement
 
 
 class FunctionDefinition:
@@ -36,7 +36,7 @@ class FunctionDefinition:
 class FunctionCall:
     node_type = NodeType.FUNCTION_CALL
 
-    def __init__(self, parameters, name):
+    def __init__(self, name, parameters):
         self.parameters = parameters
         self.name = name
 
@@ -52,6 +52,14 @@ class BooleanOperation:
 
 class BinaryOperation:
     node_type = NodeType.BINARY_OPERATION
+
+    def __init__(self, left, right, operation):
+        self.left = left
+        self.right = right
+        self.operation = operation
+
+class BinaryConditional:
+    node_type = NodeType.BINARY_CONDITIONAL
 
     def __init__(self, left, right, operation):
         self.left = left

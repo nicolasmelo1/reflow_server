@@ -46,7 +46,7 @@ class string extends object {
             const response = new string()
             return response.__initialize__(representation.repeat(objectRepresentation))
         } else {
-            super.__multiply__(object)
+            return super.__multiply__(object)
         }
     }
 
@@ -56,11 +56,10 @@ class string extends object {
         const objectRepresentation = object.__representation__()
 
         if (object.type === STRING_TYPE) {
-            if (representation.length < objectRepresentation.length) {
-                return super.newBoolean(true)
-            }
-        } 
-        return super.__lessThan__(object)
+            return super.newBoolean(representation.length < objectRepresentation.length)
+        } else {
+            return super.__lessThan__(object)
+        }
     }
 
     __lessThanEqual__(object) {
@@ -68,11 +67,10 @@ class string extends object {
         const objectRepresentation = object.__representation__()
 
         if (object.type === STRING_TYPE) {
-            if (representation.length <= objectRepresentation.length) {
-                return super.newBoolean(true)
-            }
+            return super.newBoolean(representation.length <= objectRepresentation.length)
+        } else {
+            return super.__lessThanEqual__(object)
         }
-        return super.__lessThanEqual__(object)
     }
 
     __greaterThan__(object) {
@@ -80,11 +78,10 @@ class string extends object {
         const objectRepresentation = object.__representation__()
 
         if (object.type === STRING_TYPE) {
-            if (representation.length > objectRepresentation.length) {
-                return super.newBoolean(true)
-            }
+            return super.newBoolean(representation.length > objectRepresentation.length)
+        } else {
+            return super.__greaterThan__(object)
         }
-        return super.__greaterThan__(object)
     }
 
     __greaterThanEqual__(object) {
@@ -92,11 +89,10 @@ class string extends object {
         const objectRepresentation = object.__representation__()
 
         if (object.type === STRING_TYPE) {
-            if (representation.length >= objectRepresentation.length) {
-                return super.newBoolean(true)
-            }
+            return super.newBoolean(representation.length >= objectRepresentation.length)
+        } else {
+            return super.__greaterThanEqual__(object)
         }
-        return super.__greaterThanEqual__(object)
     }
 
     /**

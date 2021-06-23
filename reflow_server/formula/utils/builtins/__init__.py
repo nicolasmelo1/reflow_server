@@ -1,1 +1,1 @@
-import objects
+from .objects import *

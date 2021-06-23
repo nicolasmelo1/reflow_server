@@ -22,17 +22,14 @@ class CallStack:
     def __init__(self):
         self.records = []
     
-    def push_to_current(self, name, record_type):
-        record = Record(name, record_type)
+    def push_to_current(self, record):
         self.records[len(self.records) - 1] = record
         return record
 
-    def push(self, name, record_type):
-        record = Record(name, record_type)
-
-        self.records.set_nesting_level(len(self.records))
-        if self.records.length < 1000:
-            self.records.push(record)
+    def push(self, record):
+        record.set_nesting_level(len(self.records))
+        if len(self.records) < 99:
+            self.records.append(record)
         else:
             raise Exception('Stack is full, this means you are calling too many functions at once, try optimizing your code')
         return record

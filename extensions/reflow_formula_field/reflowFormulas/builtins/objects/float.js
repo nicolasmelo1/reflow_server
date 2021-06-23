@@ -26,7 +26,7 @@ class float extends object {
             const response = new float()
             return response.__initialize__(representation + objectRepresentation)
         } else {
-            super.__add__(object)
+            return super.__add__(object)
         }
     }
 
@@ -45,7 +45,7 @@ class float extends object {
             const response = new float()
             return response.__initialize__(representation - objectRepresentation)
         } else {
-            super.__subtract__(object)
+            return super.__subtract__(object)
         }
     }
 
@@ -64,7 +64,7 @@ class float extends object {
             const response = new float()
             return response.__initialize__(representation * objectRepresentation)
         } else {
-            super.__multiply__(object)
+            return super.__multiply__(object)
         }
     }
 
@@ -87,7 +87,7 @@ class float extends object {
                 return response.__initialize__(representation / objectRepresentation)
             }
         } else {
-            super.__divide__(object)
+            return super.__divide__(object)
         }
     }
 
@@ -113,7 +113,7 @@ class float extends object {
                 return response.__initialize__(result)
             }
         } else {
-            super.__power__(object)
+            return super.__power__(object)
         }
     }
 
