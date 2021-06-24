@@ -129,7 +129,7 @@ class Integer(Object):
                 return response._initialize_(representation / object_representation)
             else:
                 response = self.__class__(self.settings)
-                return response.__initialize__(representation / object_representation)
+                return response._initialize_(representation / object_representation)
         else:
             return super()._divide_(obj)
 
@@ -159,7 +159,7 @@ class Integer(Object):
                 return response._initialize_(representation % object_representation)
             else:
                 response = self.__class__(self.settings)
-                return response.__initialize__(representation % object_representation)
+                return response._initialize_(representation % object_representation)
         else:
             return super()._remainder_(obj)
 
@@ -186,7 +186,7 @@ class Integer(Object):
             return response._initialize_(representation ** object_representation)
         elif obj.type == INTEGER_TYPE:
             response = self.__class__(self.settings)
-            return response.__initialize__(representation ** object_representation)
+            return response._initialize_(representation ** object_representation)
         else:
             return super()._power_(obj)
 
