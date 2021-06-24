@@ -1,5 +1,31 @@
 class Object:
     def __init__(self, object_type, settings):
+        """
+        This is an object, it represents every object of reflow formulas.
+        Every object, similarly to python will contain some double underscore (or dunder) methods.
+     
+        Those dunder methods are responsible for handling common behaviour in the program like equals, difference, sum, multiplication,
+        and so on.
+     
+        The idea is that by doing this we take away much of the complexity and the workload of the interpreter function
+        and give more power to the builtin object types so they are able to handle itself.
+     
+        With this we are able to create stuff like 'Hello world'.length (this .length can be a function we call on a atribute of the string type)
+        we are able to give more funcionality to the integer, strings, floats and so on.
+
+        Okay, so how does this work?
+
+        When the interpreter finds a binary operation for example (1 + 2) 
+        what we do is valueLeft._add_(valueRight). Super simple. If you understand right, 1 will be represented
+        as an object `Integer(1)`, so in other words, the REAL value is `Integer(1)._add_(Integer(2))`.
+    
+        That's the kind of flexibility and achievment we can have by doing stuff like this.
+    
+        OKAY, but what happens to the ORIGINAL value?
+
+        The original value can be retrieved by calling _representation_(): this is the Python value or the value in whatever language you are using to
+        build this interpreter on.
+        """
         self.type = object_type
         self.settings = settings
 
@@ -37,51 +63,30 @@ class Object:
         # your first tought might be, why do we need to initialize it everytime
         # and do not put in a constant variable.
 
-        # Everytime we initialize we create a NEW OBJECT, than we pass this object.
-        # if we initialized it in a constant, when we use it again
-        # the values could have changed.
-        TRUE = self.new_boolean(True)
-        FALSE = self.new_boolean(False)
-
         is_equal = obj.type == self.type and \
             obj._representation_() == self._representation_()
-        if is_equal:
-            return TRUE._boolean_()
-        else:
-            return FALSE._boolean_()
+        
+        return self.new_boolean(is_equal)
 
     def _difference_(self, obj):
-        TRUE = self.new_boolean(True),
-        FALSE = self.new_boolean(False)
-
         is_different = obj.type != self.type or \
             obj._representation_() != self._representation_()
-        if is_different:
-            return TRUE._boolean_()
-        else:
-            return FALSE._boolean_()
+        return self.new_boolean(is_different)
+
         
     def _lessthan_(self, obj):
         return self.new_boolean(False)
     
     def _lessthanequal_(self, obj):
         is_equal = self._equals_(obj)
-
-        if is_equal._boolean_()._representation_() == True:
-            return self.new_boolean(True)
-        else:
-            return self.new_boolean(False)
+        return self.new_boolean(is_equal._boolean_()._representation_())
     
     def _greaterthan_(self, obj):
         return self.new_boolean(False)
 
     def _greaterthanequal_(self, obj):
         is_equal = self._equals_(obj)
-
-        if is_equal._boolean_()._representation_() == True:
-            return self.new_boolean(True)
-        else:
-            return self.new_boolean(False)
+        return self.new_boolean(is_equal._boolean_()._representation_())
 
     def _boolean_(self):
         """

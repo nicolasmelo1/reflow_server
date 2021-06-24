@@ -20,7 +20,7 @@ class Boolean(Object):
         compare to float or int.
 
         Args:
-            obj (reflow_server.formula.utils.builtins.objects.Object.Object): This object can be of any type
+            obj (reflow_server.formula.utils.builtins.objects.*): This object can be of any type
         
         Returns:
             reflow_server.formula.utils.builtins.objects.Boolean: Returns a boolean object representing either True or False for the less than conditional. 
@@ -44,7 +44,7 @@ class Boolean(Object):
         compare to float or int.
 
         Args:
-            obj (reflow_server.formula.utils.builtins.objects.Object.Object): This object can be of any type
+            obj (reflow_server.formula.utils.builtins.objects.*): This object can be of any type
 
         Returns:
             reflow_server.formula.utils.builtins.objects.Boolean: Returns a boolean object representing either True or False for the 
@@ -68,7 +68,7 @@ class Boolean(Object):
         compare to float or int.
 
         Args:
-            obj (reflow_server.formula.utils.builtins.objects.Object.Object): This object can be of any type
+            obj (reflow_server.formula.utils.builtins.objects.*): This object can be of any type
 
         Returns:
             reflow_server.formula.utils.builtins.objects.Boolean: Returns a boolean object representing either True or False for the 
@@ -92,7 +92,7 @@ class Boolean(Object):
         compare to float or int.
 
         Args:
-            obj (reflow_server.formula.utils.builtins.objects.Object.Object): This object can be of any type
+            obj (reflow_server.formula.utils.builtins.objects.*): This object can be of any type
 
         Returns:
             reflow_server.formula.utils.builtins.objects.Boolean: Returns a boolean object representing either True or False for the 

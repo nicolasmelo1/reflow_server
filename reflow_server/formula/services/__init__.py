@@ -1,8 +1,9 @@
+from reflow_server import formula
 from django.conf import settings
 
 from reflow_server.data.models import FormValue
 from reflow_server.formulary.models import FormulaVariable, FieldType, FieldNumberFormatType
-
+from reflow_server.formula.utils import evaluate
 from reflow_server.formula.models import FormulaContextForCompany, FormulaContextAttributeType
 
 import logging
@@ -54,7 +55,7 @@ class FormulaService:
     def __init__(self, formula, company_id, dynamic_form_id=None, field_id=None):
         self.__build_context(company_id)
         formula = self.__clean_formula(formula, dynamic_form_id, field_id)
-        self.encoded_formula = base64.b64encode(formula.encode('utf-8')).decode('utf-8')
+        self.formula = formula
         self.encoded_context = base64.b64encode(json.dumps(self.context.data).encode('utf-8')).decode('utf-8')
 
     def __build_context(self, company_id):
@@ -164,12 +165,8 @@ class FormulaService:
 
     def evaluate(self):
         try: 
-            directory = settings.BASE_DIR
-            command = ['node', '%s/extensions/reflow_formula_field/fromCommandLine.js' % (directory) , self.encoded_formula, self.encoded_context]
-            output = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=settings.FORMULA_MAXIMUM_EVAL_TIME)
-            logging.error(command)
-            data = json.loads(output)
-            return data
+            value = evaluate(self.formula)
+            return value._representation_()
         except subprocess.TimeoutExpired as te:
             return '#ERROR'
         except Exception as e:

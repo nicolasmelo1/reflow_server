@@ -61,6 +61,12 @@ class Settings:
     def __init__(self, context=Context()):
         """
         This is the settings class, this is used on the interpreter, parser and lexer.
+        The idea is that with the settings we are able to translate the formula or in other words, the programming language
+        how we actually want. 
+
+        This way, people in Brazil, ir United States or Europe can adapt the formulas the way it fits them most.
+        For example, in some places like Brazil float numbers are written with ',' as the decimal separator. In others like
+        the United States, '.' is prefered.
 
         Args:
             context (reflow_server.formula.utils.context.Context): The context class so we can translate the language in other

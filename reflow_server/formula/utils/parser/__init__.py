@@ -16,7 +16,7 @@ class Parser:
         if token_type == self.current_token.token_type:
             self.current_token = self.lexer.get_next_token
         else:
-            raise Exception('Expected token: ${tokenType}, current token: ${currentToken.tokenType}')
+            raise Exception('Expected token: {}, current token: {}'.format(token_type, self.current_token.token_type))
         
     def program(self):
         """
