@@ -135,8 +135,8 @@ class FormulaService:
             reflow_server.formula.services.InternalValue: Returns a handy internal value object with the value, the field type
                                                           and the number format type and so on.
         """
-        if isinstance(formula_result, dict):
-            handler = getattr(self, '_to_internal_value_%s' % formula_result.get('type'), None)
+        if hasattr(formula_result, 'object_type'):
+            handler = getattr(self, '_to_internal_value_%s' % formula_result.object_type, None)
             if handler:
                 return handler(formula_result)               
         
@@ -145,28 +145,28 @@ class FormulaService:
     def _to_internal_value_int(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
-        value = formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
+        value = formula_result._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
 
         return InternalValue(value, field_type, number_format_type=number_format_type)
 
     def _to_internal_value_float(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
-        splitted_value = str(formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
+        splitted_value = str(formula_result._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
         value = splitted_value[0]     
 
         return InternalValue(value, field_type, number_format_type=number_format_type)
 
     def _to_internal_value_string(self, formula_result):
         field_type = FieldType.objects.filter(type='text').first()
-        value = formula_result.get('value')
+        value = formula_result._representation_()
 
         return InternalValue(value, field_type)
 
     def evaluate(self):
         try: 
             value = evaluate(self.formula)
-            return value._representation_()
+            return value
         except subprocess.TimeoutExpired as te:
             return '#ERROR'
         except Exception as e:
