@@ -135,8 +135,8 @@ class FormulaService:
             reflow_server.formula.services.InternalValue: Returns a handy internal value object with the value, the field type
                                                           and the number format type and so on.
         """
-        if hasattr(formula_result, 'object_type'):
-            handler = getattr(self, '_to_internal_value_%s' % formula_result.object_type, None)
+        if hasattr(formula_result, 'type'):
+            handler = getattr(self, '_to_internal_value_%s' % formula_result.type, None)
             if handler:
                 return handler(formula_result)               
         
