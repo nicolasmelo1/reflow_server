@@ -7,7 +7,7 @@ from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
-from reflow_server.formulary.services.data import FieldOptionsData, DefaultFieldData
+from reflow_server.formulary.services.data import FieldOptionsData, DefaultFieldData, FormulaVariableData
 from reflow_server.formulary.relations import DefaultFieldValueValue
 
 
@@ -27,11 +27,12 @@ class FieldOptionsSerializer(serializers.ModelSerializer):
 
 ############################################################################################
 class FieldFormulaVariablesSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField()
     variable_id = serializers.IntegerField()
 
     class Meta:
         model = FormulaVariable
-        fields = ('variable_id',)
+        fields = ('uuid', 'variable_id')
 
 
 ############################################################################################
@@ -128,10 +129,15 @@ class FieldSerializer(serializers.ModelSerializer):
                 )
             )
 
-        field_formula_variables_ids = list()
+        field_formula_variables = list()
         for field_formula_variable in self.validated_data.get('field_formula_variables', list()):
             if field_formula_variable.get('variable_id', None):
-                field_formula_variables_ids.append(field_formula_variable.get('variable_id'))
+                field_formula_variables.append(
+                    FormulaVariableData(
+                        variable_id=field_formula_variable.get('variable_id'),
+                        variable_uuid=field_formula_variable.get('uuid')
+                    )
+                )
         
         field_service = FieldService(
             user_id=self.context['user_id'], 
@@ -160,7 +166,7 @@ class FieldSerializer(serializers.ModelSerializer):
             field_type=self.validated_data['type'],
             field_uuid=self.validated_data['uuid'],
             default_field_value_data=default_field_value_data,
-            field_formula_variables_ids=field_formula_variables_ids,
+            field_formula_variables=field_formula_variables,
             field_options_data=field_options_data,
             instance=instance
         )

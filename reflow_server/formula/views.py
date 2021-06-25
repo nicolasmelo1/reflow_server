@@ -27,13 +27,13 @@ class TestFormulaView(APIView):
         dynamic_form_id = DynamicForm.formula_.latest_main_dynamic_form_id_by_form_id(form_id)
         formula_service = FormulaService(text, company_id, dynamic_form_id=dynamic_form_id)
         value = formula_service.evaluate()
-        if value in ('#ERROR', '#N/A'):
+        if value.status == 'error':
             return Response({
-                'status': 'error'
+                'status': 'error',
+                'error': value.value
             }, status=status.HTTP_502_BAD_GATEWAY)
         else:
             return Response({
-                'status': 'ok',
-                'data': value
+                'status': 'ok'
             }, status=status.HTTP_200_OK) 
 

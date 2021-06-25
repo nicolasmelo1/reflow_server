@@ -52,7 +52,10 @@ class Record:
         Returns:
             reflow_server.formula.utils.builtins.objects.*: Generally one of the following
         """
-        return self.members.get(key, None)
+        try:
+            return self.members[key]
+        except Exception as e:
+            raise Exception('{} was not defined'.format(key))
 
     def set_nesting_level(self, nesting_level):
         self.__nesting_level = nesting_level

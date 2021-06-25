@@ -1,3 +1,4 @@
+from re import I
 from django.conf import settings
 from django.db import models
 
@@ -12,6 +13,9 @@ from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, 
     DefaultFieldValueFormularyManager, FieldFormularyManager, UserAccessedByFormularyManager, FormulaVariableFormularyManager
 from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager, DefaultFieldValueDataManager
 from reflow_server.formula.managers import FormulaVariableFormulaManager
+
+import uuid
+
 
 ############################################################################################
 class SectionType(models.Model):
@@ -492,6 +496,7 @@ class FormulaVariable(AbstractFormulaVariable):
     """
     Those are the variables for the formulas
     """
+    uuid = models.UUIDField(default=uuid.uuid4, null=True, blank=True, db_index=True)
     field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, related_name='field_formula_variables')
     variable = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, related_name='field_formula_variable_variables')
 

@@ -7,7 +7,7 @@ from reflow_server.theme.services.data import ThemeReference
 from reflow_server.authentication.models import UserExtended
 from reflow_server.formulary.models import Field, Form
 
-from reflow_server.formulary.services.data import FieldOptionsData
+from reflow_server.formulary.services.data import FieldOptionsData, FormulaVariableData
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.sections import SectionService
@@ -208,7 +208,7 @@ class ThemeSelectService:
             )
 
             formula_variable_ids = [
-                self.theme_reference.get_formulary_reference(theme_formula_variable_id).id 
+                FormulaVariableData(self.theme_reference.get_formulary_reference(theme_formula_variable_id).id)
                 for theme_formula_variable_id in theme_formula_variable_ids
             ]
 

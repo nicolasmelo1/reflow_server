@@ -70,18 +70,25 @@ class FieldService(Settings):
                     default_field_value.default_value_id
                 )
     # ------------------------------------------------------------------------------------------
-    def save_formula_variables(self, field_instance, field_formula_variables_ids):
+    def save_formula_variables(self, field_instance, field_formula_variables):
         """
         Saves the all of the formula variables of a formula field
 
         Args:
             field_instance (reflow_server.formulary.models.Field): The Field instance id that was created or updated
-            field_formula_variables_ids (list(int)): A list of Field instance ids
+            field_formula_variables (list(reflow_server.formulary.services.data.FormulaVariableData)): A list of FormulaVariableData objects
         """
-        for order, field_formula_variables_id in enumerate(field_formula_variables_ids):
-            FormulaVariable.formulary_.save_formula_variable(field_id=field_instance.id, variable_id=field_formula_variables_id, order=order)
+        saved_uuids = []
+        for order, field_formula_variable in enumerate(field_formula_variables):
+            saved_uuids.append(field_formula_variable.uuid)
+            FormulaVariable.formulary_.save_formula_variable(
+                field_id=field_instance.id, 
+                variable_id=field_formula_variable.variable_id, 
+                uuid=field_formula_variable.uuid,
+                order=order
+            )
 
-        FormulaVariable.formulary_.delete_formula_variables_not_in_variable_ids_by_field_id(field_instance.id, field_formula_variables_ids)
+        FormulaVariable.formulary_.delete_formula_variables_not_in_variable_ids_by_uuids(field_instance.id, saved_uuids)
     # ------------------------------------------------------------------------------------------
     def remove_default_values(self, field_instance, default_field_values_data):
         """
@@ -156,7 +163,7 @@ class FieldService(Settings):
                    date_configuration_auto_update, number_configuration_number_format_type, 
                    date_configuration_date_format_type, period_configuration_period_interval_type, 
                    field_type, field_options_data=None, default_field_value_data=None, 
-                   field_formula_variables_ids=None, field_uuid=None, is_long_text_a_rich_text=False, 
+                   field_formula_variables=None, field_uuid=None, is_long_text_a_rich_text=False, 
                    instance=None):
         
         is_new_field = False
@@ -208,8 +215,8 @@ class FieldService(Settings):
         if default_field_value_data != None:
             self.save_default_values(instance, default_field_value_data)
 
-        if field_formula_variables_ids != None:
-            self.save_formula_variables(instance, field_formula_variables_ids)
+        if field_formula_variables != None:
+            self.save_formula_variables(instance, field_formula_variables)
 
         if instance.type.type in ['option', 'multi_option']:
             field_options_service.create_new_field_options(instance, field_options_data)

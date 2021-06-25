@@ -1,4 +1,3 @@
-from reflow_server import formula
 from django.conf import settings
 
 from reflow_server.data.models import FormValue
@@ -6,11 +5,18 @@ from reflow_server.formulary.models import FormulaVariable, FieldType, FieldNumb
 from reflow_server.formula.utils import evaluate
 from reflow_server.formula.models import FormulaContextForCompany, FormulaContextAttributeType
 
-import logging
+import queue
+import multiprocessing
 import subprocess
 import json
 import base64
 import re
+
+
+class EvaluationData:
+    def __init__(self, status, value):
+        self.status = status
+        self.value = value
 
 
 class InternalValue:
@@ -89,6 +95,7 @@ class FormulaService:
                 dynamic_form_id,
                 formula_variable.variable_id
             )
+            print(values[0]['field_type__type'])
             if len(values) == 1:
                 handler = getattr(self, '_clean_formula_%s' % values[0]['field_type__type'], None)
                 if handler:
@@ -129,18 +136,26 @@ class FormulaService:
         field type reflow accept.
 
         Args:
-            formula_result (dict): Usually a dict with the type of the result and the actual machine value
+            formula_result (reflow_server.formula.services.EvaluationData): Usually a Evaluation object with the status and a value
+                                                                            key that can hold a string
+                                                                            or the object retrieved from the formula evaluation
+                                                                            of the result and the actual machine value
 
         Returns:
             reflow_server.formula.services.InternalValue: Returns a handy internal value object with the value, the field type
                                                           and the number format type and so on.
         """
-        if hasattr(formula_result, 'type'):
+        default_field_type = FieldType.objects.filter(type='text').first()
+
+        is_a_known_and_valid_reflow_formula_object = formula_result.status == 'ok' and hasattr(formula_result.value, 'type')
+        if is_a_known_and_valid_reflow_formula_object:
             handler = getattr(self, '_to_internal_value_%s' % formula_result.type, None)
             if handler:
                 return handler(formula_result)               
-        
-        return InternalValue('', None)
+        elif formula_result.status == 'error':
+            return InternalValue('#N/A' if formula_result.value == 'Unknown' else '#ERROR', field_type=default_field_type)
+    
+        return InternalValue('', default_field_type)
 
     def _to_internal_value_int(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
@@ -163,12 +178,31 @@ class FormulaService:
 
         return InternalValue(value, field_type)
 
+    def __evaluate(self, formula, result):
+        try:
+            result.put({
+                'status': 'ok',
+                'value': evaluate(formula)
+            })
+        except Exception as e:
+            result.put({
+                'status': 'error',
+                'value': str(e)
+            })
+
+
     def evaluate(self):
         try: 
-            value = evaluate(self.formula)
-            return value
-        except subprocess.TimeoutExpired as te:
-            return '#ERROR'
+            result = multiprocessing.Queue()
+            process = multiprocessing.Process(target=self.__evaluate, args=(self.formula, result))
+            process.start()
+            process.join(settings.FORMULA_MAXIMUM_EVAL_TIME/2)
+            if process.is_alive():
+                process.terminate()
+            result = result.get(timeout=settings.FORMULA_MAXIMUM_EVAL_TIME/2)
+            return EvaluationData(result['status'], result['value'])
+        except queue.Empty as qe:
+            return EvaluationData('error', 'Took too long')
         except Exception as e:
-            print(e)
-            return '#N/A'
+            return EvaluationData('error', 'Unknown error')
+

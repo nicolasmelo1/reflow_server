@@ -138,7 +138,7 @@ class Parser:
 
             parameters = list()
             if TokenType.IDENTITY == self.current_token.token_type:
-                parameters = self.parameters([])
+                parameters = self.parameters(parameters)
 
             self.get_next_token(TokenType.RIGHT_PARENTHESIS)
             self.get_next_token(TokenType.DO)
@@ -299,7 +299,8 @@ class Parser:
         if TokenType.POWER == self.current_token.token_type:
             operation = self.current_token
             left = node
-            self.get_next_token(self.current_token.token_type)
+            
+            self.get_next_token(TokenType.POWER)
             right = self.product()
             return nodes.BinaryOperation(left, right, operation)
         else:

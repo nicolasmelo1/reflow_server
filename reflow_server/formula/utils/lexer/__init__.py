@@ -25,7 +25,7 @@ class Lexer:
         return self.current_position < len(self.expression) - 1 and self.expression[self.current_position] in [' ', '\t']
 
     def __handle_current_token(self):
-        if self.current_position < (len(self.expression) - 1):
+        if self.current_position < len(self.expression):
             # be aware, the ordering of the conditions here are extremely important.
             # we can have numbers on variables, but if the first character is a number, it must be considered as a number
             # AND NOT a keyword. If we changed the order 1234 would be an Identity and not a Number.
@@ -52,7 +52,7 @@ class Lexer:
                 self.advance_next_position()
                 return Token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR, self.settings.positional_argument_separator)
             else:
-                raise Exception('invalid character')
+                raise Exception('invalid character: {}'.format(self.expression[self.current_position]))
         return Token(TokenType.END_OF_FILE, None)
             
     def __handle_number(self):
