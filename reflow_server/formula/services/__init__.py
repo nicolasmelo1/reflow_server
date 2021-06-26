@@ -3,14 +3,22 @@ from django.conf import settings
 from reflow_server.data.models import FormValue
 from reflow_server.formulary.models import FormulaVariable, FieldType, FieldNumberFormatType
 from reflow_server.formula.utils import evaluate
+from reflow_server.formula.utils.context import Context
 from reflow_server.formula.models import FormulaContextForCompany, FormulaContextAttributeType
 
 import queue
 import multiprocessing
-import subprocess
 import json
 import base64
 import re
+
+
+class FormulaVariables:
+    def __init__(self):
+        self.variables = []
+    
+    def add_variable_id(self, variable_id):
+        self.variables.append(variable_id)
 
 
 class EvaluationData:
@@ -27,42 +35,57 @@ class InternalValue:
         self.date_format_type = date_format_type
         
 
-class Context:
-    def __init__(self, conjunction='and', disjunction='or', inversion='not', 
-                 block_do='do', block_end='end', null='None', boolean_true='True',
-                 boolean_false='False', if_if='if', if_else='else', function='function',
-                 decimal_point_separator='.', positional_argument_separator=','):
-        self.data = {
-            'keywords': {
-                'conjunction': conjunction,
-                'disjunction': disjunction,
-                'inversion': inversion,
-                'null': null,
-                'boolean': {
-                    'true': boolean_true,
-                    'false': boolean_false
-                },
-                'if': {
-                    'if': if_if,
-                    'else': if_else
-                }, 
-                'block': {
-                    'do': block_do,
-                    'end': block_end
-                },
-                'function': function,
-                'decimal_point_separator': decimal_point_separator,
-                'positional_argument_separator': positional_argument_separator
-            }
-        }
-
-
 class FormulaService:
-    def __init__(self, formula, company_id, dynamic_form_id=None, field_id=None):
+    def __init__(self, formula, company_id, dynamic_form_id=None, field_id=None, formula_variables=None):
+        """
+        This service is handy for interacting with formulas in reflow, this service holds all of the logic needed to run our programming
+        language. This is the interface you generally will use for interacting with formulas. Simple as that.
+
+        Why do we need an interface?
+
+        That's simple, when you want to run stuff like 
+
+            status = {{status_553}}
+            if status == "Fechado" do
+                "O status está Fechado"
+            end 
+
+        our formula doesn't understand {{status_553}} this does not mean anything to it. This is a variable that we enable users to type
+        and use values of a field inside of a formula. Understandable, so how we do it.
+
+        We do it by getting the variable actual value and transforming it to a value the programming language actually understands.
+
+        So the example above becomes:
+
+            status = "Perdido"
+            if status == "Fechado" do
+                "O status está Fechado"
+            end
+
+        and we can then evaluate the formula.
+
+        The same happens the other way around. We evaluated the formula and the Formula gave us a reflow_server.formula.utils.builtin.objects.Integer.Integer
+        object. This doesn't mean anything to reflow itself, so we then need to transform it to a valua reflow is actually able to understand
+        and comprehend. (we use it with '.to_internal_value()' function)
+
+        Nice? Yeah it is.
+
+        Args:
+            formula (str): The actual formula string to clean and evaluate.
+            company_id (int): A Company instance id
+            dynamic_form_id (int, optional): A DynamicForm instance id. THIS IS A MAIN FORM INSTANCE ID, with depends_on as None. Defaults to None.
+            field_id (int, optional): The formula is usually bounded to a field, this is the field id the formula is bounded to. Defaults to None.
+            formula_variables (reflow_server.formula.services.FormulaVariables, optional): A FormulaVariables object that has a list of all variable_ids, each variable_id is a Field
+                                                                                           instance id. Defaults to None.
+        """
+        if formula_variables == None:
+            formula_variables = FormulaVariables()
+            variable_ids = FormulaVariable.formula_.variable_ids_by_field_id(field_id)
+            for variable_id in variable_ids:
+                formula_variables.add_variable_id(variable_id)
+
         self.__build_context(company_id)
-        formula = self.__clean_formula(formula, dynamic_form_id, field_id)
-        self.formula = formula
-        self.encoded_context = base64.b64encode(json.dumps(self.context.data).encode('utf-8')).decode('utf-8')
+        self.formula = self.__clean_formula(formula, dynamic_form_id, formula_variables)
 
     def __build_context(self, company_id):
         """
@@ -87,20 +110,69 @@ class FormulaService:
         else:
             self.context = Context()
 
-    def __clean_formula(self, formula, dynamic_form_id, field_id):
+    def __clean_formula(self, formula, dynamic_form_id, formula_variables):
+        """
+        This cleans the formula, what is cleaning the formula you might ask yourself.
+
+        Cleaning the formula is the process of getting the {{variable}} and adding a real value
+        that the formulas can understand to it.
+
+        For example:
+            
+            status = {{status_553}}
+            if status == "Fechado" do
+                "O status está Fechado"
+            end
+
+        The formula by itself cannot understand {{status_553}}, so we need to transform it to a REAL value the formula can understand.
+        In other words, to a String, to a Float, to a Integer, and so on.
+
+        So let's suppose we are saving the formulary with the following data:
+        {
+            "id": null,
+            "uuid": "9e853e6a-1315-4bbf-a3db-33f9e4b9d3f0",
+            "depends_on_dynamic_form": [
+                {
+                    "id": null,
+                    "uuid": "b1e89bfa-88a2-41e8-9ea0-c8fbda1f0bd8",
+                    "form_id": 334,
+                    "dynamic_form_value": {
+                        "id": null,
+                        "field_id": 553,
+                        "field_name": "status_553",
+                        "value": "Perdido"
+                    }
+                }
+            ]
+        }
+
+        What do we do on the formula is this:
+            
+            status = "Perdido"
+            if status == "Fechado" do
+                "O status está Fechado"
+            end
+
+        Did you notice? We've changed {{status_555}} with the "Perdido" string.
+        
+        Args:
+            formula (str): The unformatted formula, with the variable tags ( {{}} )
+            dynamic_form_id (int): A reflow_server.data.models.DynamicForm instance id WITH depends_on as NULL
+            field_id (int): The field instance id of the formula.
+
+        Returns:
+            str: Returns the formatted and cleaned formula.
+        """
         variables = re.findall(r'{{\w*?}}', formula, re.IGNORECASE)
-        formula_variables = FormulaVariable.formula_.formula_variables_by_field_id(field_id)
-        for index, formula_variable in enumerate(formula_variables):
+        for index, variable_id in enumerate(formula_variables.variables):
             values = FormValue.formula_.values_and_field_type_by_main_formulary_data_id_and_field_id(
                 dynamic_form_id,
-                formula_variable.variable_id
+                variable_id
             )
-            print(values[0]['field_type__type'])
             if len(values) == 1:
                 handler = getattr(self, '_clean_formula_%s' % values[0]['field_type__type'], None)
                 if handler:
                     formula = handler(formula, values[0], variables[index])
-
         return formula
 
     def _clean_formula_number(self, formula, value, variable):
@@ -182,7 +254,7 @@ class FormulaService:
         try:
             result.put({
                 'status': 'ok',
-                'value': evaluate(formula)
+                'value': evaluate(formula, self.context)
             })
         except Exception as e:
             result.put({

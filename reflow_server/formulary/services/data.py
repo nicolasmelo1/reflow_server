@@ -30,8 +30,7 @@ class FieldOptionsData:
 
             return field_option_data
         return None
-
-
+############################################################################################
 class DefaultFieldData:
     def __init__(self, value, default_value_id=None):
         """
@@ -48,7 +47,7 @@ class DefaultFieldData:
         """
         self.default_value_id = default_value_id
         self.value = value
-
+############################################################################################
 class FormulaVariableData:
     def __init__(self, variable_id, variable_uuid=None):
         self.uuid = variable_uuid if variable_uuid else uuid.uuid4()

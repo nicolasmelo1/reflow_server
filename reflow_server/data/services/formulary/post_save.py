@@ -76,6 +76,7 @@ class PostSave:
 
     def _post_process_formula(self, process):
         if process.form_value_instance.field.formula_configuration not in ('', None):
+            
             formula = FormulaService(
                 process.form_value_instance.field.formula_configuration,
                 self.company_id, 
