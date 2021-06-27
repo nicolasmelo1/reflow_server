@@ -12,7 +12,7 @@ from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, 
     PublicAccessFormFormularyManager, FormAccessedByFormularyManager, DefaultValueFieldAttachmentsFormularyManager, \
     DefaultFieldValueFormularyManager, FieldFormularyManager, UserAccessedByFormularyManager, FormulaVariableFormularyManager
 from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager, DefaultFieldValueDataManager
-from reflow_server.formula.managers import FormulaVariableFormulaManager
+from reflow_server.formula.managers import FormulaVariableFormulaManager, FieldFormulaManager
 
 import uuid
 
@@ -304,6 +304,7 @@ class Field(AbstractField):
     objects = models.Manager()
     formulary_ = FieldFormularyManager()
     theme_ = FieldThemeManager()
+    formula_ = FieldFormulaManager()
     pdf_generator_ = FieldPDFGeneratorManager()
     data_ = FieldDataManager()
 

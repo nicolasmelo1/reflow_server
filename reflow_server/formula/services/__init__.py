@@ -1,39 +1,18 @@
+from reflow_server.formula.managers import formula_variable
 from django.conf import settings
 
 from reflow_server.data.models import FormValue
+from reflow_server.data.services import RepresentationService
 from reflow_server.formulary.models import FormulaVariable, FieldType, FieldNumberFormatType
+from reflow_server.formula.services.data import FormulaVariables, EvaluationData, InternalValue
 from reflow_server.formula.utils import evaluate
 from reflow_server.formula.utils.context import Context
 from reflow_server.formula.models import FormulaContextForCompany, FormulaContextAttributeType
 
 import queue
 import multiprocessing
-import json
-import base64
 import re
 
-
-class FormulaVariables:
-    def __init__(self):
-        self.variables = []
-    
-    def add_variable_id(self, variable_id):
-        self.variables.append(variable_id)
-
-
-class EvaluationData:
-    def __init__(self, status, value):
-        self.status = status
-        self.value = value
-
-
-class InternalValue:
-    def __init__(self, value, field_type, number_format_type=None, date_format_type=None):
-        self.value = value
-        self.field_type = field_type
-        self.number_format_type = number_format_type
-        self.date_format_type = date_format_type
-        
 
 class FormulaService:
     def __init__(self, formula, company_id, dynamic_form_id=None, field_id=None, formula_variables=None):
@@ -164,30 +143,39 @@ class FormulaService:
             str: Returns the formatted and cleaned formula.
         """
         variables = re.findall(r'{{\w*?}}', formula, re.IGNORECASE)
-        for index, variable_id in enumerate(formula_variables.variables):
+        for index, foemula_variable in enumerate(formula_variables.variables):
             values = FormValue.formula_.values_and_field_type_by_main_formulary_data_id_and_field_id(
                 dynamic_form_id,
-                variable_id
+                foemula_variable.variable_id
             )
             if len(values) == 1:
-                handler = getattr(self, '_clean_formula_%s' % values[0]['field_type__type'], None)
+                handler = getattr(self, '_clean_formula_%s' % formula_variable.field_type, None)
+                representation = RepresentationService(
+                    field_type=formula_variable.field_type,
+                    date_format_type_id=formula_variable.date_format_id,
+                    number_format_type_id=formula_variable.number_format_id,
+                    form_field_as_option_id=formula_variable.form_field_as_option_id
+                )
                 if handler:
-                    formula = handler(formula, values[0], variables[index])
+                    value_to_replace = handler(representation, values[0]['value'])
+                else:
+                    value = representation.representation(values[0]['value'])
+                    value_to_replace = '"{}"'.format(value)
+
+        formula = formula.replace(variables[index], value_to_replace, 1)
         return formula
 
-    def _clean_formula_number(self, formula, value, variable):
-        value = value['value']
-        value = value if value.isdigit() else '1'
-        value = (int(value)/settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)
-        return formula.replace(variable, str('%f' % value).replace('.', self.context.data['keywords']['decimal_point_separator']), 1)
-
-    def _clean_formula_text(self, formula, value, variable):
-        value = '"{}"'.format(value['value'])
-        return formula.replace(variable, value, 1)
+    def _clean_formula_number(self, representation, value):
+        value = representation.representation(value)
+        value = value if value not in ['', None] else '1'
+        return value.replace(
+            representation.number_format_type.thousand_separator,
+            ''
+        ).replace(
+            representation.number_format_type.decimal_separator, 
+            self.context.data['keywords']['decimal_point_separator']
+        )
     
-    def _clean_formula_option(self, formula, value, variable):
-        return self._clean_formula_text(formula, value, variable)
-
     def evaluate_to_internal_value(self):
         """
         Evaluate the formula and transform the result to internal value.
