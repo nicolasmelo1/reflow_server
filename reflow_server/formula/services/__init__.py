@@ -2,7 +2,7 @@ from reflow_server.formula.managers import formula_variable
 from django.conf import settings
 
 from reflow_server.data.models import FormValue
-from reflow_server.data.services import RepresentationService
+from reflow_server.data.services.representation import RepresentationService
 from reflow_server.formulary.models import FormulaVariable, FieldType, FieldNumberFormatType
 from reflow_server.formula.services.data import FormulaVariables, EvaluationData, InternalValue
 from reflow_server.formula.utils import evaluate
@@ -65,7 +65,7 @@ class FormulaService:
 
         self.__build_context(company_id)
         self.formula = self.__clean_formula(formula, dynamic_form_id, formula_variables)
-
+    # ------------------------------------------------------------------------------------------
     def __build_context(self, company_id):
         """
         This builds the context, the context is a way that we use to translate the formula for many languages like
@@ -88,7 +88,7 @@ class FormulaService:
             self.context = Context(**formula_attributes)
         else:
             self.context = Context()
-
+    # ------------------------------------------------------------------------------------------
     def __clean_formula(self, formula, dynamic_form_id, formula_variables):
         """
         This cleans the formula, what is cleaning the formula you might ask yourself.
@@ -143,13 +143,14 @@ class FormulaService:
             str: Returns the formatted and cleaned formula.
         """
         variables = re.findall(r'{{\w*?}}', formula, re.IGNORECASE)
-        for index, foemula_variable in enumerate(formula_variables.variables):
+        for index, formula_variable in enumerate(formula_variables.variables):
             values = FormValue.formula_.values_and_field_type_by_main_formulary_data_id_and_field_id(
                 dynamic_form_id,
-                foemula_variable.variable_id
+                formula_variable.variable_id
             )
             if len(values) == 1:
                 handler = getattr(self, '_clean_formula_%s' % formula_variable.field_type, None)
+                # if there is no handler for the field type, consider it as a string by default
                 representation = RepresentationService(
                     field_type=formula_variable.field_type,
                     date_format_type_id=formula_variable.date_format_id,
@@ -161,21 +162,46 @@ class FormulaService:
                 else:
                     value = representation.representation(values[0]['value'])
                     value_to_replace = '"{}"'.format(value)
-
-        formula = formula.replace(variables[index], value_to_replace, 1)
+            formula = formula.replace(variables[index], value_to_replace, 1)
         return formula
-
+    # ------------------------------------------------------------------------------------------
     def _clean_formula_number(self, representation, value):
+        """
+        Looks kinda dumb, but the idea is simple, we transform it to a representation, and then we 
+        strip everything that is not a number or a decimal separator from the number. (
+            We can have numbers like 200,00 % or 2.000.000,50 so what we do is strip the thousand separator, along with prefix
+            and suffixes of the number.
+        )
+
+        Then this might not be clear. We change the decimal separator for '.' so in the example above '200,00 %' becomes '200.0' and then
+        we transform it to a base. (what?) 200,00 % should be considered as 2.0 don't you think? And 50% should be considered as 0.5, so what we do
+        is divide by the base and then transform it again to string changing the decimal_separator with the CONTEXT decimal separator.
+
+        Args:
+            representation (reflow_server.data.services.representation.RepresentationService): The representationService object for the field
+            value (str): The actual value to subtitute for
+
+        Returns:
+            str: The new value to substitute the variable for
+        """
         value = representation.representation(value)
         value = value if value not in ['', None] else '1'
-        return value.replace(
-            representation.number_format_type.thousand_separator,
-            ''
-        ).replace(
-            representation.number_format_type.decimal_separator, 
-            self.context.data['keywords']['decimal_point_separator']
+
+        decimal_separator = representation.number_format_type.decimal_separator
+        decimal_separator = decimal_separator if decimal_separator else ''
+        # split the values and get only decimal separator and numbers (prefix and suffix are removed)
+        splitted_value = list(value)
+        splitted_value = [character for character in splitted_value if character.isdigit() or character == decimal_separator]
+        # decimal separator is replaced to '.' so we can transform to float.
+        # we should consider 20,0% as 0,20 don't you think? So that's why we do this. and then we convert back to string
+        actual_number = ''.join(splitted_value).replace(
+            decimal_separator, 
+            '.'
         )
-    
+        actual_number = str(float(actual_number)/representation.number_format_type.base)
+        actual_number = actual_number.replace('.', self.context.decimal_point_separator)
+        return actual_number
+    # ------------------------------------------------------------------------------------------
     def evaluate_to_internal_value(self):
         """
         Evaluate the formula and transform the result to internal value.
@@ -187,7 +213,7 @@ class FormulaService:
         result = self.evaluate()
         result = self.to_internal_value(result)
         return result
-
+    # ------------------------------------------------------------------------------------------
     def to_internal_value(self, formula_result):
         """
         Transform the result of the formula to internal value accepted by reflow. In other words we convert the 
@@ -216,14 +242,14 @@ class FormulaService:
             return InternalValue('#N/A' if formula_result.value == 'Unknown' else '#ERROR', field_type=default_field_type)
     
         return InternalValue('', default_field_type)
-
+    # ------------------------------------------------------------------------------------------
     def _to_internal_value_int(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
         value = formula_result._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
 
         return InternalValue(value, field_type, number_format_type=number_format_type)
-
+    # ------------------------------------------------------------------------------------------
     def _to_internal_value_float(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
@@ -231,13 +257,13 @@ class FormulaService:
         value = splitted_value[0]     
 
         return InternalValue(value, field_type, number_format_type=number_format_type)
-
+    # ------------------------------------------------------------------------------------------
     def _to_internal_value_string(self, formula_result):
         field_type = FieldType.objects.filter(type='text').first()
         value = formula_result._representation_()
 
         return InternalValue(value, field_type)
-
+    # ------------------------------------------------------------------------------------------
     def __evaluate(self, formula, result):
         try:
             result.put({
@@ -249,9 +275,21 @@ class FormulaService:
                 'status': 'error',
                 'value': str(e)
             })
-
-
+    # ------------------------------------------------------------------------------------------
     def evaluate(self):
+        """
+        The evaluation process is similar as how it was done before making our own programming language.
+
+        It runs inside of a process and you might ask yourself why.
+
+        The idea is simple: if we can run a programming language inside of the server, how to tank the server?
+        Simple, just run an infinite loop and tank the server. Also we can add formulas like 1123123123 ^ 123123123123 that
+        can take too long, on this case we kill the process.
+
+        Returns:
+            reflow_server.formula.services.data.EvaluationData: The Evaluation data is a object we use to retrieve the data and understand
+                                                                what we need to evaluate for with the result.
+        """
         try: 
             result = multiprocessing.Queue()
             process = multiprocessing.Process(target=self.__evaluate, args=(self.formula, result))

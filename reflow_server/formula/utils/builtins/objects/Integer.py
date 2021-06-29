@@ -31,7 +31,7 @@ class Integer(Object):
         if obj.type == FLOAT_TYPE:
             from reflow_server.formula.utils.builtins.objects.Float import Float
             
-            response = Float()
+            response = Float(self.settings)
             return response._initialize_(representation + object_representation)
         elif obj.type == INTEGER_TYPE:
             response = self.__class__(self.settings)
@@ -59,7 +59,7 @@ class Integer(Object):
         if obj.type == FLOAT_TYPE:
             from reflow_server.formula.utils.builtins.objects.Float import Float
             
-            response = Float()
+            response = Float(self.settings)
             return response._initialize_(representation - object_representation)
         elif obj.type == INTEGER_TYPE:
             response = self.__class__(self.settings)
@@ -90,12 +90,12 @@ class Integer(Object):
         if obj.type == STRING_TYPE:
             from reflow_server.formula.utils.builtins.objects.String import String
             
-            response = String()
+            response = String(self.settings)
             return response._initialize_(object_representation * representation)
         elif obj.type == FLOAT_TYPE:
             from reflow_server.formula.utils.builtins.objects.Float import Float
             
-            response = Float()
+            response = Float(self.settings)
             return response._initialize_(representation * object_representation)
         elif obj.type == INTEGER_TYPE:
             response = self.__class__(self.settings)
@@ -125,7 +125,7 @@ class Integer(Object):
             elif obj.type == FLOAT_TYPE:
                 from reflow_server.formula.utils.builtins.objects.Float import Float
 
-                response = Float()
+                response = Float(self.settings)
                 return response._initialize_(representation / object_representation)
             else:
                 response = self.__class__(self.settings)
@@ -155,7 +155,7 @@ class Integer(Object):
             elif obj.type == FLOAT_TYPE:
                 from reflow_server.formula.utils.builtins.objects.Float import Float
 
-                response = Float()
+                response = Float(self.settings)
                 return response._initialize_(representation % object_representation)
             else:
                 response = self.__class__(self.settings)
@@ -182,7 +182,7 @@ class Integer(Object):
         if obj.type == FLOAT_TYPE:
             from reflow_server.formula.utils.builtins.objects.Float import Float
 
-            response = Float()
+            response = Float(self.settings)
             return response._initialize_(representation ** object_representation)
         elif obj.type == INTEGER_TYPE:
             response = self.__class__(self.settings)
