@@ -4,7 +4,6 @@ from reflow_server.core.utils.storage import Bucket, BucketUploadException
 from reflow_server.data.services.formulary.data import PostSaveData
 from reflow_server.data.models import FormValue, DynamicForm, Attachments
 from reflow_server.formula.services import FormulaService
-from reflow_server.formulary.models import FieldType, FieldNumberFormatType
 from reflow_server.data.services.attachments import AttachmentService
 
 import json
@@ -66,7 +65,8 @@ class PostSave:
                     )
                     attachment_to_delete.delete()
             FormValue.data_.delete_form_values_by_main_form_id_excluding_form_value_ids_disabled_fields_and_conditional_excludes_if_not_set(
-                formulary_data.form_data_id, form_value_ids
+                dynamic_form_id=formulary_data.form_data_id, 
+                form_value_ids=form_value_ids
             )
             DynamicForm.data_.remove_dynamic_forms_from_enabled_forms_and_by_depends_on_id_and_conditional_excludes_data_if_not_setexcluding_dynamic_form_ids(
                 formulary_data.form_data_id,
