@@ -1,13 +1,12 @@
 from django.conf import settings
-from django.db.models import Case, When, Q
 
 from reflow_server.data.services.aggregation.data import AggregationData
 from reflow_server.data.services.representation import RepresentationService
 from reflow_server.data.services.data import DataService
 from reflow_server.data.models import FormValue
-from reflow_server.formulary.models import Field, FieldNumberFormatType, FieldType, FieldOptions
+from reflow_server.formulary.models import Field, FieldOptions
+from reflow_server.formulary.services.fields import FieldService
 
-import numpy
 import functools
 import decimal
 
@@ -28,7 +27,6 @@ class AggregationService:
     def __sum_list(self, values):
         result = 0
         if len(values) > 0:
-            value = numpy.asarray(values)
             result = functools.reduce(lambda x, y: self.__convert_to_int(x) + self.__convert_to_int(y), values)
         return result
 
@@ -135,26 +133,30 @@ class AggregationService:
         key_field = Field.objects.filter(id=field_id_key).first()
         value_field = Field.objects.filter(id=field_id_value).first()
         
+        key_field_type = FieldService.retrieve_actual_field_type_for_field(key_field.id, key_field.type)
+        value_field_type = FieldService.retrieve_actual_field_type_for_field(value_field.id, value_field.type)
+
         keys_ordering = self.__order_keys(key_field)
         keys_values = FormValue.data_.distinct_value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty_ordered(
             depends_on_ids=self.dynamic_form_ids_to_aggregate, 
-            field_type_id=key_field.type.id, 
+            field_type_id=key_field_type.id, 
             field_id=key_field.id, 
             order=keys_ordering
         )
 
         for key_value, key_form_data_id in keys_values:
             aggregation_data.add_key(key=key_value, form_data_id=key_form_data_id)
-
+        
         value_values = FormValue.data_.value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(
             depends_on_ids=self.dynamic_form_ids_to_aggregate, 
-            field_type_id=value_field.type.id, 
+            field_type_id=value_field_type.id, 
             field_id=value_field.id, 
         )
 
         for value_value, value_form_data_id in value_values:
             aggregation_data.add_value(value=value_value, form_data_id=value_form_data_id)
-        aggregation_result_data = method_handler(aggregation_data.aggregated, value_field.type.type)
+
+        aggregation_result_data = method_handler(aggregation_data.aggregated, value_field_type.type)
         formated_aggregation_result_data = {}
         if formated:
             for key, value in aggregation_result_data.items():

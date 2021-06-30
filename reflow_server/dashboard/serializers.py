@@ -3,6 +3,8 @@ from rest_framework import serializers
 from reflow_server.dashboard.services import DashboardChartConfigurationService
 from reflow_server.dashboard.models import DashboardChartConfiguration
 from reflow_server.formulary.models import Field
+from reflow_server.formulary.services.fields import FieldService
+from reflow_server.data.models import FormValue
 
 
 class DashboardChartSerializer(serializers.ModelSerializer):
@@ -59,8 +61,15 @@ class DashboardChartConfigurationSerializer(serializers.ModelSerializer):
 
 class DashboardFieldsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False, allow_null=True)
-    field_type = serializers.CharField(source='type.type')
+    type = serializers.SerializerMethodField()
+
+    def get_type(self, obj):
+        field_type = FieldService.retrieve_actual_field_type_for_field(obj.id, obj.type)
+        if field_type:
+            return field_type.id
+        else:
+            return None
 
     class Meta:
         model = Field
-        fields = ('id', 'name', 'type', 'field_type', 'label_name')
+        fields = ('id', 'name', 'type', 'label_name')

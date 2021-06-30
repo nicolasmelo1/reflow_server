@@ -2,6 +2,7 @@ from django.db import transaction
 
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.data.services.representation import RepresentationService
+from reflow_server.data.models import FormValue
 from reflow_server.draft.services import DraftService
 from reflow_server.draft.models import Draft
 from reflow_server.authentication.models import UserExtended
@@ -9,7 +10,7 @@ from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.formulary.services.utils import Settings
 from reflow_server.formulary.services.default_attachment import DefaultAttachmentService
 from reflow_server.formulary.models import Form, Field, FieldOptions, PublicAccessField, DefaultFieldValue, \
-    FieldType, UserAccessedBy
+    FieldType, UserAccessedBy, FormulaVariable
 
 import uuid
 
@@ -68,6 +69,26 @@ class FieldService(Settings):
                     representation.to_internal_value(default_field_value.value), 
                     default_field_value.default_value_id
                 )
+    # ------------------------------------------------------------------------------------------
+    def save_formula_variables(self, field_instance, field_formula_variables):
+        """
+        Saves the all of the formula variables of a formula field
+
+        Args:
+            field_instance (reflow_server.formulary.models.Field): The Field instance id that was created or updated
+            field_formula_variables (list(reflow_server.formulary.services.data.FormulaVariableData)): A list of FormulaVariableData objects
+        """
+        saved_uuids = []
+        for order, field_formula_variable in enumerate(field_formula_variables):
+            saved_uuids.append(field_formula_variable.uuid)
+            FormulaVariable.formulary_.save_formula_variable(
+                field_id=field_instance.id, 
+                variable_id=field_formula_variable.variable_id, 
+                uuid=field_formula_variable.uuid,
+                order=order
+            )
+
+        FormulaVariable.formulary_.delete_formula_variables_not_in_variable_ids_by_uuids(field_instance.id, saved_uuids)
     # ------------------------------------------------------------------------------------------
     def remove_default_values(self, field_instance, default_field_values_data):
         """
@@ -141,8 +162,9 @@ class FieldService(Settings):
                    formula_configuration, date_configuration_auto_create, 
                    date_configuration_auto_update, number_configuration_number_format_type, 
                    date_configuration_date_format_type, period_configuration_period_interval_type, 
-                   field_type, field_options_data=None, default_field_value_data=None, field_uuid=None,
-                   is_long_text_a_rich_text=False, instance=None):
+                   field_type, field_options_data=None, default_field_value_data=None, 
+                   field_formula_variables=None, field_uuid=None, is_long_text_a_rich_text=False, 
+                   instance=None):
         
         is_new_field = False
         if instance == None or instance.id == None:
@@ -193,6 +215,9 @@ class FieldService(Settings):
         if default_field_value_data != None:
             self.save_default_values(instance, default_field_value_data)
 
+        if field_formula_variables != None:
+            self.save_formula_variables(instance, field_formula_variables)
+
         if instance.type.type in ['option', 'multi_option']:
             field_options_service.create_new_field_options(instance, field_options_data)
 
@@ -219,6 +244,22 @@ class FieldService(Settings):
     # ------------------------------------------------------------------------------------------
     @staticmethod
     def is_label_name_not_unique(field_id, company_id, section_id, label_name):
+        """
+        Checks is the label name already exists in the formulary. Every formulary can have one and just one
+        field name, it is not possible to have 2 equal field names on the same formulary.
+
+        Args:
+            field_id (int): A Field instance id, we use this to exclude the actual field_id that is being updated
+                            Imagine we are updating the field 'Status' which already exists, this field should be 
+                            excluded to evaluate if the name exists.
+            company_id (int): A Company instance id, don't have much to say, it just enables a better filtering of the data.
+            section_id (int): A Form instance id with depends_on as NOT NULL. we use this to retrieve the MAIN Form instance id.
+            label_name (str): And last but not least the label_name of the field, the new label_name or the updated label name,
+                              we compare it with all of the other fields of the formulary.
+
+        Returns:
+            bool: Returns True if the label_name IS NOT unique and False if it is unique. False is good, True is bad.
+        """
         section = Form.objects.filter(id=section_id, depends_on__group__company_id=company_id).first()
         if section:
             main_form_id = section.depends_on_id
@@ -230,3 +271,12 @@ class FieldService(Settings):
             )
         else:
             return False
+    # ------------------------------------------------------------------------------------------
+    @staticmethod
+    def retrieve_actual_field_type_for_field(field_id, field_type):
+        if field_type.is_dynamic_evaluated:
+            latest_form_value = FormValue.formulary_.latest_form_value_field_type_by_field_id(field_id)
+            if latest_form_value:
+                return latest_form_value.field_type
+    
+        return field_type

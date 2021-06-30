@@ -1,7 +1,11 @@
+from django.conf import settings
+
 from reflow_server.data.models import FormValue
 from reflow_server.authentication.models import UserExtended
+from reflow_server.data.services.data.data import FieldData
+from reflow_server.data.services.representation import RepresentationService
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 class SearchItem:
@@ -23,15 +27,16 @@ class SearchItem:
 ############################################################################################
 class DataSearch:
     # ------------------------------------------------------------------------------------------
-    def __search_exact(self, search_item):
+    def __search_exact(self, search_item, value=None):
         # Searchs for the exact value or parcial value, parcial also ignores the case
+        value = value if value else search_item.value 
         if search_item.exact:
             return {
-                'value': search_item.value
+                'value': value
             }
         else:
             return {
-                'value__icontains': search_item.value
+                'value__icontains': value
             }
     # ------------------------------------------------------------------------------------------
     def _search(self, search_keys):
@@ -57,7 +62,11 @@ class DataSearch:
             if to_search.field_name in self._fields:
                 field_data = self._fields[to_search.field_name]
 
-                handler = getattr(self, '_search_%s' % field_data['type'], None)
+                form_ids_to_filter = self.__search(to_search, field_data, form_ids_to_filter)
+                """
+                field_data = self._fields[to_search.field_name]
+
+                handler = getattr(self, '_search_%s' % field_data.field_type, None)
                 if handler:
                     form_ids_to_filter = handler(to_search, field_data, form_ids_to_filter)
                 else:
@@ -65,13 +74,43 @@ class DataSearch:
                         FormValue.data_.form_depends_on_ids_for_search_all_field_types(
                             company_id=self.company_id, 
                             depends_on_forms=list(form_ids_to_filter),
-                            field_id=field_data['id'],
-                            field_type=field_data['type'],
+                            field_id=field_data.id,
+                            field_type=field_data.field_type,
                             search_value_dict=self.__search_exact(to_search)
                         )
                     )
+                """
 
         self._data = self._data.filter(company_id=self.company_id, id__in=form_ids_to_filter)
+    # ------------------------------------------------------------------------------------------
+    def __search(self, search_item, field_data, form_ids_to_filter):
+        """
+        Responsible for making the search on each item and dispatching the handler for specific fields or
+        handling itself a default and generic search.
+
+        Args:
+            search_item (dict): {
+                field_name: (value_to_search, 0 or 1)
+            }
+            form_ids_to_filter (list(int)): A list of FormValue instance ids, this is used for filtering so we 
+            can transverse every filter.
+
+        Returns:
+            list(int): Returns the filtered list of FormValue instance ids.
+        """
+        handler = getattr(self, '_search_%s' % field_data.field_type, None)
+        if handler:
+            return handler(search_item, field_data, form_ids_to_filter)
+        else:
+            return list(
+                FormValue.data_.form_depends_on_ids_for_search_all_field_types(
+                    company_id=self.company_id, 
+                    depends_on_forms=list(form_ids_to_filter),
+                    field_id=field_data.id,
+                    field_type=field_data.field_type,
+                    search_value_dict=self.__search_exact(search_item)
+                )
+            )
     # ------------------------------------------------------------------------------------------
     def _search_date(self, search_item, field_data, form_ids_to_filter):
         """
@@ -84,30 +123,58 @@ class DataSearch:
 
         From 2020-08-06 00:00:00  TO 2020-06-07 23:59:59
         """
-        search_values = list()
+        representation_service = RepresentationService(
+            field_data.field_type, 
+            field_data.date_format_type_id,
+            field_data.number_format_type_id,
+            field_data.form_field_as_option_id
+        )
         split_search_value = search_item.value.split(' - ')
-        start_date = datetime.strptime(split_search_value[0].split(' ')[0], field_data['date_configuration_date_format_type_format'].split(' ')[0]) 
-        end_date = datetime.strptime(split_search_value[1].split(' ')[0] + ' 23:59:59', '{} %H:%M:%S'.format(field_data['date_configuration_date_format_type_format'].split(' ')[0])) 
+        start_date = representation_service.to_internal_value(split_search_value[0].split(' ')[0]) 
+        end_date = representation_service.to_internal_value(split_search_value[1].split(' ')[0])
+
+        start_date = datetime.strptime(start_date, settings.DEFAULT_DATE_FIELD_FORMAT)
+        end_date = datetime.strptime(end_date, settings.DEFAULT_DATE_FIELD_FORMAT).replace(hour=23, minute=59, second=59) 
 
         return list(
                 FormValue.data_.form_depends_on_ids_for_search_date_field_types(
                     company_id=self.company_id, 
                     depends_on_forms=list(form_ids_to_filter), 
-                    field_id=field_data['id'], 
-                    field_type=field_data['type'],
+                    field_id=field_data.id, 
+                    field_type=field_data.field_type,
                     start_date=start_date,
                     end_date=end_date
                 )
             )
+    # ------------------------------------------------------------------------------------------
+    def _search_number(self, search_item, field_data, form_ids_to_filter):
+        representation_service = RepresentationService(
+            field_data.field_type, 
+            field_data.date_format_type_id,
+            field_data.number_format_type_id,
+            field_data.form_field_as_option_id
+        )
+
+        value = representation_service.to_internal_value(search_item.value)
+
+        return list(
+            FormValue.data_.form_depends_on_ids_for_search_all_field_types(
+                company_id=self.company_id, 
+                depends_on_forms=list(form_ids_to_filter),
+                field_id=field_data.id,
+                field_type=field_data.field_type,
+                search_value_dict=self.__search_exact(search_item, value)
+            )
+        )
     # ------------------------------------------------------------------------------------------
     def _search_form(self, search_item, field_data, form_ids_to_filter):
         return list(
             FormValue.data_.form_depends_on_ids_for_search_form_field_types(
                 company_id=self.company_id, 
                 depends_on_forms=list(form_ids_to_filter), 
-                field_id=field_data['id'], 
-                field_type=field_data['type'],
-                form_field_as_option_id=field_data['form_field_as_option_id'],
+                field_id=field_data.id, 
+                field_type=field_data.field_type,
+                form_field_as_option_id=field_data.form_field_as_option_id,
                 search_value_dict=self.__search_exact(search_item)
             )
         )
@@ -150,9 +217,28 @@ class DataSearch:
             FormValue.data_.form_depends_on_ids_for_search_user_field_types(
                 company_id=self.company_id, 
                 depends_on_forms=list(form_ids_to_filter), 
-                field_id=field_data['id'], 
-                field_type=field_data['type'],
+                field_id=field_data.id, 
+                field_type=field_data.field_type,
                 search_user_ids=search_values
             )
         )
     # ------------------------------------------------------------------------------------------
+    def _search_formula(self, search_item, field_data, form_ids_to_filter):
+        latest_form_value = FormValue.data_.latest_form_value_field_type_by_field_id(field_data.id)
+        if latest_form_value:
+            field_data = FieldData(
+                field_data.id, 
+                latest_form_value.field_type.type, 
+                latest_form_value.date_configuration_date_format_type_id,
+                latest_form_value.number_configuration_number_format_type_id,
+                latest_form_value.form_field_as_option_id
+            )   
+        else:
+            field_data = FieldData(
+                field_data.id, 
+                '', 
+                field_data.date_format_type_id,
+                field_data.number_format_type_id,
+                field_data.form_field_as_option_id
+            )  
+        return self.__search(search_item, field_data, form_ids_to_filter)

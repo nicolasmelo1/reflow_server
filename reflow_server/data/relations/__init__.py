@@ -1,6 +1,3 @@
-from django.db.models import Case, When
-from django.db import connection
-
 from rest_framework import serializers
 
 from reflow_server.core.relations import ValueField

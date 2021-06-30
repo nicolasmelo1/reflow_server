@@ -3,10 +3,10 @@ from django.db import transaction
 from reflow_server.theme.models import Theme, ThemeType, ThemeForm, \
     ThemeField, ThemeFieldOptions, ThemeKanbanDefault, ThemeKanbanCard, \
     ThemeKanbanCardField, ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable, \
-    ThemeDashboardChartConfiguration
+    ThemeDashboardChartConfiguration, ThemeFormulaVariable
 from reflow_server.theme.services.data import ThemeReference
 
-from reflow_server.formulary.models import Form, Field, FieldOptions
+from reflow_server.formulary.models import Form, Field, FieldOptions, FormulaVariable
 from reflow_server.kanban.models import KanbanDefault, KanbanCard, KanbanCardField
 from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable
 from reflow_server.dashboard.models import DashboardChartConfiguration
@@ -131,7 +131,6 @@ class ThemeUpdateService:
             bool: return True to indicate everything has been created
         """
         form_field_as_option_reference = {}
-        formula_reference = {}
         formula_fields = []
         form_field_type_fields = []
 
@@ -175,7 +174,6 @@ class ThemeUpdateService:
             
             # When a formula exists in a field we need to update its references since it is a string.
             if field.formula_configuration not in (None, ''):
-                formula_reference[field.id] = theme_field_intance
                 formula_fields.append(field)
             
             # if the field is of type `option` or `multi_option` we add the options to the ThemeFieldOptions
@@ -197,18 +195,14 @@ class ThemeUpdateService:
             ThemeField.theme_.update_theme_field_form_field_as_option(theme_field.id, self.theme_reference.get_field_reference(field.form_field_as_option_id).id)
 
         for field in formula_fields:
-            theme_field = formula_reference[field.id]
+            formula_variable_ids = FormulaVariable.theme_.variable_ids_by_field_id(field.id)
 
-            formula_configuration = field.formula_configuration
-            field_ids_in_formula = re.findall(r'{{(\w+)?}}', formula_configuration)
-            for field_id_in_formula in field_ids_in_formula:
-                formula_configuration = formula_configuration.replace(
-                    '{{'+field_id_in_formula+'}}', 
-                    '{{'+str(self.theme_reference.get_field_reference(int(field_id_in_formula)).id)+'}}'
+            for formula_variable_id in formula_variable_ids:
+                ThemeFormulaVariable.theme_.create_theme_formula_variable(
+                    self.theme_reference.get_field_reference(field.id).id,
+                    self.theme_reference.get_field_reference(formula_variable_id).id
                 )
-            
-            ThemeField.theme_.update_theme_field_formula_configuration(theme_field.id, formula_configuration)
-
+                
         return True
 
     def __create_theme_kanban(self, theme_instance, form_ids, company_id, user_id):

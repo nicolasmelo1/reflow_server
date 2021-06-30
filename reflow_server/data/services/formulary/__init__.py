@@ -214,7 +214,7 @@ class FormularyDataService(PreSave, PostSave):
                 section_instance_id=section.section_data_id
             )
     
-            # updates the section data if the newly section instance id so when deleting we consider this new value
+            # updates the section data with the newly section instance id so when deleting we consider this new value (used for conditionals)
             section.section_data_id = section_instance.id
 
             for field_value in section.get_field_values:

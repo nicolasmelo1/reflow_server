@@ -27,3 +27,5 @@ class FormValueFormularyManager(models.Manager):
         else:
             return self.get_queryset().filter(company_id=company_id, field_id=field_id)
 
+    def latest_form_value_field_type_by_field_id(self, field_id):
+        return self.get_queryset().filter(field_id=field_id).order_by('-updated_at').first()

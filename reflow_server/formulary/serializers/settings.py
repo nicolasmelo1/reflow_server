@@ -2,12 +2,12 @@ from django.db import transaction
 
 from rest_framework import serializers
 
-from reflow_server.formulary.models import Group, Form, Field, FieldOptions, FieldType, DefaultFieldValue
+from reflow_server.formulary.models import FormulaVariable, Group, Form, Field, FieldOptions, DefaultFieldValue
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
-from reflow_server.formulary.services.data import FieldOptionsData, DefaultFieldData
+from reflow_server.formulary.services.data import FieldOptionsData, DefaultFieldData, FormulaVariableData
 from reflow_server.formulary.relations import DefaultFieldValueValue
 
 
@@ -23,6 +23,17 @@ class FieldOptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Field
         fields = ('id', 'label_name', 'form_id', 'form_label_name', 'group_id', 'group_name')
+
+
+############################################################################################
+class FieldFormulaVariablesSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField()
+    variable_id = serializers.IntegerField()
+
+    class Meta:
+        model = FormulaVariable
+        fields = ('uuid', 'variable_id')
+
 
 ############################################################################################
 class FieldDefaultValuesSerializer(serializers.ModelSerializer):
@@ -53,6 +64,7 @@ class FieldSerializer(serializers.ModelSerializer):
     """
     id = serializers.IntegerField(allow_null=True)
     field_option = FieldOptionSerializer(many=True)
+    field_formula_variables = FieldFormulaVariablesSerializer(many=True)
     field_default_field_values = FieldDefaultValuesSerializer(many=True)
     name = serializers.CharField(allow_blank=True, allow_null=True)
 
@@ -116,12 +128,23 @@ class FieldSerializer(serializers.ModelSerializer):
                     value=default_field_value.get('value')
                 )
             )
-            
+
+        field_formula_variables = list()
+        for field_formula_variable in self.validated_data.get('field_formula_variables', list()):
+            if field_formula_variable.get('variable_id', None):
+                field_formula_variables.append(
+                    FormulaVariableData(
+                        variable_id=field_formula_variable.get('variable_id'),
+                        variable_uuid=field_formula_variable.get('uuid')
+                    )
+                )
+        
         field_service = FieldService(
             user_id=self.context['user_id'], 
             company_id=self.context['company_id'], 
             form_id=self.context['form_id']
         )
+        
         instance = field_service.save_field(
             enabled=self.validated_data['enabled'],
             label_name=self.validated_data['label_name'],
@@ -143,6 +166,7 @@ class FieldSerializer(serializers.ModelSerializer):
             field_type=self.validated_data['type'],
             field_uuid=self.validated_data['uuid'],
             default_field_value_data=default_field_value_data,
+            field_formula_variables=field_formula_variables,
             field_options_data=field_options_data,
             instance=instance
         )

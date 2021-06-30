@@ -1,15 +1,20 @@
+from re import I
 from django.conf import settings
 from django.db import models
 
 from reflow_server.formulary.models.abstract import AbstractForm, AbstractField, AbstractFieldOptions, \
     AbstractDefaultFieldValue, AbstractFormulaVariable
-from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, FormAccessedByThemeManager
+from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeManager, FieldThemeManager, \
+    FormAccessedByThemeManager, FormulaVariableThemeManager
 from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager
 from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager, \
     PublicAccessFormFormularyManager, FormAccessedByFormularyManager, DefaultValueFieldAttachmentsFormularyManager, \
-    DefaultFieldValueFormularyManager, FieldFormularyManager, UserAccessedByFormularyManager
+    DefaultFieldValueFormularyManager, FieldFormularyManager, UserAccessedByFormularyManager, FormulaVariableFormularyManager
 from reflow_server.data.managers import FormDataManager, FieldDataManager, PublicAccessFieldDataManager, DefaultFieldValueDataManager
+from reflow_server.formula.managers import FormulaVariableFormulaManager, FieldFormulaManager
+
+import uuid
 
 
 ############################################################################################
@@ -81,9 +86,6 @@ class FieldNumberFormatType(models.Model):
 
     With the information above you might be wondering: BUT HEY, HOW DO YOU WORK WITH FRACTIONS LIKE 0,98 or PERCENTAGES?
 
-    For this you need to see the settings.py defined in the root of this django project for the DEFAULT_BASE_NUMBER_FIELD_FORMAT and
-    DEFAULT_BASE_NUMBER_FIELD_MAX_PRECISION.
-
     Every number saved on the database wheater it has a decimal defined or not is multiplied by the number defined on the 
     DEFAULT_BASE_NUMBER_FIELD_FORMAT setting. This means, the maximum number of decimal places accepted for for numbers 
     is the number of `0` in this default number.
@@ -114,7 +116,8 @@ class FieldNumberFormatType(models.Model):
     decimal_separator = models.CharField(max_length=10, null=True)
     order = models.BigIntegerField()
     base = models.BigIntegerField(default=1)
-
+    has_to_enforce_decimal = models.BooleanField(default=False)
+    
     class Meta:
         db_table = 'field_number_format_type'
         ordering = ('order',)
@@ -186,6 +189,10 @@ class FieldType(models.Model):
 
     So with this a important thing to say is: IT IS REALLY IMPORTANT TO BE CAREFULL WHEN REMOVING OR ADDING A FIELD TYPE.
 
+    `is_dynamic_evaluated` - on formulas we don't evaluate everytime we show the data to the user, instead we hold the actual value for the user. The user might 
+    want to make filters or even ordering, so to don't repeat code everytime we save the data of the 'formula' field as any other type, if it's dynamic evaluated
+    this means the data CAN'T hold this field type.
+
     References:
     reflow_server.formulary.models.abstract.AbstractFieldOption
     reflow_server.formulary.models.FieldPeriodIntervalType
@@ -195,10 +202,10 @@ class FieldType(models.Model):
     type = models.CharField(max_length=200, db_index=True)
     label_name = models.CharField(max_length=250, null=True, blank=True)
     order = models.BigIntegerField(default=1)
+    is_dynamic_evaluated = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'field_type'
-        app_label = 'formulary'
         ordering = ('order',)
 
 #############
@@ -297,6 +304,7 @@ class Field(AbstractField):
     objects = models.Manager()
     formulary_ = FieldFormularyManager()
     theme_ = FieldThemeManager()
+    formula_ = FieldFormulaManager()
     pdf_generator_ = FieldPDFGeneratorManager()
     data_ = FieldDataManager()
 
@@ -489,8 +497,15 @@ class FormulaVariable(AbstractFormulaVariable):
     """
     Those are the variables for the formulas
     """
-    field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, related_name='formula_variable_fields')
-    variable = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, related_name='field_formula_variable')
+    uuid = models.UUIDField(default=uuid.uuid4, null=True, blank=True, db_index=True)
+    field = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, related_name='field_formula_variables')
+    variable = models.ForeignKey('formulary.Field', models.CASCADE, db_index=True, related_name='field_formula_variable_variables')
 
     class Meta:
         db_table = 'formula_variable'
+        ordering = ('order',)
+
+    objects = models.Manager()
+    formulary_ = FormulaVariableFormularyManager()
+    formula_ = FormulaVariableFormulaManager()
+    theme_ = FormulaVariableThemeManager()

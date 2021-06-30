@@ -1,6 +1,5 @@
-from django.conf import settings
-from django.db.models import Case, When, Value, CharField, FloatField
-from django.db.models.functions import NullIf, Coalesce, Concat, Cast
+from django.db.models import Case, When
+from reflow_server.data.services.data.data import FieldData
 
 from reflow_server.data.models import FormValue
 from reflow_server.authentication.models import UserExtended
@@ -42,19 +41,7 @@ class DataSort:
             if field_data:
                 order_up_or_down = 'value' if 'down' in to_sort.value else '-value'
 
-                # tries to find a handler to sort specific field_types
-                # if a handler is found or not, we return the value and the formulary_id
-                # this way we can give a number to each formulary_id individually. so they can be sorted.
-                handler = getattr(self, '_sort_%s' % field_data['type'], None)
-                if handler:
-                    orderded_values_and_form_ids = handler(order_up_or_down, field_data)
-                else:
-                    orderded_values_and_form_ids = FormValue.data_.form_depends_on_and_values_for_sort_all_field_types(
-                        company_id=self.company_id, 
-                        depends_on_forms=self._data, 
-                        field_id=field_data['id'],
-                        order_by_value=order_up_or_down
-                    ) 
+                orderded_values_and_form_ids = self.__sort(order_up_or_down, field_data)
                 
                 # order_key holds the value as the key with each form_id in the list of the key
                 # we filter like this because for example for `field_type` as `option`, if we have 2 options
@@ -93,12 +80,27 @@ class DataSort:
                 if self._data and order:
                     self._data = self._data.order_by(order)
     # ------------------------------------------------------------------------------------------
+    def __sort(self, order_up_or_down, field_data):
+        # tries to find a handler to sort specific field_types
+        # if a handler is found or not, we return the value and the formulary_id
+        # this way we can give a number to each formulary_id individually. so they can be sorted.
+        handler = getattr(self, '_sort_%s' % field_data.field_type, None)
+        if handler:
+            return handler(order_up_or_down, field_data)
+        else:
+            return FormValue.data_.form_depends_on_and_values_for_sort_all_field_types(
+                company_id=self.company_id, 
+                depends_on_forms=self._data, 
+                field_id=field_data.id,
+                order_by_value=order_up_or_down
+            ) 
+    # ------------------------------------------------------------------------------------------
     def _sort_date(self, order_up_or_down, field_data):
         return FormValue.data_.form_depends_on_and_values_for_sort_date_field_types(
             company_id=self.company_id, 
             depends_on_forms=self._data, 
-            field_type=field_data['type'], 
-            field_id=field_data['id'],
+            field_type=field_data.field_type, 
+            field_id=field_data.id,
             order_by_value=order_up_or_down
         )
     # ------------------------------------------------------------------------------------------
@@ -106,8 +108,8 @@ class DataSort:
         return FormValue.data_.form_depends_on_and_values_for_sort_user_field_types(
             company_id=self.company_id, 
             depends_on_forms=self._data, 
-            field_type=field_data['type'],
-            field_id=field_data['id'],
+            field_type=field_data.field_type,
+            field_id=field_data.id,
             user_ids_ordered=list(UserExtended.data_.user_ids_for_sort_by_company_id(
                 self.company_id,
                 order_up_or_down
@@ -118,9 +120,9 @@ class DataSort:
         return FormValue.data_.form_depends_on_and_values_for_sort_form_field_types(
             company_id=self.company_id, 
             depends_on_forms=self._data, 
-            field_id=field_data['id'],
-            field_type=field_data['type'], 
-            form_field_as_option_id=field_data['form_field_as_option_id'],
+            field_id=field_data.id,
+            field_type=field_data.field_type, 
+            form_field_as_option_id=field_data.form_field_as_option_id,
             order_by_value=order_up_or_down,
         )
     # ------------------------------------------------------------------------------------------
@@ -129,7 +131,41 @@ class DataSort:
         return FormValue.data_.form_depends_on_and_values_for_sort_number_field_types(
             company_id=self.company_id, 
             depends_on_forms=self._data, 
-            field_type=field_data['type'],
-            field_id=field_data['id'],
+            field_type=field_data.field_type,
+            field_id=field_data.id,
             order_by_value=order_up_or_down
         )
+    # ------------------------------------------------------------------------------------------
+    def _sort_formula(self, order_up_or_down, field_data):
+        """
+        When the field type is a formula what we do is check the last field type, and order by it. 
+        If the formula changed from a number to a date we will order by date, otherwise we will order by number because it was the last
+        data inserted.
+
+        Args:
+            order_up_or_down (str): '-value' or 'value' check here: https://docs.djangoproject.com/en/dev/ref/models/querysets/#order-by
+            field_data (reflow_server.data.services.data.data.FieldData): the FieldData object, it doesn't present anything just a dataclass
+            with some handy attributes
+
+        Returns:
+            django.db.models.QuerySet(tuple(int, str)): A queryset of tuples where the first value is the main_form_id and the second is the value
+        """
+        latest_form_value = FormValue.data_.latest_form_value_field_type_by_field_id(field_data.id)
+        if latest_form_value:
+            field_data = FieldData(
+                field_data.id, 
+                latest_form_value.field_type.type, 
+                latest_form_value.date_configuration_date_format_type_id,
+                latest_form_value.number_configuration_number_format_type_id,
+                latest_form_value.form_field_as_option_id
+            )   
+        else:
+            field_data = FieldData(
+                field_data.id, 
+                '', 
+                field_data.date_format_type_id,
+                field_data.number_format_type_id,
+                field_data.form_field_as_option_id
+            )  
+
+        return self.__sort(order_up_or_down, field_data)

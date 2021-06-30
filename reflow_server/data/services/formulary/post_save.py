@@ -11,7 +11,7 @@ import json
 
 class PostSave:
     def add_saved_field_value_to_post_process(self, section_instance, form_value_instance):
-        if form_value_instance and (form_value_instance.field.type.type in ['id', 'attachment', 'long_text'] or form_value_instance.field.formula_configuration not in ('', None)):
+        if form_value_instance and form_value_instance.field.type.type in ['id', 'attachment', 'long_text', 'formula']:
             self.post_save_process.append(PostSaveData(section_instance, form_value_instance))
             return True
         return False
@@ -28,13 +28,10 @@ class PostSave:
         self.__remove_deleted(formulary_data)
 
         for process in self.post_save_process:
-            value = process.form_value_instance.value
             handler = getattr(self, '_post_process_%s' % process.form_value_instance.field.type.type, None)
             if handler:
                 process = handler(process)
-            
-            process = self._post_process_formula(process)
-            
+                            
             process.form_value_instance.save()
         return None
 
@@ -68,7 +65,8 @@ class PostSave:
                     )
                     attachment_to_delete.delete()
             FormValue.data_.delete_form_values_by_main_form_id_excluding_form_value_ids_disabled_fields_and_conditional_excludes_if_not_set(
-                formulary_data.form_data_id, form_value_ids
+                dynamic_form_id=formulary_data.form_data_id, 
+                form_value_ids=form_value_ids
             )
             DynamicForm.data_.remove_dynamic_forms_from_enabled_forms_and_by_depends_on_id_and_conditional_excludes_data_if_not_setexcluding_dynamic_form_ids(
                 formulary_data.form_data_id,
@@ -78,20 +76,18 @@ class PostSave:
 
     def _post_process_formula(self, process):
         if process.form_value_instance.field.formula_configuration not in ('', None):
+            
             formula = FormulaService(
-                process.form_value_instance.field.formula_configuration, 
-                dynamic_form_id=process.section_instance.depends_on.id
+                process.form_value_instance.field.formula_configuration,
+                self.company_id, 
+                dynamic_form_id=process.section_instance.depends_on.id,
+                field_id=process.form_value_instance.field_id
             )
-            formula_result = formula.evaluate()
-            value = ''
-            if isinstance(formula_result, dict):
-                if formula_result.get('type') == 'int':
-                    value = formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
-                elif formula_result.get('type') == 'float':
-                    splitted_value = str(formula_result.get('value')*settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
-                    value = splitted_value[0]
-            else:
-                value = formula_result
+            formula_result = formula.evaluate_to_internal_value()
+            value = formula_result.value
+
+            process.form_value_instance.field_type = formula_result.field_type
+            process.form_value_instance.number_configuration_number_format_type = formula_result.number_format_type
             process.form_value_instance.value = str(value)
         return process
 

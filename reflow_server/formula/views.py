@@ -1,12 +1,17 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.data.models import DynamicForm
-from reflow_server.formula.services import FormulaService, Context
-from reflow_server.formula.models import FormulaContextAttributeType, FormulaContextForCompany
+from reflow_server.formula.services import FormulaService, FormulaVariables
+from reflow_server.formula.serializers import FormulaSerializer
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class TestFormulaView(APIView):
     """
     This view is used just to validate if a formula is valid or not, we validate using the last
@@ -21,31 +26,35 @@ class TestFormulaView(APIView):
                   inserted data of the formulary to validate it. It could use a factory, but we 
                   can do it later.
     """
-    def get(self, request, company_id, form_id):
-        text = request.GET.get('text')
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
-        dynamic_form_id = DynamicForm.formula_.latest_main_dynamic_form_id_by_form_id(form_id)
-        formula_context_for_company = FormulaContextForCompany.objects.filter(company_id=company_id).first() 
-        formula_context_attributes = FormulaContextAttributeType.objects.filter(context_type_id=formula_context_for_company.context_type_id).values('attribute_type__name', 'translation')
-
-        formula_attributes = {}
-        if formula_context_attributes:
-            for formula_context_attribute in formula_context_attributes:
-                key = formula_context_attribute['attribute_type__name']
-                formula_attributes[key] = formula_context_attribute['translation']
-
-            custom_context = Context(**formula_attributes)
+    def post(self, request, company_id, form_id):
+        serializer = FormulaSerializer(data=request.data)
+        if serializer.is_valid():
+            variables = FormulaVariables()
+            for variable_id in serializer.data['variable_ids']:
+                variables.add_variable_id(variable_id)
+            dynamic_form_id = DynamicForm.formula_.latest_main_dynamic_form_id_by_form_id(form_id)
+            formula_service = FormulaService(
+                serializer.data['formula'], 
+                company_id, 
+                dynamic_form_id=dynamic_form_id, 
+                formula_variables=variables
+            )
+            value = formula_service.evaluate()
+            
+            if value.status == 'error':
+                return Response({
+                    'status': 'error',
+                    'error': value.value
+                }, status=status.HTTP_502_BAD_GATEWAY)
+            else:
+                return Response({
+                    'status': 'ok'
+                }, status=status.HTTP_200_OK)
         else:
-            custom_context = Context()
-        formula_service = FormulaService(text, context=custom_context, dynamic_form_id=dynamic_form_id)
-        value = formula_service.evaluate()
-        if value in ('#ERROR', '#N/A'):
             return Response({
-                'status': 'error'
+                'status': 'error',
+                'error': 'Unknown error'
             }, status=status.HTTP_502_BAD_GATEWAY)
-        else:
-            return Response({
-                'status': 'ok',
-                'data': value
-            }, status=status.HTTP_200_OK) 
 

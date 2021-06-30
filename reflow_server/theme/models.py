@@ -1,11 +1,11 @@
 from django.db import models
 
 from reflow_server.theme.managers import ThemeThemeManager, ThemeFormThemeManager, ThemeFieldThemeManager, \
-    ThemeFieldOptionThemeManager, ThemeKanbanCardThemeManager, \
+    ThemeFieldOptionThemeManager, ThemeKanbanCardThemeManager, ThemeFormulaVariableThemeManager, \
     ThemeKanbanCardFieldThemeManager, ThemeNotificationConfigurationThemeManager, \
     ThemeNotificationConfigurationVariableThemeManager, ThemeTypeThemeManager, ThemeDashboardChartConfigurationThemeManager, \
     ThemeKanbanDefaultManager
-from reflow_server.formulary.models.abstract import AbstractField, AbstractFieldOptions, AbstractForm
+from reflow_server.formulary.models.abstract import AbstractField, AbstractFieldOptions, AbstractForm, AbstractFormulaVariable
 from reflow_server.notification.models.abstract import AbstractNotificationConfiguration 
 from reflow_server.kanban.models.abstract import AbstractKanbanCard, AbstractKanbanCardField, AbstractKanbanDimensionOrder
 from reflow_server.dashboard.models.abstract import AbstractDashboardChartConfiguration
@@ -94,6 +94,22 @@ class ThemeForm(AbstractForm):
     objects = models.Manager()
     theme_ = ThemeFormThemeManager()
 
+
+class ThemeFormulaVariable(AbstractFormulaVariable):
+    """
+    See `reflow_server.theme.models.Theme`, `reflow_server.formulary.models.abstract.AbstractFormulaVariable` 
+    and `reflow_server.formulary.models.FormulaVariable` for reference
+    """
+    field = models.ForeignKey('theme.ThemeField', models.CASCADE, db_index=True, related_name='theme_field_formula_variables')
+    variable = models.ForeignKey('theme.ThemeField', models.CASCADE, db_index=True, related_name='theme_field_formula_variable_variables')
+
+    class Meta:
+        ordering = ('order',)
+        db_table = 'theme_formula_variable'
+
+    objects = models.Manager()
+    theme_ = ThemeFormulaVariableThemeManager()
+    
 
 class ThemeField(AbstractField):
     """

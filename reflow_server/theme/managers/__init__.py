@@ -5,6 +5,7 @@ from .kanban_card_field import KanbanCardFieldThemeManager
 from .dashboard_chart_configuration import DashboardChartConfigurationThemeManager
 from .form import FormThemeManager
 from .form_accessed_by import FormAccessedByThemeManager
+from .formula_variable import FormulaVariableThemeManager
 from .field import FieldThemeManager
 from .field_options import FieldOptionsThemeManager
 from .notification_configuration import NotificationConfigurationThemeManager
@@ -20,3 +21,4 @@ from .theme_kanban_card_field import ThemeKanbanCardFieldThemeManager
 from .theme_notification_configuration import ThemeNotificationConfigurationThemeManager
 from .theme_notification_configuration_variable import ThemeNotificationConfigurationVariableThemeManager
 from .theme_dashboard_chart_configuration import ThemeDashboardChartConfigurationThemeManager
+from .theme_formula_variable import ThemeFormulaVariableThemeManager

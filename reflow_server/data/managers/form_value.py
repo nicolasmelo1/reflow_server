@@ -580,4 +580,8 @@ class FormValueDataManager(models.Manager):
         """
         return self.form_values_by_value_field_id_and_section_id(value, field_id, section_id).exclude(id=form_value_id).exists()
     # ------------------------------------------------------------------------------------------
-    
+    def latest_form_value_field_type_by_field_id(self, field_id):
+        try:
+            return self.get_queryset().filter(field_id=field_id).latest('updated_at')
+        except:
+            return None

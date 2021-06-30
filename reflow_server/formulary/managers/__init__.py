@@ -9,3 +9,4 @@ from .draft import DraftFormularyManager
 from .default_field_value_attachments import DefaultValueFieldAttachmentsFormularyManager
 from .default_field_value import DefaultFieldValueFormularyManager
 from .user_accessed_by import UserAccessedByFormularyManager
+from .formula_variable import FormulaVariableFormularyManager
