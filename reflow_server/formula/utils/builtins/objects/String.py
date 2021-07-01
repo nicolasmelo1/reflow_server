@@ -1,6 +1,7 @@
 from reflow_server.formula.utils.builtins.objects.Object import Object
 from reflow_server.formula.utils.builtins.types import INTEGER_TYPE, \
     STRING_TYPE
+from reflow_server.formula.utils.helpers import DynamicArray
 
 
 class String(Object):
@@ -10,7 +11,16 @@ class String(Object):
     def _initialize_(self, value):
         self.value = value
         return super()._initialize_()
-
+    
+    def _getitem_(self, index):
+        members = list(self._representation_())
+        characters = []
+        for character in members:
+            string = self.__class__(self.settings)
+            characters.append(string._initialize_(character))
+        array = DynamicArray(characters)
+        return array[int(index)]
+    
     def _add_(self, obj):
         """
         When the other value is a string we concatenate the strings.

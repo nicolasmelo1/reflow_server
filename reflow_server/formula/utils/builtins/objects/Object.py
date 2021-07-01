@@ -38,6 +38,12 @@ class Object:
     def _initialize_(self):
         return self
     
+    def _getitem_(self, item):
+        raise Exception("Cannot get item '{}' of type {}".format(item, self.type))
+    
+    def _setitem_(self, item, element):
+        raise Exception("Cannot set element '{}' at item '{}' of type {}".format(element, item, self.type))
+    
     def _add_(self, obj):
         raise Exception("Unsuported operation '+' between types {} and {}".format(self.type, obj.type))
 

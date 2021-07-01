@@ -132,3 +132,18 @@ class Variable:
 
     def __init__(self, value):
         self.value = value
+
+
+class Slice:
+    node_type = NodeType.SLICE
+
+    def __init__(self, left, slice_value):
+        self.left = left
+        self.slice = slice_value
+
+
+class List:
+    node_type = NodeType.LIST
+
+    def __init__(self, members=[]):
+        self.members = members

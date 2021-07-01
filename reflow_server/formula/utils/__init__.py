@@ -14,22 +14,22 @@ def evaluate(expression, context=None):
     It's actually a pretty common knowledge that you probably use everyday.
 
     First let me introduce to you to some GREAT stuff on the internet that can serve as an inspiration:
-    1.: https://ruslanspivak.com/lsbasi-part1/
+    1.: https://ruslanspivak.com/lsbasi-part1/ (read the hole tutorial)
     2.: https://pt.wikipedia.org/wiki/Formalismo_de_Backus-Naur_Estendido#:~:text=EBNF%20%C3%A9%20um%20c%C3%B3digo%20que,combinados%20em%20uma%20sequ%C3%AAncia%20v%C3%A1lida.
     3.: https://monkeylang.org/ (it's in Go, i also don't know Go, but it's not that difficult to follow along)
-    4.: https://github.com/python/cpython/blob/main/Grammar/python.gram (It can be quite intimidating, but it's not difficult actually)
+    4.: https://github.com/python/cpython/blob/main/Grammar/python.gram (It can be quite intimidating, but it's not difficult to understand actually)
     5.: https://github.com/elixir-lang/elixir/blob/master/lib/elixir/src/elixir_parser.yrl (I don't know Erlang either, but it's easy to follow along
     this was of my main sources of inspiration)
     6.: https://github.com/haifenghuang/magpie (This guy took Monkey Lang Book an added steroids to it, nice source of inspiration too)
 
     Okay, so how does actually a programming language work? 
-    Some might respond with magic, others might respond with zeroes and ones. Both are right, and both are wrong. Actually the second one
+    Some might respond "with magic", others might respond with zeroes and ones. Both are right, and both are wrong. Actually the second one
     is more right than wrong but anyway the idea is simple.
 
     We have 2 types of programming languages: Compiled and Interpreted (i think that there can be others). Python and Javascript are both
     interpreted. If you use CPython it generally is interpreted, if you use Javascript, with V8 it's actually compiled with a JIT
     compiler (Just-in-Time compilation is the process of compiling the code as the code run). Compiling code is actually more low level stuff
-    than just interpreting the code, the steps are basically the same on both times but usually in compiled languages we have more steps.
+    than just interpreting the code, the steps are basically the same on both but usually in compiled languages we have more steps.
 
     In Java we run:
     javac MyProgram.java -> This will compile the code and create a binary file
@@ -44,7 +44,7 @@ def evaluate(expression, context=None):
     So we have an interpreted language, okay, how does this work?
     Usually the process is the same on every language:
     
-    Lexer -> Parser -> Abstract Syntax Tree (AST)
+    Lexer -> Parser -> Abstract Syntax Tree (AST) -> Interpret
 
     AST is actually the most important part, you can write an interpreter relatively easily if you have an AST. 
 
@@ -62,8 +62,8 @@ def evaluate(expression, context=None):
       / \
      2   3 
 
-    This is a tree, and is like the tree is on the opposite direction. We call 10 as the root, root is the first one.
-    2, 3 and 5 are leafs because we are in the edge. And that's it. But how do we represent it in code?
+    This is a tree, and is like the tree is on the opposite direction. We call 10 as the root, root is the first node.
+    2, 3 and 5 are leafs because they are in the edge. And that's it. But how do we represent it in code?
 
     >>> class Node:
             def __init__(self, value):
@@ -90,7 +90,7 @@ def evaluate(expression, context=None):
         variable = 1
         variable + 2
 
-    This two lines code can be represented as (in dict for easier understanding) 
+    This two lines code can be represented as (in json for easier understanding) 
 
     
     {
@@ -166,11 +166,11 @@ def evaluate(expression, context=None):
     and so on.
 
     Args:
-        expression ([type]): [description]
-        context ([type], optional): [description]. Defaults to None.
+        expression (str): The actual formula
+        context (reflow_server.formula.utils.context.Context, optional): The context object so you can translate the formula to other languages. Defaults to None.
 
     Returns:
-        [type]: [description]
+        reflow_server.formula.utils.builtins.objects.*: Returns a object instance. Check the builtins.object to see the possible objects that can be returned
     """
     if context == None:
         context = Context()

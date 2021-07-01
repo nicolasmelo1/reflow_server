@@ -170,12 +170,16 @@ class Interpreter:
             return self.handle_binary_operation(node)
         elif node.node_type == NodeType.BOOLEAN_OPERATION:
             return self.handle_boolean_operation(node)
+        elif node.node_type == NodeType.SLICE:
+            return self.handle_slice(node)
         elif node.node_type == NodeType.NULL:
             return self.handle_null(node)
         elif node.node_type == NodeType.STRING:
             return self.handle_string(node)
         elif node.node_type == NodeType.FLOAT:
             return self.handle_float(node)
+        elif node.node_type == NodeType.LIST:
+            return self.handle_list(node)
         elif node.node_type == NodeType.INTEGER:
             return self.handle_integer(node)
         elif node.node_type == NodeType.BOOLEAN:
@@ -271,13 +275,24 @@ class Interpreter:
             return self.evaluate(node.else_statement)
     
     def handle_assign(self, node):
-        variable_name = node.left.value.value
         variable_value = self.evaluate(node.right, True)
+
+        # if we assign to a normal variable
+        if node.left.node_type == NodeType.VARIABLE:
+            variable_name = node.left.value.value
         
-        record = self.global_memory.stack.peek()
-        record.assign(variable_name, variable_value)
-        
-        return variable_value
+            record = self.global_memory.stack.peek()
+            record.assign(variable_name, variable_value)
+            return variable_value
+        # if we assign to a item in an array
+        elif node.left.node_type == NodeType.SLICE:
+            variable_name = node.left.left.value.value
+            record = self.global_memory.stack.peek()
+            identity_value = record.get(variable_name)
+            
+            value_to_add = self.evaluate(node.left.slice)
+            identity_value._setitem_(value_to_add._representation_(), variable_value)
+            return identity_value
     
     def handle_variable(self, node):
         variable_name = node.value.value
@@ -334,6 +349,11 @@ class Interpreter:
             elif node.operation.token_type == TokenType.GREATER_THAN_EQUAL:
                 return value_left._greaterthanequal_(value_right)
 
+    def handle_slice(self, node):
+        slice_value = self.evaluate(node.slice)
+        value_left = self.evaluate(node.left)
+        return value_left._getitem_(slice_value._representation_())
+
     def handle_unary_conditional(self, node):
         if node.operation.token_type == TokenType.INVERSION:
             value = self.evaluate(node.value, True)
@@ -344,7 +364,7 @@ class Interpreter:
         if node.operation.token_type == TokenType.SUM:
             return value._unaryplus_()
         elif node.operation.token_type == TokenType.SUBTRACTION:
-            return value._unary_minus_()
+            return value._unaryminus_()
     
     def handle_null(self, node):
         null = builtins.objects.Null(self.settings)
@@ -363,6 +383,13 @@ class Interpreter:
             return integer._initialize_(node.value.value)
         else:
             raise Exception('Cannot interpret integer')
+
+    def handle_list(self, node):
+        list_value = builtins.objects.List(self.settings)
+        members = []
+        for member in node.members:
+            members.append(self.evaluate(member))
+        return list_value._initialize_(members)
 
     def handle_float(self, node):
         value = node.value.value.replace(self.settings.decimal_point_character, '.')

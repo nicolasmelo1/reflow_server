@@ -37,24 +37,40 @@ class Lexer:
                 return self.__handle_keyword()
             elif self.expression[self.current_position] in self.settings.operation_characters:
                 return self.__handle_operation()
+            elif self.expression[self.current_position] in self.settings.valid_braces:
+                return self.__handle_braces()
             elif self.expression[self.current_position] == self.settings.comment_character:
                 return self.__handle_comment()
             elif self.expression[self.current_position] == '\n':
                 self.advance_next_position()
                 return Token(TokenType.NEWLINE, '\n')
-            elif self.expression[self.current_position] == '(':
-                self.advance_next_position()
-                return Token(TokenType.LEFT_PARENTHESIS, '(')
-            elif self.expression[self.current_position] == ')':
-                self.advance_next_position()
-                return Token(TokenType.RIGHT_PARENTHESIS, ')')
             elif self.expression[self.current_position] == self.settings.positional_argument_separator:
                 self.advance_next_position()
                 return Token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR, self.settings.positional_argument_separator)
             else:
                 raise Exception('invalid character: {}'.format(self.expression[self.current_position]))
         return Token(TokenType.END_OF_FILE, None)
-            
+
+    def __handle_braces(self):
+        if self.expression[self.current_position] == '(':
+            self.advance_next_position()
+            return Token(TokenType.LEFT_PARENTHESIS, '(')
+        elif self.expression[self.current_position] == ')':
+            self.advance_next_position()
+            return Token(TokenType.RIGHT_PARENTHESIS, ')')
+        elif self.expression[self.current_position] == '[':
+            self.advance_next_position()
+            return Token(TokenType.LEFT_BRACKETS, '[')
+        elif self.expression[self.current_position] == ']':
+            self.advance_next_position()
+            return Token(TokenType.RIGHT_BRACKETS, ']')
+        elif self.expression[self.current_position] == '{':
+            self.advance_next_position()
+            return Token(TokenType.LEFT_BRACES, '{')
+        elif self.expression[self.current_position] == '}':
+            self.advance_next_position()
+            return Token(TokenType.RIGHT_BRACES, '}')
+        
     def __handle_number(self):
         number = []
         counter = 0
@@ -130,6 +146,8 @@ class Lexer:
             return Token(TokenType.OR, keyword)
         elif keyword == self.settings.inversion_keyword:
             return Token(TokenType.NOT, keyword)
+        elif keyword == self.settings.include_keyword:
+            return Token(TokenType.IN, keyword)
         else:
             return Token(TokenType.IDENTITY, keyword)
 

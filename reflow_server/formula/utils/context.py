@@ -17,7 +17,8 @@ class Block:
 
 
 class Keywords:
-    def __init__(self, inversion, disjunction, conjunction, function, null, block, boolean, if_block):
+    def __init__(self, includes, inversion, disjunction, conjunction, function, null, block, boolean, if_block):
+        self.includes = includes
         self.inversion = inversion
         self.disjunction = disjunction
         self.conjunction = conjunction
@@ -27,8 +28,9 @@ class Keywords:
         self.boolean = boolean
         self.if_block = if_block
 
+
 class Context:
-    def __init__(self, conjunction='and', disjunction='or', inversion='not', 
+    def __init__(self, includes='in', conjunction='and', disjunction='or', inversion='not', 
                  block_do='do', block_end='end', null='None', boolean_true='True',
                  boolean_false='False', if_if='if', if_else='else', function='function',
                  decimal_point_separator='.', positional_argument_separator=','):
@@ -62,6 +64,16 @@ class Context:
         boolean = Boolean(boolean_true, boolean_false)
         if_block = If(if_if, if_else)
 
-        self.keyword = Keywords(inversion, disjunction, conjunction, function, null, block, boolean, if_block)
+        self.keyword = Keywords(
+            includes, 
+            inversion, 
+            disjunction, 
+            conjunction, 
+            function, 
+            null, 
+            block, 
+            boolean, 
+            if_block
+        )
         self.positional_argument_separator = positional_argument_separator
         self.decimal_point_separator = decimal_point_separator

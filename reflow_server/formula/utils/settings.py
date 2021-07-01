@@ -9,7 +9,11 @@ class TokenType:
     STRING='STRING'
     FUNCTION='FUNCTION'
     LEFT_PARENTHESIS='LEFT_PARENTHESIS'
+    LEFT_BRACES='LEFT_BRACES'
+    LEFT_BRACKETS='LEFT_BRACKETS'
     RIGHT_PARENTHESIS='RIGHT_PARENTHESIS'
+    RIGHT_BRACES='RIGHT_BRACES'
+    RIGHT_BRACKETS='RIGHT_BRACKETS'
     GREATER_THAN_EQUAL='GREATER_THAN_EQUAL'
     LESS_THAN_EQUAL='LESS_THAN_EQUAL'
     NULL='NULL'
@@ -32,6 +36,7 @@ class TokenType:
     IDENTITY='IDENTITY'
     DO='DO'
     END='END'
+    IN='IN'
     IF='IF'
     ELSE='ELSE'
 
@@ -55,6 +60,8 @@ class NodeType:
     VARIABLE='VARIABLE'
     FUNCTION_DEFINITION='FUNCTION_DEFINITION'
     FUNCTION_CALL='FUNCTION_CALL'
+    LIST='LIST'
+    SLICE='SLICE'
 
 
 class Settings:
@@ -81,10 +88,11 @@ class Settings:
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
             '_'
         ] + self.valid_numbers_characters
-
+        self.valid_braces = ['{', '}', '(', ')', '[', ']']
         self.positional_argument_separator = context.positional_argument_separator
         self.decimal_point_character = context.decimal_point_separator
         self.inversion_keyword = context.keyword.inversion
+        self.include_keyword = context.keyword.includes
         self.disjunction_keyword = context.keyword.disjunction
         self.conjunction_keyword = context.keyword.conjunction
         self.function_keyword = context.keyword.function

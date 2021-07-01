@@ -4,6 +4,93 @@ from reflow_server.formula.utils.parser import nodes
 
 class Parser:
     def __init__(self, lexer, settings):
+        """
+        ////////////////////////////////////////////////////////////
+        // This is the Grammar of Reflow Formulas, it is based and inspired
+        // on EBNF grammar: https://pt.wikipedia.org/wiki/Formalismo_de_Backus-Naur_Estendido
+        // 
+        // If you don't know what grammars are read:
+        // https://pt.wikipedia.org/wiki/Formalismo_de_Backus-Naur 
+        //
+        // Basically it is a way of representing a structure of a syntax, every programming language
+        // has one of this. This grammar helps us with the hole logic for the parsing.
+        //
+        // _ABOUT THE PARSER_
+        // The parser uses recursion in order to transverse all of the tokens of the expression. The original article where
+        // this was inspired from (Reference: https://ruslanspivak.com/lsbasi-part7/) uses while loops in order to transverse the
+        // hole structure. I was also using this, but then i came in to conclusion that since it also uses recursion, using ONLY 
+        // recursion would be easier to comprehend. (Not that recursion is an easy topic)
+        ////////////////////////////////////////////////////////////
+         
+        program: block END_OF_FILE
+        
+        block: statements_list 
+        
+        compound_statement: IF if_statement 
+                          | FUNCTION function_statement
+                             
+        function_statement: FUNCTION IDENTITY LEFT_PARENTHESIS (parameters)?* RIGHT_PARENTHESIS DO block END
+        
+        function_call: IDENTITY LEFT_PARENTHESIS (expression POSITIONAL_ARGUMENT_SEPARATOR)?* RIGHT_PARENTHESIS
+        
+        parameters: ((IDENTITY | assignment) POSITIONAL_ARGUMENT_SEPARATOR)*
+        
+        if_statement: IF expression DO block ((ELSE else_statement)? | END) 
+        
+        else_statement: (ELSE DO block | ELSE IF if_statement) END
+        
+        statements_list: (statement NEWLINE)* 
+        
+        statement: block
+                   | assignment
+                   | empty 
+        
+        assignment: variable ASSIGN expression
+                  | expression
+     
+        expression: disjunction
+        
+        disjunction: (disjunction ((OR) | disjunction)*
+                   | conjunction
+        
+        conjunction: (conjunction ((AND) | conjunction)*
+                   | inversion
+        
+        inversion: (NOT) inversion
+                   | comparison
+        
+        comparison: comparison (( GREATER_THAN | GREATER_THAN_EQUAL | LESS_THAN | LESS_THAN_EQUAL | EQUAL | DIFFERENT | IN) comparison)* 
+                  | add
+         
+        add: add ((PLUS | MINUS) add)*
+           | product
+
+        product: product ((MULTIPLACATION | DIVISION | REMAINDER) product)*
+               | power
+        
+        power: power ((POWER) power)*
+             | unary
+        
+        unary: (SUM | SUBTRACTION) unary
+             | primary
+         
+        primary: atom
+               | primary LEFT_PARENTHESIS function_call
+               | primary LEFT_BRACKET atom (COMMA atom)* RIGHT_BRACKET
+        
+        atom: INTEGER 
+            | FLOAT 
+            | STRING
+            | BOOLEAN
+            | LEFT_PARENTHESIS disjunction RIGHT_PARENTHESIS
+            | variable
+            | function_statement
+            | LEFT_BRACKET array
+        
+        array: LEFT_BRACKET expression (COMMA expression)* RIGHT_BRACKET
+         
+        variable: IDENTITY
+        """
         self.lexer = lexer
         self.settings = settings
         self.current_token = self.lexer.get_next_token
@@ -75,17 +162,17 @@ class Parser:
     
     def assignment(self):
         """
-        assignment: variable ASSIGN expression
+        assignment: primary ASSIGN expression
                   | expression
         """
-        node = self.expression()
+        node = self.primary()
 
         if (TokenType.ASSIGN == self.current_token.token_type):
             operation = self.current_token
             left = node
             self.get_next_token(self.current_token.token_type)
             right = self.expression()
-            if (left.node_type != NodeType.VARIABLE):
+            if (left.node_type not in [NodeType.VARIABLE, NodeType.SLICE]):
                 raise Exception("Cannot assign, needs to assign value to a variable")
             elif (right == None):
                 raise Exception("You forgot to assign a value to a variable")
@@ -165,10 +252,6 @@ class Parser:
         """
         function_call: IDENTITY LEFT_PARENTHESIS (expression POSITIONAL_ARGUMENT_SEPARATOR)?* RIGHT_PARENTHESIS
         """
-        if function_name == None:
-            function_name = self.current_token.value
-            self.get_next_token(TokenType.IDENTITY)
-            self.get_next_token(TokenType.LEFT_PARENTHESIS)
         if TokenType.RIGHT_PARENTHESIS != self.current_token.token_type:
             argument = self.expression()
             function_arguments.append(argument)
@@ -229,6 +312,10 @@ class Parser:
             return node
 
     def inversion(self):
+        """
+        inversion: (NOT) inversion
+                 | comparison
+        """
         node = self.comparison()
 
         if TokenType.NOT == self.current_token.token_type:
@@ -242,6 +329,10 @@ class Parser:
             return node
     
     def comparison(self):
+        """
+        comparison: comparison (( GREATER_THAN | GREATER_THAN_EQUAL | LESS_THAN | LESS_THAN_EQUAL | EQUAL | DIFFERENT | IN) comparison)* 
+                  | sum
+        """
         node = self.add()
         if self.current_token.token_type in [
             TokenType.GREATER_THAN, 
@@ -249,7 +340,8 @@ class Parser:
             TokenType.DIFFERENT,
             TokenType.LESS_THAN,
             TokenType.LESS_THAN_EQUAL,
-            TokenType.EQUAL
+            TokenType.EQUAL,
+            TokenType.IN
         ]:
             operation = self.current_token
             left = node
@@ -263,6 +355,10 @@ class Parser:
             return node
         
     def add(self):
+        """
+        add: add ((PLUS | MINUS) add)*
+           | product
+        """
         node = self.product()
 
         if self.current_token.token_type in [
@@ -316,12 +412,28 @@ class Parser:
             value = self.unary()
             return nodes.UnaryOperation(operation, value)
         else:
-            return self.atom()
+            return self.primary()
     
+    def primary(self):
+        node = self.atom()
+        if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
+            self.get_next_token(TokenType.LEFT_PARENTHESIS)
+            return self.function_call_statement(node.value.value, [])
+        elif TokenType.LEFT_BRACKETS == self.current_token.token_type:
+            self.get_next_token(TokenType.LEFT_BRACKETS)
+            slice_value = self.expression()
+            node = nodes.Slice(node, slice_value)
+            self.get_next_token(TokenType.RIGHT_BRACKETS)
+            return node
+        else:
+            return node
+
     def atom(self):
         token = self.current_token
-        if TokenType.IDENTITY == self.current_token.token_type and self.lexer.peek_and_validate('(', 0):
-            return self.function_call_statement(None, [])
+        #if TokenType.IDENTITY == self.current_token.token_type and self.lexer.peek_and_validate('(', 0):
+        #    return self.function_call_statement(None, [])
+        if TokenType.LEFT_BRACKETS == self.current_token.token_type:
+            return self.array([])
         elif TokenType.BOOLEAN == self.current_token.token_type:
             node = nodes.Boolean(token)
             self.get_next_token(self.current_token.token_type)
@@ -353,3 +465,16 @@ class Parser:
     
     def variable(self):
         return nodes.Variable(self.current_token)
+
+    def array(self, members=[]):
+        if TokenType.RIGHT_BRACKETS == self.current_token.token_type:
+            self.get_next_token(TokenType.RIGHT_BRACKETS)
+            return nodes.List(members)
+        elif TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
+            self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
+        elif TokenType.LEFT_BRACKETS == self.current_token.token_type:
+            self.get_next_token(TokenType.LEFT_BRACKETS)
+
+        node = self.expression()
+        members.append(node)
+        return self.array(members)
