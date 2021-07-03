@@ -9,9 +9,9 @@ from reflow_server.formula.utils.context import Context
 def evaluate(expression, context=None):
     """
     Yeah, you guessed it right, we've built our own programming language and you might ask yourself how.
-    And although we see creators of programming languages similar to gods it's not difficult at all.
+    And although we see creators of programming languages similar to gods, it's not difficult at all.
 
-    It's actually a pretty common knowledge that you probably use everyday.
+    It's actually a pretty common knowledge that you probably use everyday when using stuff like esbuild, sass, scss, webpack, babel, etc.
 
     First let me introduce to you to some GREAT stuff on the internet that can serve as an inspiration:
     1.: https://ruslanspivak.com/lsbasi-part1/ (read the hole tutorial)

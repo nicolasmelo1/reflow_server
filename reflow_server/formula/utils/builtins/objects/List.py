@@ -9,6 +9,10 @@ class List(Object):
 
     def _initialize_(self, array=[]):
         self.array = DynamicArray(array)
+        self.represented_items_in_array = []
+        for element in array:
+            if hasattr(element, '_representation_'):
+                self.represented_items_in_array.append(element._representation_())
         return super()._initialize_()
     
     def _add_(self, obj):
@@ -26,12 +30,13 @@ class List(Object):
         return self.array[int(index)]
     
     def _setitem_(self, index, element):
+        if hasattr(element, '_representation_'):
+            self.represented_items_in_array[int(index)] = element._representation_()
         return self.array.insert_at(element, int(index))
 
+    def _in_(self, obj):
+        return self.new_boolean(obj._representation_() in self.represented_items_in_array)
+
     def _representation_(self):
-        to_show = []
-        for element in self.array.array:
-            if hasattr(element, '_representation_'):
-                to_show.append(element._representation_())
-        return to_show
+        return self.represented_items_in_array
     

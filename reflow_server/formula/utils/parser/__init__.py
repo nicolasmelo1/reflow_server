@@ -20,6 +20,17 @@ class Parser:
         // this was inspired from (Reference: https://ruslanspivak.com/lsbasi-part7/) uses while loops in order to transverse the
         // hole structure. I was also using this, but then i came in to conclusion that since it also uses recursion, using ONLY 
         // recursion would be easier to comprehend. (Not that recursion is an easy topic)
+        // 
+        // IF YOU DON'T UNDERSTAND AT FIRST DON'T WORRY, actually writting parsers is really difficult topic, and i don't know much of it either
+        // I go most by trial and error. So there is a BIG room for improvement here.
+        // 
+        // Writting an interpreter i think that it's easier than a parser and makes a lot more sense.
+        // Try to follow the tutorial above, and see how he writes it, and also try to see some parsers of famous languages (or at least the grammar)
+        // and see if you can try to understand. Also feel free to write print statements here to understand everything that it is doing. 
+        // I recommend reading from top to bottom, try to read what function he calls, what it returns. And try to understand the logic.
+        //
+        // If you still have a difficult time reading through it all, feel free to ask anytime, but try to at least read the tutorials 
+        // i've added to the formulas so it can be a LOT easier to grasp the hole concept.
         ////////////////////////////////////////////////////////////
          
         program: block END_OF_FILE
@@ -29,7 +40,7 @@ class Parser:
         compound_statement: IF if_statement 
                           | FUNCTION function_statement
                              
-        function_statement: FUNCTION IDENTITY LEFT_PARENTHESIS (parameters)?* RIGHT_PARENTHESIS DO block END
+        function_statement: FUNCTION (IDENTITY)? LEFT_PARENTHESIS (parameters)?* RIGHT_PARENTHESIS DO block END
         
         function_call: IDENTITY LEFT_PARENTHESIS (expression POSITIONAL_ARGUMENT_SEPARATOR)?* RIGHT_PARENTHESIS
         
@@ -41,11 +52,10 @@ class Parser:
         
         statements_list: (statement NEWLINE)* 
         
-        statement: block
-                   | assignment
-                   | empty 
+        statement: compound_statement
+                 | assignment
         
-        assignment: variable ASSIGN expression
+        assignment: assignment ASSIGN assignment
                   | expression
      
         expression: disjunction
@@ -141,14 +151,14 @@ class Parser:
 
     def statement(self):
         """
-        statement: compoundStatement
+        statement: compound_statement
                  | assignment
         """
         node = self.compound_statement()
-        if node:
-            return node
-        else:
-            return self.assignment()
+    
+        if node == None:
+            node = self.assignment()            
+        return node
     
     def compound_statement(self):
         """
@@ -157,30 +167,33 @@ class Parser:
         """
         if (TokenType.IF == self.current_token.token_type):
             return self.if_statement()
-        elif (TokenType.FUNCTION == self.current_token.token_type):
+        elif TokenType.FUNCTION == self.current_token.token_type:
             return self.function_statement()
     
     def assignment(self):
         """
-        assignment: primary ASSIGN expression
+        assignment: expression ASSIGN (expression | FUNCTION function_statement)
                   | expression
         """
-        node = self.primary()
+        node = self.expression()
 
-        if (TokenType.ASSIGN == self.current_token.token_type):
-            operation = self.current_token
+        if self.current_token.token_type == TokenType.ASSIGN:
             left = node
-            self.get_next_token(self.current_token.token_type)
-            right = self.expression()
+            operation = self.current_token
+            self.get_next_token(TokenType.ASSIGN)
+            if TokenType.FUNCTION == self.current_token.token_type:
+                right = self.function_statement()
+            else:
+                right = self.expression()
             if (left.node_type not in [NodeType.VARIABLE, NodeType.SLICE]):
                 raise Exception("Cannot assign, needs to assign value to a variable")
             elif (right == None):
                 raise Exception("You forgot to assign a value to a variable")
-            
             return nodes.Assign(left, right, operation)
         else:
             return node
-    
+
+
     def if_statement(self):
         """
         if_statement: IF expression DO block ((ELSE else_statement)? | END) 
@@ -207,20 +220,21 @@ class Parser:
                 return self.if_statement()
             else:
                 self.get_next_token(TokenType.DO)
-                node = self.block() 
+                node = self.block()
                 self.get_next_token(TokenType.END)
                 return node
 
     def function_statement(self):
         """
-        function_statement: FUNCTION IDENTITY LEFT_PARENTHESIS (parameters)?* RIGHT_PARENTHESIS DO block END
+        function_statement: FUNCTION (IDENTITY)? LEFT_PARENTHESIS (parameters)?* RIGHT_PARENTHESIS DO block END
         """
         if TokenType.FUNCTION == self.current_token.token_type:
             self.get_next_token(TokenType.FUNCTION)
 
-            function_variable = self.variable()
-
-            self.get_next_token(TokenType.IDENTITY)
+            if TokenType.IDENTITY == self.current_token.token_type:
+                function_variable = self.variable()
+            else:
+                function_variable = None
             self.get_next_token(TokenType.LEFT_PARENTHESIS)
 
             parameters = list()
@@ -250,10 +264,13 @@ class Parser:
             
     def function_call_statement(self, function_name=None, function_arguments=[]):
         """
-        function_call: IDENTITY LEFT_PARENTHESIS (expression POSITIONAL_ARGUMENT_SEPARATOR)?* RIGHT_PARENTHESIS
+        function_call: IDENTITY LEFT_PARENTHESIS ((expression | function_statement) POSITIONAL_ARGUMENT_SEPARATOR)?* RIGHT_PARENTHESIS
         """
         if TokenType.RIGHT_PARENTHESIS != self.current_token.token_type:
-            argument = self.expression()
+            if TokenType.FUNCTION == self.current_token.token_type:
+                argument = self.function_statement()
+            else:
+                argument = self.expression()
             function_arguments.append(argument)
             if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
                 self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
@@ -331,9 +348,10 @@ class Parser:
     def comparison(self):
         """
         comparison: comparison (( GREATER_THAN | GREATER_THAN_EQUAL | LESS_THAN | LESS_THAN_EQUAL | EQUAL | DIFFERENT | IN) comparison)* 
-                  | sum
+                  | add
         """
         node = self.add()
+
         if self.current_token.token_type in [
             TokenType.GREATER_THAN, 
             TokenType.GREATER_THAN_EQUAL,
@@ -412,69 +430,82 @@ class Parser:
             value = self.unary()
             return nodes.UnaryOperation(operation, value)
         else:
-            return self.primary()
+            node = self.primary()
+            return node
     
     def primary(self):
-        node = self.atom()
-        if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
+        """
+        primary: atom
+               | atom LEFT_PARENTHESIS function_call
+               | atom (LEFT_BRACKET expression RIGHT_BRACKET)*
+        """
+        #print(f"primary: {self.current_token.token_type}")
+        if TokenType.IDENTITY == self.current_token.token_type and self.lexer.peek_and_validate('(', 0):
+            node = self.atom()
             self.get_next_token(TokenType.LEFT_PARENTHESIS)
             return self.function_call_statement(node.value.value, [])
-        elif TokenType.LEFT_BRACKETS == self.current_token.token_type:
-            self.get_next_token(TokenType.LEFT_BRACKETS)
-            slice_value = self.expression()
-            node = nodes.Slice(node, slice_value)
-            self.get_next_token(TokenType.RIGHT_BRACKETS)
-            return node
         else:
-            return node
+            node = self.atom()
+
+            if TokenType.LEFT_BRACKETS == self.current_token.token_type:
+                while TokenType.LEFT_BRACKETS == self.current_token.token_type:
+                    self.get_next_token(TokenType.LEFT_BRACKETS)
+                    slice_value = self.expression()
+                    node = nodes.Slice(node, slice_value)
+                    self.get_next_token(TokenType.RIGHT_BRACKETS)
+                return node
+            else:
+                return node
 
     def atom(self):
         token = self.current_token
-        #if TokenType.IDENTITY == self.current_token.token_type and self.lexer.peek_and_validate('(', 0):
-        #    return self.function_call_statement(None, [])
         if TokenType.LEFT_BRACKETS == self.current_token.token_type:
-            return self.array([])
+            return self.array()
         elif TokenType.BOOLEAN == self.current_token.token_type:
             node = nodes.Boolean(token)
-            self.get_next_token(self.current_token.token_type)
+            self.get_next_token(TokenType.BOOLEAN)
             return node
         elif TokenType.INTEGER == self.current_token.token_type:
             node = nodes.Integer(token)
-            self.get_next_token(self.current_token.token_type)
+            self.get_next_token(TokenType.INTEGER)
             return node
         elif TokenType.NULL == self.current_token.token_type:
             node = nodes.Null(token)
-            self.get_next_token(self.current_token.token_type)
+            self.get_next_token(TokenType.NULL)
             return node
         elif TokenType.STRING == self.current_token.token_type:
             node = nodes.String(token)
-            self.get_next_token(self.current_token.token_type)
+            self.get_next_token(TokenType.STRING)
             return node
         elif TokenType.FLOAT == self.current_token.token_type:
             node = nodes.Float(token)
-            self.get_next_token(self.current_token.token_type)
+            self.get_next_token(TokenType.FLOAT)
             return node
         elif TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
+            self.get_next_token(TokenType.LEFT_PARENTHESIS)
             node = self.expression()
             self.get_next_token(self.current_token.token_type)
             return node
         elif TokenType.IDENTITY == self.current_token.token_type:
             node = self.variable()
-            self.get_next_token(self.current_token.token_type)
             return node
     
     def variable(self):
-        return nodes.Variable(self.current_token)
+        if TokenType.IDENTITY == self.current_token.token_type:
+            node = nodes.Variable(self.current_token)
+            self.get_next_token(TokenType.IDENTITY)
+            return node
 
-    def array(self, members=[]):
-        if TokenType.RIGHT_BRACKETS == self.current_token.token_type:
+    def array(self):
+        members = []
+        if TokenType.LEFT_BRACKETS == self.current_token.token_type:
+            self.get_next_token(TokenType.LEFT_BRACKETS)
+            
+            while TokenType.RIGHT_BRACKETS != self.current_token.token_type:
+                if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
+                    self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
+                node = self.expression()
+                members.append(node)
+
             self.get_next_token(TokenType.RIGHT_BRACKETS)
             return nodes.List(members)
-        elif TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
-            self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
-        elif TokenType.LEFT_BRACKETS == self.current_token.token_type:
-            self.get_next_token(TokenType.LEFT_BRACKETS)
-
-        node = self.expression()
-        members.append(node)
-        return self.array(members)

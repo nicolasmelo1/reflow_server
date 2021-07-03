@@ -17,7 +17,7 @@ class Interpreter:
         
         This works recusively, if you see clearly, whenever we handle a node we call this function is called again. By making this way 
         this we can interpret the hole Abstract Syntax Tree of the program. Also by returning EVERY handle call, we guarantee that the
-        program will return something to the user. This is why this is a FUNCTIONAL Language and not a object oriented programming language.
+        program will return something to the user. This is why this is a FUNCTIONAL Language and not a Object Oriented Programming language.
         
         One thing you must understand now is `evaluate_function_call`. We need to do this because `.handle_function_call()` can return
         a value or a function. And you might ask yourself why.
@@ -200,11 +200,14 @@ class Interpreter:
         return last_value
 
     def handle_function_definition(self, node):
-        function_name = node.variable.value.value
+        is_anonymous_function = node.variable == None
+    
         function = builtins.objects.Function(self.settings)
         record = self.global_memory.stack.peek()
         function_value = function._initialize_(node, record, node.parameters)
-        record.assign(function_name, function_value)
+        if not is_anonymous_function:
+            function_name = node.variable.value.value
+            record.assign(function_name, function_value)
 
         return function_value
 
@@ -286,14 +289,32 @@ class Interpreter:
             return variable_value
         # if we assign to a item in an array
         elif node.left.node_type == NodeType.SLICE:
-            variable_name = node.left.left.value.value
-            record = self.global_memory.stack.peek()
-            identity_value = record.get(variable_name)
+            # variavel[1] -> left_of_slice is the value relative to 'variavel'
+            left_of_slice = node.left 
+            slices_stack = []
+            while left_of_slice.node_type == NodeType.SLICE:
+                slices_stack.append(self.evaluate(left_of_slice.slice))
+                left_of_slice = left_of_slice.left
+            if left_of_slice.node_type == NodeType.VARIABLE:
+                variable_name = left_of_slice.value.value
+                record = self.global_memory.stack.peek()
+                root_list = record.get(variable_name)
+            else:
+                # root_list is the actual root of the value, for example: array[0][1] the root is 'array' variable even though we have another array inside of the array
+                # so for example in an array like [1, [2, [3]]] the root_list is [1, [2, [3]]] as you might expect
+                # if the value on the left is not a variable. Exemple: [1, 2, 3][1] = "Teste" should be acceptable
+                root_list = self.evaluate(left_of_slice)
             
-            value_to_add = self.evaluate(node.left.slice)
-            identity_value._setitem_(value_to_add._representation_(), variable_value)
-            return identity_value
-    
+            next_list = None
+
+            while len(slices_stack) > 0:
+                list_to_change = root_list if next_list == None else next_list
+                index_or_key = slices_stack.pop()
+                next_list = list_to_change._getitem_(index_or_key._representation_())
+        
+            list_to_change._setitem_(index_or_key._representation_(), variable_value)
+            return root_list
+
     def handle_variable(self, node):
         variable_name = node.value.value
         record = self.global_memory.stack.peek()
@@ -331,7 +352,8 @@ class Interpreter:
             TokenType.LESS_THAN,
             TokenType.GREATER_THAN,
             TokenType.LESS_THAN_EQUAL,
-            TokenType.GREATER_THAN_EQUAL
+            TokenType.GREATER_THAN_EQUAL,
+            TokenType.IN
         ]:
             value_left = self.evaluate(node.left, True)
             value_right = self.evaluate(node.right, True)
@@ -348,6 +370,10 @@ class Interpreter:
                 return value_left._lessthanequal_(value_right)
             elif node.operation.token_type == TokenType.GREATER_THAN_EQUAL:
                 return value_left._greaterthanequal_(value_right)
+            elif node.operation.token_type == TokenType.IN:
+                # this is the opposite way, because its 10 in [1, 2, 3, 4, 10]
+                # so left is the value and right is the iterable
+                return value_right._in_(value_left)
 
     def handle_slice(self, node):
         slice_value = self.evaluate(node.slice)
@@ -405,4 +431,3 @@ class Interpreter:
             return boolean._initialize_(node.value.value)
         else:
             raise Exception('Cannot interpret boolean')
-

@@ -24,7 +24,10 @@ class DynamicArray:
     This is a dynamic array that is similar to a Python List.
     Yes it is kinda dumb since we already have python List that basically does the job already.
     But since performance is not actually an issue and the possibility to translate this code to another language
-    is. This is needed so in other languages we can just translate the implementation
+    is. This is needed so in other languages we can just translate the implementation.
+
+    This is agnostic to the formulas, since this is a HELPER. So try to keep ._representation_() and other stuff in
+    The actual primitive objects
 
     Reference: https://www.geeksforgeeks.org/implementation-of-dynamic-array-in-python/
                https://stackoverflow.com/a/3917632
@@ -64,11 +67,12 @@ class DynamicArray:
             # Double capacity if not enough room
             self.__resize(2 * self.capacity) 
         
+        # Set self.number_of_elements index to element
         last_index_of_array = self.number_of_elements
-        self.array[last_index_of_array] = element # Set self.n index to element
+        self.array[last_index_of_array] = element
         self.number_of_elements += 1
-  
-    def insert_at(self,item,index):
+
+    def insert_at(self, item, index):
         """
         This function inserts the item at any specified index.
         """
@@ -76,7 +80,6 @@ class DynamicArray:
         is_index_bigger_than_number_of_elements = index >= self.number_of_elements
         
         is_capacity_at_limit = self.number_of_elements == self.capacity
-
 
         if is_index_less_than_0 or is_index_bigger_than_number_of_elements:
             raise Exception('index is out of bounds') 

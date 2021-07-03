@@ -11,3 +11,6 @@ class Function(Object):
         self.ast_function = ast_function
         self.parameters = parameters
         return super()._initialize_()
+
+    def _representation_(self):
+        return None

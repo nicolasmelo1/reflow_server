@@ -38,6 +38,9 @@ class Object:
     def _initialize_(self):
         return self
     
+    def _in_(self, obj):
+        raise Exception("type '{}' is not iterable, so replace {} with a iterable type".format(self.type, obj._representation_()))
+
     def _getitem_(self, item):
         raise Exception("Cannot get item '{}' of type {}".format(item, self.type))
     

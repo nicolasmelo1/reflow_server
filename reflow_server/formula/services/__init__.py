@@ -303,4 +303,3 @@ class FormulaService:
             return EvaluationData('error', 'Took too long')
         except Exception as e:
             return EvaluationData('error', 'Unknown error')
-

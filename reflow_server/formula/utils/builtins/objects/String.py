@@ -8,19 +8,28 @@ class String(Object):
     def __init__(self, settings):
         super().__init__(STRING_TYPE, settings)
 
+    def __transform_in_array(self):
+        if not hasattr(self, 'as_array') and not hasattr(self, 'characters_in_string'):
+            self.characters_in_string = []
+            members = list(self._representation_())
+            characters = []
+            for character in members:
+                self.characters_in_string.append(character)
+                string = self.__class__(self.settings)
+                characters.append(string._initialize_(character))
+            self.as_array = DynamicArray(characters)
+
     def _initialize_(self, value):
         self.value = value
         return super()._initialize_()
     
     def _getitem_(self, index):
-        members = list(self._representation_())
-        characters = []
-        for character in members:
-            string = self.__class__(self.settings)
-            characters.append(string._initialize_(character))
-        array = DynamicArray(characters)
-        return array[int(index)]
+        self.__transform_in_array()
+        return self.as_array[int(index)]
     
+    def _in_(self, obj):
+        return self.new_boolean(obj._representation_() in self._representation_())
+
     def _add_(self, obj):
         """
         When the other value is a string we concatenate the strings.
