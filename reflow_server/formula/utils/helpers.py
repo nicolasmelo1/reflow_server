@@ -1,24 +1,26 @@
+# ------------------------------------------------------------------------------------------
 def is_integer(value):
     try:
         value = int(value)
         return True
     except:
         return False
-
+# ------------------------------------------------------------------------------------------
 def is_string(value):
     return isinstance(value, str)
-
+# ------------------------------------------------------------------------------------------
 def is_boolean(value):
     return isinstance(value, bool)
-
+# ------------------------------------------------------------------------------------------
 def is_float(value):
     try:
         value = float(value)
         return True
     except:
         return False
+# ------------------------------------------------------------------------------------------
 
-
+############################################################################################
 class DynamicArray:
     """
     This is a dynamic array that is similar to a Python List.
@@ -40,13 +42,13 @@ class DynamicArray:
         if elements:
             for element in elements:
                 self.append(element)
-    
+    # ------------------------------------------------------------------------------------------
     def __len__(self):
         """
         Return number of elements in the array
         """
         return self.number_of_elements
-      
+    # ------------------------------------------------------------------------------------------
     def __getitem__(self, index):
         """
         Return element at index
@@ -58,7 +60,7 @@ class DynamicArray:
             raise Exception('index is out of bounds') 
         
         return self.array[index] # Retrieve from the array at index
-          
+    # ------------------------------------------------------------------------------------------   
     def append(self, element):
         """
         Add element to end of the array
@@ -71,7 +73,7 @@ class DynamicArray:
         last_index_of_array = self.number_of_elements
         self.array[last_index_of_array] = element
         self.number_of_elements += 1
-
+    # ------------------------------------------------------------------------------------------
     def insert_at(self, item, index):
         """
         This function inserts the item at any specified index.
@@ -85,14 +87,15 @@ class DynamicArray:
             raise Exception('index is out of bounds') 
           
         if is_capacity_at_limit:
-            self.__resize(2 * self.capacity) # Double capacity if not enough room
+            # Double capacity if not enough room
+            self.__resize(2 * self.capacity)
 
         for i in range(self.number_of_elements - 1, index - 1, -1):
             self.array[i+1]=self.array[i]
               
         self.array[index] = item
         self.number_of_elements += 1
-          
+    # ------------------------------------------------------------------------------------------   
     def pop(self):
         """
         This function deletes item from the end of array
@@ -106,7 +109,7 @@ class DynamicArray:
         self.array[self.number_of_elements - 1] = 0
         self.number_of_elements -= 1
         return element
-
+    # ------------------------------------------------------------------------------------------
     def remove_at(self,index):
         """
         This function deletes item from a specified index..
@@ -133,7 +136,7 @@ class DynamicArray:
             
             self.array[self.number_of_elements-1]=0
             self.number_of_elements -= 1
-          
+    # ------------------------------------------------------------------------------------------
     def __resize(self, new_capacity):
         """
         Resize internal array to capacity new_capacity
@@ -147,7 +150,7 @@ class DynamicArray:
               
         self.array = new_array # Call A the new bigger array
         self.capacity = new_capacity # Reset the capacity
-          
+    # ------------------------------------------------------------------------------------------
     def make_array(self, new_capacity):
         """
         Returns a new array with new_capacity capacity

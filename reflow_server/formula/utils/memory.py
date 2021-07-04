@@ -20,7 +20,7 @@ class Record:
         self.record_type = record_type
         self.__nesting_level = 0
         self.members = {}
-    
+    # ------------------------------------------------------------------------------------------
     def assign(self, key, value):
         """
         Assigns a new variable with a key, we are storing it in a dict, in other words: Be aware, we can have
@@ -36,7 +36,7 @@ class Record:
             value (reflow_server.formula.utils.builtins.objects.*): One of the builtin objects generally
         """
         self.members[key] = value
-    
+    # ------------------------------------------------------------------------------------------
     def get(self, key):
         """
         Retrieves the variable data. From this example:
@@ -56,14 +56,13 @@ class Record:
             return self.members[key]
         except Exception as e:
             raise Exception('{} was not defined'.format(key))
-
+    # ------------------------------------------------------------------------------------------
     def set_nesting_level(self, nesting_level):
         self.__nesting_level = nesting_level
-    
+    # ------------------------------------------------------------------------------------------
     def get_nesting_level(self):
         return self.__nesting_level
-
-
+############################################################################################
 class CallStack:
     """
     This is explained better in Memory class, but you've got it.
@@ -72,7 +71,7 @@ class CallStack:
     """
     def __init__(self):
         self.records = []
-    
+    # ------------------------------------------------------------------------------------------
     def push_to_current(self, record):
         """
         For Tail Call Optimization when a Tail Recursion Call is made we push the next record to the current record, not filling 
@@ -88,7 +87,7 @@ class CallStack:
         """
         self.records[len(self.records) - 1] = record
         return record
-
+    # ------------------------------------------------------------------------------------------
     def push(self, record):
         """
         Similar to `.push_to_current()` except that this fills the CallStack.
@@ -108,7 +107,7 @@ class CallStack:
         else:
             raise Exception('Stack is full, this means you are calling too many functions at once, try optimizing your code')
         return record
-
+    # ------------------------------------------------------------------------------------------
     def pop(self):
         """
         Removes the latest added record from the callstack.
@@ -117,7 +116,7 @@ class CallStack:
             reflow_server.formula.utils.memory.Record: Returns the removed Record object.
         """
         return self.records.pop()
-
+    # ------------------------------------------------------------------------------------------
     def peek(self):
         """
         Peeks to see the latest added Record from the callstack, with this we can get all of the variables and identities.
@@ -126,8 +125,7 @@ class CallStack:
             reflow_server.formula.utils.memory.Record: Returns the removed Record object.
         """
         return self.records[len(self.records) - 1]
-
-
+############################################################################################
 class Memory:
     """
     This is the memory. It is a virtual memory, of course not the actual hardware memory in the computer.

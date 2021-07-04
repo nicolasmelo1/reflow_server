@@ -5,11 +5,11 @@ from reflow_server.formula.utils.builtins.types import BOOLEAN_TYPE, FLOAT_TYPE,
 class Float(Object):
     def __init__(self, settings):
         super().__init__(FLOAT_TYPE, settings)
-    
+    # ------------------------------------------------------------------------------------------    
     def _initialize_(self, value):
         self.value = value
         return super()._initialize_()
-
+    # ------------------------------------------------------------------------------------------
     def _add_(self, obj):
         """
         Similar to subtraction always return a float if you are either adding by int or float
@@ -28,7 +28,7 @@ class Float(Object):
             return response._initialize_(representation + object_representation)
         else:
             return super()._add_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _subtract_(self, obj):
         """
         Similar to Multiply and Divide, always return a float if you are either subtracting by int or float
@@ -47,7 +47,7 @@ class Float(Object):
             return response._initialize_(representation - object_representation)
         else:
             return super()._subtract_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _multiply_(self, obj):
         """
         You can either multiply by an integer or by a float.
@@ -66,7 +66,7 @@ class Float(Object):
             return response._initialize_(representation * object_representation)
         else:
             return super()._multiply_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _divide_(self, obj):
         """
         You can either divide by an integer or by a float, also remember, you can't divide by 0. Always return a float.
@@ -91,7 +91,7 @@ class Float(Object):
                 return response._initialize_(representation / object_representation)
         else:
             return super()._divide_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _remainder_(self, obj):
         """
         You can either divide by an integer or by a float, also remember, you can't divide by 0. Always return a float.
@@ -116,7 +116,7 @@ class Float(Object):
                 return response._initialize_(representation % object_representation)
         else:
             return super()._remainder_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _power_(self, obj):
         """
         Similar to add, subtract, and others, always returns a float and can be either done between Floats or Integers
@@ -135,7 +135,7 @@ class Float(Object):
             return response._initialize_(representation ** object_representation)
         else:
             return super()._power_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _boolean_(self):
         """
         Really similar to int boolean. The truthy or falsy works basically the same, when the value is 0.0 or 0.00 or whatever
@@ -149,7 +149,7 @@ class Float(Object):
             return super().new_boolean(False)
         else:
             return super().new_boolean(True)
-
+    # ------------------------------------------------------------------------------------------
     def _equals_(self, obj):
         """
         When it's equals we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -172,7 +172,7 @@ class Float(Object):
             return super().new_boolean(int(representation) == int(object_representation))
         else:
             return super()._equals_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _lessthan_(self, obj):
         """
         When it's less than we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only

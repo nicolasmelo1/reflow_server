@@ -1,21 +1,19 @@
+############################################################################################
 class If:
     def __init__(self, if_keyword, else_keyword):
         self.if_keyword = if_keyword
         self.else_keyword = else_keyword
-
-
+############################################################################################
 class Boolean:
     def __init__(self, true, false):
         self.true = true
         self.false = false
-
-
+############################################################################################
 class Block:
     def __init__(self, do, end):
         self.do = do
         self.end = end
-
-
+############################################################################################
 class Keywords:
     def __init__(self, includes, inversion, disjunction, conjunction, function, null, block, boolean, if_block):
         self.includes = includes
@@ -27,8 +25,7 @@ class Keywords:
         self.block = block
         self.boolean = boolean
         self.if_block = if_block
-
-
+############################################################################################
 class Context:
     def __init__(self, includes='in', conjunction='and', disjunction='or', inversion='not', 
                  block_do='do', block_end='end', null='None', boolean_true='True',

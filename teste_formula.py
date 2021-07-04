@@ -27,8 +27,8 @@ anonymous = function (a, callback) do
     a + callback()
 end
 
-anonymous(1, function() do
-    2
+anonymous(10, function() do
+    4
 end)
 """
 
@@ -38,12 +38,18 @@ array[2][1][0] = "teste"
 array
 """
 
+anonymous_function_call = r"""
+(function () do
+    2
+end)()
+"""
 
 functions_to_test = [
     simple_arithimetic, 
     recursion_and_function_call, 
     anonymous_formulas,
-    lists
+    lists,
+    anonymous_function_call
 ]
 
 for function in functions_to_test:
@@ -53,7 +59,6 @@ for function in functions_to_test:
     interpreter = Interpreter(settings)
     value = interpreter.evaluate(ast)
     print(value._representation_())
-
 
 lexer1 = Lexer(r"""
 function fibonacci(n, a=0, b=1) do

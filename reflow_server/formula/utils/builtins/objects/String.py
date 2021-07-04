@@ -7,7 +7,7 @@ from reflow_server.formula.utils.helpers import DynamicArray
 class String(Object):
     def __init__(self, settings):
         super().__init__(STRING_TYPE, settings)
-
+    # ------------------------------------------------------------------------------------------
     def __transform_in_array(self):
         if not hasattr(self, 'as_array') and not hasattr(self, 'characters_in_string'):
             self.characters_in_string = []
@@ -18,18 +18,18 @@ class String(Object):
                 string = self.__class__(self.settings)
                 characters.append(string._initialize_(character))
             self.as_array = DynamicArray(characters)
-
+    # ------------------------------------------------------------------------------------------
     def _initialize_(self, value):
         self.value = value
         return super()._initialize_()
-    
+    # ------------------------------------------------------------------------------------------
     def _getitem_(self, index):
         self.__transform_in_array()
         return self.as_array[int(index)]
-    
+    # ------------------------------------------------------------------------------------------
     def _in_(self, obj):
         return self.new_boolean(obj._representation_() in self._representation_())
-
+    # ------------------------------------------------------------------------------------------
     def _add_(self, obj):
         """
         When the other value is a string we concatenate the strings.
@@ -48,7 +48,7 @@ class String(Object):
             return response._initialize_(representation + object_representation)
         else:
             return super()._add_(obj)
-    
+    # ------------------------------------------------------------------------------------------
     def _multiply_(self, obj):
         """
         Similar to int multiplication but the other way around, when the user multiplies a string by an integer we repeat
@@ -68,7 +68,7 @@ class String(Object):
             return response._initialize_(representation * object_representation)
         else:
             return super()._multiply_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _lessthan_(self, obj):
         """
         Less than on strings only verifies if the length of both strings.
@@ -87,7 +87,7 @@ class String(Object):
             return super().new_boolean(len(representation) < len(object_representation))
         else:
             return super()._lessthan_(obj)
-    
+    # ------------------------------------------------------------------------------------------
     def _lessthanequal_(self, obj):
         """
         Less than or equal on strings only verifies if the length of both strings.
@@ -106,7 +106,7 @@ class String(Object):
             return super().new_boolean(len(representation) <= len(object_representation))
         else:
             return super()._lessthanequal_(obj)
-    
+    # ------------------------------------------------------------------------------------------
     def _greaterthan_(self, obj):
         """
         Greater than on strings only verifies if the length of both strings.
@@ -125,7 +125,7 @@ class String(Object):
             return super().new_boolean(len(representation) > len(object_representation))
         else:
             return super()._greaterthan_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _greaterthanequal_(self, obj):
         """
         Greater than or equal on strings only verifies if the length of both strings.
@@ -144,7 +144,7 @@ class String(Object):
             return super().new_boolean(len(representation) >= len(object_representation))
         else:
             return super()._greaterthanequal_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _boolean_(self):
         """
         Truthy or falsy on strings are: if the string is empty then it is False, otherwise it is True.
@@ -157,6 +157,6 @@ class String(Object):
             return super().new_boolean(False)
         else:
             return super().new_boolean(True)
-    
+    # ------------------------------------------------------------------------------------------
     def _representation_(self):
         return str(self.value)

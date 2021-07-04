@@ -19,6 +19,9 @@ class Lexer:
             return None
         
     def peek_and_validate(self, character, number_of_characters_to_peek=1):
+        """
+        If you peek from the Parser, use number_of_characters_to_peek as 0
+        """
         return self.peek_next_character(number_of_characters_to_peek) == character
 
     def __current_token_is_space_or_tab(self):
@@ -150,7 +153,7 @@ class Lexer:
             return Token(TokenType.IN, keyword)
         else:
             return Token(TokenType.IDENTITY, keyword)
-
+    # ------------------------------------------------------------------------------------------
     def __handle_operation(self):
         """
         This handles only operations in the programming languages. 
@@ -203,7 +206,7 @@ class Lexer:
         elif current_character == '>':
             self.advance_next_position()
             return Token(TokenType.GREATER_THAN, current_character)
-
+    # ------------------------------------------------------------------------------------------
     @property
     def get_next_token(self):
         while self.__current_token_is_space_or_tab():

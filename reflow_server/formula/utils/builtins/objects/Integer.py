@@ -6,11 +6,11 @@ from reflow_server.formula.utils.builtins.types import BOOLEAN_TYPE, \
 class Integer(Object):
     def __init__(self, settings):
         super().__init__(INTEGER_TYPE, settings)
-
+    # ------------------------------------------------------------------------------------------
     def _initialize_(self, value):
         self.value = value
         return super()._initialize_()
-    
+    # ------------------------------------------------------------------------------------------
     def _add_(self, obj):
         """
         On integers we can only add between Floats or Integers, when adding by an integer, 
@@ -38,7 +38,7 @@ class Integer(Object):
             return response._initialize_(representation + object_representation)
         else:
             return super()._add_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _subtract_(self, obj):
         """
         On integers we can only subtract from another integer or another float, other types are unsuported. When subtracting
@@ -66,7 +66,7 @@ class Integer(Object):
             return response._initialize_(representation - object_representation)
         else:
             return super()._subtract_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _multiply_(self, obj):
         """
         Multiplication with integers are supported between string, float or other ints, all other types are unsuported.
@@ -102,7 +102,7 @@ class Integer(Object):
             return response._initialize_(representation * object_representation)
         else:
             return super()._multiply_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _divide_(self, obj):
         """
         You can either divide by an integer or by a float, also remember, you can't divide by 0
@@ -132,7 +132,7 @@ class Integer(Object):
                 return response._initialize_(representation / object_representation)
         else:
             return super()._divide_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _remainder_(self, obj):
         """
         You can either retrieve the remainder of an integer or of a float, also remember, you can't divide by 0
@@ -162,7 +162,7 @@ class Integer(Object):
                 return response._initialize_(representation % object_representation)
         else:
             return super()._remainder_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _power_(self, obj):
         """
         Really similar to add or subtract, power is only available between ints and floats, other types are not supported        
@@ -189,7 +189,7 @@ class Integer(Object):
             return response._initialize_(representation ** object_representation)
         else:
             return super()._power_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _boolean_(self):
         """
         For truthy or Falsy values in ints, if the value is 0 then it is represented as False, otherwise it is represented
@@ -203,7 +203,7 @@ class Integer(Object):
             return super().new_boolean(False)
         else:
             return super().new_boolean(True)
-
+    # ------------------------------------------------------------------------------------------
     def _equals_(self, obj):
         """
         When it's equals we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -226,7 +226,7 @@ class Integer(Object):
             return super().new_boolean(int(representation) == int(object_representation))
         else:
             return super()._equals_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _lessthan_(self, obj):
         """
         When it's less than we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -248,7 +248,7 @@ class Integer(Object):
             return super().new_boolean(representation < object_representation)
         else:
             return super()._lessthan_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _lessthanequal_(self, obj):
         """
         When it's less than equal we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -270,7 +270,7 @@ class Integer(Object):
             return super().new_boolean(representation <= object_representation)
         else:
             return super()._lessthanequal_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _greaterthan_(self, obj):
         """
         When it's grater than we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -292,7 +292,7 @@ class Integer(Object):
             return super().new_boolean(representation > object_representation)
         else:
             return super()._greaterthan_(obj)
-    
+    # ------------------------------------------------------------------------------------------
     def _greaterthanequal_(self, obj):
         """
         When it's greater than equal we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -314,7 +314,7 @@ class Integer(Object):
             return super().new_boolean(representation >= object_representation)
         else:
             return super()._greaterthanequal_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _unaryplus_(self):
         """
         Returns the positive representation of the particular number
@@ -324,7 +324,7 @@ class Integer(Object):
         """
         response = self.__class__(self.settings)
         return response._initialize_(+self._representation_())
-
+    # ------------------------------------------------------------------------------------------
     def _unaryminus_(self):
         """
         Returns the negative representation of the particular number
@@ -334,6 +334,6 @@ class Integer(Object):
         """
         response = self.__class__(self.settings)
         return response._initialize_(-self._representation_())
-
+    # ------------------------------------------------------------------------------------------
     def _representation_(self):
         return int(self.value)

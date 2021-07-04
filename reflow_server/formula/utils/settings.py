@@ -71,7 +71,7 @@ class Settings:
         The idea is that with the settings we are able to translate the formula or in other words, the programming language
         how we actually want. 
 
-        This way, people in Brazil, ir United States or Europe can adapt the formulas the way it fits them most.
+        This way, people in Brazil, in United States or Europe can adapt the formulas the way it fits them most.
         For example, in some places like Brazil float numbers are written with ',' as the decimal separator. In others like
         the United States, '.' is prefered.
 

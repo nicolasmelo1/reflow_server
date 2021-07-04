@@ -10,7 +10,7 @@ class Interpreter:
     def __init__(self, settings):
         self.settings = settings
         self.global_memory = Memory()
-
+    # ------------------------------------------------------------------------------------------
     def evaluate(self, node, evaluate_function_call=False):
         """
         Main function of the interpreter, if you check the return of the `interpreter` function it is the result of this
@@ -186,36 +186,39 @@ class Interpreter:
             return self.handle_boolean(node)
         else:
             return node
-    
+    # ------------------------------------------------------------------------------------------  
     def handle_program(self, node):
-        record = Record('MAIN', 'PROGRAM')
+        record = Record('<main>', 'PROGRAM')
         self.global_memory.stack.push(record)
         return self.evaluate(node.block)
-
+    # ------------------------------------------------------------------------------------------
     def handle_block(self, node):
         none = builtins.objects.Null(self.settings)
         last_value = none._initialize_()
         for instrunction in  node.instructions:
             last_value = self.evaluate(instrunction)
         return last_value
-
+    # ------------------------------------------------------------------------------------------
     def handle_function_definition(self, node):
         is_anonymous_function = node.variable == None
-    
+
         function = builtins.objects.Function(self.settings)
         record = self.global_memory.stack.peek()
         function_value = function._initialize_(node, record, node.parameters)
-        if not is_anonymous_function:
+        if is_anonymous_function:
+            function_name = '<lambda>'
+            function_value.ast_function.value = '<lambda>'
+        else:
             function_name = node.variable.value.value
-            record.assign(function_name, function_value)
+        record.assign(function_name, function_value)
 
         return function_value
-
+    # ------------------------------------------------------------------------------------------
     def handle_function_call(self, node):
-        function_name = node.name
+        function_name = node.name if node.name else '<lambda>'
         record = self.global_memory.stack.peek()
         function_object = record.get(function_name)
-
+        # ------------------------------------------------------------------------------------------
         def create_function_record():
             function_record = Record(function_name,'FUNCTION')
 
@@ -240,7 +243,7 @@ class Interpreter:
                     raise Exception('missing parameter of function "{function_name}"'.format(function_name=function_name))
                 function_record.assign(parameter_name, parameter_value)
             return function_record
-        
+        # ------------------------------------------------------------------------------------------
         def to_evaluate_function(push_to_current=False):
             record = create_function_record()
             if push_to_current:
@@ -269,14 +272,14 @@ class Interpreter:
         
             self.global_memory.stack.pop()
             return result
-
+    # ------------------------------------------------------------------------------------------
     def handle_if_statement(self, node):
         expression_value = self.evaluate(node.expression, True)
         if expression_value._boolean_()._representation_():
             return self.evaluate(node.block)
         elif node.else_statement:
             return self.evaluate(node.else_statement)
-    
+    # ------------------------------------------------------------------------------------------
     def handle_assign(self, node):
         variable_value = self.evaluate(node.right, True)
 
@@ -292,21 +295,28 @@ class Interpreter:
             # variavel[1] -> left_of_slice is the value relative to 'variavel'
             left_of_slice = node.left 
             slices_stack = []
+            # we loop trough all slices so we can interpret stuff like variavel[1][2][0] = "teste"
+            # we loop from variavel[1][2][0] to variavel[1][2] to variavel[1] and finish at variavel
             while left_of_slice.node_type == NodeType.SLICE:
                 slices_stack.append(self.evaluate(left_of_slice.slice))
                 left_of_slice = left_of_slice.left
+            # root_list is the actual root of the value, for example: array[0][1] the root is 'array' variable even though we have another array inside of the array
+            # so for example in an array like [1, [2, [3]]] the root_list is [1, [2, [3]]] as you might expect
+            # if the value on the left is not a variable. Exemple: [1, 2, 3][1] = "Teste" should be acceptable although it does nothing
             if left_of_slice.node_type == NodeType.VARIABLE:
                 variable_name = left_of_slice.value.value
                 record = self.global_memory.stack.peek()
                 root_list = record.get(variable_name)
             else:
-                # root_list is the actual root of the value, for example: array[0][1] the root is 'array' variable even though we have another array inside of the array
-                # so for example in an array like [1, [2, [3]]] the root_list is [1, [2, [3]]] as you might expect
-                # if the value on the left is not a variable. Exemple: [1, 2, 3][1] = "Teste" should be acceptable
                 root_list = self.evaluate(left_of_slice)
             
             next_list = None
 
+            # now we loop the other way around, from the root to the leaf, so in the example variavel[1][2][0] = "teste"
+            # on the first pass list_to_change will be
+            # 1. variavel[1]
+            # 2. variavel[1][2] and stop there since variavel[1][2][0] is the actual value we want to change
+            # in other words, the list_to_change in the example above is variavel[1][2] (it returns a list)
             while len(slices_stack) > 0:
                 list_to_change = root_list if next_list == None else next_list
                 index_or_key = slices_stack.pop()
@@ -314,12 +324,12 @@ class Interpreter:
         
             list_to_change._setitem_(index_or_key._representation_(), variable_value)
             return root_list
-
+    # ------------------------------------------------------------------------------------------
     def handle_variable(self, node):
         variable_name = node.value.value
         record = self.global_memory.stack.peek()
         return record.get(variable_name)
-
+    # ------------------------------------------------------------------------------------------
     def handle_binary_operation(self, node):
         value_left = self.evaluate(node.left, True)
         value_right = self.evaluate(node.right, True)
@@ -335,7 +345,7 @@ class Interpreter:
             return value_left._power_(value_right)
         elif node.operation.token_type == TokenType.REMAINDER:
             return value_left._remainder_(value_right)
-
+    # ------------------------------------------------------------------------------------------
     def handle_boolean_operation(self, node):
         value_left = self.evaluate(node.left, True)
         value_right = self.evaluate(node.right, True)
@@ -344,7 +354,7 @@ class Interpreter:
             return value_left._and_(value_right)
         elif node.operation.token_type == TokenType.DISJUNCTION:
             return value_left._or_(value_right)
-        
+    # ------------------------------------------------------------------------------------------    
     def handle_binary_conditional(self, node):
         if node.operation.token_type in [
             TokenType.EQUAL, 
@@ -374,49 +384,49 @@ class Interpreter:
                 # this is the opposite way, because its 10 in [1, 2, 3, 4, 10]
                 # so left is the value and right is the iterable
                 return value_right._in_(value_left)
-
+    # ------------------------------------------------------------------------------------------
     def handle_slice(self, node):
         slice_value = self.evaluate(node.slice)
         value_left = self.evaluate(node.left)
         return value_left._getitem_(slice_value._representation_())
-
+    # ------------------------------------------------------------------------------------------
     def handle_unary_conditional(self, node):
         if node.operation.token_type == TokenType.INVERSION:
             value = self.evaluate(node.value, True)
             return value._boolean_()._not_()
-
+    # ------------------------------------------------------------------------------------------
     def handle_unary_operation(self, node):
         value = self.evaluate(node.value, True)
         if node.operation.token_type == TokenType.SUM:
             return value._unaryplus_()
         elif node.operation.token_type == TokenType.SUBTRACTION:
             return value._unaryminus_()
-    
+    # ------------------------------------------------------------------------------------------
     def handle_null(self, node):
         null = builtins.objects.Null(self.settings)
         return null._initialize_()
-
+    # ------------------------------------------------------------------------------------------
     def handle_string(self, node):
         if helpers.is_string(node.value.value):
             string = builtins.objects.String(self.settings)
             return string._initialize_(node.value.value)
         else:
             raise Exception('Cannot interpret string')
-
+    # ------------------------------------------------------------------------------------------
     def handle_integer(self, node):
         if helpers.is_integer(node.value.value):
             integer = builtins.objects.Integer(self.settings)
             return integer._initialize_(node.value.value)
         else:
             raise Exception('Cannot interpret integer')
-
+    # ------------------------------------------------------------------------------------------
     def handle_list(self, node):
         list_value = builtins.objects.List(self.settings)
         members = []
         for member in node.members:
             members.append(self.evaluate(member))
         return list_value._initialize_(members)
-
+    # ------------------------------------------------------------------------------------------
     def handle_float(self, node):
         value = node.value.value.replace(self.settings.decimal_point_character, '.')
         if helpers.is_float(value):
@@ -424,7 +434,7 @@ class Interpreter:
             return float_value._initialize_(node.value.value)
         else:
             raise Exception('Cannot interpret float')
-
+    # ------------------------------------------------------------------------------------------
     def handle_boolean(self, node):
         if helpers.is_boolean(node.value.value):
             boolean = builtins.objects.Boolean(self.settings)

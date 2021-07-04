@@ -13,6 +13,9 @@ class Object:
         With this we are able to create stuff like 'Hello world'.length (this .length can be a function we call on a atribute of the string type)
         we are able to give more funcionality to the integer, strings, floats and so on.
 
+        The problem is that sometimes stuff can repeat between objects, like Float and Integer share a similar behaviour, but we repeat
+        the code on each one.
+
         Okay, so how does this work?
 
         When the interpreter finds a binary operation for example (1 + 2) 
@@ -28,46 +31,46 @@ class Object:
         """
         self.type = object_type
         self.settings = settings
-
+    # ------------------------------------------------------------------------------------------
     def new_boolean(self, value):
         from reflow_server.formula.utils.builtins.objects.Boolean import Boolean
 
         boolean = Boolean(self.settings)
         return boolean._initialize_(value)
-
+    # ------------------------------------------------------------------------------------------
     def _initialize_(self):
         return self
-    
+    # ------------------------------------------------------------------------------------------
     def _in_(self, obj):
         raise Exception("type '{}' is not iterable, so replace {} with a iterable type".format(self.type, obj._representation_()))
-
+    # ------------------------------------------------------------------------------------------
     def _getitem_(self, item):
         raise Exception("Cannot get item '{}' of type {}".format(item, self.type))
-    
+    # ------------------------------------------------------------------------------------------
     def _setitem_(self, item, element):
         raise Exception("Cannot set element '{}' at item '{}' of type {}".format(element, item, self.type))
-    
+    # ------------------------------------------------------------------------------------------
     def _add_(self, obj):
         raise Exception("Unsuported operation '+' between types {} and {}".format(self.type, obj.type))
-
+    # ------------------------------------------------------------------------------------------
     def _subtract_(self, obj):
         raise Exception("Unsuported operation '-' between types {} and {}".format(self.type, obj.type))
-
+    # ------------------------------------------------------------------------------------------
     def _divide_(self, obj):
         raise Exception("Unsuported operation '/' between types {} and {}".format(self.type, obj.type))
-
+    # ------------------------------------------------------------------------------------------
     def _divide_(self, obj):
         raise Exception("Unsuported operation '/' between types {} and {}".format(self.type, obj.type))
-
+    # ------------------------------------------------------------------------------------------
     def _remainder_(self, obj):
         raise Exception("Unsuported operation '%' between types {} and {}".format(self.type, obj.type))
-
+    # ------------------------------------------------------------------------------------------
     def _multiply_(self, obj):
         raise Exception("Unsuported operation '*' between types {} and {}".format(self.type, obj.type))
-
+    # ------------------------------------------------------------------------------------------
     def _power_(self, obj):
         raise Exception("Unsuported operation '^' between types {} and {}".format(self.type, obj.type))
-
+    # ------------------------------------------------------------------------------------------
     def _equals_(self, obj):
         # your first tought might be, why do we need to initialize it everytime
         # and do not put in a constant variable.
@@ -76,49 +79,48 @@ class Object:
             obj._representation_() == self._representation_()
         
         return self.new_boolean(is_equal)
-
+    # ------------------------------------------------------------------------------------------
     def _difference_(self, obj):
         is_different = obj.type != self.type or \
             obj._representation_() != self._representation_()
         return self.new_boolean(is_different)
-
-        
+    # ------------------------------------------------------------------------------------------
     def _lessthan_(self, obj):
         return self.new_boolean(False)
-    
+    # ------------------------------------------------------------------------------------------
     def _lessthanequal_(self, obj):
         is_equal = self._equals_(obj)
         return self.new_boolean(is_equal._boolean_()._representation_())
-    
+    # ------------------------------------------------------------------------------------------
     def _greaterthan_(self, obj):
         return self.new_boolean(False)
-
+    # ------------------------------------------------------------------------------------------
     def _greaterthanequal_(self, obj):
         is_equal = self._equals_(obj)
         return self.new_boolean(is_equal._boolean_()._representation_())
-
+    # ------------------------------------------------------------------------------------------
     def _boolean_(self):
         """
         _boolean_ should ALWAYS return a boolean object, if any other type is returned, a error is thrown.
         """
         return self.new_boolean(False)
-
+    # ------------------------------------------------------------------------------------------
     def _not_(self):
         return self.new_boolean(not self._boolean_()._representation_())
-    
+    # ------------------------------------------------------------------------------------------
     def _and_(self, obj):
         is_and = self._boolean_()._representation_() and obj._boolean_()._representation_()
         return self.new_boolean(is_and)
-    
+    # ------------------------------------------------------------------------------------------
     def _or_(self, obj):
         is_or = self._boolean_()._representation_() or obj._boolean_()._representation_()
         return self.new_boolean(is_or)
-    
+    # ------------------------------------------------------------------------------------------
     def _unaryplus_(self):
         raise Exception('Unsuported operand type + for {}'.format(self.type))
-    
+    # ------------------------------------------------------------------------------------------    
     def _unaryminus_(self):
         raise Exception('Unsuported operand type - for {}'.format(self.type))
-    
+    # ------------------------------------------------------------------------------------------    
     def _representation_(self):
         return self

@@ -9,10 +9,10 @@ class Parser:
         // This is the Grammar of Reflow Formulas, it is based and inspired
         // on EBNF grammar: https://pt.wikipedia.org/wiki/Formalismo_de_Backus-Naur_Estendido
         // 
-        // If you don't know what grammars are read:
+        // If you don't know what grammars are, read:
         // https://pt.wikipedia.org/wiki/Formalismo_de_Backus-Naur 
         //
-        // Basically it is a way of representing a structure of a syntax, every programming language
+        // Basically it is a way of representing a structure of a syntax. Every programming language
         // has one of this. This grammar helps us with the hole logic for the parsing.
         //
         // _ABOUT THE PARSER_
@@ -143,7 +143,11 @@ class Parser:
         node = self.statement()
         if node != None:
             instructions.append(node)
-        if (TokenType.NEWLINE == self.current_token.token_type):
+        
+        while TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
+            instructions.append(self.function_call_statement())
+
+        if TokenType.NEWLINE == self.current_token.token_type:
             self.get_next_token(TokenType.NEWLINE)
             return self.statements_list(instructions)
         else:
@@ -266,7 +270,10 @@ class Parser:
         """
         function_call: IDENTITY LEFT_PARENTHESIS ((expression | function_statement) POSITIONAL_ARGUMENT_SEPARATOR)?* RIGHT_PARENTHESIS
         """
-        if TokenType.RIGHT_PARENTHESIS != self.current_token.token_type:
+        if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
+            self.get_next_token(TokenType.LEFT_PARENTHESIS)
+
+        while TokenType.RIGHT_PARENTHESIS != self.current_token.token_type:
             if TokenType.FUNCTION == self.current_token.token_type:
                 argument = self.function_statement()
             else:
@@ -274,11 +281,9 @@ class Parser:
             function_arguments.append(argument)
             if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
                 self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
-            
-            return self.function_call_statement(function_name, function_arguments)
-        else:
-            self.get_next_token(TokenType.RIGHT_PARENTHESIS)
-            return nodes.FunctionCall(function_name, function_arguments)
+        
+        self.get_next_token(TokenType.RIGHT_PARENTHESIS)
+        return nodes.FunctionCall(function_name, function_arguments)
     
     def expression(self):
         """
@@ -436,7 +441,7 @@ class Parser:
     def primary(self):
         """
         primary: atom
-               | atom LEFT_PARENTHESIS function_call
+               | IDENTITY LEFT_PARENTHESIS function_call
                | atom (LEFT_BRACKET expression RIGHT_BRACKET)*
         """
         #print(f"primary: {self.current_token.token_type}")
@@ -481,10 +486,11 @@ class Parser:
             node = nodes.Float(token)
             self.get_next_token(TokenType.FLOAT)
             return node
+        # group or generator_expression, need to modify this later
         elif TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
             self.get_next_token(TokenType.LEFT_PARENTHESIS)
-            node = self.expression()
-            self.get_next_token(self.current_token.token_type)
+            node = self.statement()
+            self.get_next_token(TokenType.RIGHT_PARENTHESIS)
             return node
         elif TokenType.IDENTITY == self.current_token.token_type:
             node = self.variable()
