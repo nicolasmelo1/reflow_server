@@ -162,6 +162,8 @@ class FormulaService:
                 else:
                     value = representation.representation(values[0]['value'])
                     value_to_replace = '"{}"'.format(value)
+            else:
+                value_to_replace = ""
             formula = formula.replace(variables[index], value_to_replace, 1)
         return formula
     # ------------------------------------------------------------------------------------------
@@ -240,9 +242,9 @@ class FormulaService:
             if handler:
                 return handler(formula_result)               
         elif formula_result.status == 'error':
-            return InternalValue('#N/A' if formula_result.value == 'Unknown' else '#ERROR', field_type=default_field_type)
+            return InternalValue('-' if formula_result.value == 'Unknown' else '-', field_type=default_field_type)
     
-        return InternalValue('', default_field_type)
+        return InternalValue('-', default_field_type)
     # ------------------------------------------------------------------------------------------
     def _to_internal_value_int(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
