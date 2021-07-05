@@ -286,5 +286,4 @@ class Float(Object):
         return response._initialize_(-self._representation_())
 
     def _representation_(self):
-        value = self.value.replace(self.settings.decimal_point_character, '.')
-        return float(value)
+        return float(self.value)
