@@ -27,6 +27,7 @@ class TokenType:
     SUM='SUM'
     MULTIPLICATION='MULTIPLICATION'
     POWER='POWER'
+    COLON='COLON'
     EQUAL='EQUAL'
     NOT='NOT'
     OR='OR'
@@ -61,6 +62,7 @@ class NodeType:
     FUNCTION_DEFINITION='FUNCTION_DEFINITION'
     FUNCTION_CALL='FUNCTION_CALL'
     LIST='LIST'
+    DICT='DICT'
     SLICE='SLICE'
 
 
@@ -81,7 +83,7 @@ class Settings:
         """
         self.comment_character = '#'
         self.string_delimiter = '"'
-        self.operation_characters = ['>' ,'<', '=', '!', '/', '+', '*', '%', '-', '^']
+        self.operation_characters = ['>' ,'<', '=', '!', '/', '+', '*', '%', '-', '^', ':']
         self.valid_numbers_characters = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         self.valid_characters_for_identity_or_keywords = [
             'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'

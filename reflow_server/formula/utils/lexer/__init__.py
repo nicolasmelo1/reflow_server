@@ -1,6 +1,8 @@
 from reflow_server.formula.utils.lexer.tokens import Token
 from reflow_server.formula.utils.settings import TokenType
 
+import copy
+
 
 class Lexer:
     def __init__(self, expression, settings):
@@ -10,6 +12,12 @@ class Lexer:
 
     def advance_next_position(self, positions_to_advance=1):
         self.current_position += positions_to_advance
+
+    def peek_next_token(self):
+        current_position = self.current_position
+        next_token = self.get_next_token
+        self.current_position = current_position
+        return next_token
 
     def peek_next_character(self, number_of_characters_to_peek=1):
         position = self.current_position + number_of_characters_to_peek
@@ -55,20 +63,33 @@ class Lexer:
         return Token(TokenType.END_OF_FILE, None)
 
     def __handle_braces(self):
+        def validate_closure_of_braces(brace_to_close, closing_brace):
+            count = 0
+            while self.current_position + count < len(self.expression):
+                next_character = self.peek_and_validate(closing_brace, count)
+                if next_character:
+                    return next_character
+                else:
+                    count += 1
+            raise Exception("Need to close '{}'".format(brace_to_close))
+
         if self.expression[self.current_position] == '(':
             self.advance_next_position()
+            validate_closure_of_braces('(', ')')
             return Token(TokenType.LEFT_PARENTHESIS, '(')
         elif self.expression[self.current_position] == ')':
             self.advance_next_position()
             return Token(TokenType.RIGHT_PARENTHESIS, ')')
         elif self.expression[self.current_position] == '[':
             self.advance_next_position()
+            validate_closure_of_braces('[', ']')
             return Token(TokenType.LEFT_BRACKETS, '[')
         elif self.expression[self.current_position] == ']':
             self.advance_next_position()
             return Token(TokenType.RIGHT_BRACKETS, ']')
         elif self.expression[self.current_position] == '{':
             self.advance_next_position()
+            validate_closure_of_braces('{', '}')
             return Token(TokenType.LEFT_BRACES, '{')
         elif self.expression[self.current_position] == '}':
             self.advance_next_position()
@@ -206,6 +227,9 @@ class Lexer:
         elif current_character == '>':
             self.advance_next_position()
             return Token(TokenType.GREATER_THAN, current_character)
+        elif current_character == ':':
+            self.advance_next_position()
+            return Token(TokenType.COLON, current_character)
     # ------------------------------------------------------------------------------------------
     @property
     def get_next_token(self):

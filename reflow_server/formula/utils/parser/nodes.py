@@ -131,3 +131,16 @@ class List:
     def __init__(self, members=[]):
         self.members = members
 ############################################################################################
+class Dict:
+    node_type = NodeType.DICT
+
+    def __init__(self, members=[]):
+        """
+        THose members is a 2d array. So the array is like
+        [
+            [key1, value1],
+            [key2, value2]
+        ]
+        """
+        self.members = members
+############################################################################################

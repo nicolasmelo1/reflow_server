@@ -1,3 +1,4 @@
+from reflow_server.formula.utils.parser.nodes import Variable
 from reflow_server.formula.utils.settings import NodeType, TokenType
 from reflow_server.formula.utils.memory import Memory, Record
 from reflow_server.formula.utils import builtins
@@ -215,9 +216,10 @@ class Interpreter:
         return function_value
     # ------------------------------------------------------------------------------------------
     def handle_function_call(self, node):
-        function_name = node.name if node.name else '<lambda>'
+        # <lambda> is not a valid variable, remember that, so it's ok to add it 
+        function_name = node.name.value.value if node.name.node_type == NodeType.VARIABLE else '<lambda>'
         record = self.global_memory.stack.peek()
-        function_object = record.get(function_name)
+        function_object = self.evaluate(node.name)
         # ------------------------------------------------------------------------------------------
         def create_function_record():
             function_record = Record(function_name,'FUNCTION')

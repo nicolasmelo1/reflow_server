@@ -156,3 +156,5 @@ class DynamicArray:
         Returns a new array with new_capacity capacity
         """
         return [None] * new_capacity
+
+str

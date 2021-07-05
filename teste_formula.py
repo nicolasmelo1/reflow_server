@@ -23,7 +23,7 @@ fibonacci(1000)
 """
 
 anonymous_formulas = r"""
-anonymous = function (a, callback) do
+anonymous = function(a, callback) do
     a + callback()
 end
 
@@ -39,17 +39,25 @@ array
 """
 
 anonymous_function_call = r"""
-(function () do
-    2
-end)()
+(function (b) do
+    function(a) do
+        a + b
+    end
+end)(2)(3)
 """
 
+dicts = r"""
+dicionario = {"teste": 1}
+dicionario["teste"] = 2
+dicionario["teste"]
+"""
 functions_to_test = [
-    simple_arithimetic, 
-    recursion_and_function_call, 
-    anonymous_formulas,
-    lists,
-    anonymous_function_call
+    #simple_arithimetic, 
+    #recursion_and_function_call, 
+    #anonymous_formulas,
+    #lists,
+    #anonymous_function_call,
+    dicts
 ]
 
 for function in functions_to_test:
@@ -59,17 +67,3 @@ for function in functions_to_test:
     interpreter = Interpreter(settings)
     value = interpreter.evaluate(ast)
     print(value._representation_())
-
-lexer1 = Lexer(r"""
-function fibonacci(n, a=0, b=1) do
-    if n == 0 do
-        a
-    else if n == 1 do
-        b
-    else do
-        fibonacci(n - 1, b, a + b)
-    end
-end
-
-fibonacci(1000)
-""", settings)

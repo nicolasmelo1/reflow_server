@@ -14,7 +14,8 @@ def evaluate(expression, context=None):
     It's actually a pretty common knowledge that you probably use everyday when using stuff like esbuild, sass, scss, webpack, babel, etc.
 
     First let me introduce to you to some GREAT stuff on the internet that can serve as an inspiration:
-    1.: https://ruslanspivak.com/lsbasi-part1/ (read the hole tutorial)
+    1.: https://ruslanspivak.com/lsbasi-part1/ (read the hole tutorial, this is the first source of information for a reason
+    it is quick to read and more approachable than a book)
     2.: https://pt.wikipedia.org/wiki/Formalismo_de_Backus-Naur_Estendido#:~:text=EBNF%20%C3%A9%20um%20c%C3%B3digo%20que,combinados%20em%20uma%20sequ%C3%AAncia%20v%C3%A1lida.
     3.: https://monkeylang.org/ (it's in Go, i also don't know Go, but it's not that difficult to follow along)
     4.: https://github.com/python/cpython/blob/main/Grammar/python.gram (It can be quite intimidating, but it's not difficult to understand actually)

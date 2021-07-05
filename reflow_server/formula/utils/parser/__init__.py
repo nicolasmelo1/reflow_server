@@ -1,3 +1,4 @@
+from reflow_server.formula.utils.lexer.tokens import Token
 from reflow_server.formula.utils.settings import TokenType, NodeType
 from reflow_server.formula.utils.parser import nodes
 
@@ -41,9 +42,7 @@ class Parser:
                           | FUNCTION function_statement
                              
         function_statement: FUNCTION (IDENTITY)? LEFT_PARENTHESIS (parameters)?* RIGHT_PARENTHESIS DO block END
-        
-        function_call: IDENTITY LEFT_PARENTHESIS (expression POSITIONAL_ARGUMENT_SEPARATOR)?* RIGHT_PARENTHESIS
-        
+                
         parameters: ((IDENTITY | assignment) POSITIONAL_ARGUMENT_SEPARATOR)*
         
         if_statement: IF expression DO block ((ELSE else_statement)? | END) 
@@ -66,7 +65,7 @@ class Parser:
         conjunction: (conjunction ((AND) | conjunction)*
                    | inversion
         
-        inversion: (NOT) inversion
+        inversion: NOT inversion
                    | comparison
         
         comparison: comparison (( GREATER_THAN | GREATER_THAN_EQUAL | LESS_THAN | LESS_THAN_EQUAL | EQUAL | DIFFERENT | IN) comparison)* 
@@ -85,19 +84,21 @@ class Parser:
              | primary
          
         primary: atom
-               | primary LEFT_PARENTHESIS function_call
-               | primary LEFT_BRACKET atom (COMMA atom)* RIGHT_BRACKET
+               | primary (LEFT_PARENTHESIS (expression (POSITIONAL_ARGUMENT_SEPARATOR expression)*)? RIGHT_PARENTHESIS)*
+               | primary LEFT_BRACKET (atom (POSITIONAL_ARGUMENT_SEPARATOR atom)*)? RIGHT_BRACKET
         
         atom: INTEGER 
             | FLOAT 
             | STRING
             | BOOLEAN
-            | LEFT_PARENTHESIS disjunction RIGHT_PARENTHESIS
             | variable
-            | function_statement
+            | LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
+            | LEFT_BRACES dict
             | LEFT_BRACKET array
         
-        array: LEFT_BRACKET expression (COMMA expression)* RIGHT_BRACKET
+        dict: LEFT_BRACES atom COLON statement (POSITIONAL_ARGUMENT_SEPARATOR atom COLON statement)* RIGHT_BRACES
+
+        array: LEFT_BRACKET expression (POSITIONAL_ARGUMENT_SEPARATOR expression)* RIGHT_BRACKET
          
         variable: IDENTITY
         """
@@ -136,16 +137,13 @@ class Parser:
         instructions = self.statements_list([])
         return nodes.Block(instructions)
 
-    def statements_list(self, instructions = []):
+    def statements_list(self, instructions=[]):
         """
         statement_list: (statement NEWLINE)*
         """
         node = self.statement()
         if node != None:
             instructions.append(node)
-        
-        while TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
-            instructions.append(self.function_call_statement())
 
         if TokenType.NEWLINE == self.current_token.token_type:
             self.get_next_token(TokenType.NEWLINE)
@@ -265,26 +263,19 @@ class Parser:
                 return self.parameters(parameters_list)
             else:
                 return parameters_list
-            
-    def function_call_statement(self, function_name=None, function_arguments=[]):
-        """
-        function_call: IDENTITY LEFT_PARENTHESIS ((expression | function_statement) POSITIONAL_ARGUMENT_SEPARATOR)?* RIGHT_PARENTHESIS
-        """
-        if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
-            self.get_next_token(TokenType.LEFT_PARENTHESIS)
-
+    
+    def arguments(self):
+        arguments = []
         while TokenType.RIGHT_PARENTHESIS != self.current_token.token_type:
             if TokenType.FUNCTION == self.current_token.token_type:
                 argument = self.function_statement()
             else:
                 argument = self.expression()
-            function_arguments.append(argument)
+            argument.append(argument)
             if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
                 self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
-        
-        self.get_next_token(TokenType.RIGHT_PARENTHESIS)
-        return nodes.FunctionCall(function_name, function_arguments)
-    
+        return arguments
+
     def expression(self):
         """
         expression: disjunction
@@ -383,7 +374,7 @@ class Parser:
            | product
         """
         node = self.product()
-
+        
         if self.current_token.token_type in [
             TokenType.SUM, 
             TokenType.SUBTRACTION
@@ -397,6 +388,10 @@ class Parser:
             return node
 
     def product(self):
+        """
+        product: product ((MULTIPLACATION | DIVISION | REMAINDER) product)*
+               | power
+        """
         node = self.power()
 
         if self.current_token.token_type in [
@@ -413,6 +408,10 @@ class Parser:
             return node
 
     def power(self):
+        """
+        power: power ((POWER) power)*
+             | unary
+        """
         node = self.unary()
 
         if TokenType.POWER == self.current_token.token_type:
@@ -441,31 +440,54 @@ class Parser:
     def primary(self):
         """
         primary: atom
-               | IDENTITY LEFT_PARENTHESIS function_call
-               | atom (LEFT_BRACKET expression RIGHT_BRACKET)*
+               | primary LEFT_PARENTHESIS (expression (POSITIONAL_ARGUMENT_SEPARATOR expression)*)? RIGHT_PARENTHESIS
+               | primary LEFT_BRACKET (atom (POSITIONAL_ARGUMENT_SEPARATOR atom)*)? RIGHT_BRACKET
         """
-        #print(f"primary: {self.current_token.token_type}")
-        if TokenType.IDENTITY == self.current_token.token_type and self.lexer.peek_and_validate('(', 0):
-            node = self.atom()
-            self.get_next_token(TokenType.LEFT_PARENTHESIS)
-            return self.function_call_statement(node.value.value, [])
-        else:
-            node = self.atom()
+        node = self.atom()
 
-            if TokenType.LEFT_BRACKETS == self.current_token.token_type:
-                while TokenType.LEFT_BRACKETS == self.current_token.token_type:
-                    self.get_next_token(TokenType.LEFT_BRACKETS)
-                    slice_value = self.expression()
-                    node = nodes.Slice(node, slice_value)
-                    self.get_next_token(TokenType.RIGHT_BRACKETS)
-                return node
-            else:
-                return node
+        #print(f"primary: {self.current_token.token_type}")
+        if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
+            while TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
+                self.get_next_token(TokenType.LEFT_PARENTHESIS)
+                function_arguments = []
+                while TokenType.RIGHT_PARENTHESIS != self.current_token.token_type:
+                    if TokenType.FUNCTION == self.current_token.token_type:
+                        argument = self.function_statement()
+                    else:
+                        argument = self.statement()
+                    function_arguments.append(argument)
+                    if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
+                        self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
+                self.get_next_token(TokenType.RIGHT_PARENTHESIS)
+                node = nodes.FunctionCall(node, function_arguments)
+            return node
+            
+        if TokenType.LEFT_BRACKETS == self.current_token.token_type:
+            while TokenType.LEFT_BRACKETS == self.current_token.token_type:
+                self.get_next_token(TokenType.LEFT_BRACKETS)
+                slice_value = self.expression()
+                node = nodes.Slice(node, slice_value)
+                self.get_next_token(TokenType.RIGHT_BRACKETS)
+            return node
+        else:
+            return node
 
     def atom(self):
+        """
+        atom: INTEGER 
+            | FLOAT 
+            | STRING
+            | BOOLEAN
+            | variable
+            | LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
+            | LEFT_BRACES dicts
+            | LEFT_BRACKET array
+        """
         token = self.current_token
         if TokenType.LEFT_BRACKETS == self.current_token.token_type:
             return self.array()
+        elif TokenType.LEFT_BRACES == self.current_token.token_type:
+            return self.dicts()
         elif TokenType.BOOLEAN == self.current_token.token_type:
             node = nodes.Boolean(token)
             self.get_next_token(TokenType.BOOLEAN)
@@ -486,7 +508,6 @@ class Parser:
             node = nodes.Float(token)
             self.get_next_token(TokenType.FLOAT)
             return node
-        # group or generator_expression, need to modify this later
         elif TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
             self.get_next_token(TokenType.LEFT_PARENTHESIS)
             node = self.statement()
@@ -495,14 +516,20 @@ class Parser:
         elif TokenType.IDENTITY == self.current_token.token_type:
             node = self.variable()
             return node
-    
+
     def variable(self):
+        """
+        variable: IDENTITY
+        """
         if TokenType.IDENTITY == self.current_token.token_type:
             node = nodes.Variable(self.current_token)
             self.get_next_token(TokenType.IDENTITY)
             return node
 
     def array(self):
+        """
+        array: LEFT_BRACKET (expression | function_statement) (POSITIONAL_ARGUMENT_SEPARATOR (expression | function_definition))* RIGHT_BRACKET
+        """
         members = []
         if TokenType.LEFT_BRACKETS == self.current_token.token_type:
             self.get_next_token(TokenType.LEFT_BRACKETS)
@@ -510,8 +537,37 @@ class Parser:
             while TokenType.RIGHT_BRACKETS != self.current_token.token_type:
                 if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
                     self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
-                node = self.expression()
+                if TokenType.FUNCTION == self.current_token.token_type:
+                    node = self.function_statement()
+                else:
+                    node = self.expression()
                 members.append(node)
 
             self.get_next_token(TokenType.RIGHT_BRACKETS)
             return nodes.List(members)
+
+    def dicts(self):
+        """
+        dict: LEFT_BRACES atom COLON (expression | function_statement) (POSITIONAL_ARGUMENT_SEPARATOR atom COLON (expression | function_statement))* RIGHT_BRACES
+        """
+        members = []
+
+        if TokenType.LEFT_BRACES == self.current_token.token_type:
+            self.get_next_token(TokenType.LEFT_BRACES)
+
+            while TokenType.RIGHT_BRACES != self.current_token.token_type:
+                if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
+                    self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
+                key = self.atom()
+                self.get_next_token(TokenType.COLON)
+                if TokenType.FUNCTION == self.current_token.token_type:
+                    value = self.function_statement()
+                else:
+                    value = self.expression()
+                members.append([key, value])
+            
+            self.get_next_token(TokenType.RIGHT_BRACES)
+
+            return nodes.Dict(members)
+            
+            

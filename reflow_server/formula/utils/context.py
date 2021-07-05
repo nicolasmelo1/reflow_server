@@ -36,6 +36,8 @@ class Context:
         languages, which is something impossible in languages like python, javascript or others.
 
         Args:
+            includes (str, optional): The includes, in python it is known as "in", "in" in python is a generator for iterators, in our case
+                                      it's just for boolean. Defaults to 'in'.
             conjunction (str, optional): The conjunction, also known as "&&" in other languages or "and" in python. Defaults to 'and'.
             disjunction (str, optional): The disjunction, also known as "||" in other languages or "or" in python. Defaults to 'or'.
             inversion (str, optional): The inversion, also known as '!' in other languages or "not" in python. Defaults to 'not'.
