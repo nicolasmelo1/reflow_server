@@ -235,7 +235,8 @@ class FormulaService:
 
         is_a_known_and_valid_reflow_formula_object = formula_result.status == 'ok' and hasattr(formula_result.value, 'type')
         if is_a_known_and_valid_reflow_formula_object:
-            handler = getattr(self, '_to_internal_value_%s' % formula_result.type, None)
+            value_type = formula_result.value.type if formula_result.value else ''
+            handler = getattr(self, '_to_internal_value_%s' % value_type, None)
             if handler:
                 return handler(formula_result)               
         elif formula_result.status == 'error':
