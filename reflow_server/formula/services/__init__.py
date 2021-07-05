@@ -247,21 +247,21 @@ class FormulaService:
     def _to_internal_value_int(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
-        value = formula_result._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
+        value = formula_result.value._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
 
         return InternalValue(value, field_type, number_format_type=number_format_type)
     # ------------------------------------------------------------------------------------------
     def _to_internal_value_float(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
-        splitted_value = str(formula_result._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
+        splitted_value = str(formula_result.value._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
         value = splitted_value[0]     
 
         return InternalValue(value, field_type, number_format_type=number_format_type)
     # ------------------------------------------------------------------------------------------
     def _to_internal_value_string(self, formula_result):
         field_type = FieldType.objects.filter(type='text').first()
-        value = formula_result._representation_()
+        value = formula_result.value._representation_()
 
         return InternalValue(value, field_type)
     # ------------------------------------------------------------------------------------------
