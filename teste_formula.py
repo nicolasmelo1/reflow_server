@@ -48,13 +48,13 @@ end)(2)(3)
 
 dicts = r"""
 dicionario = {
-    "teste": 1, 
-    "teste_com_lista": function(a, b) do
-        a + b
-    end,
-     "eita": 1
+    "teste": [1, 2, {
+        "teste com lista": function() do
+            3
+        end
+    }]
 }
-dicionario["eita"]
+dicionario["teste"][2]["teste com lista"]()
 """
 functions_to_test = [
     #simple_arithimetic, 
