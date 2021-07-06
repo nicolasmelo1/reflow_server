@@ -74,7 +74,7 @@ class DynamicArray:
         self.array[last_index_of_array] = element
         self.number_of_elements += 1
     # ------------------------------------------------------------------------------------------
-    def insert_at(self, item, index):
+    def insert_at(self, item, index, delete_element_at_index=False):
         """
         This function inserts the item at any specified index.
         """
@@ -90,9 +90,10 @@ class DynamicArray:
             # Double capacity if not enough room
             self.__resize(2 * self.capacity)
 
-        for i in range(self.number_of_elements - 1, index - 1, -1):
-            self.array[i+1]=self.array[i]
-              
+        if not delete_element_at_index:
+            for i in range(self.number_of_elements - 1, index - 1, -1):
+                self.array[i+1]=self.array[i]
+
         self.array[index] = item
         self.number_of_elements += 1
     # ------------------------------------------------------------------------------------------   
@@ -127,14 +128,13 @@ class DynamicArray:
         is_last_index = index == self.number_of_elements - 1
 
         if is_last_index:
-            self.array[index] = 0
+            self.array[index] = None
             self.number_of_elements -= 1
         else:
             for i in range(index, self.number_of_elements - 1):
-                self.array[i]=self.array[i + 1]            
+                self.array[i] = self.array[i + 1]            
                 
-            
-            self.array[self.number_of_elements-1]=0
+            self.array[self.number_of_elements-1] = None
             self.number_of_elements -= 1
     # ------------------------------------------------------------------------------------------
     def __resize(self, new_capacity):
@@ -157,4 +157,150 @@ class DynamicArray:
         """
         return [None] * new_capacity
 
-str
+
+class HashTable:
+    class HashNode:
+        def __init__(self,number_of_removed_elements_when_added, order_added, hasher, key, value):
+            """
+            This is each node of the HashTable.
+
+            Args:
+                hasher (bool): [description]
+                key ([type]): [description]
+                value ([type]): [description]
+            """
+            self.number_of_removed_elements_when_added = number_of_removed_elements_when_added
+            self.order_added = order_added
+            self.hasher = hasher
+            self.key = key
+            self.value = value
+            self.next = None
+
+    
+    def __init__(self, hashes_keys_and_values=[]):
+        self.number_of_removed_elements = 0
+        self.number_of_elements = 0
+        self.capacity = 8
+
+        self.indexes = DynamicArray()
+        self.keys = DynamicArray()
+        self.values = DynamicArray()
+
+        self.table = self.make_table(self.capacity)
+
+        for hash_key_and_value in hashes_keys_and_values:
+            the_hash = hash_key_and_value[0]
+            the_key = hash_key_and_value[1]
+            the_value = hash_key_and_value[2]
+            self.append(the_hash, the_key, the_value)
+
+    def __add_at_index_and_handle_collision(self, table, index, hash_node):
+        if index < len(table) and table[index] != None and table[index].key != hash_node.key:
+            node = table[index]
+            while node.next is not None and node.key != hash_node.key:
+                node = node.next
+            node.next = hash_node
+        else:
+            hash_node.next = None
+            table[index] = hash_node
+
+    def search(self, hasher, key):
+        hash_index = hasher % self.capacity
+        node = self.table[hash_index]
+        while node != None and node.key != key and node.next is not None:
+            node = node.next
+        if node == None:
+            raise Exception('Key does not exist in dict')
+        else:
+            return node
+        
+    def remove(self, hasher, key):
+        hash_index = hasher % self.capacity
+        node = self.table[hash_index]
+        
+        if node != None:
+            if node.key == key:
+                remove_key_index_and_value_at = node.order_added - self.number_of_removed_elements + node.number_of_removed_elements_when_added
+
+                self.indexes.remove_at(remove_key_index_and_value_at)
+                self.keys.remove_at(remove_key_index_and_value_at)
+                self.values.remove_at(remove_key_index_and_value_at)
+
+                self.table[hash_index] = None
+            else:
+                previous = node
+                while node.key != key:
+                    previous = node
+                    node = node.next
+                
+                remove_key_index_and_value_at = node.order_added - self.number_of_removed_elements + node.number_of_removed_elements_when_added
+                self.indexes.remove_at(remove_key_index_and_value_at)
+                self.keys.remove_at(remove_key_index_and_value_at)
+                self.values.remove_at(remove_key_index_and_value_at)
+
+                previous.next = None
+
+            self.number_of_removed_elements += 1
+            self.number_of_elements -= 1
+        else:
+            raise Exception('Key does not exist in dict')
+
+    def append(self, hasher, key, value):
+        """
+        
+        """
+        hash_node = self.HashNode(self.number_of_removed_elements, self.number_of_elements, hasher, key, value)
+        hash_index = hasher % self.capacity
+        
+        if self.number_of_elements + 1 > self.capacity:
+            self.__resize(2 * self.capacity)
+
+        self.indexes.append(hash_index)
+        self.keys.append(key)
+        self.values.append(value)
+
+        self.__add_at_index_and_handle_collision(self.table, hash_index, hash_node)
+        
+        self.number_of_elements += 1
+
+    def __resize(self, new_capacity):
+        """
+        Resize internal table to new_capacity.
+
+        The idea is simple:
+        1º we set a new indexes list to update all of the indexes
+        2º we set the new capacity, create a new table with the new capacity and last but not least define a nodes_to_fix array
+
+        3º we need One loop only to update the table. I try to make it as efficient as possible but try to make as least resizes as possible.
+        4º we iterate by each index in the indexes array of course filtering by everything that is not None.
+        5º Then we get the node to update and add this node to the previous variable. This 'previous' variable might not be all clear for everybody
+        6º The 'previous' variables holds the previous node reference, this way we can get the next node WITHOUT LOSING REFERENCE to the previous.
+        7º If node.next is a node, then we will lopp again, but we will not need 'previous' for anything else so we can update this node safely
+        8º We calculate the new index by using the original hash value and retrieving the remainder for the new array
+        9º Update the index and add node at index handling collision. Finish by updating everything.
+        """
+        new_indexes = DynamicArray()
+        new_table = self.make_table(new_capacity) 
+
+        for node_index in self.indexes.array:
+            if node_index != None:
+                node = self.table[node_index]
+                previous = node
+                while node is not None:
+                    previous = node
+                    node = node.next
+
+                    new_index = previous.hasher % new_capacity
+                    new_indexes.append(new_index)
+
+                    self.__add_at_index_and_handle_collision(new_table, new_index, previous)
+
+        self.indexes = new_indexes
+        self.table = new_table 
+        self.capacity = new_capacity
+
+    def make_table(self, new_capacity):
+        """
+        Returns a new array with new_capacity capacity
+        """
+        return [None] * new_capacity

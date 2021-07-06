@@ -160,3 +160,24 @@ class String(Object):
     # ------------------------------------------------------------------------------------------
     def _representation_(self):
         return str(self.value)
+    # ------------------------------------------------------------------------------------------
+    def _hash_(self):
+        # reference: https://www.geeksforgeeks.org/string-hashing-using-polynomial-rolling-hash-function/#:~:text=String%20hashing%20is%20the%20way,strings%20having%20the%20same%20hash).
+        string = str(self.value)
+        # P and M
+        p = 53
+        m = 1e9 + 9
+        power_of_p = 1
+        hash_value = 0
+    
+        # Loop to calculate the hash value
+        # by iterating over the elements of string
+        for i in range(len(string)):
+            hash_value = ((hash_value + (ord(string[i]) -
+                                    ord('a') + 1) *
+                                power_of_p) % m)
+    
+            power_of_p = (power_of_p * p) % m
+    
+        return int(hash_value)
+ 

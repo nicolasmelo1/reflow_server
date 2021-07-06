@@ -181,6 +181,8 @@ class Interpreter:
             return self.handle_float(node)
         elif node.node_type == NodeType.LIST:
             return self.handle_list(node)
+        elif node.node_type == NodeType.DICT:
+            return self.handle_dict(node)
         elif node.node_type == NodeType.INTEGER:
             return self.handle_integer(node)
         elif node.node_type == NodeType.BOOLEAN:
@@ -322,9 +324,9 @@ class Interpreter:
             while len(slices_stack) > 0:
                 list_to_change = root_list if next_list == None else next_list
                 index_or_key = slices_stack.pop()
-                next_list = list_to_change._getitem_(index_or_key._representation_())
+                next_list = list_to_change._getitem_(index_or_key)
         
-            list_to_change._setitem_(index_or_key._representation_(), variable_value)
+            list_to_change._setitem_(index_or_key, variable_value)
             return root_list
     # ------------------------------------------------------------------------------------------
     def handle_variable(self, node):
@@ -390,7 +392,7 @@ class Interpreter:
     def handle_slice(self, node):
         slice_value = self.evaluate(node.slice)
         value_left = self.evaluate(node.left)
-        return value_left._getitem_(slice_value._representation_())
+        return value_left._getitem_(slice_value)
     # ------------------------------------------------------------------------------------------
     def handle_unary_conditional(self, node):
         if node.operation.token_type == TokenType.INVERSION:
@@ -428,6 +430,15 @@ class Interpreter:
         for member in node.members:
             members.append(self.evaluate(member))
         return list_value._initialize_(members)
+    # ------------------------------------------------------------------------------------------
+    def handle_dict(self, node):
+        dict_value = builtins.objects.Dict(self.settings)
+        members = []
+        for member in node.members:
+            key = self.evaluate(member[0])
+            value = self.evaluate(member[1])
+            members.append([key, value])
+        return dict_value._initialize_(members)
     # ------------------------------------------------------------------------------------------
     def handle_float(self, node):
         value = node.value.value.replace(self.settings.decimal_point_character, '.')

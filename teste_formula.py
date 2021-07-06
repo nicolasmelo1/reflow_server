@@ -47,9 +47,14 @@ end)(2)(3)
 """
 
 dicts = r"""
-dicionario = {"teste": 1}
-dicionario["teste"] = 2
-dicionario["teste"]
+dicionario = {
+    "teste": 1, 
+    "teste_com_lista": function(a, b) do
+        a + b
+    end,
+     "eita": 1
+}
+dicionario["eita"]
 """
 functions_to_test = [
     #simple_arithimetic, 

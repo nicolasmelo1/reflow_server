@@ -27,12 +27,12 @@ class List(Object):
             return super()._add_(obj)
     # ------------------------------------------------------------------------------------------
     def _getitem_(self, index):
-        return self.array[int(index)]
+        return self.array[int(index._representation_())]
     # ------------------------------------------------------------------------------------------
     def _setitem_(self, index, element):
         if hasattr(element, '_representation_'):
-            self.represented_items_in_array[int(index)] = element._representation_()
-        return self.array.insert_at(element, int(index))
+            self.represented_items_in_array[int(index._representation_())] = element._representation_()
+        return self.array.insert_at(element, int(index._representation_()))
     # ------------------------------------------------------------------------------------------
     def _in_(self, obj):
         return self.new_boolean(obj._representation_() in self.represented_items_in_array)

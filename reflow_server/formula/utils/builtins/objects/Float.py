@@ -195,7 +195,7 @@ class Float(Object):
             return super().new_boolean(representation < object_representation)
         else:
             return super()._lessthan_(obj)
-
+    # ------------------------------------------------------------------------------------------    
     def _lessthanequal_(self, obj):
         """
         When it's less than equal we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -218,7 +218,7 @@ class Float(Object):
             return super().new_boolean(representation <= object_representation)
         else:
             return super()._lessthanequal_(obj)
-
+    # ------------------------------------------------------------------------------------------    
     def _greaterthan_(self, obj):
         """
         When it's grater than we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -241,7 +241,7 @@ class Float(Object):
             return super().new_boolean(representation > object_representation)
         else:
             return super()._greaterthan_(obj)
-
+    # ------------------------------------------------------------------------------------------    
     def _greaterthanequal_(self, obj):
         """
         When it's greater than equal we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -264,7 +264,7 @@ class Float(Object):
             return super().new_boolean(representation >= object_representation)
         else:
             return super()._greaterthan_(obj)
-
+    # ------------------------------------------------------------------------------------------    
     def _unaryplus_(self):
         """
         Returns the positive representation of the particular number
@@ -274,7 +274,7 @@ class Float(Object):
         """
         response = self.__class__(self.settings)
         return response._initialize_(+self._representation_())
-    
+    # ------------------------------------------------------------------------------------------    
     def _unaryminus_(self):
         """
         Returns the negative representation of the particular float number
@@ -284,6 +284,10 @@ class Float(Object):
         """
         response = self.__class__(self.settings)
         return response._initialize_(-self._representation_())
-
+    # ------------------------------------------------------------------------------------------    
     def _representation_(self):
         return float(self.value)
+    # ------------------------------------------------------------------------------------------    
+    def _hash_(self):   
+        # yep
+        return hash(float(self.value))

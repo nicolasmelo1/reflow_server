@@ -445,29 +445,28 @@ class Parser:
         """
         node = self.atom()
 
-        #print(f"primary: {self.current_token.token_type}")
-        if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
-            while TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
-                self.get_next_token(TokenType.LEFT_PARENTHESIS)
-                function_arguments = []
-                while TokenType.RIGHT_PARENTHESIS != self.current_token.token_type:
-                    if TokenType.FUNCTION == self.current_token.token_type:
-                        argument = self.function_statement()
-                    else:
-                        argument = self.statement()
-                    function_arguments.append(argument)
-                    if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
-                        self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
-                self.get_next_token(TokenType.RIGHT_PARENTHESIS)
-                node = nodes.FunctionCall(node, function_arguments)
-            return node
-            
-        if TokenType.LEFT_BRACKETS == self.current_token.token_type:
-            while TokenType.LEFT_BRACKETS == self.current_token.token_type:
-                self.get_next_token(TokenType.LEFT_BRACKETS)
-                slice_value = self.expression()
-                node = nodes.Slice(node, slice_value)
-                self.get_next_token(TokenType.RIGHT_BRACKETS)
+        if self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS]:
+            while self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS]:
+                if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
+                    self.get_next_token(TokenType.LEFT_PARENTHESIS)
+                    function_arguments = []
+                    while TokenType.RIGHT_PARENTHESIS != self.current_token.token_type:
+                        if TokenType.FUNCTION == self.current_token.token_type:
+                            argument = self.function_statement()
+                        else:
+                            argument = self.statement()
+                        function_arguments.append(argument)
+                        if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
+                            self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
+                    self.get_next_token(TokenType.RIGHT_PARENTHESIS)
+                    node = nodes.FunctionCall(node, function_arguments)
+                
+                if TokenType.LEFT_BRACKETS == self.current_token.token_type:
+                    self.get_next_token(TokenType.LEFT_BRACKETS)
+                    slice_value = self.expression()
+                    node = nodes.Slice(node, slice_value)
+                    self.get_next_token(TokenType.RIGHT_BRACKETS)
+                    
             return node
         else:
             return node
@@ -535,12 +534,20 @@ class Parser:
             self.get_next_token(TokenType.LEFT_BRACKETS)
             
             while TokenType.RIGHT_BRACKETS != self.current_token.token_type:
+                self.__ignore_newline()
+
                 if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
                     self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
+                
+                self.__ignore_newline()
+
                 if TokenType.FUNCTION == self.current_token.token_type:
                     node = self.function_statement()
                 else:
                     node = self.expression()
+
+                self.__ignore_newline()
+
                 members.append(node)
 
             self.get_next_token(TokenType.RIGHT_BRACKETS)
@@ -556,18 +563,32 @@ class Parser:
             self.get_next_token(TokenType.LEFT_BRACES)
 
             while TokenType.RIGHT_BRACES != self.current_token.token_type:
-                if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
-                    self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
+                self.__ignore_newline()
+
                 key = self.atom()
+                
+                self.__ignore_newline()
+
                 self.get_next_token(TokenType.COLON)
+
+                self.__ignore_newline()
+
                 if TokenType.FUNCTION == self.current_token.token_type:
                     value = self.function_statement()
                 else:
                     value = self.expression()
+
+                self.__ignore_newline()
                 members.append([key, value])
-            
+
+                if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
+                    self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
+                self.__ignore_newline()
+
             self.get_next_token(TokenType.RIGHT_BRACES)
 
             return nodes.Dict(members)
             
-            
+    def __ignore_newline(self):
+        if TokenType.NEWLINE == self.current_token.token_type:
+            self.get_next_token(TokenType.NEWLINE)

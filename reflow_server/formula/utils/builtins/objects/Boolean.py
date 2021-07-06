@@ -144,4 +144,9 @@ class Boolean(Object):
     # ------------------------------------------------------------------------------------------
     def _representation_(self):
         return bool(self.value)
-        
+    # ------------------------------------------------------------------------------------------
+    def _hash_(self):
+        if bool(self.value):
+            return 1
+        else:
+            return 0
