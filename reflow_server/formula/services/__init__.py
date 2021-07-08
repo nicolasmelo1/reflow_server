@@ -162,6 +162,8 @@ class FormulaService:
                 else:
                     value = representation.representation(values[0]['value'])
                     value_to_replace = '"{}"'.format(value)
+            else:
+                value_to_replace = ""
             formula = formula.replace(variables[index], value_to_replace, 1)
         return formula
     # ------------------------------------------------------------------------------------------
@@ -235,32 +237,33 @@ class FormulaService:
 
         is_a_known_and_valid_reflow_formula_object = formula_result.status == 'ok' and hasattr(formula_result.value, 'type')
         if is_a_known_and_valid_reflow_formula_object:
-            handler = getattr(self, '_to_internal_value_%s' % formula_result.type, None)
+            value_type = formula_result.value.type if formula_result.value else ''
+            handler = getattr(self, '_to_internal_value_%s' % value_type, None)
             if handler:
                 return handler(formula_result)               
         elif formula_result.status == 'error':
-            return InternalValue('#N/A' if formula_result.value == 'Unknown' else '#ERROR', field_type=default_field_type)
+            return InternalValue('-' if formula_result.value == 'Unknown' else '-', field_type=default_field_type)
     
-        return InternalValue('', default_field_type)
+        return InternalValue('-', default_field_type)
     # ------------------------------------------------------------------------------------------
     def _to_internal_value_int(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
-        value = formula_result._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
+        value = formula_result.value._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
 
         return InternalValue(value, field_type, number_format_type=number_format_type)
     # ------------------------------------------------------------------------------------------
     def _to_internal_value_float(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
-        splitted_value = str(formula_result._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
+        splitted_value = str(formula_result.value._representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
         value = splitted_value[0]     
 
         return InternalValue(value, field_type, number_format_type=number_format_type)
     # ------------------------------------------------------------------------------------------
     def _to_internal_value_string(self, formula_result):
         field_type = FieldType.objects.filter(type='text').first()
-        value = formula_result._representation_()
+        value = formula_result.value._representation_()
 
         return InternalValue(value, field_type)
     # ------------------------------------------------------------------------------------------
@@ -303,4 +306,3 @@ class FormulaService:
             return EvaluationData('error', 'Took too long')
         except Exception as e:
             return EvaluationData('error', 'Unknown error')
-

@@ -6,14 +6,14 @@ from reflow_server.formula.utils.builtins.types import BOOLEAN_TYPE, \
 class Boolean(Object):
     def __init__(self, settings):
         super().__init__(BOOLEAN_TYPE, settings)
-
+    # ------------------------------------------------------------------------------------------
     def _initialize_(self, value):
         self.value = value
         return super()._initialize_()
-    
+    # ------------------------------------------------------------------------------------------
     def _boolean_(self):
         return self
-
+    # ------------------------------------------------------------------------------------------
     def _lessthan_(self, obj):
         """
         When it's less than we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -37,7 +37,7 @@ class Boolean(Object):
             return super().new_boolean(representation < object_representation)
         else:
             return super()._lessThan_(obj)
-    
+    # ------------------------------------------------------------------------------------------
     def _lessthanequal_(self, obj):
         """
         When it's less than equal we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -61,7 +61,7 @@ class Boolean(Object):
             return super().new_boolean(representation <= object_representation)
         else:
             return super()._lessthanequal_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _greaterthan_(self, obj):
         """
         When it's grater than we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -85,7 +85,7 @@ class Boolean(Object):
             return super().new_boolean(representation > object_representation)
         else:
             return super()._greaterthan_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _greaterthanequal_(self, obj):
         """
         When it's grater than equal we convert the boolean representation to either 1 or 0 if the value is a boolean othewise we only
@@ -109,7 +109,7 @@ class Boolean(Object):
             return super().new_boolean(representation >= object_representation)
         else:
             return super()._greaterthan_(obj)
-
+    # ------------------------------------------------------------------------------------------
     def _unaryplus_(self):
         """
         On a boolean, when you write +True, it works like if True was equal 1
@@ -125,7 +125,7 @@ class Boolean(Object):
             return integer._initialize_(1)
         else:
             return integer._initialize_(0)
-
+    # ------------------------------------------------------------------------------------------
     def _unaryminus_(self):
         """
         On a boolean, when you write -True, it works like if True was equal 1
@@ -141,7 +141,12 @@ class Boolean(Object):
             return integer._initialize_(-1)
         else:
             return integer._initialize_(0)
-
+    # ------------------------------------------------------------------------------------------
     def _representation_(self):
         return bool(self.value)
-        
+    # ------------------------------------------------------------------------------------------
+    def _hash_(self):
+        if bool(self.value):
+            return 1
+        else:
+            return 0

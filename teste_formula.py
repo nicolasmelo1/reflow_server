@@ -5,7 +5,10 @@ from reflow_server.formula.utils.parser import Parser
 from reflow_server.formula.utils.interpreter import Interpreter
 
 settings = Settings()
-lexer = Lexer(r"""
+
+simple_arithimetic = r"""(1 + 2) + (2 + 2)"""
+
+recursion_and_function_call = r"""
 function fibonacci(n, a=0, b=1) do
     if n == 0 do
         a
@@ -17,9 +20,55 @@ function fibonacci(n, a=0, b=1) do
 end
 
 fibonacci(1000)
-""", settings)
-parser = Parser(lexer, settings)
-ast = parser.parse()
-interpreter = Interpreter(settings)
-value = interpreter.evaluate(ast)
-print(value._representation_())
+"""
+
+anonymous_formulas = r"""
+anonymous = function(a, callback) do
+    a + callback()
+end
+
+anonymous(10, function() do
+    4
+end)
+"""
+
+lists = r"""
+array = [1, 2, [3, [4], 1, 2], 5]
+array[2][1][0] = "teste"
+array
+"""
+
+anonymous_function_call = r"""
+(function (b) do
+    function(a) do
+        a + b
+    end
+end)(2)(3)
+"""
+
+dicts = r"""
+dicionario = {
+    "teste": [1, 2, {
+        "teste com lista": function() do
+            3
+        end
+    }]
+}
+dicionario["teste"][2]["teste com lista"]()
+"""
+functions_to_test = [
+    #simple_arithimetic, 
+    #recursion_and_function_call, 
+    #anonymous_formulas,
+    #lists,
+    #anonymous_function_call,
+    dicts
+]
+
+for function in functions_to_test:
+    lexer = Lexer(function, settings)
+    parser = Parser(lexer, settings)
+    ast = parser.parse()
+    interpreter = Interpreter(settings)
+    value = interpreter.evaluate(ast)
+    print(value._representation_())

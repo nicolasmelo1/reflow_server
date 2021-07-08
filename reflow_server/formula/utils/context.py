@@ -1,23 +1,22 @@
+############################################################################################
 class If:
     def __init__(self, if_keyword, else_keyword):
         self.if_keyword = if_keyword
         self.else_keyword = else_keyword
-
-
+############################################################################################
 class Boolean:
     def __init__(self, true, false):
         self.true = true
         self.false = false
-
-
+############################################################################################
 class Block:
     def __init__(self, do, end):
         self.do = do
         self.end = end
-
-
+############################################################################################
 class Keywords:
-    def __init__(self, inversion, disjunction, conjunction, function, null, block, boolean, if_block):
+    def __init__(self, includes, inversion, disjunction, conjunction, function, null, block, boolean, if_block):
+        self.includes = includes
         self.inversion = inversion
         self.disjunction = disjunction
         self.conjunction = conjunction
@@ -26,9 +25,9 @@ class Keywords:
         self.block = block
         self.boolean = boolean
         self.if_block = if_block
-
+############################################################################################
 class Context:
-    def __init__(self, conjunction='and', disjunction='or', inversion='not', 
+    def __init__(self, includes='in', conjunction='and', disjunction='or', inversion='not', 
                  block_do='do', block_end='end', null='None', boolean_true='True',
                  boolean_false='False', if_if='if', if_else='else', function='function',
                  decimal_point_separator='.', positional_argument_separator=','):
@@ -37,6 +36,8 @@ class Context:
         languages, which is something impossible in languages like python, javascript or others.
 
         Args:
+            includes (str, optional): The includes, in python it is known as "in", "in" in python is a generator for iterators, in our case
+                                      it's just for boolean. Defaults to 'in'.
             conjunction (str, optional): The conjunction, also known as "&&" in other languages or "and" in python. Defaults to 'and'.
             disjunction (str, optional): The disjunction, also known as "||" in other languages or "or" in python. Defaults to 'or'.
             inversion (str, optional): The inversion, also known as '!' in other languages or "not" in python. Defaults to 'not'.
@@ -62,6 +63,16 @@ class Context:
         boolean = Boolean(boolean_true, boolean_false)
         if_block = If(if_if, if_else)
 
-        self.keyword = Keywords(inversion, disjunction, conjunction, function, null, block, boolean, if_block)
+        self.keyword = Keywords(
+            includes, 
+            inversion, 
+            disjunction, 
+            conjunction, 
+            function, 
+            null, 
+            block, 
+            boolean, 
+            if_block
+        )
         self.positional_argument_separator = positional_argument_separator
         self.decimal_point_separator = decimal_point_separator
