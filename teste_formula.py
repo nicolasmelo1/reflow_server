@@ -56,6 +56,7 @@ dicionario = {
 }
 dicionario["teste"][2]["teste com lista"]()
 """
+
 functions_to_test = [
     simple_arithimetic, 
     recursion_and_function_call, 

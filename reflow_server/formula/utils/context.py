@@ -15,11 +15,12 @@ class Block:
         self.end = end
 ############################################################################################
 class Keywords:
-    def __init__(self, includes, inversion, disjunction, conjunction, function, null, block, boolean, if_block):
+    def __init__(self, includes, inversion, disjunction, conjunction, function, module, null, block, boolean, if_block):
         self.includes = includes
         self.inversion = inversion
         self.disjunction = disjunction
         self.conjunction = conjunction
+        self.module = module
         self.function = function
         self.null = null
         self.block = block
@@ -30,7 +31,7 @@ class Context:
     def __init__(self, includes='in', conjunction='and', disjunction='or', inversion='not', 
                  block_do='do', block_end='end', null='None', boolean_true='True',
                  boolean_false='False', if_if='if', if_else='else', function='function',
-                 decimal_point_separator='.', positional_argument_separator=','):
+                 module='module', decimal_point_separator='.', positional_argument_separator=','):
         """
         Responsible for creating the context for the formula evaluation, with this we can translate the formulas to other
         languages, which is something impossible in languages like python, javascript or others.
@@ -54,6 +55,8 @@ class Context:
             if_else (str, optional): The else keyword when the conditional logic gate is not satisfied, mostly known as "else". 
                                      Defaults to 'else'.
             function (str, optional): The function keyword to create a new function. On python it is like "def". Defaults to 'function'.
+            module (str, optional): The module keyword to create a new module. This is similar to a python class, EXCEPT, all functions 
+                                    and attributes are static.
             decimal_point_separator (str, optional): The decimal point separator, usually on most languages it is represented as '.', 
                                                      but we can translate. Defaults to '.'.
             positional_argument_separator (str, optional): The positional arguments separator, on most languages it is represented
@@ -69,6 +72,7 @@ class Context:
             disjunction, 
             conjunction, 
             function, 
+            module,
             null, 
             block, 
             boolean, 
