@@ -24,8 +24,8 @@ def is_float(value):
 class DynamicArray:
     """
     This is a dynamic array that is similar to a Python List. Yes, this does the same job as if you used [].
-    Yes it is kinda dumb since we already have python List that basically does the job already.
-    But since performance is not actually an issue and the possibility to translate this code to another language
+    
+    Since performance is not actually an issue and the possibility to translate this code to another language
     is. This is needed so in other languages we can just translate the implementation.
 
     This is agnostic to the formulas, since this is a HELPER. So try to keep ._representation_() and other stuff in
@@ -58,8 +58,8 @@ class DynamicArray:
         
         if index >= self.number_of_elements:
             raise Exception('index is out of bounds') 
-        
-        return self.array[index] # Retrieve from the array at index
+        # Retrieve from the array at index
+        return self.array[index]
     # ------------------------------------------------------------------------------------------   
     def append(self, element):
         """
@@ -401,7 +401,15 @@ class HashTable:
     # ------------------------------------------------------------------------------------------
     def append(self, hasher, key, value):
         """
-        
+        Appends a new value to the HashTable, we send a hasher, the key and the value, the key is the actual value
+        you want to store as list. The value is the value you are storing in this key, and the hasher is the key hashed.
+
+        Args:
+            hasher (int): This is the 'key' value hashed. Some other implementations of the hashtable you will see that
+                          the hashing is handled inside of the hashtable, on this we let each builtin object implement their own
+                          hashing algorithm
+            key ([float, int, string, boolean]): The Key can be of type bool, int, str or float.
+            value (any): The actual value you are holding can be of any type, there are no limitations.
         """
         hash_node = self.HashNode(self.number_of_removed_elements, self.number_of_elements, hasher, key, value)
         hash_index = hasher % self.capacity
@@ -432,6 +440,9 @@ class HashTable:
         7º If node.next is a node, then we will lopp again, but we will not need 'previous' for anything else so we can update this node safely
         8º We calculate the new index by using the original hash value and retrieving the remainder for the new array
         9º Update the index and add node at index handling collision. Finish by updating everything.
+
+        Args:
+            new_capacity (int): The new capacity of the hash table table.
         """
         new_indexes = DynamicArray()
         new_table = self.make_table(new_capacity) 
