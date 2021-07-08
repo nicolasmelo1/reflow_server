@@ -424,6 +424,7 @@ class HashTable:
         self.__add_at_index_and_handle_collision(self.table, hash_index, hash_node)
         
         self.number_of_elements += 1
+        return value
     # ------------------------------------------------------------------------------------------
     def __resize(self, new_capacity):
         """
