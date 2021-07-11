@@ -42,7 +42,9 @@ class Parser:
                           | FUNCTION function_statement
                              
         function_statement: FUNCTION (IDENTITY)? LEFT_PARENTHESIS (parameters)?* RIGHT_PARENTHESIS DO block END
-                
+
+        module_statement: MODULE (IDENTITY)? LEFT_PARENTHESIS (arguments)?* RIGHT_PARENTHESIS DO block END
+
         parameters: ((IDENTITY | assignment) POSITIONAL_ARGUMENT_SEPARATOR)*
         
         if_statement: IF expression DO block ((ELSE else_statement)? | END) 
