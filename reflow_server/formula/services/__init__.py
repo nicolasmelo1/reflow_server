@@ -77,17 +77,17 @@ class FormulaService:
             company_id (int): A Company instance id
         """
         formula_context_for_company = FormulaContextForCompany.formula_.formula_context_for_company_by_company_id(company_id)
-        formula_context_attributes = FormulaContextAttributeType.objects.filter(context_type_id=formula_context_for_company.context_type_id).values('attribute_type__name', 'translation')
+        if formula_context_for_company:
+            formula_context_attributes = FormulaContextAttributeType.objects.filter(context_type_id=formula_context_for_company.context_type_id).values('attribute_type__name', 'translation')
+            if formula_context_attributes:
+                formula_attributes = {}
+                for formula_context_attribute in formula_context_attributes:
+                    key = formula_context_attribute['attribute_type__name']
+                    formula_attributes[key] = formula_context_attribute['translation']
 
-        formula_attributes = {}
-        if formula_context_attributes:
-            for formula_context_attribute in formula_context_attributes:
-                key = formula_context_attribute['attribute_type__name']
-                formula_attributes[key] = formula_context_attribute['translation']
+                self.context = Context(**formula_attributes)
 
-            self.context = Context(**formula_attributes)
-        else:
-            self.context = Context()
+        self.context = Context()
     # ------------------------------------------------------------------------------------------
     def __clean_formula(self, formula, dynamic_form_id, formula_variables):
         """
