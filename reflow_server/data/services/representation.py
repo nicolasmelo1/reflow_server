@@ -121,6 +121,8 @@ class RepresentationService:
         return datetime.strptime(value, self.date_format_type.format).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
     
     def _to_internal_value_number(self, value):
+        print('BREAKPOINT')
+        print(value)
         precision = self.number_format_type.precision
         base = self.number_format_type.base
 
@@ -226,9 +228,9 @@ class RepresentationService:
                     if len(value_and_decimal_splitted) > 1:
                         decimal_of_value = str(value_and_decimal_splitted[1])
                         formater = '{:.' + str(len(decimal_of_value)) + 'f}'
-                value = formater.format(value)
+                value = str(formater).format(value)
                 value = value.replace('.', self.number_format_type.decimal_separator)
-            value_and_decimal = value.split(self.number_format_type.decimal_separator)
+            value_and_decimal = str(value).split(self.number_format_type.decimal_separator)
             if thousand_separator != '':
                 # reference: https://stackoverflow.com/questions/1823058/how-to-print-number-with-commas-as-thousands-separators
                 value_and_decimal[0] = '{:,}'.format(int(value_and_decimal[0]))
