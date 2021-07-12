@@ -121,6 +121,8 @@ class RepresentationService:
         return datetime.strptime(value, self.date_format_type.format).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
     
     def _to_internal_value_number(self, value):
+        print('BREAKPOINT')
+        print(value)
         precision = self.number_format_type.precision
         base = self.number_format_type.base
 
