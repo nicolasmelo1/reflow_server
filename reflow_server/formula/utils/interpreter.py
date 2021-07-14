@@ -361,9 +361,9 @@ class Interpreter:
         value_left = self.evaluate(node.left, True)
         value_right = self.evaluate(node.right, True)
 
-        if node.operation.token_type == TokenType.CONJUNCTION:
+        if node.operation.token_type == TokenType.AND:
             return value_left._and_(value_right)
-        elif node.operation.token_type == TokenType.DISJUNCTION:
+        elif node.operation.token_type == TokenType.OR:
             return value_left._or_(value_right)
     # ------------------------------------------------------------------------------------------    
     def handle_binary_conditional(self, node):
@@ -402,7 +402,7 @@ class Interpreter:
         return value_left._getitem_(slice_value)
     # ------------------------------------------------------------------------------------------
     def handle_unary_conditional(self, node):
-        if node.operation.token_type == TokenType.INVERSION:
+        if node.operation.token_type == TokenType.NOT:
             value = self.evaluate(node.value, True)
             return value._boolean_()._not_()
     # ------------------------------------------------------------------------------------------
