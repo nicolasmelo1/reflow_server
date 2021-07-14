@@ -57,13 +57,22 @@ dicionario = {
 dicionario["teste"][2]["teste com lista"]()
 """
 
+modules = r"""
+module Modulo do
+    function teste() do
+        3
+    end
+end
+"""
+
 functions_to_test = [
-    simple_arithimetic, 
-    recursion_and_function_call, 
-    anonymous_formulas,
-    lists,
-    anonymous_function_call,
-    dicts
+    #simple_arithimetic, 
+    #recursion_and_function_call, 
+    #anonymous_formulas,
+    #lists,
+    #anonymous_function_call,
+    #dicts,
+    modules
 ]
 
 for function in functions_to_test:

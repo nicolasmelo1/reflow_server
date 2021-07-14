@@ -161,6 +161,8 @@ class Interpreter:
             return self.handle_assign(node)
         elif node.node_type == NodeType.BLOCK:
             return self.handle_block(node)
+        elif node.node_type == NodeType.MODULE_DEFINIITION:
+            return self.handle_module_definition(node)
         elif node.node_type == NodeType.UNARY_OPERATION:
             return self.handle_unary_operation(node)
         elif node.node_type == NodeType.UNARY_CONDITIONAL:
@@ -216,6 +218,11 @@ class Interpreter:
         record.assign(function_name, function_value)
 
         return function_value
+    # ------------------------------------------------------------------------------------------
+    def handle_module_definition(self, node):
+        module_name = node.variable.value.value
+        print(module_name)
+
     # ------------------------------------------------------------------------------------------
     def handle_function_call(self, node):
         # <lambda> is not a valid variable, remember that, so it's ok to add it 

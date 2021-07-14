@@ -21,6 +21,21 @@ class IfStatement:
         self.block = block
         self.else_statement = else_statement
 ############################################################################################
+class ModuleDefinition:
+    node_type = NodeType.MODULE_DEFINIITION
+
+    def __init__(self, variable, parameters, module_literals=[]):
+        self.variable = variable
+        self.parameters = parameters
+        self.module_literals = module_literals
+############################################################################################
+class ModuleLiteral:
+    node_type = NodeType.MODULE_LITERAL
+
+    def __init__(self, variable, block):
+        self.variable = variable
+        self.block = block
+############################################################################################
 class FunctionDefinition:
     node_type = NodeType.FUNCTION_DEFINITION
 

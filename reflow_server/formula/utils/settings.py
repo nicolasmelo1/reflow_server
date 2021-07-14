@@ -61,6 +61,8 @@ class NodeType:
     BLOCK='BLOCK'
     ASSIGN='ASSIGN'
     VARIABLE='VARIABLE'
+    MODULE_DEFINIITION='MODULE_DEFINIITION'
+    MODULE_LITERAL='MODULE_LITERAL'
     FUNCTION_DEFINITION='FUNCTION_DEFINITION'
     FUNCTION_CALL='FUNCTION_CALL'
     LIST='LIST'
@@ -100,6 +102,7 @@ class Settings:
         self.disjunction_keyword = context.keyword.disjunction
         self.conjunction_keyword = context.keyword.conjunction
         self.function_keyword = context.keyword.function
+        self.module_keyword = context.keyword.module
         self.null_keyword = context.keyword.null
         self.block_keywords = {
             'do': context.keyword.block.do,

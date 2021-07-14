@@ -162,6 +162,8 @@ class Lexer:
             return Token(TokenType.FALSE, keyword)
         elif keyword == self.settings.null_keyword:
             return Token(TokenType.NULL, keyword)
+        elif keyword == self.settings.module_keyword:
+            return Token(TokenType.MODULE, keyword)
         elif keyword == self.settings.function_keyword:
             return Token(TokenType.FUNCTION, keyword)
         elif keyword == self.settings.conjunction_keyword:
