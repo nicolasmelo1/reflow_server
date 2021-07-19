@@ -63,6 +63,22 @@ module Modulo do
         3
     end
 end
+
+module Modulo1 do
+    function metodo1() do
+        Modulo
+    end
+end
+
+
+Modulo1.metodo1().teste()
+"""
+
+structs = r"""
+module Struct(a, b, c)
+
+struct = Struct{a=2, b=3, c=4}
+struct.c
 """
 
 functions_to_test = [
@@ -72,7 +88,8 @@ functions_to_test = [
     #lists,
     #anonymous_function_call,
     #dicts,
-    modules
+    #modules,
+    structs
 ]
 
 for function in functions_to_test:
@@ -82,3 +99,14 @@ for function in functions_to_test:
     interpreter = Interpreter(settings)
     value = interpreter.evaluate(ast)
     print(value._representation_())
+
+"""
+import traceback
+
+class Teste:
+    def teste(self):
+        print(traceback.print_stack())
+
+teste = Teste()
+teste.teste()
+"""

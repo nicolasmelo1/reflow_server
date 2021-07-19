@@ -52,6 +52,9 @@ class Lexer:
                 return self.__handle_braces()
             elif self.expression[self.current_position] == self.settings.comment_character:
                 return self.__handle_comment()
+            elif self.expression[self.current_position] == self.settings.attribute_character:
+                self.advance_next_position()
+                return Token(TokenType.ATTRIBUTE, self.settings.attribute_character)
             elif self.expression[self.current_position] == '\n':
                 self.advance_next_position()
                 return Token(TokenType.NEWLINE, '\n')

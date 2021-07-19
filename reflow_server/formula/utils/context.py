@@ -55,10 +55,10 @@ class Context:
             if_else (str, optional): The else keyword when the conditional logic gate is not satisfied, mostly known as "else". 
                                      Defaults to 'else'.
             function (str, optional): The function keyword to create a new function. On python it is like "def". Defaults to 'function'.
-            module (str, optional): The module keyword to create a new module. This is similar to a python class, EXCEPT, all functions 
+            module (str, optional): The module keyword to create a new module. This is similar to a python class, EXCEPT, all methods 
                                     and attributes are static.
             decimal_point_separator (str, optional): The decimal point separator, usually on most languages it is represented as '.', 
-                                                     but we can translate. Defaults to '.'.
+                                                     but we can translate to ',' if needed. Defaults to '.'.
             positional_argument_separator (str, optional): The positional arguments separator, on most languages it is represented
                                                            as ',', but on others like excel this can be ';'. Defaults to ','.
         """

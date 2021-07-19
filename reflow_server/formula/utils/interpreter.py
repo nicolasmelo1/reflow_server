@@ -163,6 +163,8 @@ class Interpreter:
             return self.handle_block(node)
         elif node.node_type == NodeType.MODULE_DEFINIITION:
             return self.handle_module_definition(node)
+        elif node.node_type == NodeType.ATTRIBUTE:
+            return self.handle_attribute(node)
         elif node.node_type == NodeType.UNARY_OPERATION:
             return self.handle_unary_operation(node)
         elif node.node_type == NodeType.UNARY_CONDITIONAL:
@@ -209,20 +211,27 @@ class Interpreter:
 
         function = builtins.objects.Function(self.settings)
         record = self.global_memory.stack.peek()
-        function_value = function._initialize_(node, record, node.parameters)
+        function = function._initialize_(node, record, node.parameters)
         if is_anonymous_function:
             function_name = '<lambda>'
-            function_value.ast_function.value = '<lambda>'
+            function.ast_function.value = '<lambda>'
         else:
             function_name = node.variable.value.value
-        record.assign(function_name, function_value)
+        record.assign(function_name, function)
 
-        return function_value
+        return function
     # ------------------------------------------------------------------------------------------
     def handle_module_definition(self, node):
         module_name = node.variable.value.value
-        print(module_name)
+        module = builtins.objects.Module(self.settings)
+        record = self.global_memory.stack.peek()
+        module = module._initialize_(module_name, record)
 
+        for module_literal in node.module_literals:
+            module._setattribute_(module_literal.variable.value.value, module_literal.block)
+        
+        record.assign(module_name, module)
+        return module
     # ------------------------------------------------------------------------------------------
     def handle_function_call(self, node):
         # <lambda> is not a valid variable, remember that, so it's ok to add it 
@@ -283,6 +292,9 @@ class Interpreter:
         
             self.global_memory.stack.pop()
             return result
+    # ------------------------------------------------------------------------------------------
+    def handle_struct(self, node):
+        pass
     # ------------------------------------------------------------------------------------------
     def handle_if_statement(self, node):
         expression_value = self.evaluate(node.expression, True)
@@ -412,6 +424,27 @@ class Interpreter:
             return value._unaryplus_()
         elif node.operation.token_type == TokenType.SUBTRACTION:
             return value._unaryminus_()
+    # ------------------------------------------------------------------------------------------
+    def handle_attribute(self, node):
+        module = self.evaluate(node.left, True)
+        
+        module_record = Record(module.module_name, 'MODULE')
+        self.global_memory.stack.push(module_record)
+
+        # Define the scope of the function in the new function call stack
+        for key, value in module.scope.members.items():
+            module_record.assign(key, value)
+
+        for index in range(0, len(module.attributes.keys)):
+            key = module.attributes.keys[index]
+            attribute = module.attributes.search(hash(key), key)
+            attribute = self.evaluate(attribute.value)
+            module_record.assign(key, attribute)
+        result = self.evaluate(node.operation)
+
+        self.global_memory.stack.pop()
+        
+        return result
     # ------------------------------------------------------------------------------------------
     def handle_null(self, node):
         null = builtins.objects.Null(self.settings)

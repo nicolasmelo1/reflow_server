@@ -25,7 +25,6 @@ class AuthJWTMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
     # ------------------------------------------------------------------------------------------
-
     def __call__(self, request): 
         jwt = JWT()
         jwt.extract_jwt_from_request(request)
@@ -41,8 +40,6 @@ class AuthJWTMiddleware:
 
         return response
     # ------------------------------------------------------------------------------------------
-
-
 ############################################################################################
 # HTTP AUTH public middleware
 class AuthPublicMiddleware:
@@ -80,8 +77,6 @@ class AuthPublicMiddleware:
         response = self.get_response(request)
         return response
     # ------------------------------------------------------------------------------------------
-    
-
 # CHANNELS MIDDLEWARE BELOW 
 ############################################################################################
 class AuthWebsocketJWTMiddleware(BaseMiddleware):
@@ -116,8 +111,6 @@ class AuthWebsocketJWTMiddleware(BaseMiddleware):
             return user
         else:
             return AnonymousUser()
-
-
 ############################################################################################
 class AuthWebsocketPublicMiddleware(BaseMiddleware):
     """

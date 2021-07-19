@@ -44,7 +44,7 @@ class Parser:
 
         function_statement: FUNCTION (IDENTITY)? LEFT_PARENTHESIS (parameters)?* RIGHT_PARENTHESIS DO block END
 
-        module_statement: MODULE (IDENTITY)? LEFT_PARENTHESIS (arguments)?* RIGHT_PARENTHESIS DO module_block_statements_list END
+        module_statement: MODULE IDENTITY (LEFT_PARENTHESIS (arguments)?* RIGHT_PARENTHESIS)? (DO module_block_statements_list END)?
 
         module_block_statements_list: (module_block_statement NEWLINE)* 
 
@@ -93,9 +93,16 @@ class Parser:
              | primary
          
         primary: atom
-               | primary (LEFT_PARENTHESIS (expression (POSITIONAL_ARGUMENT_SEPARATOR expression)*)? RIGHT_PARENTHESIS)*
-               | primary LEFT_BRACKET (atom (POSITIONAL_ARGUMENT_SEPARATOR atom)*)? RIGHT_BRACKET
-        
+               | (slice)*
+               | (attribute)*
+               | (function_call)*
+
+        attribute: primary ATTRIBUTE primary
+
+        slice: primary LEFT_BRACKET (atom (POSITIONAL_ARGUMENT_SEPARATOR atom)*)? RIGHT_BRACKET
+
+        function_call: primary LEFT_PARENTHESIS (expression (POSITIONAL_ARGUMENT_SEPARATOR expression)*)? RIGHT_PARENTHESIS
+
         atom: INTEGER 
             | FLOAT 
             | STRING
@@ -283,10 +290,12 @@ class Parser:
 
                 self.get_next_token(TokenType.RIGHT_PARENTHESIS)
 
-            self.get_next_token(TokenType.DO)
+            module_block = list()
+            if TokenType.DO == self.current_token.token_type:
+                self.get_next_token(TokenType.DO)
 
-            module_block = self.module_block_statements_list()
-            self.get_next_token(TokenType.END)
+                module_block = self.module_block_statements_list()
+                self.get_next_token(TokenType.END)
 
             return nodes.ModuleDefinition(module_variable, parameters, module_block)
     # ------------------------------------------------------------------------------------------
@@ -505,6 +514,10 @@ class Parser:
             return node
     # ------------------------------------------------------------------------------------------
     def unary(self):
+        """
+        unary: (SUM | SUBTRACTION) unary
+             | primary
+        """
         if self.current_token.token_type in [
             TokenType.SUM,
             TokenType.SUBTRACTION,
@@ -520,13 +533,21 @@ class Parser:
     def primary(self):
         """
         primary: atom
-               | primary LEFT_PARENTHESIS (expression (POSITIONAL_ARGUMENT_SEPARATOR expression)*)? RIGHT_PARENTHESIS
-               | primary LEFT_BRACKET (atom (POSITIONAL_ARGUMENT_SEPARATOR atom)*)? RIGHT_BRACKET
+               | struct
+               | (slice)*
+               | (attribute)*
+               | (function_call)*
+
+        attribute: primary ATTRIBUTE primary
+
+        slice: primary LEFT_BRACKET (atom (POSITIONAL_ARGUMENT_SEPARATOR atom)*)? RIGHT_BRACKET
+
+        function_call: primary LEFT_PARENTHESIS (expression (POSITIONAL_ARGUMENT_SEPARATOR expression)*)? RIGHT_PARENTHESIS
         """
         node = self.atom()
 
-        if self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS]:
-            while self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS]:
+        if self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS, TokenType.ATTRIBUTE, TokenType.LEFT_BRACES]:
+            while self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS, TokenType.ATTRIBUTE]:
                 if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
                     self.get_next_token(TokenType.LEFT_PARENTHESIS)
                     function_arguments = []
@@ -546,7 +567,26 @@ class Parser:
                     slice_value = self.expression()
                     node = nodes.Slice(node, slice_value)
                     self.get_next_token(TokenType.RIGHT_BRACKETS)
-                    
+                
+                if TokenType.ATTRIBUTE == self.current_token.token_type:
+                    self.get_next_token(TokenType.ATTRIBUTE)
+                    right_value = self.current_token
+                    operation = self.primary()
+                    node = nodes.Attribute(node, right_value, operation)
+            
+            # defines a struct
+            if self.current_token.token_type == TokenType.LEFT_BRACES:
+                self.get_next_token(TokenType.LEFT_BRACES)
+                struct_arguments = []
+                while TokenType.RIGHT_BRACES != self.current_token.token_type:
+                    if TokenType.FUNCTION == self.current_token.token_type:
+                        argument = self.function_statement()
+                    else:
+                        argument = self.statement()
+                    struct_arguments.append(argument)
+                self.get_next_token(TokenType.RIGHT_BRACES)
+                node = nodes.Struct(node, struct_arguments)
+
             return node
         else:
             return node
