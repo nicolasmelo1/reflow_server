@@ -294,7 +294,23 @@ class Interpreter:
             return result
     # ------------------------------------------------------------------------------------------
     def handle_struct(self, node):
-        pass
+        arguments = node.arguments
+        for index in range(len(arguments)):
+            argument_name = None
+            argument_value = None
+            if index < len(arguments):
+                if arguments.parameters[index].node_type == NodeType.ASSIGN:
+                    argument_name = arguments[index].left.value.value 
+                else:
+                    argument_name = arguments[index].value.value 
+                argument_value = self.evaluate(node.parameters[index])
+            elif arguments[index].node_type == NodeType.ASSIGN:
+                argument_name = arguments[index].left.value.value 
+                argument_value = self.evaluate(arguments[index].right)
+            else:
+                raise Exception('missing argument of struct "{argument_name}"'.format(argument_name=argument_name))
+
+        
     # ------------------------------------------------------------------------------------------
     def handle_if_statement(self, node):
         expression_value = self.evaluate(node.expression, True)
