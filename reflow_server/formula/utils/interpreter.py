@@ -1,4 +1,3 @@
-from reflow_server.formula.utils.parser.nodes import Variable
 from reflow_server.formula.utils.settings import NodeType, TokenType
 from reflow_server.formula.utils.memory import Memory, Record
 from reflow_server.formula.utils import builtins
@@ -163,6 +162,8 @@ class Interpreter:
             return self.handle_block(node)
         elif node.node_type == NodeType.MODULE_DEFINIITION:
             return self.handle_module_definition(node)
+        elif node.node_type == NodeType.STRUCT:
+            return self.handle_struct(node)
         elif node.node_type == NodeType.ATTRIBUTE:
             return self.handle_attribute(node)
         elif node.node_type == NodeType.UNARY_OPERATION:
@@ -211,7 +212,15 @@ class Interpreter:
 
         function = builtins.objects.Function(self.settings)
         record = self.global_memory.stack.peek()
-        function = function._initialize_(node, record, node.parameters)
+
+        parameters = list()
+        for parameter in node.parameters:
+            if parameter.node_type == NodeType.ASSIGN:
+                parameters.append([parameter.left.value.value, self.evaluate(parameter.right)])
+            else:
+                parameters.append([parameter.value.value, None])
+
+        function = function._initialize_(node, record, parameters)
         if is_anonymous_function:
             function_name = '<lambda>'
             function.ast_function.value = '<lambda>'
@@ -225,10 +234,21 @@ class Interpreter:
         module_name = node.variable.value.value
         module = builtins.objects.Module(self.settings)
         record = self.global_memory.stack.peek()
-        module = module._initialize_(module_name, record)
+
+        parameters = list()
+        for parameter in node.parameters:
+            if parameter.node_type == NodeType.ASSIGN:
+                parameters.append([parameter.left.value.value, parameter.right])
+            else:
+                parameters.append([parameter.value.value, None])
+
+
+        module = module._initialize_(module_name, record, parameters)
 
         for module_literal in node.module_literals:
-            module._setattribute_(module_literal.variable.value.value, module_literal.block)
+            key_string = builtins.objects.String(self.settings)
+            key_string._initialize_(module_literal.variable.value.value)
+            module._setattribute_(key_string, module_literal.block)
         
         record.assign(module_name, module)
         return module
@@ -247,21 +267,38 @@ class Interpreter:
                 function_record.assign(key, value)
 
             # Gets the positional parameters and also the values parameters
-            for index in range(len(function_object.parameters)):
-                parameter_name = None
-                parameter_value = None
+            # okay so since we can have positional and value parameters the order of the parameters SHOULD NOT MATTER.
+            # this might be confusing for some but the idea is simple:
+            # We add the parameter in the record that was defined in the call and in the function definition AT THE SAME TIME.
+            # There's a catch though, if we are adding the value of a paramater that was defined in the function definition
+            # we cannot replace if the value was already added. WHAT?
+            # For example: function soma(b=1, a) do....
+            # then soma(a=2) 
+
+            # on the first pass we defined both 1 to 'b' and 2 to 'a', on the second pass when we pass through 'a' 
+            # we DO NOT assign None to 'a' because we will aready have assigned 'a'.
+            variable_defined = []
+            for index, parameter in enumerate(function_object.parameters):
+                
                 if index < len(node.parameters):
-                    if function_object.parameters[index].node_type == NodeType.ASSIGN:
-                        parameter_name = function_object.parameters[index].left.value.value 
+                    if node.parameters[index].node_type == NodeType.ASSIGN:
+                        parameter_name = node.parameters[index].left.value.value
+
+                        if parameter_name not in function_object.parameters_variables:
+                            raise Exception('parameter of function "{parameter_name}" is not defined in function'.format(parameter_name=parameter_name))
+
+                        parameter_value = self.evaluate(node.parameters[index].right)
+                        function_record.assign(parameter_name, parameter_value)
+                        variable_defined.append(parameter_name)
                     else:
-                        parameter_name = function_object.parameters[index].value.value 
-                    parameter_value = self.evaluate(node.parameters[index])
-                elif function_object.parameters[index].node_type == NodeType.ASSIGN:
-                    parameter_name = function_object.parameters[index].left.value.value 
-                    parameter_value = self.evaluate(function_object.parameters[index].right)
-                else:
-                    raise Exception('missing parameter of function "{function_name}"'.format(function_name=function_name))
-                function_record.assign(parameter_name, parameter_value)
+                        function_record.assign(parameter[0], self.evaluate(node.parameters[index]))
+                        variable_defined.append(parameter[0])
+                if parameter[0] not in variable_defined:
+                    if parameter[1] == None:
+                        raise Exception('parameter "{parameter_name}" was not assigned in the function call'.format(parameter_name=parameter_name))
+
+                    function_record.assign(parameter[0], parameter[1])
+                    variable_defined.append(parameter[0])
             return function_record
         # ------------------------------------------------------------------------------------------
         def to_evaluate_function(push_to_current=False):
@@ -294,23 +331,62 @@ class Interpreter:
             return result
     # ------------------------------------------------------------------------------------------
     def handle_struct(self, node):
-        arguments = node.arguments
-        for index in range(len(arguments)):
-            argument_name = None
-            argument_value = None
-            if index < len(arguments):
-                if arguments.parameters[index].node_type == NodeType.ASSIGN:
-                    argument_name = arguments[index].left.value.value 
-                else:
-                    argument_name = arguments[index].value.value 
-                argument_value = self.evaluate(node.parameters[index])
-            elif arguments[index].node_type == NodeType.ASSIGN:
-                argument_name = arguments[index].left.value.value 
-                argument_value = self.evaluate(arguments[index].right)
-            else:
-                raise Exception('missing argument of struct "{argument_name}"'.format(argument_name=argument_name))
-
+        """
+        This work similar to functions, we can set the variable positionaly, so by each position like:
+        >>> module StructExample(a, b, c)
+        >>> StructExample{1, 2, 3}
         
+
+        we can set the variable by the variable name like:
+        >>> StructExample{a=1, b=2, c=3}
+
+        or if the struct has some default values we can set them like:
+        >>> module StructExample(a, b=1, c=5)
+        >>> StructExample{1} 
+
+        The example above will set 1 to 'a'.
+
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.Struct): The struct node for handling structs
+
+        Raises:
+            Exception: 
+
+        Returns:
+            reflow_server.formula.utils.builtins.objects.Struct: Returns a struct object, a stuct is an object that is used for
+                                                                 holding data. This is used in languages like Go, Elixir, Rust,
+                                                                 or C. In languages like Python, Java or others we usually have
+                                                                 classes for holding data and methods
+        """
+
+        struct_object = self.evaluate(node.name)
+        arguments_and_values = []
+        
+        variable_defined = []
+        for index, parameter in enumerate(struct_object.struct_parameters):
+            
+            if index < len(node.arguments):
+                if node.arguments[index].node_type == NodeType.ASSIGN:
+                    parameter_name = node.arguments[index].left.value.value
+
+                    if parameter_name not in struct_object.stuct_parameters_variables:
+                        raise Exception('parameter of function "{parameter_name}" is not defined in function'.format(parameter_name=parameter_name))
+
+                    parameter_value = node.arguments[index].right
+                    arguments_and_values.append([parameter_name, parameter_value])
+                    variable_defined.append(parameter_name)
+                else:
+                    arguments_and_values.append([parameter[0], node.arguments[index]])
+                    variable_defined.append(parameter[0])
+            if parameter[0] not in variable_defined:
+                if parameter[1] == None:
+                    raise Exception('parameter "{parameter_name}" was not assigned in the function call'.format(parameter_name=parameter_name))
+
+                arguments_and_values.append([parameter[0], parameter[1]])
+                variable_defined.append(parameter[0])
+
+        struct = builtins.objects.Struct(self.settings)
+        return struct._initialize_(arguments_and_values)
     # ------------------------------------------------------------------------------------------
     def handle_if_statement(self, node):
         expression_value = self.evaluate(node.expression, True)
@@ -372,6 +448,7 @@ class Interpreter:
     def handle_binary_operation(self, node):
         value_left = self.evaluate(node.left, True)
         value_right = self.evaluate(node.right, True)
+
         if node.operation.token_type == TokenType.MULTIPLICATION:
             return value_left._multiply_(value_right)
         elif node.operation.token_type == TokenType.DIVISION:
@@ -443,21 +520,24 @@ class Interpreter:
     # ------------------------------------------------------------------------------------------
     def handle_attribute(self, node):
         module = self.evaluate(node.left, True)
-        
-        module_record = Record(module.module_name, 'MODULE')
+        module_name = module.module_name if hasattr(module, 'module_name') else '<module>'
+
+        previous_record = self.global_memory.stack.peek()
+        module_record = Record(module_name, 'MODULE')
         self.global_memory.stack.push(module_record)
 
-        # Define the scope of the function in the new function call stack
-        for key, value in module.scope.members.items():
+        # Define the scope of the module
+        for key, value in previous_record.members.items():
             module_record.assign(key, value)
 
         for index in range(0, len(module.attributes.keys)):
             key = module.attributes.keys[index]
-            attribute = module.attributes.search(hash(key), key)
+            key_string = builtins.objects.String(self.settings)
+            key_string._initialize_(key)
+            attribute = module._getattribute_(key_string)
             attribute = self.evaluate(attribute.value)
             module_record.assign(key, attribute)
         result = self.evaluate(node.operation)
-
         self.global_memory.stack.pop()
         
         return result

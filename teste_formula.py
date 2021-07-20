@@ -8,6 +8,14 @@ settings = Settings()
 
 simple_arithimetic = r"""(1 + 2) + (2 + 2)"""
 
+function = r"""
+function soma(b=1, a) do
+    b + a
+end
+
+soma(a=2)
+"""
+
 recursion_and_function_call = r"""
 function fibonacci(n, a=0, b=1) do
     if n == 0 do
@@ -19,7 +27,7 @@ function fibonacci(n, a=0, b=1) do
     end
 end
 
-fibonacci(1000)
+fibonacci(5)
 """
 
 anonymous_formulas = r"""
@@ -75,14 +83,21 @@ Modulo1.metodo1().teste()
 """
 
 structs = r"""
-module Struct(a, b, c)
+module Struct(a, b=3, c=5) do 
+    function soma(a, b) do
+        a + b
+    end
+end
 
-struct = Struct{a=2, b=3, c=4}
-struct.c
+
+struct = Struct{a=2, b=5, 10}
+
+Struct.soma(struct.a, struct.c)
 """
 
 functions_to_test = [
     #simple_arithimetic, 
+    #function,
     #recursion_and_function_call, 
     #anonymous_formulas,
     #lists,

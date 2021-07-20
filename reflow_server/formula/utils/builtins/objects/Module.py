@@ -7,17 +7,21 @@ class Module(Object):
     def __init__(self, settings):
         super().__init__(MODULE_TYPE, settings)
 
-    def _initialize_(self, module_name, scope):
+    def _initialize_(self, module_name, scope, struct_parameters):
         self.module_name = module_name
         self.scope = scope
+        self.struct_parameters = struct_parameters
+        self.stuct_parameters_variables = []
+        for parameter_variable, __ in self.struct_parameters:
+            self.stuct_parameters_variables.append(parameter_variable)
         self.attributes = HashTable()
         return super()._initialize_()
 
     def _setattribute_(self, variable, element):
-        self.attributes.append(hash(variable), variable, element)
+        self.attributes.append(variable._hash_(), variable._representation_(), element)
 
     def _getattribute_(self, variable):
-        return self.attributes.search(hash(variable), variable)
+        return self.attributes.search(variable._hash_(), variable._representation_())
     
     def _representation_(self):
         return self

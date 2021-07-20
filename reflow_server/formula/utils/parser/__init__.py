@@ -579,11 +579,19 @@ class Parser:
                 self.get_next_token(TokenType.LEFT_BRACES)
                 struct_arguments = []
                 while TokenType.RIGHT_BRACES != self.current_token.token_type:
+                    
+                    self.__ignore_newline()
+
                     if TokenType.FUNCTION == self.current_token.token_type:
                         argument = self.function_statement()
                     else:
                         argument = self.statement()
                     struct_arguments.append(argument)
+                    if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
+                        self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
+                    
+                    self.__ignore_newline()
+                    
                 self.get_next_token(TokenType.RIGHT_BRACES)
                 node = nodes.Struct(node, struct_arguments)
 
