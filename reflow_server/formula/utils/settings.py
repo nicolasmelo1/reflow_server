@@ -42,9 +42,11 @@ class TokenType:
     IN='IN'
     IF='IF'
     ELSE='ELSE'
+    ATTRIBUTE='ATTRIBUTE'
 
 
 class NodeType:
+    STRUCT='STRUCT'
     PROGRAM='PROGRAM'
     IF_STATEMENT='IF_STATEMENT'
     BINARY_OPERATION='BINARY_OPERATION'
@@ -61,18 +63,21 @@ class NodeType:
     BLOCK='BLOCK'
     ASSIGN='ASSIGN'
     VARIABLE='VARIABLE'
+    MODULE_DEFINIITION='MODULE_DEFINIITION'
+    MODULE_LITERAL='MODULE_LITERAL'
     FUNCTION_DEFINITION='FUNCTION_DEFINITION'
     FUNCTION_CALL='FUNCTION_CALL'
     LIST='LIST'
     DICT='DICT'
     SLICE='SLICE'
+    ATTRIBUTE='ATTRIBUTE'
 
 
 class Settings:
     def __init__(self, context=Context()):
         """
         This is the settings class, this is used on the interpreter, parser and lexer.
-        The idea is that with the settings we are able to translate the formula or in other words, the programming language
+        The idea is that with the settings we are able to translate the formula or in other words, the programming language,
         how we actually want. 
 
         This way, people in Brazil, in United States or Europe can adapt the formulas the way it fits them most.
@@ -83,6 +88,7 @@ class Settings:
             context (reflow_server.formula.utils.context.Context): The context class so we can translate the language in other
                                                                    languages.
         """
+        self.attribute_character = '.'
         self.comment_character = '#'
         self.string_delimiter = '"'
         self.operation_characters = ['>' ,'<', '=', '!', '/', '+', '*', '%', '-', '^', ':']
@@ -100,6 +106,7 @@ class Settings:
         self.disjunction_keyword = context.keyword.disjunction
         self.conjunction_keyword = context.keyword.conjunction
         self.function_keyword = context.keyword.function
+        self.module_keyword = context.keyword.module
         self.null_keyword = context.keyword.null
         self.block_keywords = {
             'do': context.keyword.block.do,

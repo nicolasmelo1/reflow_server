@@ -2,8 +2,6 @@ from reflow_server.formula.utils.builtins.objects.Object import Object
 from reflow_server.formula.utils.builtins.types import DICT_TYPE
 from reflow_server.formula.utils.helpers import HashTable
 
-import copy
-
 
 class Dict(Object):
     def __init__(self, settings):

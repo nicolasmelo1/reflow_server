@@ -40,9 +40,18 @@ class Parser:
         
         compound_statement: IF if_statement 
                           | FUNCTION function_statement
-                             
+                          | MODULE module_statement
+
         function_statement: FUNCTION (IDENTITY)? LEFT_PARENTHESIS (parameters)?* RIGHT_PARENTHESIS DO block END
-                
+
+        module_statement: MODULE IDENTITY (LEFT_PARENTHESIS (arguments)?* RIGHT_PARENTHESIS)? (DO module_block_statements_list END)?
+
+        module_block_statements_list: (module_block_statement NEWLINE)* 
+
+        module_block_statement: | FUNCTION function_statement
+                                | MODULE module_statement
+                                | assignment
+
         parameters: ((IDENTITY | assignment) POSITIONAL_ARGUMENT_SEPARATOR)*
         
         if_statement: IF expression DO block ((ELSE else_statement)? | END) 
@@ -84,9 +93,16 @@ class Parser:
              | primary
          
         primary: atom
-               | primary (LEFT_PARENTHESIS (expression (POSITIONAL_ARGUMENT_SEPARATOR expression)*)? RIGHT_PARENTHESIS)*
-               | primary LEFT_BRACKET (atom (POSITIONAL_ARGUMENT_SEPARATOR atom)*)? RIGHT_BRACKET
-        
+               | (slice)*
+               | (attribute)*
+               | (function_call)*
+
+        attribute: primary ATTRIBUTE primary
+
+        slice: primary LEFT_BRACKET (atom (POSITIONAL_ARGUMENT_SEPARATOR atom)*)? RIGHT_BRACKET
+
+        function_call: primary LEFT_PARENTHESIS (expression (POSITIONAL_ARGUMENT_SEPARATOR expression)*)? RIGHT_PARENTHESIS
+
         atom: INTEGER 
             | FLOAT 
             | STRING
@@ -105,17 +121,17 @@ class Parser:
         self.lexer = lexer
         self.settings = settings
         self.current_token = self.lexer.get_next_token
-
+    # ------------------------------------------------------------------------------------------
     def parse(self):
         node = self.program()
         return node
-
+    # ------------------------------------------------------------------------------------------
     def get_next_token(self, token_type):
         if token_type == self.current_token.token_type:
             self.current_token = self.lexer.get_next_token
         else:
             raise Exception('Expected token: {}, current token: {}'.format(token_type, self.current_token.token_type))
-        
+    # ------------------------------------------------------------------------------------------       
     def program(self):
         """
         program: block END_OF_FILE
@@ -129,14 +145,14 @@ class Parser:
             raise Exception('Unexpected end of file, this means your program cannot be executed and was ended abruptly')
 
         return program_node
-
+    # ------------------------------------------------------------------------------------------
     def block(self):
         """
         block: statements_list 
         """
         instructions = self.statements_list([])
         return nodes.Block(instructions)
-
+    # ------------------------------------------------------------------------------------------
     def statements_list(self, instructions=[]):
         """
         statement_list: (statement NEWLINE)*
@@ -150,7 +166,7 @@ class Parser:
             return self.statements_list(instructions)
         else:
             return instructions
-
+    # ------------------------------------------------------------------------------------------
     def statement(self):
         """
         statement: compound_statement
@@ -161,20 +177,23 @@ class Parser:
         if node == None:
             node = self.assignment()            
         return node
-    
+    # ------------------------------------------------------------------------------------------
     def compound_statement(self):
         """
         compound_statement: IF if_statement 
                           | FUNCTION function_statement
+                          | MODULE module_statement
         """
         if (TokenType.IF == self.current_token.token_type):
             return self.if_statement()
         elif TokenType.FUNCTION == self.current_token.token_type:
             return self.function_statement()
-    
+        elif TokenType.MODULE == self.current_token.token_type:
+            return self.module_statement()
+    # ------------------------------------------------------------------------------------------
     def assignment(self):
         """
-        assignment: expression ASSIGN (expression | FUNCTION function_statement)
+        assignment: (variable | slice | attribute) ASSIGN (expression | FUNCTION function_statement)
                   | expression
         """
         node = self.expression()
@@ -187,15 +206,14 @@ class Parser:
                 right = self.function_statement()
             else:
                 right = self.expression()
-            if (left.node_type not in [NodeType.VARIABLE, NodeType.SLICE]):
-                raise Exception("Cannot assign, needs to assign value to a variable")
+            if (left.node_type not in [NodeType.VARIABLE, NodeType.SLICE, NodeType.ATTRIBUTE]):
+                raise Exception("Cannot assign, can only assign value to a variable, slice or attribute")
             elif (right == None):
                 raise Exception("You forgot to assign a value to a variable")
             return nodes.Assign(left, right, operation)
         else:
             return node
-
-
+    # ------------------------------------------------------------------------------------------
     def if_statement(self):
         """
         if_statement: IF expression DO block ((ELSE else_statement)? | END) 
@@ -211,7 +229,7 @@ class Parser:
             else:
                 self.get_next_token(TokenType.END)
             return nodes.IfStatement(expression, block, else_statement)
-    
+    # ------------------------------------------------------------------------------------------
     def else_statement(self):
         """
         else_statement: (ELSE DO block | ELSE IF if_statement) END
@@ -225,7 +243,7 @@ class Parser:
                 node = self.block()
                 self.get_next_token(TokenType.END)
                 return node
-
+    # ------------------------------------------------------------------------------------------
     def function_statement(self):
         """
         function_statement: FUNCTION (IDENTITY)? LEFT_PARENTHESIS (parameters)?* RIGHT_PARENTHESIS DO block END
@@ -250,11 +268,83 @@ class Parser:
 
             self.get_next_token(TokenType.END)
             return nodes.FunctionDefinition(function_variable, parameters, function_block)
+    # ------------------------------------------------------------------------------------------
+    def module_statement(self):
+        """
+        module_statement: MODULE (IDENTITY)? LEFT_PARENTHESIS (arguments)?* RIGHT_PARENTHESIS DO module_block_statements_list END
+        """
+        if TokenType.MODULE == self.current_token.token_type:
+            self.get_next_token(TokenType.MODULE)
 
+            if TokenType.IDENTITY == self.current_token.token_type:
+                module_variable = self.variable()
+            else:
+                module_variable = None
+
+            parameters = None
+            if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
+                parameters = list()
+                self.get_next_token(TokenType.LEFT_PARENTHESIS)
+
+                if TokenType.IDENTITY == self.current_token.token_type:
+                    parameters = self.parameters(parameters)
+
+                self.get_next_token(TokenType.RIGHT_PARENTHESIS)
+
+            module_block = list()
+            if TokenType.DO == self.current_token.token_type:
+                self.get_next_token(TokenType.DO)
+
+                module_block = self.module_block_statements_list()
+                self.get_next_token(TokenType.END)
+
+            return nodes.ModuleDefinition(module_variable, parameters, module_block)
+    # ------------------------------------------------------------------------------------------
+    def module_block_statements_list(self, instructions=[]):
+        """
+        module_block_statements_list: (module_block_statement NEWLINE)* 
+        """
+        if TokenType.END != self.current_token.token_type:
+            node = self.module_block_statement()
+            if node != None:
+                instructions.append(node)
+            
+        if TokenType.NEWLINE == self.current_token.token_type:
+            self.get_next_token(TokenType.NEWLINE)
+            return self.module_block_statements_list(instructions)
+        else:
+            return instructions
+    # ------------------------------------------------------------------------------------------
+    def module_block_statement(self):
+        """
+        module_block_statement: | FUNCTION function_statement
+                                | MODULE module_statement
+                                | assignment
+        """
+        
+        while TokenType.NEWLINE == self.current_token.token_type:
+            self.__ignore_newline()
+        
+        if TokenType.FUNCTION == self.current_token.token_type:
+            node = self.function_statement()
+            return nodes.ModuleLiteral(node.variable, node)
+        elif TokenType.MODULE == self.current_token.token_type:
+            node = self.module_statement()
+            return nodes.ModuleLiteral(node.variable, node)
+        else:
+            node = self.assignment()
+            if NodeType.ASSIGN == node.node_type:
+                return nodes.ModuleLiteral(node.left, node)
+            else:
+                raise Exception('must be an assignment, a new module or a function')
+    # ------------------------------------------------------------------------------------------
     def parameters(self, parameters_list=[]):
         """
         parameters: ((IDENTITY | assignment) POSITIONAL_ARGUMENT_SEPARATOR)*
         """
+        while TokenType.NEWLINE == self.current_token.token_type:
+            self.__ignore_newline()
+
         if TokenType.IDENTITY == self.current_token.token_type:
             node = self.assignment()
             parameters_list.append(node)
@@ -263,7 +353,7 @@ class Parser:
                 return self.parameters(parameters_list)
             else:
                 return parameters_list
-    
+    # ------------------------------------------------------------------------------------------
     def arguments(self):
         arguments = []
         while TokenType.RIGHT_PARENTHESIS != self.current_token.token_type:
@@ -275,14 +365,14 @@ class Parser:
             if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
                 self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
         return arguments
-
+    # ------------------------------------------------------------------------------------------
     def expression(self):
         """
         expression: disjunction
         """
         node = self.disjunction()
         return node
-
+    # ------------------------------------------------------------------------------------------
     def disjunction(self):
         """
         disjunction: (disjunction ((OR) | disjunction)*
@@ -302,7 +392,7 @@ class Parser:
             return nodes.BooleanOperation(left, right, operation)
         else:
             return node
-
+    # ------------------------------------------------------------------------------------------
     def conjunction(self):
         """
         conjunction : (conjunction ((AND) | conjunction)*
@@ -323,7 +413,7 @@ class Parser:
             return nodes.BooleanOperation(node, right, operation)
         else:
             return node
-
+    # ------------------------------------------------------------------------------------------
     def inversion(self):
         """
         inversion: (NOT) inversion
@@ -340,7 +430,7 @@ class Parser:
             return nodes.UnaryConditional(operation, value)
         else:
             return node
-    
+    # ------------------------------------------------------------------------------------------
     def comparison(self):
         """
         comparison: comparison (( GREATER_THAN | GREATER_THAN_EQUAL | LESS_THAN | LESS_THAN_EQUAL | EQUAL | DIFFERENT | IN) comparison)* 
@@ -367,7 +457,7 @@ class Parser:
             return nodes.BinaryConditional(left, right, operation)
         else:
             return node
-        
+    # ------------------------------------------------------------------------------------------
     def add(self):
         """
         add: add ((PLUS | MINUS) add)*
@@ -386,7 +476,7 @@ class Parser:
             return nodes.BinaryOperation(left, right, operation)
         else:
             return node
-
+    # ------------------------------------------------------------------------------------------
     def product(self):
         """
         product: product ((MULTIPLACATION | DIVISION | REMAINDER) product)*
@@ -406,7 +496,7 @@ class Parser:
             return nodes.BinaryOperation(left, right, operation)
         else:
             return node
-
+    # ------------------------------------------------------------------------------------------
     def power(self):
         """
         power: power ((POWER) power)*
@@ -423,8 +513,12 @@ class Parser:
             return nodes.BinaryOperation(left, right, operation)
         else:
             return node
-
+    # ------------------------------------------------------------------------------------------
     def unary(self):
+        """
+        unary: (SUM | SUBTRACTION) unary
+             | primary
+        """
         if self.current_token.token_type in [
             TokenType.SUM,
             TokenType.SUBTRACTION,
@@ -436,17 +530,25 @@ class Parser:
         else:
             node = self.primary()
             return node
-    
+    # ------------------------------------------------------------------------------------------
     def primary(self):
         """
         primary: atom
-               | primary LEFT_PARENTHESIS (expression (POSITIONAL_ARGUMENT_SEPARATOR expression)*)? RIGHT_PARENTHESIS
-               | primary LEFT_BRACKET (atom (POSITIONAL_ARGUMENT_SEPARATOR atom)*)? RIGHT_BRACKET
+               | struct
+               | (slice)*
+               | (attribute)*
+               | (function_call)*
+
+        attribute: primary ATTRIBUTE primary
+
+        slice: primary LEFT_BRACKET (atom (POSITIONAL_ARGUMENT_SEPARATOR atom)*)? RIGHT_BRACKET
+
+        function_call: primary LEFT_PARENTHESIS (expression (POSITIONAL_ARGUMENT_SEPARATOR expression)*)? RIGHT_PARENTHESIS
         """
         node = self.atom()
 
-        if self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS]:
-            while self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS]:
+        if self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS, TokenType.ATTRIBUTE, TokenType.LEFT_BRACES]:
+            while self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS, TokenType.ATTRIBUTE]:
                 if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
                     self.get_next_token(TokenType.LEFT_PARENTHESIS)
                     function_arguments = []
@@ -466,11 +568,38 @@ class Parser:
                     slice_value = self.expression()
                     node = nodes.Slice(node, slice_value)
                     self.get_next_token(TokenType.RIGHT_BRACKETS)
+                
+                if TokenType.ATTRIBUTE == self.current_token.token_type:
+                    self.get_next_token(TokenType.ATTRIBUTE)
+                    right_value = self.current_token
+                    operation = self.primary()
+                    node = nodes.Attribute(node, right_value, operation)
+            
+            # defines a struct
+            if self.current_token.token_type == TokenType.LEFT_BRACES:
+                self.get_next_token(TokenType.LEFT_BRACES)
+                struct_arguments = []
+                while TokenType.RIGHT_BRACES != self.current_token.token_type:
                     
+                    self.__ignore_newline()
+
+                    if TokenType.FUNCTION == self.current_token.token_type:
+                        argument = self.function_statement()
+                    else:
+                        argument = self.statement()
+                    struct_arguments.append(argument)
+                    if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
+                        self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
+                    
+                    self.__ignore_newline()
+                    
+                self.get_next_token(TokenType.RIGHT_BRACES)
+                node = nodes.Struct(node, struct_arguments)
+
             return node
         else:
             return node
-
+    # ------------------------------------------------------------------------------------------
     def atom(self):
         """
         atom: INTEGER 
@@ -515,7 +644,7 @@ class Parser:
         elif TokenType.IDENTITY == self.current_token.token_type:
             node = self.variable()
             return node
-
+    # ------------------------------------------------------------------------------------------
     def variable(self):
         """
         variable: IDENTITY
@@ -524,7 +653,7 @@ class Parser:
             node = nodes.Variable(self.current_token)
             self.get_next_token(TokenType.IDENTITY)
             return node
-
+    # ------------------------------------------------------------------------------------------
     def array(self):
         """
         array: LEFT_BRACKET (expression | function_statement) (POSITIONAL_ARGUMENT_SEPARATOR (expression | function_definition))* RIGHT_BRACKET
@@ -552,7 +681,7 @@ class Parser:
 
             self.get_next_token(TokenType.RIGHT_BRACKETS)
             return nodes.List(members)
-
+    # ------------------------------------------------------------------------------------------
     def dicts(self):
         """
         dict: LEFT_BRACES atom COLON (expression | function_statement) (POSITIONAL_ARGUMENT_SEPARATOR atom COLON (expression | function_statement))* RIGHT_BRACES
@@ -588,7 +717,7 @@ class Parser:
             self.get_next_token(TokenType.RIGHT_BRACES)
 
             return nodes.Dict(members)
-            
+    # ------------------------------------------------------------------------------------------
     def __ignore_newline(self):
         if TokenType.NEWLINE == self.current_token.token_type:
             self.get_next_token(TokenType.NEWLINE)

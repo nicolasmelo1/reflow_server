@@ -8,6 +8,14 @@ settings = Settings()
 
 simple_arithimetic = r"""(1 + 2) + (2 + 2)"""
 
+function = r"""
+function soma(b=1, a) do
+    b + a
+end
+
+soma(a=2)
+"""
+
 recursion_and_function_call = r"""
 function fibonacci(n, a=0, b=1) do
     if n == 0 do
@@ -19,7 +27,7 @@ function fibonacci(n, a=0, b=1) do
     end
 end
 
-fibonacci(1000)
+fibonacci(5)
 """
 
 anonymous_formulas = r"""
@@ -57,13 +65,45 @@ dicionario = {
 dicionario["teste"][2]["teste com lista"]()
 """
 
+modules = r"""
+module Modulo do
+    function teste() do
+        3
+    end
+end
+
+module Modulo1 do
+    function metodo1() do
+        Modulo
+    end
+end
+
+
+Modulo1.metodo1().teste()
+"""
+
+structs = r"""
+module Struct(a, b=3, c=5) 
+module Teste(a, b)
+
+
+struct = Struct{a=2, b=5, c=Teste{1, 2}}
+
+struct.c = "Ola"
+
+struct.c
+"""
+
 functions_to_test = [
-    simple_arithimetic, 
-    recursion_and_function_call, 
-    anonymous_formulas,
-    lists,
-    anonymous_function_call,
-    dicts
+    #simple_arithimetic, 
+    #function,
+    #recursion_and_function_call, 
+    #anonymous_formulas,
+    #lists,
+    #anonymous_function_call,
+    #dicts,
+    #modules,
+    #structs
 ]
 
 for function in functions_to_test:
@@ -73,3 +113,14 @@ for function in functions_to_test:
     interpreter = Interpreter(settings)
     value = interpreter.evaluate(ast)
     print(value._representation_())
+
+"""
+import traceback
+
+class Teste:
+    def teste(self):
+        print(traceback.print_stack())
+
+teste = Teste()
+teste.teste()
+"""

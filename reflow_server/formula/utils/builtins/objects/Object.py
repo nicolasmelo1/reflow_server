@@ -44,8 +44,14 @@ class Object:
     def _in_(self, obj):
         raise Exception("type '{}' is not iterable, so replace {} with a iterable type".format(self.type, obj._representation_()))
     # ------------------------------------------------------------------------------------------
+    def _getattribute_(self, variable):
+        raise Exception("Cannot get attribute '{}'".format(variable._representation_(), self.type))
+    # ------------------------------------------------------------------------------------------
     def _getitem_(self, item):
         raise Exception("Cannot get item '{}' of type {}".format(item, self.type))
+    # ------------------------------------------------------------------------------------------
+    def _setattribute_(self, variable, element):
+        raise Exception("Cannot set attribute '{}' of type {}".format(variable._representation_(), self.type))
     # ------------------------------------------------------------------------------------------
     def _setitem_(self, item, element):
         raise Exception("Cannot set element '{}' at item '{}' of type {}".format(element, item, self.type))

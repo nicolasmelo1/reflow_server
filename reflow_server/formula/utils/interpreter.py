@@ -1,4 +1,3 @@
-from reflow_server.formula.utils.parser.nodes import Variable
 from reflow_server.formula.utils.settings import NodeType, TokenType
 from reflow_server.formula.utils.memory import Memory, Record
 from reflow_server.formula.utils import builtins
@@ -145,6 +144,7 @@ class Interpreter:
         """
         if node.node_type == NodeType.FUNCTION_CALL:
             function_evaluated_value = self.handle_function_call(node)
+            # if we recieve a python function than push to current. Othewise returns the actual value of the function
             if evaluate_function_call and isinstance(function_evaluated_value, types.FunctionType):
                 return function_evaluated_value(False)
             else:
@@ -161,6 +161,12 @@ class Interpreter:
             return self.handle_assign(node)
         elif node.node_type == NodeType.BLOCK:
             return self.handle_block(node)
+        elif node.node_type == NodeType.MODULE_DEFINIITION:
+            return self.handle_module_definition(node)
+        elif node.node_type == NodeType.STRUCT:
+            return self.handle_struct(node)
+        elif node.node_type == NodeType.ATTRIBUTE:
+            return self.handle_attribute(node)
         elif node.node_type == NodeType.UNARY_OPERATION:
             return self.handle_unary_operation(node)
         elif node.node_type == NodeType.UNARY_CONDITIONAL:
@@ -203,21 +209,155 @@ class Interpreter:
         return last_value
     # ------------------------------------------------------------------------------------------
     def handle_function_definition(self, node):
+        """
+        A function in reflow formulas can be anonymous or not, in other words you can create functions as:
+
+        >>> function soma(a, b) do
+                a + b
+            end
+
+        or you can create them anonymously with:
+
+        >>> soma = function(a, b) do
+                a + b
+            end
+
+        functions, recieving parameters or not MUST be defined with left and right parenthesis so:
+
+        >>> function hello_world() do
+                "Hello World"
+            end
+
+        Functions, as explained in the '.handle_function_call()' method, are tail call optimized, this means you 
+        can loop through each function using recursion. But you sould come up with a solution using a tail call optimized
+        solution.
+
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.FunctionDefinition): This returns everything needed to create new functions
+                                                                                super easy.
+
+        Returns:
+            reflow_server.formula.utils.builtins.objects.Function: Return a Function object that can be used to be called later.
+        """
         is_anonymous_function = node.variable == None
 
         function = builtins.objects.Function(self.settings)
         record = self.global_memory.stack.peek()
-        function_value = function._initialize_(node, record, node.parameters)
+
+        parameters = list()
+        for parameter in node.parameters:
+            if parameter.node_type == NodeType.ASSIGN:
+                parameters.append([parameter.left.value.value, self.evaluate(parameter.right)])
+            else:
+                parameters.append([parameter.value.value, None])
+
+        function = function._initialize_(node, record, parameters)
         if is_anonymous_function:
             function_name = '<lambda>'
-            function_value.ast_function.value = '<lambda>'
+            function.ast_function.value = '<lambda>'
         else:
             function_name = node.variable.value.value
-        record.assign(function_name, function_value)
+        record.assign(function_name, function)
 
-        return function_value
+        return function
+    # ------------------------------------------------------------------------------------------
+    def handle_module_definition(self, node):
+        """
+        Similar to Elixir defmodule, a module in Flow language can be a struct or an actual module with static methods.
+
+        A module can be defined as:
+
+        >>> module ModuleName do
+                function soma(a, b) do
+                    a + b
+                end
+            end
+        
+        With this you can access the function 'soma()' with:
+        
+        >>> ModuleName.soma(1, 2)
+
+        If you want to create a struct with your module you can do this like that:
+
+        >>> module ModuleName(a, b) do
+            end
+
+        or simply:
+
+        >>> module ModuleName(a,b)
+
+        Than later you define the struct by doing
+
+        >>> struct_name = ModuleName{a=1, b=2}
+
+        Which you can access the variables by doing like:
+
+        >>> struct_name.a or struct_name.b
+
+        You can also define the values by position like so:
+        
+        >>> ModuleName{10, 20} 
+
+        Since the first variable is "a", 10 will be assigned to "a", and since the second variable is "b", 20 will be assigned to "b".
+
+        Last but not least, you can create structs and modules like
+
+        >>> module ModuleName(value_a, value_b) do
+                function soma(a, b) do
+                    a + b
+                end
+            end
+        
+        So with this we can create a ModuleName struct with the parameters "value_a" and "value_b", the created struct WILL NOT HAVE ACCESS FOR THE FUNCTIONS 
+        OF THE MODULE. When you use "ModuleName.soma()" you WILL NOT BE ABLE TO ACCESS the ModuleName.value_a or ModuleName.value_b
+
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.ModuleDefinition): The node responsible for defining the module or struct, with this we can know if 
+                                                                              the module is just a module, if it is just a struct or if it is a struct and a module.
+
+        Returns:
+            reflow_server.formula.utils.builtins.objects.Module.Module: returns a Module builtin object that can be used to create structs or serves just a module
+        """
+        module_name = node.variable.value.value
+        module = builtins.objects.Module(self.settings)
+        record = self.global_memory.stack.peek()
+
+        if node.parameters == None:
+            parameters = None
+        else:
+            parameters = list()
+            for parameter in node.parameters:
+                if parameter.node_type == NodeType.ASSIGN:
+                    parameters.append([parameter.left.value.value, parameter.right])
+                else:
+                    parameters.append([parameter.value.value, None])
+
+
+        module = module._initialize_(module_name, record, parameters)
+
+        for module_literal in node.module_literals:
+            key_string = builtins.objects.String(self.settings)
+            key_string._initialize_(module_literal.variable.value.value)
+            module._setattribute_(key_string, module_literal.block)
+        
+        record.assign(module_name, module)
+        return module
     # ------------------------------------------------------------------------------------------
     def handle_function_call(self, node):
+        """
+        Most of how this works is explained above in the '.evaluate()' function. In simple words the functions are
+        tail call optimized.
+
+        Besides that, you can call the function by naming each parameter or by the position on each parameter.
+
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.FormulaCall): The formula call node that holds the name of the function 
+                                                                         which is not obligatory, and the parameters of the function
+
+        Returns:
+            [Function, reflow_server.formula.utils.builtins.objects.*]: Returns a python function to be evaluated later or the actual
+                                                                        value of the function.
+        """
         # <lambda> is not a valid variable, remember that, so it's ok to add it 
         function_name = node.name.value.value if node.name.node_type == NodeType.VARIABLE else '<lambda>'
         record = self.global_memory.stack.peek()
@@ -231,24 +371,53 @@ class Interpreter:
                 function_record.assign(key, value)
 
             # Gets the positional parameters and also the values parameters
-            for index in range(len(function_object.parameters)):
-                parameter_name = None
-                parameter_value = None
+            # okay so since we can have positional and value parameters the order of the parameters SHOULD NOT MATTER.
+            # this might be confusing for some but the idea is simple:
+            # We add the parameter in the record that was defined in the call and in the function definition AT THE SAME TIME.
+            # There's a catch though, if we are adding the value of a paramater that was defined in the function definition
+            # we cannot replace if the value was already added. WHAT?
+            # For example: function soma(b=1, a) do....
+            # then soma(a=2) 
+
+            # on the first pass we defined both 1 to 'b' and 2 to 'a', on the second pass when we pass through 'a' 
+            # we DO NOT assign None to 'a' because we will aready have assigned 'a'.
+            variable_defined = []
+            for index, parameter in enumerate(function_object.parameters):
+                
                 if index < len(node.parameters):
-                    if function_object.parameters[index].node_type == NodeType.ASSIGN:
-                        parameter_name = function_object.parameters[index].left.value.value 
+                    if node.parameters[index].node_type == NodeType.ASSIGN:
+                        parameter_name = node.parameters[index].left.value.value
+
+                        if parameter_name not in function_object.parameters_variables:
+                            raise Exception('parameter of function "{parameter_name}" is not defined in function'.format(parameter_name=parameter_name))
+
+                        parameter_value = self.evaluate(node.parameters[index].right)
+                        function_record.assign(parameter_name, parameter_value)
+                        variable_defined.append(parameter_name)
                     else:
-                        parameter_name = function_object.parameters[index].value.value 
-                    parameter_value = self.evaluate(node.parameters[index])
-                elif function_object.parameters[index].node_type == NodeType.ASSIGN:
-                    parameter_name = function_object.parameters[index].left.value.value 
-                    parameter_value = self.evaluate(function_object.parameters[index].right)
-                else:
-                    raise Exception('missing parameter of function "{function_name}"'.format(function_name=function_name))
-                function_record.assign(parameter_name, parameter_value)
+                        function_record.assign(parameter[0], self.evaluate(node.parameters[index]))
+                        variable_defined.append(parameter[0])
+                if parameter[0] not in variable_defined:
+                    if parameter[1] == None:
+                        raise Exception('parameter "{parameter_name}" was not assigned in the function call'.format(parameter_name=parameter_name))
+
+                    function_record.assign(parameter[0], parameter[1])
+                    variable_defined.append(parameter[0])
             return function_record
         # ------------------------------------------------------------------------------------------
         def to_evaluate_function(push_to_current=False):
+            """
+            This is a function used to evaluate the function, when the function is in a recursion, in order to tail call
+            optimize the function call we send this function so we can evaluate it after. The idea is simple, if push_to_current
+            is False we push the record to a new stack, otherwise we push the new record to the current record position.
+
+            Args:
+                push_to_current (bool, optional): If set to False, we will create a new record in the memory, otherwise we push the record to the current
+                                                  record that is running. Defaults to False.
+
+            Returns:
+                reflow_server.formula.utils.builtins.objects.*: Returns the actual value, result of the function.
+            """
             record = create_function_record()
             if push_to_current:
                 self.global_memory.stack.push_to_current(record)
@@ -262,6 +431,18 @@ class Interpreter:
             return result
 
         # If this condition is set this means we are inside a recursion (we are in a function named fibonacci, and calling it again)
+        # we NEED TO DO THIS TO ACCEPT TAIL CALL OPTIMIZATION
+        # this is because if we didn't do this we would reach the maximum recursion depth of python. Since we don't want this, we send a function to evaluate the function
+        # later. 
+        # This is heavily inspired in a technique called trampoline: https://blog.logrocket.com/using-trampolines-to-manage-large-recursive-loops-in-javascript-d8c9db095ae3/
+        # or in python: http://vdelia.github.io/functional/trampoline/2015/06/26/trampoline.html
+
+        # When we call the function “.handle_function_call()” we will evaluate the function body. 
+        # Pay attention that we call the “.evaluate()“ function again while evaluating this function result. 
+        # This means that before returning the result of this call, we will call “.handle_function_call()” again. 
+        # And again, and again, for every recursion call. This will reach the maximum recursion depth of the language, in this case, Python.
+        # So what we do to solve this? We do not evaluate directly in the function call, we return early the result of ‘.handle_function_call()’, 
+        # which will be a function, so with that “.handle_function_call()“ will leave the python call stack and we are free to evaluate the result later
         is_in_recursion = function_name == record.name
         
         if is_in_recursion:
@@ -271,20 +452,108 @@ class Interpreter:
             self.global_memory.stack.push(record)
 
             result = self.evaluate(function_object.ast_function.block)
+            # If the result is a function we evaluate the function in a loop.
             while isinstance(result, types.FunctionType):
                 result = result(True)
         
             self.global_memory.stack.pop()
             return result
     # ------------------------------------------------------------------------------------------
+    def handle_struct(self, node):
+        """
+        This work similar to functions, we can set the variable positionaly, so by each position like:
+        >>> module StructExample(a, b, c)
+        >>> StructExample{1, 2, 3}
+        
+
+        we can set the variable by the variable name like:
+        >>> StructExample{a=1, b=2, c=3}
+
+        or if the struct has some default values we can set them like:
+        >>> module StructExample(a, b=1, c=5)
+        >>> StructExample{1} 
+
+        The example above will set 1 to 'a'.
+
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.Struct): The struct node for handling structs
+
+        Raises:
+            Exception: The argument defined when creating the struct was not defined in the struct
+            Exception: An argument was not added in the struct
+
+        Returns:
+            reflow_server.formula.utils.builtins.objects.Struct: Returns a struct object, a stuct is an object that is used for
+                                                                 holding data. This is used in languages like Go, Elixir, Rust,
+                                                                 or C. In languages like Python, Java or others we usually have
+                                                                 classes for holding data and methods
+        """
+        module_object = self.evaluate(node.name, True)
+
+        if module_object.struct_parameters == None:
+            raise Exception("Can't create a struct with '{module_name}'. Define it as 'module {module_name}() do ... end' ('...' will be the code inside of your module)".format(module_name=module_object.module_name))
+
+        arguments_and_values = []
+        
+        # This is similar to a function call, the idea is that the order doesn't matter on named or positional arguments.
+        # on python you MUST have first positional arguments and second you can have named arguments. On Flow the idea is different
+        # it doesn't matter the order of named or positional arguments.
+        variable_defined = []
+        for index, parameter in enumerate(module_object.struct_parameters):
+            
+            if index < len(node.arguments):
+                if node.arguments[index].node_type == NodeType.ASSIGN:
+                    parameter_name = node.arguments[index].left.value.value
+
+                    if parameter_name not in module_object.stuct_parameters_variables:
+                        raise Exception('Argument of struct "{parameter_name}" was not defined in struct'.format(parameter_name=parameter_name))
+
+                    parameter_value = self.evaluate(node.arguments[index].right, True)
+                    arguments_and_values.append([parameter_name, parameter_value])
+                    variable_defined.append(parameter_name)
+                else:
+                    arguments_and_values.append([parameter[0], self.evaluate(node.arguments[index], True)])
+                    variable_defined.append(parameter[0])
+            if parameter[0] not in variable_defined:
+                if parameter[1] == None:
+                    raise Exception('Argument "{parameter_name}" was not assigned in the struct'.format(parameter_name=parameter_name))
+
+                arguments_and_values.append([parameter[0], self.evaluate(parameter[1], True)])
+                variable_defined.append(parameter[0])
+
+        struct = builtins.objects.Struct(self.settings)
+        return struct._initialize_(arguments_and_values)
+    # ------------------------------------------------------------------------------------------
     def handle_if_statement(self, node):
         expression_value = self.evaluate(node.expression, True)
         if expression_value._boolean_()._representation_():
-            return self.evaluate(node.block)
+            return self.evaluate(node.block, True)
         elif node.else_statement:
-            return self.evaluate(node.else_statement)
+            return self.evaluate(node.else_statement, True)
     # ------------------------------------------------------------------------------------------
     def handle_assign(self, node):
+        """
+        We can assign a value to a variable by 3 types, by variable, by slice and by attribute.
+
+        The first one is when we do:
+        >>> variable = "Assign By Variable"
+
+        The second one is when we do something like:
+        >>> dict = {
+            "key": [
+                1, 2, 3
+            ]
+        }
+
+        >>> dict["key"][0] = "Assign by slice"
+
+        The third one is when we do:
+        >>> module Struct(a, b)
+
+        >>> struct = Struct{a=1, b=2}
+
+        >>> struct.a = "Assign By Attribute"
+        """
         variable_value = self.evaluate(node.right, True)
 
         # if we assign to a normal variable
@@ -328,6 +597,25 @@ class Interpreter:
         
             list_to_change._setitem_(index_or_key, variable_value)
             return root_list
+        elif node.left.node_type == NodeType.ATTRIBUTE:
+            struct_object = self.evaluate(node.left.left)
+            attribute_right = node.left.right_value
+            atribute_left = node.left.operation
+
+            while atribute_left.node_type == NodeType.ATTRIBUTE:
+                key_string = builtins.objects.String(self.settings)
+                key_string._initialize_(attribute_right.value)
+                struct_object = struct_object._getattribute_(key_string)
+
+                attribute_right = atribute_left.right_value
+                atribute_left = atribute_left.left
+            
+            key_string = builtins.objects.String(self.settings)
+            key_string._initialize_(attribute_right.value)
+
+            struct_object._setattribute_(key_string, node.right)
+
+            return struct_object._getattribute_(key_string)
     # ------------------------------------------------------------------------------------------
     def handle_variable(self, node):
         variable_name = node.value.value
@@ -337,6 +625,7 @@ class Interpreter:
     def handle_binary_operation(self, node):
         value_left = self.evaluate(node.left, True)
         value_right = self.evaluate(node.right, True)
+
         if node.operation.token_type == TokenType.MULTIPLICATION:
             return value_left._multiply_(value_right)
         elif node.operation.token_type == TokenType.DIVISION:
@@ -405,6 +694,34 @@ class Interpreter:
             return value._unaryplus_()
         elif node.operation.token_type == TokenType.SUBTRACTION:
             return value._unaryminus_()
+    # ------------------------------------------------------------------------------------------
+    def handle_attribute(self, node):
+        module = self.evaluate(node.left, True)
+        module_name = module.module_name if hasattr(module, 'module_name') else '<module>'
+
+        previous_record = self.global_memory.stack.peek()
+        module_record = Record(module_name, 'MODULE')
+        self.global_memory.stack.push(module_record)
+
+        # Define the scope of the module
+        for key, value in previous_record.members.items():
+            module_record.assign(key, value)
+
+        for index in range(0, len(module.attributes.keys)):
+            key = module.attributes.keys[index]
+            key_string = builtins.objects.String(self.settings)
+            key_string._initialize_(key)
+            attribute = module._getattribute_(key_string)
+            # with this we can handle structs and modules, if it is a struct, we will return the AST to evaluate later,
+            # otherwise we will not evaluate it's value
+            if hasattr(attribute, 'node_type'):
+                attribute = self.evaluate(attribute, True)
+            module_record.assign(key, attribute)
+
+        result = self.evaluate(node.operation, True)
+        self.global_memory.stack.pop()
+        
+        return result
     # ------------------------------------------------------------------------------------------
     def handle_null(self, node):
         null = builtins.objects.Null(self.settings)

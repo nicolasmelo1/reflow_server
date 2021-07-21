@@ -10,6 +10,9 @@ class Function(Object):
         self.scope = scope
         self.ast_function = ast_function
         self.parameters = parameters
+        self.parameters_variables = []
+        for parameter_variable, __ in self.parameters:
+            self.parameters_variables.append(parameter_variable)
         return super()._initialize_()
     # ------------------------------------------------------------------------------------------
     def _representation_(self):

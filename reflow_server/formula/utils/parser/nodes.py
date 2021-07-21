@@ -21,6 +21,29 @@ class IfStatement:
         self.block = block
         self.else_statement = else_statement
 ############################################################################################
+class ModuleDefinition:
+    node_type = NodeType.MODULE_DEFINIITION
+
+    def __init__(self, variable, parameters, module_literals=[]):
+        self.variable = variable
+        self.parameters = parameters
+        self.module_literals = module_literals
+############################################################################################
+class ModuleLiteral:
+    node_type = NodeType.MODULE_LITERAL
+
+    def __init__(self, variable, block):
+        self.variable = variable
+        self.block = block
+############################################################################################
+class Attribute:
+    node_type = NodeType.ATTRIBUTE
+
+    def __init__(self, left, right_value, operation):
+        self.left = left
+        self.right_value = right_value 
+        self.operation = operation
+############################################################################################
 class FunctionDefinition:
     node_type = NodeType.FUNCTION_DEFINITION
 
@@ -28,6 +51,13 @@ class FunctionDefinition:
         self.variable = variable
         self.parameters = parameters
         self.block = block
+############################################################################################
+class Struct:
+    node_type = NodeType.STRUCT
+
+    def __init__(self, name, arguments):
+        self.arguments = arguments
+        self.name = name
 ############################################################################################
 class FunctionCall:
     node_type = NodeType.FUNCTION_CALL

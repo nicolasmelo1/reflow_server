@@ -15,7 +15,7 @@ from reflow_server.formulary.models import Field, Form
 
 from datetime import datetime
 
-
+############################################################################################
 class DashboardDataView(APIView):
     """
     This view is responsible for effectively serving the data of a particular dashboard_id.
@@ -29,6 +29,7 @@ class DashboardDataView(APIView):
         GET: Returns the aggregated data with `labels` being a list and `values` being a list 
                   also, both lists needs to have the same size.
     """
+    # ------------------------------------------------------------------------------------------
     def get(self, request, company_id, form, dashboard_configuration_id):
         form_id = Form.objects.filter(form_name=form, company_id=company_id).values_list('id', flat=True).first()
         instance = DashboardChartConfiguration.objects.filter(id=dashboard_configuration_id, company_id=company_id).first()
@@ -49,8 +50,8 @@ class DashboardDataView(APIView):
                 'status': 'ok',
                 'data': serializer.data
         }, status=status.HTTP_200_OK)
-
-
+    # ------------------------------------------------------------------------------------------
+############################################################################################
 class DashboardChartsView(APIView):
     """
     View responsible for retrieving all of the dashboards to load when not updating
@@ -60,6 +61,7 @@ class DashboardChartsView(APIView):
         GET: retrive the charts to load for the specific user and the specific form 
                   for the specific company
     """
+    # ------------------------------------------------------------------------------------------
     def get(self, request, company_id, form):
         instances = DashboardChartConfiguration.objects.filter(
             Q(user_id=request.user.id, form__form_name=form, company_id=company_id) | 
@@ -71,8 +73,8 @@ class DashboardChartsView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
-
-
+    # ------------------------------------------------------------------------------------------
+############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class DashboardChartConfigurationView(APIView):
     """
@@ -84,7 +86,7 @@ class DashboardChartConfigurationView(APIView):
         POST: creates a new chart for the user
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
-
+    # ------------------------------------------------------------------------------------------
     def get(self, request, company_id, form):
         instances = DashboardChartConfiguration.objects.filter(
             user_id=request.user.id, 
@@ -96,7 +98,7 @@ class DashboardChartConfigurationView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
-
+    # ------------------------------------------------------------------------------------------
     def post(self, request, company_id, form):
         form = Form.objects.filter(form_name=form, group__company_id=company_id).first()
         serializer = DashboardChartConfigurationSerializer(data=request.data)
@@ -112,8 +114,8 @@ class DashboardChartConfigurationView(APIView):
                 'status': 'ok',
                 'error': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
-
-
+    # ------------------------------------------------------------------------------------------
+############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class DashboardChartConfigurationEditView(APIView):
     """
@@ -125,7 +127,7 @@ class DashboardChartConfigurationEditView(APIView):
         DELETE: Deletes an chart instance
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
-
+    # ------------------------------------------------------------------------------------------
     def put(self, request, company_id, form, dashboard_configuration_id):
         form = Form.objects.filter(form_name=form, group__company_id=company_id).first()
         instance = DashboardChartConfiguration.objects.filter(user_id=request.user.id, form__form_name=form.form_name, company_id=company_id, id=dashboard_configuration_id).first()
@@ -142,7 +144,7 @@ class DashboardChartConfigurationEditView(APIView):
                 'status': 'ok',
                 'error': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
-
+    # ------------------------------------------------------------------------------------------
     def delete(self, request, company_id, form, dashboard_configuration_id):
         instance = DashboardChartConfiguration.objects.filter(user_id=request.user.id, form__form_name=form, company_id=company_id, id=dashboard_configuration_id)
         if instance:
@@ -150,8 +152,8 @@ class DashboardChartConfigurationEditView(APIView):
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
-
-
+    # ------------------------------------------------------------------------------------------
+############################################################################################
 class DashboardFieldsView(APIView):
     """
     When the user edits a chart he needs to define the label_field and also
@@ -164,6 +166,7 @@ class DashboardFieldsView(APIView):
     Methods:
         GET: Returns an array of fields
     """
+    # ------------------------------------------------------------------------------------------
     def get(self, request, company_id, form):
         instances = Field.objects.filter(
             form__depends_on__form_name=form, 
@@ -177,3 +180,4 @@ class DashboardFieldsView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+    # ------------------------------------------------------------------------------------------

@@ -50,7 +50,10 @@ class TestFormulaView(APIView):
                 }, status=status.HTTP_502_BAD_GATEWAY)
             else:
                 return Response({
-                    'status': 'ok'
+                    'status': 'ok',
+                    'data': {
+                        'result': str(value.value._representation_()) if hasattr(value.value, '_representation_') else ''
+                    }
                 }, status=status.HTTP_200_OK)
         else:
             return Response({
