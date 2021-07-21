@@ -18,5 +18,7 @@ class Struct(Object):
         return super()._initialize_()
 
     def _getattribute_(self, variable):
-        return self.attributes.search(variable._hash_(), variable._representation_())
+        return self.attributes.search(variable._hash_(), variable._representation_()).value
      
+    def _setattribute_(self, variable, element):
+        return self.attributes.append(variable._hash_(), variable._representation_(), element)

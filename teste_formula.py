@@ -83,16 +83,15 @@ Modulo1.metodo1().teste()
 """
 
 structs = r"""
-module Struct(a, b=3, c=5) do 
-    function soma(a, b) do
-        a + b
-    end
-end
+module Struct(a, b=3, c=5) 
+module Teste(a, b)
 
 
-struct = Struct{a=2, b=5, 10}
+struct = Struct{a=2, b=5, c=Teste{1, 2}}
 
-Struct.soma(struct.a, struct.c)
+struct.c = "Ola"
+
+struct.c
 """
 
 functions_to_test = [
@@ -103,7 +102,7 @@ functions_to_test = [
     #lists,
     #anonymous_function_call,
     #dicts,
-    #modules,
+    modules,
     structs
 ]
 

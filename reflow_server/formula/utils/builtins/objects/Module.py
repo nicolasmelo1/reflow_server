@@ -11,17 +11,20 @@ class Module(Object):
         self.module_name = module_name
         self.scope = scope
         self.struct_parameters = struct_parameters
-        self.stuct_parameters_variables = []
-        for parameter_variable, __ in self.struct_parameters:
-            self.stuct_parameters_variables.append(parameter_variable)
         self.attributes = HashTable()
+
+        self.stuct_parameters_variables = []
+        if isinstance(struct_parameters, list):
+            for parameter_variable, __ in self.struct_parameters:
+                self.stuct_parameters_variables.append(parameter_variable)
+                
         return super()._initialize_()
 
     def _setattribute_(self, variable, element):
         self.attributes.append(variable._hash_(), variable._representation_(), element)
 
     def _getattribute_(self, variable):
-        return self.attributes.search(variable._hash_(), variable._representation_())
+        return self.attributes.search(variable._hash_(), variable._representation_()).value
     
     def _representation_(self):
         return self

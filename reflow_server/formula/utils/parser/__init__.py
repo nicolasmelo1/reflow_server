@@ -193,7 +193,7 @@ class Parser:
     # ------------------------------------------------------------------------------------------
     def assignment(self):
         """
-        assignment: expression ASSIGN (expression | FUNCTION function_statement)
+        assignment: (variable | slice | attribute) ASSIGN (expression | FUNCTION function_statement)
                   | expression
         """
         node = self.expression()
@@ -206,8 +206,8 @@ class Parser:
                 right = self.function_statement()
             else:
                 right = self.expression()
-            if (left.node_type not in [NodeType.VARIABLE, NodeType.SLICE]):
-                raise Exception("Cannot assign, needs to assign value to a variable")
+            if (left.node_type not in [NodeType.VARIABLE, NodeType.SLICE, NodeType.ATTRIBUTE]):
+                raise Exception("Cannot assign, can only assign value to a variable, slice or attribute")
             elif (right == None):
                 raise Exception("You forgot to assign a value to a variable")
             return nodes.Assign(left, right, operation)
@@ -281,8 +281,9 @@ class Parser:
             else:
                 module_variable = None
 
-            parameters = list()
+            parameters = None
             if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
+                parameters = list()
                 self.get_next_token(TokenType.LEFT_PARENTHESIS)
 
                 if TokenType.IDENTITY == self.current_token.token_type:
