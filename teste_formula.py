@@ -102,8 +102,8 @@ functions_to_test = [
     #lists,
     #anonymous_function_call,
     #dicts,
-    modules,
-    structs
+    #modules,
+    #structs
 ]
 
 for function in functions_to_test:
