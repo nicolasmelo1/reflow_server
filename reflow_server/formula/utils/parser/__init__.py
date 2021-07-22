@@ -625,7 +625,7 @@ class Parser:
             self.get_next_token(TokenType.INTEGER)
             return node
         elif TokenType.NULL == self.current_token.token_type:
-            node = nodes.Null(token)
+            node = nodes.Null()
             self.get_next_token(TokenType.NULL)
             return node
         elif TokenType.STRING == self.current_token.token_type:
