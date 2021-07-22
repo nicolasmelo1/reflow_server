@@ -28,6 +28,16 @@ class String(Object):
         return self.as_array[int(index)]
     # ------------------------------------------------------------------------------------------
     def _in_(self, obj):
+        """
+        Verifies if a substring is present in the string. For that we use the python own 'in' operator
+        that fixes that for us.
+
+        Args:
+            obj (reflow_server.formula.utils.builtins.objects.*): This object can be of any type
+
+         Returns:
+            reflow_server.formula.utils.builtins.objects.Boolean.Boolean: Returns a new boolean object which can be either True or False
+        """
         return self.new_boolean(obj._representation_() in self._representation_())
     # ------------------------------------------------------------------------------------------
     def _add_(self, obj):
