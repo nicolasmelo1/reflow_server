@@ -20,4 +20,4 @@ class Function(Object):
         return super()._initialize_()
     # ------------------------------------------------------------------------------------------
     def _representation_(self):
-        return None
+        return self

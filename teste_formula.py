@@ -78,7 +78,6 @@ module Modulo1 do
     end
 end
 
-
 Modulo1.metodo1().teste()
 """
 
@@ -89,9 +88,9 @@ module Teste(a, b)
 
 struct = Struct{a=2, b=5, c=Teste{1, 2}}
 
-struct.c = "Ola"
+struct.c.a = "Ola"
 
-struct.c
+struct.c.a
 """
 
 functions_to_test = [
@@ -102,9 +101,11 @@ functions_to_test = [
     #lists,
     #anonymous_function_call,
     #dicts,
-    #modules,
-    #structs
+    modules,
+    structs
 ]
+
+import json
 
 for function in functions_to_test:
     lexer = Lexer(function, settings)

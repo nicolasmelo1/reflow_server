@@ -522,9 +522,21 @@ class Interpreter:
                 variable_defined.append(parameter[0])
 
         struct = builtins.objects.Struct(self.settings)
-        return struct._initialize_(arguments_and_values)
+        return struct._initialize_(node.name.value.value, arguments_and_values)
     # ------------------------------------------------------------------------------------------
     def handle_if_statement(self, node):
+        """
+        The if statement is just simple as it is, it evaluate the exprassion getting it is boolean for Truthy or Falsy values
+        And then getting either True or False.
+        The else part is optional, we just evaluate it if it exists.
+
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.IfStatement): The if statement node to be evaluated with the block, the condition
+                                                                         and the else block if exists
+
+        Returns:
+            reflow_server.formula.utils.builtins.objects.*: returns the object of the result of the block evaluation
+        """
         expression_value = self.evaluate(node.expression, True)
         if expression_value._boolean_()._representation_():
             return self.evaluate(node.block, True)
@@ -553,6 +565,28 @@ class Interpreter:
         >>> struct = Struct{a=1, b=2}
 
         >>> struct.a = "Assign By Attribute"
+
+        You can also add new functions to modules by:
+        >>> module Module do
+                function defined_on_module() do
+                    "This was defined on the module"
+                end
+            end
+
+        >>> Module.defined_outside_the_module = function() do 
+                "This was defined outside of the module"
+            end
+
+        >>> Module.defined_outside_the_module() 
+
+        It's important to understand that this WILL NOT OVERRIDE THE FUNCTIONS ALREADY DEFINED. YOU CAN ONLY DEFINE ONCE
+        in the MODULE.
+        
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.Assign): The assign node for handling assignments
+
+        Returns:
+            reflow_server.formula.utils.builtins.objects.*: returns the object you are assigning to the variable
         """
         variable_value = self.evaluate(node.right, True)
 
@@ -562,7 +596,7 @@ class Interpreter:
         
             record = self.global_memory.stack.peek()
             record.assign(variable_name, variable_value)
-            return variable_value
+
         # if we assign to a item in an array
         elif node.left.node_type == NodeType.SLICE:
             # variavel[1] -> left_of_slice is the value relative to 'variavel'
@@ -596,12 +630,14 @@ class Interpreter:
                 next_list = list_to_change._getitem_(index_or_key)
         
             list_to_change._setitem_(index_or_key, variable_value)
-            return root_list
         elif node.left.node_type == NodeType.ATTRIBUTE:
             struct_object = self.evaluate(node.left.left)
             attribute_right = node.left.right_value
             atribute_left = node.left.operation
 
+            # if attribute is for example struct.c.a = "ola"
+            # what we need to do is get the struct of struct.c, and after that get
+            # the struct of "a" to assign. It is similar to slice assignment
             while atribute_left.node_type == NodeType.ATTRIBUTE:
                 key_string = builtins.objects.String(self.settings)
                 key_string._initialize_(attribute_right.value)
@@ -613,11 +649,24 @@ class Interpreter:
             key_string = builtins.objects.String(self.settings)
             key_string._initialize_(attribute_right.value)
 
-            struct_object._setattribute_(key_string, node.right)
+            struct_object._setattribute_(key_string, variable_value)
 
-            return struct_object._getattribute_(key_string)
+        return variable_value
     # ------------------------------------------------------------------------------------------
     def handle_variable(self, node):
+        """
+        This handles when it encounters a variable, it's important to understand just ONE THING here, that's why
+        in assign and other places we DO NOT EVALUATE the variable.
+
+        This gets the actual value of the variable from the stack.
+
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.Variable): You probably have understood by now that each of this handle
+                                                                      functions have their own node. 
+
+        Returns:
+            reflow_server.formula.utils.builtins.objects.*: Returns the value of the variable
+        """
         variable_name = node.value.value
         record = self.global_memory.stack.peek()
         return record.get(variable_name)
@@ -679,6 +728,21 @@ class Interpreter:
                 return value_right._in_(value_left)
     # ------------------------------------------------------------------------------------------
     def handle_slice(self, node):
+        """
+        Slice works everytime you make variable[1] or variable["teste"] or whatever. It is not really
+        the same slice of python it just accepts simple values like integers, strings, bool and others.
+
+        For lists it also support negative integers like variable[-1] to get the last value.
+
+        The name slice is just for simplicity.
+        
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.Slice): The slice object is simple, it holds the value inside of the
+                                                                   slice and the value of the left of the slice to be evaluated
+                       
+        Returns:
+            reflow_server.formula.utils.builtins.objects.*: Returns whatever value that was in the following item of the dict or array
+        """
         slice_value = self.evaluate(node.slice)
         value_left = self.evaluate(node.left)
         return value_left._getitem_(slice_value)
@@ -696,6 +760,21 @@ class Interpreter:
             return value._unaryminus_()
     # ------------------------------------------------------------------------------------------
     def handle_attribute(self, node):
+        """
+        This is kinda tricky but it makes a lot of sense once you understand.
+        When you are getting the attribute of a struct you need to evaluate it's value otherwise, if it's a module we DO NOT evaluate it's value
+
+        Okay, besides that how it works? similar to functions actually.
+
+        When you call a module or a struct we append all of it's attributes to the call stack so this way it becomes callable. In other words
+        a struct and a module to get attributes from is similar to how we get variables inside the scope of a function.
+
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.Attribute): The attribute node to be evaluated
+
+        Returns:
+            reflow_server.formula.utils.builtins.objects.*: Returns the evaluated value
+        """
         module = self.evaluate(node.left, True)
         module_name = module.module_name if hasattr(module, 'module_name') else '<module>'
 

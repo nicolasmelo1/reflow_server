@@ -5,7 +5,12 @@ from reflow_server.formula.utils.parser import Parser
 from reflow_server.formula.utils.interpreter import Interpreter
 from reflow_server.formula.utils.context import Context
 
-
+################
+# HOW TO DEBUG #
+################
+# at least, how i was able to create this. A Token, a parser node in the AST and last but not least
+# a object are all classes inside of the formulas, this makes it hard for debugging. so how you should debug? 
+# simple, just add "print(node.__dict__)" this way the object is displayed as a dict, at it becomes a LOT EASIER to debug
 def evaluate(expression, context=None):
     """
     Yeah, you guessed it right, we've built our own programming language and you might ask yourself how.
