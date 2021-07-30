@@ -217,6 +217,43 @@ REST_FRAMEWORK = {
 
 # Reflow configurations, configurations specific for Reflow project
 
+# CUSTOM EVENTS CONFIGURATION
+# check reflow_server.core.events file
+EVENTS = {
+    'formulary_data_created': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataEvents']
+    },
+    'formulary_data_updated': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataEvents']
+    },
+    'formulary_created': {
+        'data_parameters': ['user_id', 'company_id', 'form_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyEvents']
+    },
+    'formulary_updated': {
+        'data_parameters': ['user_id', 'company_id', 'form_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyEvents']
+    },
+    'field_created': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'section_id', 'field_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyEvents']
+    },
+    'field_updated': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'section_id', 'field_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyEvents']
+    },
+    'new_paying_company': {
+        'data_parameters': ['user_id', 'company_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.billing.events.BillingEvents']
+    },
+    'updated_billing_information': {
+        'data_parameters': ['user_id', 'company_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.billing.events.BillingEvents']
+    }
+}
+
 # CUSTOM DJANGO CHANNELS CONFIGURATION 
 # check reflow_server.core.consumers file
 CONSUMERS = {

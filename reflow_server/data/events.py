@@ -3,14 +3,14 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
 from reflow_server.authentication.models import UserExtended
+from reflow_server.formulary.models import Form
 
 
 class DataEvents:
     """
     This class is used for sending real time events for the client about this service
-    """
-    @staticmethod 
-    def send_updated_formulary(company_id, dynamic_form_id, form_name, form_id, updated_user_id):
+    """ 
+    def send_updated_formulary(self, company_id, dynamic_form_id, form_id, updated_user_id):
         """
         This event sends to all of the clients of a company that a formulary data have been updated or inserted
 
@@ -22,6 +22,8 @@ class DataEvents:
         """
         channel_layer = get_channel_layer()
 
+        form_name = Form.data_.form_name_by_form_id_and_company_id(form_id, company_id)
+        print(form_name)
         for user in UserExtended.data_.users_active_by_company_id(company_id):
             group_name = 'user_{}'.format(user.id)
             async_to_sync(channel_layer.group_send)(
@@ -37,3 +39,9 @@ class DataEvents:
                     }
                 }
             )
+
+    def formulary_data_updated(self, user_id, company_id, form_id, form_data_id):
+        self.send_updated_formulary(company_id, form_data_id, form_id, user_id)
+
+    def formulary_data_created(self, user_id, company_id, form_id, form_data_id):
+        self.send_updated_formulary(company_id, form_data_id, form_id, user_id)

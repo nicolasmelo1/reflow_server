@@ -17,16 +17,11 @@ class NotificationEvents:
         Arguments:
             user_id {int} -- for what user you want to send this event
         """
-        user = UserExtended.notification_.user_by_user_id(user_id)
-        #permission = PermissionHandler(company=company_id, user=user)
-
         channel_layer = get_channel_layer()
-        data = {}
         group_name = 'user_{}'.format(user_id)
         async_to_sync(channel_layer.group_send)(
             '{}'.format(group_name),
             {
-                'type': 'send_notification',
-                #'data': permission.has_new_notifications()
+                'type': 'send_notification'
             }
         )

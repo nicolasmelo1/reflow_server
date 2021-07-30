@@ -1,6 +1,7 @@
 from reflow_server.formulary.managers import default_field_value
 from django.db import transaction
 
+from reflow_server.core.events import Event
 from reflow_server.authentication.models import UserExtended
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.formulary.models import DefaultFieldValue, Form, Field, PublicAccessField
@@ -68,10 +69,22 @@ class FormularyDataService(PreSave, PostSave):
         Args:
             formulary_instance_id (id): The id of the updated or created DynamicForm instance
         """
-        # sends events to all of the users of the company that this formulary was updated (or created)
-        from reflow_server.data.events import DataEvents
-        DataEvents.send_updated_formulary(self.company_id, formulary_instance_id, self.form.form_name, self.form.id, self.user_id)
-
+        # register the event that the formulary was updated or created
+        formulary_data_was_created = self.formulary_data.form_data_id == None
+        if formulary_data_was_created:
+            Event.register_event('formulary_data_created', {
+                'user_id': self.user_id,
+                'company_id': self.company_id,
+                'form_id': self.form.id,
+                'form_data_id': formulary_instance_id
+            })
+        else:
+            Event.register_event('formulary_data_updated', {
+                'user_id': self.user_id,
+                'company_id': self.company_id,
+                'form_id': self.form.id,
+                'form_data_id': formulary_instance_id
+            })
         # updates the pre_notifications
         PreNotificationService.update(self.company_id)
     # ------------------------------------------------------------------------------------------

@@ -3,23 +3,24 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
 from reflow_server.authentication.models import UserExtended
+from reflow_server.formulary.models import Form
 
 
 class FormularyEvents:
     """
     This class is used for sending real time events about Formularies
     """
-    @staticmethod 
-    def send_updated_formulary(company_id, form_id, form_name):
+    def send_updated_formulary(self, company_id, form_id):
         """
         This event sends to all of the clients of a company that a formulary have been updated
 
-        Arguments:
-            company_id {int} -- What company updated the formulary
-            form_id {int} -- the id of the formulary/page updated
-            form_name {str} --  The name of the updated formulary
+        Args:
+            company_id (int): What company updated the formulary
+            form_id (int): the id of the formulary/page updated
         """
         channel_layer = get_channel_layer()
+
+        form_name = Form.formulary_.form_name_by_form_id_and_company_id(form_id, company_id)
 
         for user in UserExtended.data_.users_active_by_company_id(company_id):
             group_name = 'user_{}'.format(user.id)
@@ -34,3 +35,15 @@ class FormularyEvents:
                     }
                 }
             )
+
+    def formulary_created(self, user_id, company_id, form_id):
+        self.send_updated_formulary(company_id, form_id)
+
+    def formulary_updated(self, user_id, company_id, form_id):
+        self.send_updated_formulary(company_id, form_id)
+
+    def field_created(self, user_id, company_id, form_id, section_id, field_id):
+        self.send_updated_formulary(company_id, form_id)
+    
+    def field_updated(self, user_id, company_id, form_id, section_id, field_id):
+        self.send_updated_formulary(company_id, form_id)

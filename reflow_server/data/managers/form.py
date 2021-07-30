@@ -12,3 +12,15 @@ class FormDataManager(models.Manager):
             enabled=True
         )
     # ------------------------------------------------------------------------------------------
+    def form_name_by_form_id_and_company_id(self, form_id, company_id):
+        """
+        Returns a the form_name of a MAIN FORM (Not a section) by it's form_id and the company_id.
+
+        Args:
+            form_id (int): The id of a Form instance.
+            company_id (int): The id of a Company instance.
+
+        Returns:
+            (None, str): Returns the name of the formulary (Remember that the name is similar to the ID of the formulary, it's NOT the label_name)
+        """
+        return self.get_queryset().filter(id=form_id, group__company_id=company_id).values_list('form_name', flat=True).first()

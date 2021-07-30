@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from reflow_server.core.events import Event
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.data.services.representation import RepresentationService
 from reflow_server.data.models import FormValue
@@ -227,8 +228,18 @@ class FieldService(Settings):
         if is_new_field and instance.type.type == 'user':
             self.__create_user_accessed_by_when_field_is_created(instance.id)
 
-        from reflow_server.formulary.events import FormularyEvents        
-        FormularyEvents.send_updated_formulary(self.company_id, self.form.id, self.form.form_name)
+        events_data = {
+            'user_id': self.user_id,
+            'company_id': self.company_id,
+            'form_id': self.form.id,
+            'section_id': instance.form_id,
+            'field_id': instance.id
+        }
+
+        if is_new_field:
+            Event.register_event('field_created', events_data)
+        else:
+            Event.register_event('field_updated', events_data)
 
         return instance
     # ------------------------------------------------------------------------------------------

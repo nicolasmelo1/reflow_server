@@ -167,8 +167,7 @@ class JWT:
             'exp': int(dt.strftime('%s')),
             'type': 'access'
         }, settings.SECRET_KEY, algorithm=settings.JWT_ENCODING)
-
-        return token.decode('utf-8')
+        return token
 
 
     @staticmethod
@@ -187,6 +186,4 @@ class JWT:
             'exp':int(dt.strftime('%s')),
             'type': 'refresh'
         }, settings.SECRET_KEY, algorithm=settings.JWT_ENCODING)
-        return refresh_token.decode('utf-8')
-
-    
+        return refresh_token

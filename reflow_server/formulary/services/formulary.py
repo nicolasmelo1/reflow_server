@@ -1,5 +1,6 @@
 from reflow_server.formulary.models import FormAccessedBy, Form, SectionType
 from reflow_server.formulary.services.utils import Settings
+from reflow_server.core.events import Event
 
 import uuid
 
@@ -66,11 +67,15 @@ class FormularyService(Settings):
         instance.form_name = self.format_name('form', instance.id, instance.form_name, label_name)
         instance.save()
 
+        events_data = {
+            'user_id': self.user_id,
+            'company_id': self.company_id,
+            'form_id': instance.id
+        }
         if is_new:
             FormAccessedBy.objects.create(form=instance, user_id=self.user_id)
-
-        from reflow_server.formulary.events import FormularyEvents
-
-        FormularyEvents.send_updated_formulary(self.company_id, instance.id, instance.form_name)
+            Event.register_event('formulary_created', events_data)
+        else:
+            Event.register_event('formulary_updated', events_data)
         return instance
     
