@@ -134,3 +134,8 @@ class Object:
     def _hash_(self):
         raise Exception("'{}' is not hashable".format(self.type))
     # ------------------------------------------------------------------------------------------    
+    def _length_(self):
+        raise Exception("'{}' has no length".format(self.type))
+    # ------------------------------------------------------------------------------------------    
+    def _call_(self, parameters={}):
+        raise Exception("'{}' cannot be called".format(self.type))

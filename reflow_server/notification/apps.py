@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class NotificationConfig(AppConfig):
-    name = 'notification'
+    name = 'reflow_server.notification'

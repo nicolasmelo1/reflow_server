@@ -27,6 +27,8 @@ class DevelopmentConfig(Config):
     VINDI_PAYMENT_METHODS = config_file['vindi']['payment_methods']
     VINDI_WEBHOOK_SECRET_KEY = config_file['vindi']['webhook_secret_key']
 
+    MIXPANEL_TOKEN = config_file['mixpanel']['token']
+
     EMAIL_ADD_NEW_USER = config_file['email']['emails']['add_new_user']['email']
 
     DATABASES = {
@@ -108,6 +110,8 @@ class ServerConfig(Config):
     VINDI_PAYMENT_METHODS = dict()
     VINDI_WEBHOOK_SECRET_KEY = os.environ.get('VINDI_WEBHOOK_SECRET_KEY', '')
 
+    MIXPANEL_TOKEN = os.environ.get('MIXPANEL_TOKEN', '')
+    
     EMAIL_ADD_NEW_USER = os.environ.get('EMAIL_ADD_NEW_USER', None)
 
     DATABASES = {

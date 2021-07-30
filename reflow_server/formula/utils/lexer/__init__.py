@@ -1,8 +1,6 @@
 from reflow_server.formula.utils.lexer.tokens import Token
 from reflow_server.formula.utils.settings import TokenType
 
-import copy
-
 
 class Lexer:
     def __init__(self, expression, settings):

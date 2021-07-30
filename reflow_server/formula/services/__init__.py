@@ -143,6 +143,8 @@ class FormulaService:
             str: Returns the formatted and cleaned formula.
         """
         variables = re.findall(r'{{\w*?}}', formula, re.IGNORECASE)
+        print('BREAKPOINT')
+        print(variables)
         for index, formula_variable in enumerate(formula_variables.variables):
             values = FormValue.formula_.values_and_field_type_by_main_formulary_data_id_and_field_id(
                 dynamic_form_id,

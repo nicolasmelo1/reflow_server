@@ -27,7 +27,7 @@ function fibonacci(n, a=0, b=1) do
     end
 end
 
-fibonacci(5)
+fibonacci(10)
 """
 
 anonymous_formulas = r"""
@@ -93,6 +93,10 @@ struct.c.a = "Ola"
 struct.c.a
 """
 
+
+library = r"""
+HTTP.teste()
+"""
 functions_to_test = [
     #simple_arithimetic, 
     #function,
@@ -101,8 +105,9 @@ functions_to_test = [
     #lists,
     #anonymous_function_call,
     #dicts,
-    modules,
-    structs
+    #modules,
+    #structs,
+    #library
 ]
 
 import json

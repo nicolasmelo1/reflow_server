@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class FormulaConfig(AppConfig):
-    name = 'formula'
+    name = 'reflow_server.formula'

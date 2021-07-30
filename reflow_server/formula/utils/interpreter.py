@@ -198,6 +198,7 @@ class Interpreter:
     # ------------------------------------------------------------------------------------------  
     def handle_program(self, node):
         record = Record('<main>', 'PROGRAM')
+        record.assign('HTTP', builtins.library.HTTP(self.settings)._initialize_(record))
         self.global_memory.stack.push(record)
         return self.evaluate(node.block)
     # ------------------------------------------------------------------------------------------
@@ -251,10 +252,9 @@ class Interpreter:
             else:
                 parameters.append([parameter.value.value, None])
 
-        function = function._initialize_(node, record, parameters)
+        function = function._initialize_(record, parameters, node.block, self)
         if is_anonymous_function:
             function_name = '<lambda>'
-            function.ast_function.value = '<lambda>'
         else:
             function_name = node.variable.value.value
         record.assign(function_name, function)
@@ -363,13 +363,7 @@ class Interpreter:
         record = self.global_memory.stack.peek()
         function_object = self.evaluate(node.name)
         # ------------------------------------------------------------------------------------------
-        def create_function_record():
-            function_record = Record(function_name,'FUNCTION')
-
-            # Define the scope of the function in the new function call stack
-            for key, value in function_object.scope.members.items():
-                function_record.assign(key, value)
-
+        def retrieve_function_parameters():
             # Gets the positional parameters and also the values parameters
             # okay so since we can have positional and value parameters the order of the parameters SHOULD NOT MATTER.
             # this might be confusing for some but the idea is simple:
@@ -381,9 +375,9 @@ class Interpreter:
 
             # on the first pass we defined both 1 to 'b' and 2 to 'a', on the second pass when we pass through 'a' 
             # we DO NOT assign None to 'a' because we will aready have assigned 'a'.
+            parameters = {}
             variable_defined = []
             for index, parameter in enumerate(function_object.parameters):
-                
                 if index < len(node.parameters):
                     if node.parameters[index].node_type == NodeType.ASSIGN:
                         parameter_name = node.parameters[index].left.value.value
@@ -392,17 +386,35 @@ class Interpreter:
                             raise Exception('parameter of function "{parameter_name}" is not defined in function'.format(parameter_name=parameter_name))
 
                         parameter_value = self.evaluate(node.parameters[index].right)
-                        function_record.assign(parameter_name, parameter_value)
+                        parameters[parameter_name] = parameter_value
                         variable_defined.append(parameter_name)
                     else:
-                        function_record.assign(parameter[0], self.evaluate(node.parameters[index]))
+                        parameters[parameter[0]] = self.evaluate(node.parameters[index])
                         variable_defined.append(parameter[0])
                 if parameter[0] not in variable_defined:
                     if parameter[1] == None:
                         raise Exception('parameter "{parameter_name}" was not assigned in the function call'.format(parameter_name=parameter_name))
 
-                    function_record.assign(parameter[0], parameter[1])
+                    parameters[parameter[0]] = parameter[1]
                     variable_defined.append(parameter[0])
+            return parameters
+        # ------------------------------------------------------------------------------------------
+        def create_function_record(parameters):
+            function_record = Record(function_name,'FUNCTION')
+
+            # Define the scope of the function in the new function call stack, this means that
+            #
+            # variable = 1
+            # function test() do  
+            #   variable
+            # end
+
+            # 'variable' will be available inside of the function even though it was defined outside of the function.
+            for key, value in function_object.scope.members.items():
+                function_record.assign(key, value)
+
+            for parameter_name, parameter_value in parameters.items():
+                function_record.assign(parameter_name, parameter_value)
             return function_record
         # ------------------------------------------------------------------------------------------
         def to_evaluate_function(push_to_current=False):
@@ -418,14 +430,15 @@ class Interpreter:
             Returns:
                 reflow_server.formula.utils.builtins.objects.*: Returns the actual value, result of the function.
             """
-            record = create_function_record()
+            parameters = retrieve_function_parameters()
+            record = create_function_record(parameters)
             if push_to_current:
                 self.global_memory.stack.push_to_current(record)
             else:
                 self.global_memory.stack.push(record)
 
-            result = self.evaluate(function_object.ast_function.block)
-            
+            result = function_object._call_(parameters) 
+                        
             if push_to_current == False:
                 self.global_memory.stack.pop()  
             return result
@@ -448,10 +461,11 @@ class Interpreter:
         if is_in_recursion:
             return to_evaluate_function
         else:
-            record = create_function_record()
+            parameters = retrieve_function_parameters()
+            record = create_function_record(parameters)
             self.global_memory.stack.push(record)
 
-            result = self.evaluate(function_object.ast_function.block)
+            result = function_object._call_(parameters)
             # If the result is a function we evaluate the function in a loop.
             while isinstance(result, types.FunctionType):
                 result = result(True)
@@ -781,7 +795,6 @@ class Interpreter:
         previous_record = self.global_memory.stack.peek()
         module_record = Record(module_name, 'MODULE')
         self.global_memory.stack.push(module_record)
-
         # Define the scope of the module
         for key, value in previous_record.members.items():
             module_record.assign(key, value)

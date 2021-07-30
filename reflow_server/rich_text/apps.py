@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class RichTextConfig(AppConfig):
-    name = 'rich_text'
+    name = 'reflow_server.rich_text'

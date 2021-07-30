@@ -21,6 +21,10 @@
     "username": "",
     "password": ""
   },
+  "mixpanel": {
+    "token": "c128d8d78f06b4b00882a83b4f3d8021",
+    "secret": "136f8c0c24218c5519ccfed0d9dd24d6"
+  },
   "vindi": {
     "host": "https://sandbox-app.vindi.com.br/api/v1",
     "public_api_key": "uNZqO8kJbVRIRSiBEsbyWRGtpTGLd432AxXHYltw_Ow",

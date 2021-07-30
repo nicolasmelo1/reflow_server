@@ -7,7 +7,7 @@ from reflow_server.authentication.models import UserExtended
 
 class FormularyEvents:
     """
-    This class is used for sending real time events for the client about Formularies
+    This class is used for sending real time events about Formularies
     """
     @staticmethod 
     def send_updated_formulary(company_id, form_id, form_name):

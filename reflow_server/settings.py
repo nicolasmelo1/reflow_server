@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
+from mixpanel import Mixpanel
 
 import os
 import config
@@ -51,6 +52,7 @@ ALLOWED_HOSTS = configuration.ALLOWED_HOSTS
 INSTALLED_APPS = [
     'channels',
     'rest_framework',
+    'reflow_server.analytics',
     'reflow_server.authentication',
     'reflow_server.billing',
     'reflow_server.core',
@@ -119,7 +121,7 @@ ASGI_APPLICATION = 'reflow_server.asgi.application'
 #    }
 #}
 DATABASES = configuration.DATABASES
-
+DEFAULT_AUTO_FIELD='django.db.models.AutoField' 
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -338,7 +340,10 @@ VINDI_ACCEPTED_WEBHOOK_EVENTS = {
 
 FROM_EMAIL = configuration.EMAIL_ADD_NEW_USER
 
+MIXPANEL = Mixpanel(configuration.MIXPANEL_TOKEN)
+
 if ENV == 'server':
+    # SENTRY CONFIGURATION
     sentry_logging = LoggingIntegration(
         level=logging.INFO,        # Capture info and above as breadcrumbs
         event_level=logging.ERROR  # Send errors as events

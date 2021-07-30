@@ -1,3 +1,4 @@
+from reflow_server.formula.utils import interpreter
 from reflow_server.formula.utils.builtins.objects.Object import Object
 from reflow_server.formula.utils.builtins.types import FUNCTION_TYPE
 
@@ -10,9 +11,11 @@ class Function(Object):
         """
         super().__init__(FUNCTION_TYPE, settings)
     # ------------------------------------------------------------------------------------------
-    def _initialize_(self, ast_function, scope, parameters):
+    def _initialize_(self, scope, parameters=[], function_body_block=None, intepreter=None):
+        print(parameters)
+        self.interpreter = intepreter
         self.scope = scope
-        self.ast_function = ast_function
+        self.function_body = function_body_block
         self.parameters = parameters
         self.parameters_variables = []
         for parameter_variable, __ in self.parameters:
@@ -21,3 +24,9 @@ class Function(Object):
     # ------------------------------------------------------------------------------------------
     def _representation_(self):
         return self
+    # ------------------------------------------------------------------------------------------
+    def _call_(self, parameters):
+        if self.interpreter != None and self.function_body != None:
+            return self.interpreter.evaluate(self.function_body)
+        else:
+            return super()._call_(parameters)

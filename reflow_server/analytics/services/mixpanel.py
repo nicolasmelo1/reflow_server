@@ -1,0 +1,2 @@
+class MixpanelService:
+    pass

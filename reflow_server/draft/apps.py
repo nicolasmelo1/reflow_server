@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class DraftConfig(AppConfig):
-    name = 'draft'
+    name = 'reflow_server.draft'
