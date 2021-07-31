@@ -6,7 +6,6 @@ from reflow_server.core.permissions import validate_permissions_from_request, Pe
 from reflow_server.authentication.decorators import permission_required
 
 from functools import wraps
-import json
 
 
 def validate_billing(function):

@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from reflow_server.core.events import Event
 from reflow_server.billing.models import DiscountByIndividualNameForCompany, CurrentCompanyCharge, CompanyBilling, \
     PartnerDefaultAndDiscounts, DiscountCoupon, CompanyCoupons
 from reflow_server.billing.services.data import CompanyChargeData
@@ -9,7 +10,7 @@ from reflow_server.billing.services.vindi import VindiService
 
     
 class BillingService:
-    def __init__(self, company_id):
+    def __init__(self, company_id, user_id):
         """
         Service for change company charges without much difficulty inside the code. This is also responsible
         for creating a simple interface with billing without the need to import other billing services like 'ChargeService' or 'PaymentService' 
@@ -17,7 +18,9 @@ class BillingService:
 
         Args:
             company_id (int): Gets the company info from the database so we can make changes to it
+            user_id (int): The id of the user that was created.
         """
+        self.user_id = user_id
         self.company_id = company_id
         self.company_billing = CompanyBilling.objects.filter(company_id=company_id).first()
         self.charge_service = ChargeService(company_id, self.company_billing)
@@ -97,14 +100,21 @@ class BillingService:
             if discount_coupon_id:
                 CompanyCoupons.billing_.create(self.company_id, discount_coupon_id)
             
-    def __send_update_billing_events(self):
+    def __send_update_billing_events(self, is_new_paying_company=False):
         """
         Sends the events to the users after the billing was updated. 
         So they can update their data.
         """
-        from reflow_server.billing.events import BillingEvents
 
-        BillingEvents().send_updated_billing(self.company_id)
+        if is_new_paying_company:
+            Event.register_event('new_paying_company', {
+                'user_id': self.user_id,
+                'company_id': self.company_id
+            })
+
+        #from reflow_server.billing.events import BillingEvents
+
+        #BillingEvents().send_updated_billing(self.company_id)
 
     @transaction.atomic
     def update_billing_information(self, payment_method_type_id, invoice_date_type_id, emails, 
@@ -164,12 +174,12 @@ class BillingService:
 
         Args:
             company_id (int): The id of the company you just created
-            user_id (id): The id of the 
+            user_id (id): The id of the created user
 
         Returns:
             bool: returns True to show everything went alright
         """
-        billing_service = cls(company_id)
+        billing_service = cls(company_id, user_id)
         billing_service.company_billing = CompanyBilling.objects.create(company_id=company_id)
         billing_service.charge_service = ChargeService(company_id, billing_service.company_billing)
         billing_service.create_discount_by_individual_name_for_company_by_partner_name(partner_name)

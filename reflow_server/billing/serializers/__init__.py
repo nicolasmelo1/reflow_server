@@ -88,6 +88,14 @@ class CompanySerializer(serializers.ModelSerializer):
         
         
 class PaymentSerializer(serializers.ModelSerializer):
+    """
+    This is the serializer for processing payments, whenever the user updates the payment information this serializer is used.
+
+    Context:
+        company_id (int): The Company instance id.
+        user_id (int): The UserExtended instance id, this is the id of the user that is creating or updating the payment 
+                       information of the company.
+    """
     gateway_token = serializers.CharField(allow_null=True)
     company = CompanySerializer()
     payment_method_type_id = serializers.IntegerField(error_messages = { 'null': 'blank', 'blank': 'blank' })
@@ -112,7 +120,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         return vindi_service.get_credit_card_info()
 
     def validate(self, data):
-        self.billing_service = BillingService(self.instance.company_id)
+        self.billing_service = BillingService(self.context['company_id'], self.context['user_id'])
         if not (validate_cnpj(data['cnpj']) or validate_cpf(data['cnpj'])):
             raise serializers.ValidationError(detail={'detail': 'cnpj', 'reason': 'invalid_registry_code'})
         if not self.billing_service.is_valid_company_invoice_emails(len(data['company']['company_invoice_emails'])):

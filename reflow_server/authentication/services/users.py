@@ -27,7 +27,7 @@ class UsersService:
         """
         When we remove a user we just need to update the billing information
         """
-        BillingService(self.company.id).update_charge()
+        BillingService(self.company.id, self.user_id).update_charge()
 
     @transaction.atomic
     def create(self, email, first_name, last_name, profile, field_option_ids_accessed_by, form_ids_accessed_by, users_accessed_by, change_password_url):
@@ -130,7 +130,7 @@ class UsersService:
         """
         password = instance.make_temporary_password()
 
-        BillingService(self.company.id).update_charge()
+        BillingService(self.company.id, self.user_id).update_charge()
         NotifyService.send_welcome_mail(instance.email, password, self.company.name, change_password_url.replace(r'{}', password))
         KanbanService.copy_defaults_to_company_user(self.company.id, self.user_id, instance.id)
         return True

@@ -68,7 +68,10 @@ class BillingSettingsView(APIView):
 
     def get(self, request, company_id):
         instance = CompanyBilling.objects.filter(company_id=company_id).first()
-        serializer = PaymentSerializer(instance=instance)
+        serializer = PaymentSerializer(instance=instance, context={
+            'user_id': request.user.id,
+            'company_id': company_id
+        })
         return Response({
             'status': 'ok',
             'data': serializer.data
@@ -76,7 +79,10 @@ class BillingSettingsView(APIView):
     
     def put(self, request, company_id):
         instance = CompanyBilling.objects.filter(company_id=company_id).first()
-        serializer = PaymentSerializer(instance=instance, data=request.data)
+        serializer = PaymentSerializer(instance=instance, data=request.data, context={
+            'user_id': request.user.id,
+            'company_id': company_id
+        })
         if serializer.is_valid():
             try:
                 serializer.save()
