@@ -2,14 +2,13 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
+from reflow_server.core.events import Event
 from reflow_server.core.utils.storage import Bucket
 from reflow_server.draft.models import Draft, DraftType
 
 from datetime import timedelta
 import base64
 import urllib
-
-draft_id_template = 'draft-{}'
 
 
 class DraftService:
@@ -86,7 +85,7 @@ class DraftService:
 
             Draft.draft_.update_file_url_by_draft_id(instance.id, url)
 
-        draft_string_id = base64.b64encode(draft_id_template.format(instance.id).encode('utf-8')).decode('utf-8')
+        draft_string_id = DraftService.draft_id_to_draft_string_id(instance.id)
         return draft_string_id
     
     @transaction.atomic
@@ -124,7 +123,7 @@ class DraftService:
             from_key=bucket_key_to_copy,
             to_key=draft_key
         )
-        draft_string_id = base64.b64encode(draft_id_template.format(draft_instance.id).encode('utf-8')).decode('utf-8')
+        draft_string_id = DraftService.draft_id_to_draft_string_id(draft_instance.id)
         return draft_string_id
 
     @transaction.atomic
@@ -248,6 +247,24 @@ class DraftService:
             draft_instance_to_remove.delete()
         return True
             
+    @staticmethod
+    def draft_id_to_draft_string_id(draft_id):
+        """
+        Converts a draft instance id to a draft_string_id. The draft string id is just the
+        draft_id url encoded in a string like 'draft-{draft_id}' where {draft_id} is a number
+        so for example if draft_id is 1 the draft_string_id would be 'draft-1'
+
+        Then, this string is base64 encoded so the end user don't know what it means.
+
+        Args:
+            draft_id (str): A Draft instance id to convert to a draft_string_id
+
+        Returns:
+            str: Returns a base64 enconded string.
+        """
+        draft_id_template = 'draft-{}'
+
+        return base64.b64encode(draft_id_template.format(draft_id).encode('utf-8')).decode('utf-8')
 
     @staticmethod
     def draft_id_from_draft_string_id(draft_string_id):
@@ -282,16 +299,15 @@ class DraftService:
         Returns:
             bool: returns True to indicate everything went fine.
         """
-        from reflow_server.draft.events import DraftEvents
-        
-        draft_events = DraftEvents()
-
         due_date_for_old_drafts = timezone.now() - timedelta(days=60)
         drafts_to_remove = Draft.draft_.drafts_past_due_date(due_date_for_old_drafts)
         for draft in drafts_to_remove:
-            draft_string_id = base64.b64encode(draft_id_template.format(draft.id).encode('utf-8')).decode('utf-8')
-            draft_is_public = draft.is_public
-            draft_events.send_removed_draft(draft.company_id, draft_string_id, draft_is_public)
+            Event.register_event('removed_old_draft', {
+                'user_id': draft.user_id,
+                'company_id': draft.company_id,
+                'draft_id': draft.id,
+                'draft_is_public': draft.is_public
+            })
 
         drafts_to_remove.delete()
 

@@ -143,8 +143,11 @@ class PreNotificationService:
             for  when, form_id in form_values:
                 # force to just exist ONE pre_notification for this condition
                 PreNotification.objects.filter(has_sent=False, user_id=user_id, dynamic_form_id=form_id, notification_configuration=notification_configuration).delete()
-                PreNotification.objects.update_or_create(has_sent=False, user_id=user_id, dynamic_form_id=form_id, notification_configuration=notification_configuration, defaults={
-                    'when':when
-                })
+                try:
+                    PreNotification.objects.update_or_create(has_sent=False, user_id=user_id, dynamic_form_id=form_id, notification_configuration=notification_configuration, defaults={
+                        'when':when
+                    })
+                except PreNotification.MultipleObjectsReturned as mor:
+                    pass
             PreNotification.objects.filter(has_sent=False, user_id=user_id, notification_configuration=notification_configuration).exclude(dynamic_form_id__in=[form_id for _, form_id in form_values]).delete()
     

@@ -51,8 +51,8 @@ class BillingService:
                         current_company_charge.quantity
                     )
                 )
-        current_company_charges_from_request = self.charge_service.validate_current_company_charges_and_create_new(current_company_charge_data)
-        for current_company_charge in current_company_charges_from_request:
+        current_company_charges_validated = self.charge_service.validate_current_company_charges_and_create_new(current_company_charge_data)
+        for current_company_charge in current_company_charges_validated:
             self.charge_service.update_or_create(
                 current_company_charge.individual_value_charge_name, 
                 current_company_charge.quantity, 
@@ -105,16 +105,20 @@ class BillingService:
         Sends the events to the users after the billing was updated. 
         So they can update their data.
         """
+        total = self.charge_service.get_total_data_from_custom_charge_quantity([]).total
 
         if is_new_paying_company:
             Event.register_event('new_paying_company', {
                 'user_id': self.user_id,
-                'company_id': self.company_id
+                'company_id': self.company_id,
+                'total_paying_value': total
             })
-
-        #from reflow_server.billing.events import BillingEvents
-
-        #BillingEvents().send_updated_billing(self.company_id)
+        else:
+            Event.register_event('updated_billing_information', {
+                'user_id': self.user_id,
+                'company_id': self.company_id,
+                'total_paying_value': total
+            })
 
     @transaction.atomic
     def update_billing_information(self, payment_method_type_id, invoice_date_type_id, emails, 
@@ -156,14 +160,17 @@ class BillingService:
         # automatically sets the country to 'BR' if the country is None, we use this now but might change
         # when internationalizing the platform
         country = country if country else 'BR'
-
+        is_paying_company_before_updating = self.company_billing.is_paying_company
         self.update_charge(current_company_charges)
         self.payment_service.update_address_and_company_info(
             cnpj, zip_code, street, state, number, neighborhood, country, 
             city, additional_details, push_updates=False
         )
         self.payment_service.update_payment(payment_method_type_id, invoice_date_type_id, emails, gateway_token=gateway_token, push_updates=True)
-        self.__send_update_billing_events()
+        is_paying_company_after_updating = self.company_billing.is_paying_company
+        
+        is_new_paying_company = is_paying_company_before_updating == False and is_paying_company_after_updating == True
+        self.__send_update_billing_events(is_new_paying_company)
         return True
         
     @classmethod

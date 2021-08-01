@@ -1,50 +1,35 @@
-from channels.layers import get_channel_layer
-
-from asgiref.sync import async_to_sync
-
 from reflow_server.authentication.models import UserExtended
+from reflow_server.draft.services import DraftService
+from reflow_server.core.utils.channel_layers import ChannelLayer
 
 
-class DraftEvents:
+class DraftBroadcastEvent:
     """
     This class is used for sending real time events for the client about this domain
     """
-    def send_removed_draft(self, company_id, draft_string_id, draft_is_public):
+    def remove_old_draft(self, user_id, company_id, draft_id, draft_is_public):
         """
         This event sends to all of the clients of the company that
         a draft has been removed from the backend.
 
-        Arguments:
+        Args:
+            user_id (int): The UserExtended instance id.
             company_id (int): What company was the formulary
-            draft_string_id (str): The draft string id
+            draft_id (int): The draft id used to be transformed into a draft_string_id
             draft_is_public (bool): If the draft is public then send to the public consumer,
                                     otherwise sends to the user consumers.
         """
-        channel_layer = get_channel_layer()
+        draft_string_id = DraftService.draft_id_to_draft_string_id(draft_id)
         if draft_is_public:
-            async_to_sync(channel_layer.group_send)(
-                    'public',
-                    {
-                        'type': 'send_public_removed_draft',
-                        'data': {
-                            'draft_string_id': draft_string_id
-                        }
-                    }
-                )
+            ChannelLayer.broadcast_to_group('public', 'send_public_removed_draft', {
+                'draft_string_id': draft_string_id
+            })
         else:
-            self.cached_users = getattr(self, 'cached_users', {})
-            if company_id not in self.cached_users:
-                self.cached_users[company_id] = UserExtended.draft_.users_active_by_company_id(company_id)
+            user_ids = UserExtended.draft_.user_ids_active_by_company_id(company_id)
 
-            for user in self.cached_users[company_id]:
-                group_name = 'user_{}'.format(user.id)
-                async_to_sync(channel_layer.group_send)(
-                    '{}'.format(group_name),
-                    {
-                        'type': 'send_removed_draft',
-                        'data': {
-                            'company_id': company_id,
-                            'draft_string_id': draft_string_id
-                        }
-                    }
-                )
+            for user_id in user_ids:
+                group_name = 'user_{}'.format(user_id)
+                ChannelLayer.broadcast_to_group(group_name, 'send_removed_draft', {
+                    'company_id': company_id,
+                    'draft_string_id': draft_string_id
+                })

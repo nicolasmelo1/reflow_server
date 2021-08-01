@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#pypy3 manage.py collectstatic
+python manage.py collectstatic
 python manage.py migrate
 python manage.py loaddata fixtures/required_data.json
 python manage.py loaddata fixtures/address_data.json

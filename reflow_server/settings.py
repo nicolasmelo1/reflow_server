@@ -218,7 +218,7 @@ REST_FRAMEWORK = {
 # Reflow configurations, configurations specific for Reflow project
 
 # CUSTOM EVENTS CONFIGURATION
-# check reflow_server.core.events file
+# check reflow_server.core.events file for reference
 EVENTS = {
     'formulary_data_created': {
         'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id'],
@@ -245,12 +245,16 @@ EVENTS = {
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyEvents']
     },
     'new_paying_company': {
-        'data_parameters': ['user_id', 'company_id'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.billing.events.BillingEvents']
+        'data_parameters': ['user_id', 'company_id', 'total_paying_value'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.billing.events.BillingBroadcastEvent']
     },
     'updated_billing_information': {
-        'data_parameters': ['user_id', 'company_id'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.billing.events.BillingEvents']
+        'data_parameters': ['user_id', 'company_id', 'total_paying_value'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.billing.events.BillingBroadcastEvent']
+    },
+    'removed_old_draft': {
+        'data_parameters': ['user_id', 'company_id', 'draft_id', 'draft_is_public'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.draft.events.DraftBroadcastEvent']
     }
 }
 
@@ -258,7 +262,6 @@ EVENTS = {
 # check reflow_server.core.consumers file
 CONSUMERS = {
     'LOGIN_REQUIRED': [
-        'reflow_server.notification.consumers.NotificationReadConsumer',
         'reflow_server.data.consumers.DataConsumer',
         'reflow_server.billing.consumers.BillingConsumer',
         'reflow_server.authentication.consumers.AuthenticationConsumer',

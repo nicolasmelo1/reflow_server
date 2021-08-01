@@ -130,7 +130,7 @@ USER = postgres
 ```
 
 ## Estilo do código
-Nossa aplicação está toda dentro da pasta `reflow_server`, dentro dessa pasta você irá encontrar novas pastas, cada uma dessas pastas é uma [aplicação Django](https://docs.djangoproject.com/en/3.0/intro/tutorial01/#creating-the-polls-app). A ideia do nosso código é utilizarmos a metodologia de microsserviços e tentar aplicá-la, da melhor maneira possivel, ao Django. Ou seja, cada aplicação deve ser na medida do possivel independente uma da outra (com excessão da aplicação `core`, falaremos dela mais pra frente) compartilhando pouco ou, preferencialmente, nenhum código entre elas (com excessão dos `services` e `models` APENAS). Um problema que isso pode acarretar é gerar código muito parecido um com o outro, uma vez que não se compartilha código entre os apps. Isso pode ser resolvido importando algum código de algum app no app `core`, que tem como finalidade compartilhar funcionalidades especificas entre os apps. Sempre que você tiver um código em um app e desejar usar ele em outros apps, você deve importar essa classe ou função em algum dos arquivos no aplicativo `core` e deve importá-la dentro de seus apps, diretamente do `core`. 
+Nossa aplicação está toda dentro da pasta `reflow_server`, dentro dessa pasta você irá encontrar novas pastas, cada uma dessas pastas é uma [aplicação Django](https://docs.djangoproject.com/en/3.0/intro/tutorial01/#creating-the-polls-app). A ideia do nosso código é utilizarmos a metodologia de Domain Driven Design e tentar aplicá-la, da melhor maneira possivel, ao Django. Ou seja, cada aplicação deve ser na medida do possivel independente uma da outra (com excessão da aplicação `core`, falaremos dela mais pra frente) compartilhando pouco ou, preferencialmente, nenhum código entre elas (com excessão dos `services` e `models` APENAS). Um problema que isso pode acarretar é gerar código muito parecido um com o outro, uma vez que não se compartilha código entre os apps. Isso pode ser resolvido importando algum código de algum app no app `core`, que tem como finalidade compartilhar funcionalidades especificas entre os apps. Sempre que você tiver um código em um app e desejar usar ele em outros apps, você deve importar essa classe ou função em algum dos arquivos no aplicativo `core` e deve importá-la dentro de seus apps, diretamente do `core`. 
 
 Obs.: `services` e `models` podem ser importados diretamente de cada app Django.
 
@@ -144,6 +144,39 @@ Obs.: `services` e `models` podem ser importados diretamente de cada app Django.
 + __utils__ - Pode causar confusão com `services`, então vou começar explicando porque existe `utils` e `services` e qual a diferença entre ambos. Um `utils` é uma função ou classe que faz qualquer ação que pode ser feita em um app FORA da reflow. Ou seja, não é algo que precisa ser utilizado ESPECIFICAMENTE dentro da reflow, pode ser portado para outras aplicações. Se você criar um novo projeto django, muito provavelmente você poderá pegar um arquivo ou função da pasta `utils` e utilizar no seu projeto pessoal. Por exemplo o `RunAsyncFunction` do caminho `reflow_server.core.utils.asynchronous`.
 + __services__ - TODA A REGRA DE NEGOCIO DA NOSSA APLICAÇÃO, isso é muito importante que você entenda, toda a regra de negócio é escrita dentro dos services. Se você chama 1 service não relacionado a sua view ou serializer, muito provavelmente seu código deve ser separado em um service. (esse exemplo é muito claro ao salvar as notification_configurations que devemos chamar o pre_notification_service, ambos não são relacionados, portanto separamos o código dentro do service de notification_configurations). Com services conseguimos garantir a testabilidade do código, a legibilidade e a facilidade de se separar "só código", de códigos que efetivamente fazem algo na aplicação. A maioria do seu desenvolvimento acontecerá dentro de services. Você NÃO deve relacionar o código do seu service de NENHUMA maneira a `serializers` uma vez que ainda que os serializers mudem, isso não irá afetar o código do seu service.
 + __consumers__ - Por padrão os `consumers` são algo do [Django Channels](https://channels.readthedocs.io/en/latest/) porém na nossa aplicação realizamos uma pequena mudança em como os consumers funcionam, uma vez que no client, podemos ter apenas UM e apenas UM webservice conectado por vez. Com isso criamos um consumer Base no arquivo `consumers.py` no qual seus consumers devem por padrão importar dele. Isso acarreta uma pequena e simples diferença em nosso app onde os consumers viram classes simples que apenas importam de um Consumer pai. Os consumers, caso você não tenha entendido ainda funcionam para se comunicar em tempo real com nossos clientes e outras aplicações, sem a necessidade de apis. Conseguimos comunicar entre as aplicações através de eventos em tempo real. Leia mais sobre em `core/consumers.py`
+
+##### Importante
+__Vi que vocês criaram os arquivos `permissions` os arquivos `externals` e os arquivos `events`. Isso não me parece algo padrão do Django__
+
+Realmente, os 3 tipos de arquivos citados foram criados por nós da Reflow e qual é o racional por trás desses arquivos? porque eles não estão na pasta 'utils'?
+1 - A definição deles acontece no app `core`. Ou seja, se você criar um tipo de arquivo que será utilizado em um app, então ele deve ser criado na pasta `core`. 
+2 - Esses arquivos contém funcionalidades criadas que podem ser extendidas e utilizados em cada app django individualmente e de maneira descentralizada. O `permissions` permite que cada app defina suas próprias regras de permissionamento, o `externals` permite que cada app defina e organize suas chamadas de apis externas, o `events` permite que cada app defina quais eventos se deseja "ouvir" de maneira explicita.
+
+__"COMO ASSIM?"__ 
+Imagina que eu quero criar uma nova funcionalidade, essa funcionalidade é despachar os eventos para os consumers através do ChannelLayer do django channels. Para isso pensei em criar um novo tipo de arquivo chamado 'dispatchers.py' que será meu despachador de eventos.
+
+Primeira pergunta a se fazer: Isso é realmente algo que cada app precisa implementar só seu? É REALMENTE uma funcionalidade tão comum assim? Ou isso é mais uma função comum?
+Se a resposta for não, provavelmente sua classe deva ser definida na pasta utils. Se será utilizado por todos os apps do server, deve ser criado na pasta `utils` do app `core`.
+Caso a resposta for sim, você deve pensar em como deverá ser definido e utilizado essa nova funcionalidade dentro de cada app.
+Lembre-se, cada app DEVE SER DESCENTRALIZADO.
+Por exemplo, no caso dos serializers, quando você faz `from rest_framework import serializers` ao acessar a variavel `serializers` você terá acesso as classes Serializer, CharField, BooleanField, entre outros, para que você seja capaz de montar seu próprio serializer.
+No caso dos `permissions` eu devo criar minhas classes de permissionamento dentro de cada app e defini-las no arquivo `settings.py`. Você percebe que dentro do arquivo `permissions.py` existe uma documentação concisa de como criar permissões dentro dos seus apps. O mesmo pode-se dizer para `events.py` na pasta `core`
+
+Recomendo pensar em soluções onde o desenvolvedor não deva usar a classe diretamente, mas pelo contrário, possa usar uma string, assim como é por exemplo ao definir ForeignKeys nos models:
+```python
+# Aqui estou usando a classe `Field` diretamente, ao usar a classe diretamente posso ter problemas de
+# importação circular, a ordem que os models são criados também pode causar problemas, para isso preferimos usar string.
+field = models.ForeignKey(Field, on_delete=models.CASCADE, null=True)
+
+# se eu definir a classe Field antes ou depois de definir essa relação, simplesmente não tem problema. Ao mesmo tempo, problemas
+# importação circular não existem uma vez que eu simplesmente não preciso importar nada
+field = models.ForeignKey('formulary.Field', on_delete=models.CASCADE, null=True)
+
+```
+
+Enquanto externals são classes que eu chamo diretamente dentro do código, `permissions` e `events` devem ser definidas no arquivo settings.py. É importante pensar em uma maneira lógica e clara para se utilizar as apis.
+
+TL.DR.: Só crie tipos de arquivos novos se eles realmente trouxerem alguma funcionalidade onde cada app deve definir o seu, assim como `views`, `urls`, `serializers` e outros. As views de um app são as views usadas especificamente pelo app, serializers são os serializers usados especificamente por um app, e assim por diante. Caso não seja o caso, ou ele é um service, ou ele é deve estar na pasta `utils`
 
 ### Como saber se eu devo criar um novo app ou não?
 Um microsserviço, diferente de como muitas pessoas pensam, não devem resolver uma coisa SUPER especifica do seu código, obviamente um microsserviço pode crescer e não ficar mais tão pequeno. O grande problema, que causa muita confusão, não é o que é "micro" e sim o que é "serviço". Nesse ponto acreditamos que um "serviço" não faz necessariamente uma coisa muito pequena, temos apps/serviços relativamente grandes e complexos, como o __formulary__ por exemplo. E isso volta na nossa pergunta, como saber se o que estou criando é um novo app/serviço ou não?
@@ -192,8 +225,8 @@ _IMPORTANTE: O load PRECISA NECESSARIAMENTE ser em ordem_
 Para carregar os dados em seu ambiente de desenvolvimento:
 + __docker__
 ```
-$ docker-compose run reflow-web pypy3 manage.py loaddata fixtures/required_data.json
-$ docker-compose run reflow-web pypy3 manage.py loaddata fixtures/theme_data.json
+$ docker-compose run reflow_server pypy3 manage.py loaddata fixtures/required_data.json
+$ docker-compose run reflow_server pypy3 manage.py loaddata fixtures/theme_data.json
 ```
 + __terminal__
 ```
