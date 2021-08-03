@@ -1,7 +1,7 @@
 from django.conf import settings
 
 from reflow_server.authentication.models import Company
-from reflow_server.authentication.events import AuthenticationEvents
+from reflow_server.core.events import Event
 from reflow_server.core.utils import replace_dumb_characters_from_str
 from reflow_server.core.utils.storage import Bucket
 
@@ -67,11 +67,12 @@ class CompanyService:
             company = Company.authentication_.company_by_endpoint(endpoint)
         return endpoint
     
-    def update_company(self, company_id, name, company_logo=None):
+    def update_company(self, user_id, company_id, name, company_logo=None):
         """
         Updates the company based on a company_id. This just updates the name of the company and sets a image file for the logo.
 
         Args:
+            user_id (int): The id of the user that edited the company data.
             company_id (int): The company id to edit and update
             name (str): The new name of the company
             company_logo (list(django.core.files.uploadedFile.InMemoryUploadedFile), optional): The file data of the image uploaded. Defaults to None.
@@ -102,5 +103,8 @@ class CompanyService:
         instance.save()
         
         # sends the events to the clients
-        AuthenticationEvents.send_updated_company(instance.id)
+        Event.register_event('company_information_updated', {
+            'company_id': instance.id,
+            'user_id': user_id
+        })
         return instance

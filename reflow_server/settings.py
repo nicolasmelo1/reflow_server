@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
-from mixpanel import Mixpanel
 
 import os
 import config
@@ -220,29 +219,41 @@ REST_FRAMEWORK = {
 # CUSTOM EVENTS CONFIGURATION
 # check reflow_server.core.events file for reference
 EVENTS = {
+    'user_onboarding': {
+        'data_parameters': ['user_id', 'company_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'user_login': {
+        'data_parameters': ['user_id', 'company_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'user_refresh_token': {
+        'data_parameters': ['user_id', 'company_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
     'formulary_data_created': {
-        'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataEvents']
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id', 'is_public'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataBroadcastEvent']
     },
     'formulary_data_updated': {
-        'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataEvents']
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id', 'is_public'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataBroadcastEvent']
     },
     'formulary_created': {
         'data_parameters': ['user_id', 'company_id', 'form_id'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyEvents']
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyBroadcastEvent']
     },
     'formulary_updated': {
         'data_parameters': ['user_id', 'company_id', 'form_id'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyEvents']
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyBroadcastEvent']
     },
     'field_created': {
         'data_parameters': ['user_id', 'company_id', 'form_id', 'section_id', 'field_id'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyEvents']
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyBroadcastEvent']
     },
     'field_updated': {
         'data_parameters': ['user_id', 'company_id', 'form_id', 'section_id', 'field_id'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyEvents']
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.formulary.events.FormularyBroadcastEvent']
     },
     'new_paying_company': {
         'data_parameters': ['user_id', 'company_id', 'total_paying_value'],
@@ -252,9 +263,49 @@ EVENTS = {
         'data_parameters': ['user_id', 'company_id', 'total_paying_value'],
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.billing.events.BillingBroadcastEvent']
     },
+    'company_information_updated': {
+        'data_parameters': ['user_id', 'company_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.authentication.events.AuthenticationBroadcastEvent']
+    },
     'removed_old_draft': {
         'data_parameters': ['user_id', 'company_id', 'draft_id', 'draft_is_public'],
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.draft.events.DraftBroadcastEvent']
+    },
+    'theme_select': {
+        'data_parameters': ['user_id', 'company_id', 'theme_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'theme_eyeballing': {
+        'data_parameters': ['theme_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'pdf_template_downloaded': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'pdf_template_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'pdf_template_created': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'pdf_template_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'pdf_template_updated': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'pdf_template_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'kanban_default_settings_created': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'kanban_card_id', 'kanban_dimension_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'kanban_default_settings_updated': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'kanban_card_id', 'kanban_dimension_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'kanban_loaded': {
+        'data_parameters': ['user_id', 'company_id', 'form_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'listing_loaded': {
+        'data_parameters': ['user_id', 'company_id', 'form_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
     }
 }
 
@@ -380,7 +431,7 @@ VINDI_ACCEPTED_WEBHOOK_EVENTS = {
 
 FROM_EMAIL = configuration.EMAIL_ADD_NEW_USER
 
-MIXPANEL = Mixpanel(configuration.MIXPANEL_TOKEN)
+MIXPANEL_TOKEN = configuration.MIXPANEL_TOKEN
 
 if ENV == 'server':
     # SENTRY CONFIGURATION

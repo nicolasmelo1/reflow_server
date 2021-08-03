@@ -1,0 +1,2 @@
+from .type_of_event import TypeOfEventAnalyticsManager
+from .event import EventAnalyticsManager

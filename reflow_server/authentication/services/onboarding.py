@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from reflow_server.core.events import Event
 from reflow_server.authentication.models import Company, UserExtended, ProfileType, VisualizationType
 from reflow_server.authentication.services.company import CompanyService
 from reflow_server.billing.services import BillingService
@@ -60,6 +61,12 @@ class OnboardingService(CompanyService):
             user_phone,
             user_password
         )
+
+        # Sends events that the user is onboarding on our platform
+        Event.register_event('user_onboarding', {
+            'user_id': user.id,
+            'company_id': company.id
+        })
         
         # update billing information
         BillingService.create_on_onboarding(company.id, user.id, partner, discount_coupon_name)

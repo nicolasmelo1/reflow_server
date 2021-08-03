@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
+from reflow_server.core.events import Event
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.core.utils.pagination import Pagination
 from reflow_server.theme.services import ThemeService
@@ -29,6 +30,9 @@ class ThemeView(APIView):
     def get(self, request, company_id, selected_theme_id):
         instance = Theme.theme_.theme_by_theme_id(selected_theme_id)
         serializer = ThemeSerializer(instance=instance)
+        Event.register_event('theme_eyeballing',{
+            'theme_id': selected_theme_id
+        })
         return Response({
             'status': 'ok',
             'data': serializer.data

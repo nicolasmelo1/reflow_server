@@ -5,11 +5,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
+from reflow_server.core.events import Event
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.kanban.serializers import KanbanFieldsSerializer, KanbanCardsSerializer, KanbanDefaultSerializer, \
     ChangeKanbanCardBetweenDimensionsSerializer, KanbanDimensionSerializer, KanbanCollapsedDimensionSerializer
 from reflow_server.kanban.services import KanbanService
 from reflow_server.kanban.models import KanbanCard, KanbanDefault, KanbanCollapsedOption
+from reflow_server.formulary.models import Form
 
 
 class KanbanFieldsView(APIView):
@@ -108,8 +110,16 @@ class KanbanDefaultView(APIView):
         GET: Retrieve the kanban defaults to the user on the first load of the formulary
     """
     def get(self, request, company_id, form):
+        form_id = Form.kanban_.form_id_by_company_id_and_form_name(company_id, form)
         instance = KanbanDefault.objects.filter(user=request.user.id, company_id=company_id, form__form_name=form).first()
         serializer = KanbanDefaultSerializer(instance=instance)
+        
+        # Register the event that the kanban was loaded
+        Event.register_event('kanban_loaded', {
+            'user_id': request.user.id,
+            'company_id': company_id,
+            'form_id': form_id
+        })
         return Response({
             'status': 'ok',
             'data': serializer.data

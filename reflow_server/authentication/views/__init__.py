@@ -9,6 +9,7 @@ from rest_framework import status
 from reflow_server.core.utils.encrypt import Encrypt
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.formulary.services.formulary import FormularyService
+from reflow_server.authentication.services.users import UsersService
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.authentication.utils.jwt_auth import JWT
 from reflow_server.authentication.serializers import LoginSerializer, UserSerializer, ForgotPasswordSerializer, \
@@ -142,8 +143,7 @@ class RefreshTokenView(APIView):
         if jwt.is_valid():
             user = UserExtended.authentication_.user_by_user_id(jwt.data['id'])
             if user and jwt.data['type'] == 'refresh':
-                user.last_login = datetime.now()
-                user.save()
+                user = UsersService.update_refresh_token_and_user_last_login(user)
                 return Response({
                     'access_token': JWT.get_token(user.id), 
                     'refresh_token': JWT.get_refresh_token(user.id)

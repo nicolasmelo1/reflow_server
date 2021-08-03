@@ -27,7 +27,7 @@ class ListingHeaderView(APIView):
     def get(self, request, form, company_id):
         listing_service = ListingService(user_id=request.user.id, company_id=company_id, form_name=form)
         serializer = ListingHeaderSerializer(
-            instance=listing_service.get_listing_selected_fields,
+            instance=listing_service.get_listing_selected_fields(True),
             many=True
         )
         return Response({

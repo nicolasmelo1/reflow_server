@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from reflow_server.core.events import Event
 from reflow_server.theme.models import Theme, ThemeForm, ThemeField, ThemeFieldOptions, ThemeKanbanDefault, \
     ThemeKanbanCard, ThemeKanbanCardField, ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable, \
     ThemeDashboardChartConfiguration, ThemeFormulaVariable
@@ -325,4 +326,10 @@ class ThemeSelectService:
         self.__create_kanban()
         self.__create_notification()
         self.__create_dashboard()
+
+        Event.register_event('theme_select', {
+            'user_id': self.user_id,
+            'company_id': self.company_id,
+            'theme_id': self.theme.id
+        })
         return True

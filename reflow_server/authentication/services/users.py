@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from reflow_server.core.events import Event
 from reflow_server.authentication.models import UserExtended, Company, VisualizationType
 from reflow_server.billing.services import BillingService
 from reflow_server.formulary.models import UserAccessedBy, Field
@@ -7,6 +8,8 @@ from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.options import FieldOptionsService
 from reflow_server.notify.services import NotifyService
 from reflow_server.kanban.services import KanbanService
+
+from datetime import datetime
 
 
 class UsersService:
@@ -185,3 +188,24 @@ class UsersService:
 
         UserAccessedBy.objects.filter(user_id=user_id).exclude(id__in=saved_instances_ids).delete()
 
+    @staticmethod
+    def update_refresh_token_and_user_last_login(self, user):
+        """
+        When the refresh token is updated we interpret it as the user made login in our platform
+        because the user can stay logged in forever in our platform without the need of making login
+        again.
+
+        Args:
+            user (reflow_server.authentication.models.UserExtended): The UserExtended instance that we 
+                                                                     need to update.
+
+        Returns:
+            reflow_server.authentication.models.UserExtended: The UserExtended instance updated.
+        """
+        user.last_login = datetime.now()
+        Event.register_event('user_refresh_token', {
+            'company_id': user.company_id,
+            'user_id': user.id
+        })
+        user.save()
+        return user

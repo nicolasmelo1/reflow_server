@@ -1,6 +1,7 @@
 from django.db import transaction
 
-from reflow_server.formulary.models import Field
+from reflow_server.core.events import Event
+from reflow_server.formulary.models import Field, Form
 from reflow_server.listing.models import ListingSelectedFields
 
 
@@ -56,15 +57,23 @@ class ListingService:
             self.__remove_duplicate_listing_selected_fields(listing_selected_fields)
             self.__remove_listing_selected_fields(listing_selected_fields)
             self.__create_listing_selected_fields(listing_selected_fields)
-            return self.get_listing_selected_fields
+            return self.get_listing_selected_fields()
         return listing_selected_fields
 
-    @property
-    def get_listing_selected_fields(self):
+    def get_listing_selected_fields(self, is_loading_the_listing_view=False):
         listing_selected_fields = ListingSelectedFields.objects.filter(
             user_id=self.user_id, 
             field__form__depends_on__form_name=self.form_name
         )
 
         listing_selected_fields = self.__update_listing_selected_fields(listing_selected_fields)
+
+        # sends the event that the listing is being loaded to the user.
+        if is_loading_the_listing_view:
+            form_id = Form.listing_.form_id_by_company_id_and_form_name(self.company_id, self.form_name)
+            Event.register_event('listing_loaded', {
+                'user_id': self.user_id,
+                'company_id': self.company_id,
+                'form_id': form_id
+            })
         return listing_selected_fields.order_by('field__form__order', 'field__order')

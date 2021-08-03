@@ -5,8 +5,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 
+from reflow_server.core.events import Event
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.core.utils.pagination import Pagination
+from reflow_server.formulary.models import Form
 from reflow_server.pdf_generator.serializers import PDFTemplateConfigurationSerializer, FormFieldOptionsSerializer, \
     FieldValueSerializer, PDFTemplateAllowedTextBlockSerializer, PDFTemplateConfigurationManySerializer
 from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFGenerated, PDFTemplateAllowedTextBlock
@@ -208,11 +210,18 @@ class PDFGenerateView(APIView):
         we can control and analyse the downloads.
     """
     def get(self, request, company_id, form, pdf_template_configuration_id):
+        form = Form.pdf_generator_.formulary_by_company_id_and_form_name(company_id, form)
         PDFGenerated.pdf_generator_.create(
             company_id,
             request.user.id,
             pdf_template_configuration_id
         )
+        Event.register_event('downloaded_pdf_template', {
+            'user_id': request.user.id,
+            'company_id': company_id,
+            'form_id': form.id if form else None,
+            'pdf_template_id': pdf_template_configuration_id
+        })
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)

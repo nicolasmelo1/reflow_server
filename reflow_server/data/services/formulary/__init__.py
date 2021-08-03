@@ -71,11 +71,13 @@ class FormularyDataService(PreSave, PostSave):
         """
         # register the event that the formulary was updated or created
         formulary_data_was_created = self.formulary_data.form_data_id == None
+        is_public = self.public_access_key != None
         if formulary_data_was_created:
             Event.register_event('formulary_data_created', {
                 'user_id': self.user_id,
                 'company_id': self.company_id,
                 'form_id': self.form.id,
+                'is_public': is_public,
                 'form_data_id': formulary_instance_id
             })
         else:
@@ -83,6 +85,7 @@ class FormularyDataService(PreSave, PostSave):
                 'user_id': self.user_id,
                 'company_id': self.company_id,
                 'form_id': self.form.id,
+                'is_public': is_public,
                 'form_data_id': formulary_instance_id
             })
         # updates the pre_notifications

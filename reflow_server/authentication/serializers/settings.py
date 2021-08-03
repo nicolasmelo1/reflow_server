@@ -1,5 +1,3 @@
-from django.conf import settings
-
 from rest_framework import serializers
 
 from reflow_server.authentication.services.users import UsersService
@@ -19,17 +17,18 @@ class CompanySettingsSerializer(serializers.ModelSerializer):
         self.company_service = CompanyService()
         super(CompanySettingsSerializer, self).__init__(*args, **kwargs)
 
-    def save(self, files=None):
+    def save(self, user_id=None, files=None):
         if self.instance is not None:
-            instance = self.update(self.instance, self.validated_data, files)
+            instance = self.update(self.instance, self.validated_data, user_id, files)
         else:
             instance = self.create(self.validated_data)
 
         return instance
 
-    def update(self, instance, validated_data, files):
+    def update(self, instance, validated_data, user_id, files):
         company_logo = list(files.values())[0] if files and isinstance(files, dict) else None
         instance = self.company_service.update_company(
+            user_id=user_id,
             company_id=instance.id, 
             name=validated_data.get('name', instance.name),
             company_logo=company_logo

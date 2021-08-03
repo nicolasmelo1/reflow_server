@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate
 
 from rest_framework import serializers
 
+from reflow_server.core.events import Event
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.authentication.services.onboarding import OnboardingService
 from reflow_server.authentication.services.password import PasswordService
@@ -22,6 +23,10 @@ class LoginSerializer(serializers.Serializer):
 
     def save(self):
         user = authenticate(username=self.validated_data['email'], password=self.validated_data['password'])
+        Event.register_event('user_login', {
+            'user_id': user.id,
+            'company_id': user.company_id
+        })
         return user
 
 

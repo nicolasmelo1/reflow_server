@@ -1,6 +1,6 @@
-from reflow_server.kanban.managers import field_options
 from django.db import transaction
 
+from reflow_server.core.events import Event 
 from reflow_server.formulary.models import Field, FieldOptions, Form, OptionAccessedBy
 from reflow_server.kanban.services.kanban_card import KanbanCardService
 from reflow_server.kanban.models import KanbanCard, KanbanCardField, KanbanDefault, KanbanCollapsedOption
@@ -120,7 +120,7 @@ class KanbanService(KanbanCardService):
         if number_of_kanban_defaults > 1:
             KanbanDefault.objects.filter(form=self.form, user_id=self.user_id, company_id=self.company_id).delete()
         
-        instance = KanbanDefault.objects.update_or_create(
+        instance, was_created = KanbanDefault.objects.update_or_create(
             form=self.form,
             user_id=self.user_id,
             company_id=self.company_id,
@@ -129,6 +129,24 @@ class KanbanService(KanbanCardService):
                 'kanban_dimension_id': kanban_dimension_id
             }
         )
+        
+        # send events for tracking
+        if was_created:
+            Event.register_event('kanban_default_settings_created', {
+                'user_id': self.user_id,
+                'form_id': self.form.id,
+                'company_id': self.company_id,
+                'kanban_card_id': kanban_card_id,
+                'kanban_dimension_id': kanban_dimension_id
+            })
+        else:
+            Event.register_event('kanban_default_settings_updated', {
+                'user_id': self.user_id,
+                'form_id': self.form.id,
+                'company_id': self.company_id,
+                'kanban_card_id': kanban_card_id,
+                'kanban_dimension_id': kanban_dimension_id
+            })
 
         return instance
 

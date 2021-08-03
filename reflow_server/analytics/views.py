@@ -13,13 +13,6 @@ class TrackView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get(self, request):
-        Event.register_event('formulary_data_created', {
-            'user_id': 1,
-            'company_id': 1,
-            'form_id': 332,
-            'form_data_id': 3
-        })
-
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
