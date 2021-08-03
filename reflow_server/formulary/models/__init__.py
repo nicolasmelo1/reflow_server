@@ -1,4 +1,3 @@
-from re import I
 from django.conf import settings
 from django.db import models
 
@@ -9,6 +8,7 @@ from reflow_server.theme.managers import FormThemeManager, FieldOptionsThemeMana
 from reflow_server.pdf_generator.managers import FormPDFGeneratorManager, FieldPDFGeneratorManager
 from reflow_server.kanban.managers import FieldOptionsKanbanManager, OptionAccessedByKanbanManager, FormKanbanManager
 from reflow_server.listing.managers import FormListingManager
+from reflow_server.dashboard.managers.form import FormDashboardManager
 from reflow_server.formulary.managers import PublicAccessFieldFormularyManager, FormFormularyManager, \
     PublicAccessFormFormularyManager, FormAccessedByFormularyManager, DefaultValueFieldAttachmentsFormularyManager, \
     DefaultFieldValueFormularyManager, FieldFormularyManager, UserAccessedByFormularyManager, FormulaVariableFormularyManager
@@ -267,6 +267,7 @@ class Form(AbstractForm):
         ordering = ('order',)
 
     objects = models.Manager()
+    dashboard_ = FormDashboardManager()
     listing_ = FormListingManager()
     kanban_ = FormKanbanManager()
     formulary_ = FormFormularyManager()

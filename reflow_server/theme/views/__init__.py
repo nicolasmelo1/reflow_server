@@ -30,7 +30,8 @@ class ThemeView(APIView):
     def get(self, request, company_id, selected_theme_id):
         instance = Theme.theme_.theme_by_theme_id(selected_theme_id)
         serializer = ThemeSerializer(instance=instance)
-        Event.register_event('theme_eyeballing',{
+        Event.register_event('theme_eyeballing', {
+            'user_id': request.user.id if request.user.is_authenticated else None,
             'theme_id': selected_theme_id
         })
         return Response({

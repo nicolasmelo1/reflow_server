@@ -8,11 +8,19 @@ from reflow_server.analytics.services.mixpanel import MixpanelService
 class AnalyticsService:
     def __init__(self):
         self.mixpanel_service = MixpanelService()
-
+    # ------------------------------------------------------------------------------------------
     def dispatch_to_mixpanel(self, event_name, event_data):
+        """
+        Dispatch the event to mixpanel so mixpanel can track the user inside our platform. Although we send events
+        to mixpanel, most of the events can be tracked inside of the reflow application.
+
+        Args:
+            event_name (str): The name of the event. This is one of the keys in 'EVENTS' setting in `settings.py`.
+            event_data (dict): The data of the event, the keys are defined in 'EVENTS' setting with the 'data_parameters' key.
+        """
         async_task = RunAsyncFunction(self.mixpanel_service.dispatch_event)
         async_task.delay(event_name=event_name, event_data=event_data)
-
+    # ------------------------------------------------------------------------------------------
     @transaction.atomic
     def register_event(self, event_name, **kwargs):
         """
@@ -50,3 +58,4 @@ class AnalyticsService:
 
         EventData.objects.bulk_create(event_datas)
         self.dispatch_to_mixpanel(event_name, kwargs)
+    # ------------------------------------------------------------------------------------------

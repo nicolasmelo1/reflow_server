@@ -189,7 +189,7 @@ class UsersService:
         UserAccessedBy.objects.filter(user_id=user_id).exclude(id__in=saved_instances_ids).delete()
 
     @staticmethod
-    def update_refresh_token_and_user_last_login(self, user):
+    def update_refresh_token_and_user_last_login(user):
         """
         When the refresh token is updated we interpret it as the user made login in our platform
         because the user can stay logged in forever in our platform without the need of making login

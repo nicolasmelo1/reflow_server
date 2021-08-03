@@ -1,10 +1,9 @@
 from django.db import transaction
 
-from reflow_server.data.models import FormValue
+from reflow_server.core.events import Event
 from reflow_server.formulary.models import Field, Form
 from reflow_server.authentication.models import UserExtended
-from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable, \
-    PreNotification
+from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable
 from reflow_server.notification.services.pre_notification import PreNotificationService
 
 import re
@@ -137,14 +136,16 @@ class NotificationConfigurationService:
         # if the user is not an admin and is trying to set the for_company, we enforce the for_company on being False
         if for_company and UserExtended.notification_.exists_user_id_excluding_admin(user_id):
             for_company = False
-        instance, __ = NotificationConfiguration.objects.update_or_create(
+
+        form_id =  form.id if isinstance(form, Form) else form
+        instance, was_created = NotificationConfiguration.objects.update_or_create(
             id=instance.id if instance else None,
             defaults={
                 'for_company': for_company,
                 'name': name,
                 'text': text,
                 'days_diff': days_diff,
-                'form_id': form.id if isinstance(form, Form) else form,
+                'form_id': form_id,
                 'field_id': field.id if isinstance(field, Field) else field,
                 'user_id': user_id
             }
@@ -152,6 +153,18 @@ class NotificationConfigurationService:
 
         self.__create_or_update_notification_configuration_variables(instance)
         PreNotificationService.update(company_id=company_id)
+
+        # Sends events that a new notification was created or updated.
+        events_data = {
+            'user_id': user_id,
+            'company_id': company_id,
+            'form_id': form_id,
+            'notification_configuration_id': instance.id
+        }
+        if was_created:
+            Event.register_event('notification_configuration_created', events_data)
+        else:
+            Event.register_event('notification_configuration_updated', events_data)
         return instance
 
     @staticmethod

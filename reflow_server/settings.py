@@ -276,7 +276,7 @@ EVENTS = {
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
     },
     'theme_eyeballing': {
-        'data_parameters': ['theme_id'],
+        'data_parameters': ['user_id', 'theme_id'],
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
     },
     'pdf_template_downloaded': {
@@ -305,6 +305,30 @@ EVENTS = {
     },
     'listing_loaded': {
         'data_parameters': ['user_id', 'company_id', 'form_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'dashboard_loaded': {
+        'data_parameters': ['user_id', 'company_id', 'form_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'dashboard_chart_created': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'dashboard_chart_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'dashboard_chart_updated': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'dashboard_chart_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'notification_loaded': {
+        'data_parameters': ['user_id', 'company_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'notification_configuration_created': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'notification_configuration_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'notification_configuration_updated': {
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'notification_configuration_id'],
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
     }
 }

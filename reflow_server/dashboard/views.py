@@ -6,15 +6,13 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 
+from reflow_server.core.events import Event
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.data.services.aggregation import AggregationService
 from reflow_server.dashboard.serializers import DashboardDataSerializer, \
     DashboardChartConfigurationSerializer, DashboardFieldsSerializer, DashboardChartSerializer
 from reflow_server.dashboard.models import DashboardChartConfiguration
 from reflow_server.formulary.models import Field, Form
-
-from datetime import datetime
-
 ############################################################################################
 class DashboardDataView(APIView):
     """
@@ -31,13 +29,13 @@ class DashboardDataView(APIView):
     """
     # ------------------------------------------------------------------------------------------
     def get(self, request, company_id, form, dashboard_configuration_id):
-        form_id = Form.objects.filter(form_name=form, company_id=company_id).values_list('id', flat=True).first()
+        form = Form.dashboard_.form_by_company_id_and_form_name(company_id, form)
         instance = DashboardChartConfiguration.objects.filter(id=dashboard_configuration_id, company_id=company_id).first()
 
         aggregation_service = AggregationService(
             user_id=request.user.id, 
             company_id=company_id, 
-            form_id=form_id, 
+            form_id=getattr(form, 'id', None), 
             query_params=request.query_params
         )
         dashboard_data = aggregation_service.aggregate(
@@ -63,11 +61,19 @@ class DashboardChartsView(APIView):
     """
     # ------------------------------------------------------------------------------------------
     def get(self, request, company_id, form):
+        form = Form.dashboard_.form_by_company_id_and_form_name(company_id, form)
         instances = DashboardChartConfiguration.objects.filter(
             Q(user_id=request.user.id, form__form_name=form, company_id=company_id) | 
             Q(company_id=company_id, form__form_name=form, for_company=True)
         ).order_by('id')
         serializer = DashboardChartSerializer(instance=instances, many=True)
+
+        # sends event that the dashboard was loaded for the front-end user.
+        Event.register_event('dashboard_loaded', {
+            'user_id': request.user.id,
+            'company_id': company_id,
+            'form_id': form.id if form else None
+        })
 
         return Response({
             'status': 'ok',
@@ -100,7 +106,7 @@ class DashboardChartConfigurationView(APIView):
         }, status=status.HTTP_200_OK)
     # ------------------------------------------------------------------------------------------
     def post(self, request, company_id, form):
-        form = Form.objects.filter(form_name=form, group__company_id=company_id).first()
+        form = Form.dashboard_.form_by_company_id_and_form_name(company_id, form)        
         serializer = DashboardChartConfigurationSerializer(data=request.data)
         if serializer.is_valid():
             instance = serializer.save(company_id, form, request.user.id)
@@ -129,8 +135,13 @@ class DashboardChartConfigurationEditView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     # ------------------------------------------------------------------------------------------
     def put(self, request, company_id, form, dashboard_configuration_id):
-        form = Form.objects.filter(form_name=form, group__company_id=company_id).first()
-        instance = DashboardChartConfiguration.objects.filter(user_id=request.user.id, form__form_name=form.form_name, company_id=company_id, id=dashboard_configuration_id).first()
+        form = Form.dashboard_.form_by_company_id_and_form_name(company_id, form)
+        instance = DashboardChartConfiguration.objects.filter(
+            user_id=request.user.id, 
+            form__form_name=form.form_name, 
+            company_id=company_id, 
+            id=dashboard_configuration_id
+        ).first()
         serializer = DashboardChartConfigurationSerializer(instance=instance, data=request.data)
         if serializer.is_valid():
             instance = serializer.save(company_id, form, request.user.id)

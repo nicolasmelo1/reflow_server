@@ -165,7 +165,7 @@ class FieldService(Settings):
                    date_configuration_date_format_type, period_configuration_period_interval_type, 
                    field_type, field_options_data=None, default_field_value_data=None, 
                    field_formula_variables=None, field_uuid=None, is_long_text_a_rich_text=False, 
-                   instance=None):
+                   instance=None, is_adding_theme=False):
         
         is_new_field = False
         if instance == None or instance.id == None:
@@ -235,11 +235,11 @@ class FieldService(Settings):
             'section_id': instance.form_id,
             'field_id': instance.id
         }
-
-        if is_new_field:
-            Event.register_event('field_created', events_data)
-        else:
-            Event.register_event('field_updated', events_data)
+        if is_adding_theme == False:
+            if is_new_field:
+                Event.register_event('field_created', events_data)
+            else:
+                Event.register_event('field_updated', events_data)
 
         return instance
     # ------------------------------------------------------------------------------------------

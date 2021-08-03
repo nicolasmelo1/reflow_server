@@ -41,7 +41,8 @@ class Event:
     "THIS LOOKS LIKE A WET ARCHITECTURE, WHY DON'T YOU GUYS USE SIGNALS? SO MUCH EASIER"
     First: on signals everything works implicitily, you send signals trough the code, you recieve signals in signals. 
     But you are not able to know what was calling this signal. I mean, i don't know if this came from a formulary that was updated, or if this was called from a user that
-    just made login. I can't track. And since i can't track this is not a good solution.
+    just made login. I can't track. And since i can't track this is not a good solution. Evend Django acknowledge that signals might be hard to debug.
+    https://docs.djangoproject.com/en/dev/topics/signals/#defining-and-sending-signals (see the blue square)
 
     On this solution on the other hand you can know what data you will recieve, where the code that consumes this event is located, and so on. Everything
     is declared explicitly to the programmer, so it is a LOT EASIER to maintain and extend.
@@ -49,11 +50,21 @@ class Event:
     The Consumer will look something like:
 
     >>> class DataEvent:
-            @staticmethod
-            def formulary_data_created(user_id, company_id, form_id, form_data_id):
+            def formulary_data_created(self, user_id, company_id, form_id, form_data_id):
                 # code here
 
     Super simple, actually.
+
+    After that all, to fire events use `.register_event()` for dispatching to the consumers like:
+    >>> from reflow_server.core.event import Event
+    >>> Event.register_event('formulary_data_created', {
+        'user_id': 1231,
+        'company_id': 123123,
+        'form_id': 123123123,
+        'form_data_id': 5235235
+    })
+
+    IMPORTANT: Remember that `data_parameters` holds all of the data that obligatory needs to be passed. So be aware that you are sending all of the data needed.
     """
     @staticmethod
     def register_event(event_name, data):
@@ -80,6 +91,19 @@ class Event:
     
     @staticmethod
     def validate_data(event_name, data):
+        """
+        Validates if the data that is being passed to the consumers acknowledge the 'data_parameters' definition for the event
+        otherwise throws an error. Saying that the data is incomplete. This guarantees the data passed is exactly shaped as it was defined.
+        So the function that recieves the data doesn't have any surprises.
+
+        Args:
+            event_name (str): The name of the event that is being fired.
+            data (dict): The dict holding the data, be aware that this dict must have the keys defined in `data_parameters` if it is any different it
+                         will throw an error.
+
+        Raises:
+            KeyError: Throws an error if the data passed is not the same as the `data_parameters` defined in the EVENTS setting in `settings.py`
+        """
         event_settings = settings.EVENTS.get(event_name, None)
         if event_settings:
             for parameter in event_settings['data_parameters']:

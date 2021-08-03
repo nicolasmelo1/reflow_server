@@ -1,7 +1,8 @@
 from django.db import transaction
 from django.db.models import Q
 
-from reflow_server.notification.models import NotificationConfiguration, UserNotification, Notification, PreNotification
+from reflow_server.core.events import Event
+from reflow_server.notification.models import UserNotification, Notification, PreNotification
 from reflow_server.notify.services import NotifyService
 
 import math
@@ -87,7 +88,7 @@ class NotificationService:
         return UserNotification.objects.filter(user_id=user_id, is_new=True).count()
 
     @staticmethod
-    def get_and_update_user_notifications(user_id, page=1):
+    def get_and_update_user_notifications(user_id, company_id, page=1):
         """
         Retrive user_notifications and update them to is_new as False. This way when the user
         goes out of the notifications page, the user badge goes back to zero. (sets is_new to False)
@@ -111,5 +112,11 @@ class NotificationService:
             user_notifications.order_by('-notification__created_at')[pagination_offset:pagination_limit], 
             math.ceil(user_notifications.count()/items_per_page)
         )
+
+        # Event to notify that the Notification was loaded to the user
+        Event.register_event('notification_loaded', {
+            'user_id': user_id,
+            'company_id': company_id
+        })
         return user_notifications_response
     

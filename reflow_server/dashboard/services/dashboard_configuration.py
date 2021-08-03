@@ -1,6 +1,6 @@
+from reflow_server.core.events import Event
 from reflow_server.dashboard.models import DashboardChartConfiguration
 from reflow_server.dashboard.services.permissions import DashboardPermissionsService
-from reflow_server.formulary.models import Form
 
 
 class DashboardChartConfigurationService:
@@ -43,7 +43,7 @@ class DashboardChartConfigurationService:
         """
 
         if DashboardPermissionsService.is_valid_billing_charts(self.company_id, self.user_id, self.form.form_name, for_company, dashboard_configuration_id):
-            instance, __ = DashboardChartConfiguration.objects.update_or_create(
+            instance, was_created = DashboardChartConfiguration.objects.update_or_create(
                 id=dashboard_configuration_id,
                 defaults={
                     'name': name,
@@ -58,6 +58,19 @@ class DashboardChartConfigurationService:
                     'user_id': self.user_id
                 }
             )
+
+            # sends events that a dashboard chart was created or that a chart was updated.
+            events_data = {
+                'user_id': self.user_id,
+                'company_id': self.company_id,
+                'form_id': self.form.id,
+                'dashboard_chart_id': instance.id
+            }
+            
+            if was_created:
+                Event.register_event('dashboard_chart_created', events_data)
+            else:
+                Event.register_event('dashboard_chart_updated', events_data)
             return instance
         else:
             return None

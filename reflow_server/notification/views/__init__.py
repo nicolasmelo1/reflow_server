@@ -24,7 +24,7 @@ class NotificationsView(APIView):
     """
     def get(self, request, company_id):
         page = int(request.GET.get('page', '1'))
-        response = NotificationService.get_and_update_user_notifications(user_id=request.user.id, page=page)
+        response = NotificationService.get_and_update_user_notifications(user_id=request.user.id, company_id=company_id, page=page)
         notifications = UserNotificationSerializer(instance=response.user_notifications, many=True, context={'user': request.user})
         return Response({
             'status': 'ok',

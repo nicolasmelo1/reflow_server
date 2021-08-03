@@ -67,7 +67,7 @@ class ThemeSelectService:
         formulary_service = FormularyService(self.user_id, self.company_id)
 
         for theme_form in ThemeForm.theme_.main_theme_forms_by_theme_id(self.theme.id):
-            formulary_instance = formulary_service.save_formulary(True, theme_form.label_name, theme_form.order, group)
+            formulary_instance = formulary_service.save_formulary(True, theme_form.label_name, theme_form.order, group, is_adding_theme=True)
             self.theme_reference.add_formulary_reference(theme_form.id, formulary_instance)
         
         return True
@@ -166,7 +166,8 @@ class ThemeSelectService:
                 date_configuration_date_format_type=theme_field.date_configuration_date_format_type, 
                 period_configuration_period_interval_type=theme_field.period_configuration_period_interval_type, 
                 field_type=theme_field.type, 
-                field_options_data=field_options_data
+                field_options_data=field_options_data,
+                is_adding_theme=True
             )
 
             self.theme_reference.add_field_reference(theme_field.id, field)
