@@ -109,7 +109,6 @@ class MixpanelService:
     # ------------------------------------------------------------------------------------------
     def track_formulary_updated(self, user_id, company_id, form_id):
         if formulary_was_updated.get(user_id, {}).get(company_id, {}).get(form_id, False) == False:
-            print('teste')
             self.mixpanel.track(user_id, 'Formulary Updated', {
                 'company_id': company_id,
                 'form_id': form_id

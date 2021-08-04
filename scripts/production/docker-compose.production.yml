@@ -1,5 +1,13 @@
 version: '3.3'
 services:
+  nginx:
+    image: nginx
+    volumes: 
+      - ./production/proxy/conf.d:/etc/nginx/conf.d
+      -  "${EB_LOG_BASE_DIR}/nginx:/var/log/nginx"
+    ports:
+      - "80:80"
+      - "433:433"
   reflow_server:
     build: .
     command: "sh scripts/production/deploy.sh"
