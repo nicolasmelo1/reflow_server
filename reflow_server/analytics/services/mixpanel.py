@@ -83,7 +83,7 @@ class MixpanelService:
         })
     # ------------------------------------------------------------------------------------------
     def track_user_refresh_token(self, user_id, company_id):
-        self.handle_user_login(user_id, company_id)
+        self.track_user_login(user_id, company_id)
     # ------------------------------------------------------------------------------------------
     def track_formulary_data_created(self, user_id, company_id, form_id, form_data_id, is_public):
         self.mixpanel.track(user_id, 'Formulary Record Created', {
