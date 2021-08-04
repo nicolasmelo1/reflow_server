@@ -2,7 +2,6 @@ version: '3.3'
 services:
   reflow_server:
     build: .
-    command: "sh scripts/production/deploy.sh"
     env_file:
         - .env
     volumes:
