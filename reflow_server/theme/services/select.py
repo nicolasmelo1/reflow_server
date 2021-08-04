@@ -67,7 +67,13 @@ class ThemeSelectService:
         formulary_service = FormularyService(self.user_id, self.company_id)
 
         for theme_form in ThemeForm.theme_.main_theme_forms_by_theme_id(self.theme.id):
-            formulary_instance = formulary_service.save_formulary(True, theme_form.label_name, theme_form.order, group, is_adding_theme=True)
+            formulary_instance = formulary_service.save_formulary(
+                enabled=True, 
+                label_name=theme_form.label_name, 
+                order=theme_form.order, 
+                group=group,
+                is_adding_theme=True
+            )
             self.theme_reference.add_formulary_reference(theme_form.id, formulary_instance)
         
         return True

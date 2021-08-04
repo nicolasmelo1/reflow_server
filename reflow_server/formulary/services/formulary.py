@@ -71,6 +71,10 @@ class FormularyService(Settings):
         instance.form_name = self.format_name('form', instance.id, instance.form_name, label_name)
         instance.save()
 
+        if is_new:
+            FormAccessedBy.objects.create(form=instance, user_id=self.user_id)
+
+        # sends events that the formulary was created
         events_data = {
             'user_id': self.user_id,
             'company_id': self.company_id,
@@ -78,7 +82,6 @@ class FormularyService(Settings):
         }
         if is_adding_theme == False:
             if is_new:
-                FormAccessedBy.objects.create(form=instance, user_id=self.user_id)
                 Event.register_event('formulary_created', events_data)
             else:
                 Event.register_event('formulary_updated', events_data)
