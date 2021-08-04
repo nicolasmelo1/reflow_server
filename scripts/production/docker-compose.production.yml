@@ -3,8 +3,8 @@ services:
   nginx:
     image: nginx
     volumes: 
-      - ./production/proxy/conf.d:/etc/nginx/conf.d
-      -  "${EB_LOG_BASE_DIR}/nginx:/var/log/nginx"
+      - ./scripts/production/proxy/conf.d:/etc/nginx/conf.d
+      - "${EB_LOG_BASE_DIR}/nginx:/var/log/nginx"
     ports:
       - "80:80"
       - "433:433"
