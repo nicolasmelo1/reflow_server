@@ -1,0 +1,38 @@
+version: '3.3'
+services:
+  db:
+    tty: true
+    image: postgres
+    volumes:
+      - ./scripts/development/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment: 
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5432:5432"
+  localstack:
+    tty: true
+    image: localstack/localstack
+    ports:
+      - "4566-4599:4566-4599"
+      - "4600:4600"
+    environment:
+      - PORT_WEB_UI=4600
+      - SERVICES=s3
+      - LOCALSTACK_SERVICES=s3
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+  reflow_server:
+    tty: true
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - CONFIG=development
+      - IS_DOCKER_COMPOSE=True
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - localstack
