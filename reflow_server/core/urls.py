@@ -18,6 +18,6 @@ from django.conf.urls import re_path
 from reflow_server.core.views import HealthCheckView, TypesView
 
 urlpatterns = [
-    re_path(r'^healthcheck/', HealthCheckView.as_view(), name='core_app_healthcheck'),
+    re_path(r'^healthcheck/$', HealthCheckView.as_view(), name='core_app_healthcheck'),
     re_path(r'^types/$', TypesView.as_view(), name='core_app_types'),
 ]
