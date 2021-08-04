@@ -1,12 +1,11 @@
-from django.conf import settings
-from django.db.models import Q, Func, F, Value, DateTimeField
+from django.db.models import Q, Func, F, Value, DateTimeField, CharField
 
 from reflow_server.authentication.models import UserExtended
 from reflow_server.data.models import FormValue
 from reflow_server.notification.models import NotificationConfiguration, PreNotification
 from reflow_server.data.services import DataService
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 class PreNotificationService:
@@ -37,7 +36,7 @@ class PreNotificationService:
         now = datetime.now().replace(second=0, microsecond=0)
         pre_notifications = PreNotification.objects\
             .filter(has_sent=False, is_sending=False)\
-            .annotate(truncated_when=Func(Value('minute'), F('when'), function='date_trunc', output_field=DateTimeField()))\
+            .annotate(truncated_when=Func(Value('minute', output_field=CharField()), F('when', output_field=DateTimeField()), function='date_trunc', output_field=DateTimeField()))\
             .filter(truncated_when__lte=now)
         if pre_notifications.exists():
             from reflow_server.notification.externals import NotificationWorkerExternal
