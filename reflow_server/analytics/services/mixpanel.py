@@ -1,10 +1,15 @@
-from reflow_server.data.managers import form
 from django.conf import settings
 
 from reflow_server.authentication.models import UserExtended
 
 from mixpanel import Mixpanel
 
+# Formulary_Updated and field_updated events fire for every type of the user
+# this is not ideal for the Analytics user but it is for our logging system.
+# To prevent that, whenever both events is fired we set the data to send, after that, set this to false.
+# The first key is the user_id, the second is the company_id and the last is the form_id
+formulary_was_updated = {}
+user_profile_updated = {}
 
 class MixpanelService:
     def __init__(self):
@@ -36,6 +41,8 @@ class MixpanelService:
         """
         handler = getattr(self, 'track_%s' % event_name, None)
         if handler:
+            if event_name not in ['formulary_updated', 'field_updated']:
+                formulary_was_updated.pop(event_data.get('user_id'), None)
             self.create_or_update_user_profile(event_data.get('user_id'))
             handler(**event_data)
             return True
@@ -47,10 +54,13 @@ class MixpanelService:
         Every user that we have in our platform should be also saved inside of mixpanel
         this way the end user that uses mixpanel can see more information about the user in each event.
 
+        To prevent to update it everytime we keep in memory that the user was updated.
+
         Args:
             user_id: The id of the user you want to save on mixpanel
         """
-        if user_id:
+        if user_id and user_profile_updated.get(user_id, False) == False:
+            user_profile_updated[user_id] = True
             user = UserExtended.objects.filter(id=user_id).first()
             if user:
                 self.mixpanel.people_set(user_id, {
@@ -95,10 +105,17 @@ class MixpanelService:
         })
     # ------------------------------------------------------------------------------------------
     def track_formulary_updated(self, user_id, company_id, form_id):
-        self.mixpanel.track(user_id, 'Formulary Updated', {
-            'company_id': company_id,
-            'form_id': form_id
-        })
+        if formulary_was_updated.get(user_id, {}).get(company_id, {}).get(form_id, False) == False:
+            print('teste')
+            self.mixpanel.track(user_id, 'Formulary Updated', {
+                'company_id': company_id,
+                'form_id': form_id
+            })
+            formulary_was_updated[user_id] = {
+                company_id: {
+                    form_id: True
+                }
+            }
     # ------------------------------------------------------------------------------------------
     def track_new_paying_company(self, user_id, company_id, total_paying_value):
         self.mixpanel.track(user_id, 'Company Started Paying', {
