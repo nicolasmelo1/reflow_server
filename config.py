@@ -9,7 +9,7 @@ config_file = json.loads(open('reflow-config.json').read())
 class Config:
     EXTERNAL_APPS = ['reflow_worker', 'reflow_front']
 
-
+ 
 class DevelopmentConfig(Config):
     SECRET_KEY = config_file['secret_key']
     ALLOWED_HOSTS = ['*']
