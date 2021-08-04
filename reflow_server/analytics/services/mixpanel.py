@@ -28,6 +28,9 @@ class MixpanelService:
         we can group together events and so on. The handlers will be similar to 'AnalyticsEvent' with the only difference
         the methods will have the 'track_' keyword in front of the method name.
 
+        Because we send the 'formulary_updated' event and 'field_updated' event for every type and iteration of the user
+        we use the `formulary_was_updated` global variable so we can prevent to send the 'Formulary Updated' event everytime.
+
         Args:
             event_name (str): The name of the event, usually those will be defined in 'EVENTS' variable in the
                               'settings.py' file
