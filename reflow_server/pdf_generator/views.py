@@ -216,7 +216,7 @@ class PDFGenerateView(APIView):
             request.user.id,
             pdf_template_configuration_id
         )
-        Event.register_event('downloaded_pdf_template', {
+        Event.register_event('pdf_template_downloaded', {
             'user_id': request.user.id,
             'company_id': company_id,
             'form_id': form.id if form else None,
