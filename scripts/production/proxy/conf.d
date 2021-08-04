@@ -1,13 +1,15 @@
 server {
-    server_name 
+    server_name localhost;
 
     listen 80;
 
     gzip on;
     gzip_comp_level 4;
     gzip_types text/html text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
-    client_max_body_size 20M;
+
     access_log    /var/log/nginx/access.log;
+
+    client_max_body_size 20M;
 
     location / {
         proxy_pass            http://reflow_server:8000;  
