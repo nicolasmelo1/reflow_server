@@ -36,7 +36,7 @@ class PreNotificationService:
         now = datetime.now().replace(second=0, microsecond=0)
         pre_notifications = PreNotification.objects\
             .filter(has_sent=False, is_sending=False)\
-            .annotate(truncated_when=Func(Value('minute', output_field=CharField()), F('when', output_field=DateTimeField()), function='date_trunc', output_field=DateTimeField()))\
+            .annotate(truncated_when=Func(Value('minute', output_field=CharField()), F('when'), function='date_trunc', output_field=DateTimeField()))\
             .filter(truncated_when__lte=now)
         if pre_notifications.exists():
             from reflow_server.notification.externals import NotificationWorkerExternal
