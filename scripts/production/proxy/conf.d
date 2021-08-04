@@ -10,7 +10,7 @@ server {
     access_log    /var/log/nginx/access.log;
 
     location / {
-        proxy_pass            http://docker;  
+        proxy_pass            http://reflow_server:8000;  
         proxy_http_version    1.1;
 
         proxy_set_header      Connection      $connection_upgrade;
