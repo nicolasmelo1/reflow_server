@@ -1,10 +1,10 @@
 version: '3.3'
 services:
-  nginx-proxy:
-    image: nginx
+  nginx:
+    image: nginx:latest
     volumes: 
-      - ./scripts/production/proxy/conf.d:/etc/nginx/conf.d
-      -  "${EB_LOG_BASE_DIR}/nginx-proxy:/var/log/nginx"
+      - "./scripts/production/proxy/conf.d:/etc/nginx/conf.d"
+      - "${EB_LOG_BASE_DIR}/nginx:/var/log/nginx"
     ports:
       - "80:80"
       - "433:433"
