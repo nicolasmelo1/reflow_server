@@ -12,7 +12,6 @@ class Function(Object):
         super().__init__(FUNCTION_TYPE, settings)
     # ------------------------------------------------------------------------------------------
     def _initialize_(self, scope, parameters=[], function_body_block=None, intepreter=None):
-        print(parameters)
         self.interpreter = intepreter
         self.scope = scope
         self.function_body = function_body_block

@@ -393,7 +393,7 @@ class Interpreter:
                         variable_defined.append(parameter[0])
                 if parameter[0] not in variable_defined:
                     if parameter[1] == None:
-                        raise Exception('parameter "{parameter_name}" was not assigned in the function call'.format(parameter_name=parameter_name))
+                        raise Exception('parameter "{parameter_name}" was not assigned in the function call'.format(parameter_name=parameter[0]))
 
                     parameters[parameter[0]] = parameter[1]
                     variable_defined.append(parameter[0])

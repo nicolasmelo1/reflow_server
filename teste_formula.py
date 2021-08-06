@@ -95,7 +95,7 @@ struct.c.a
 
 
 library = r"""
-HTTP.teste()
+HTTP.get("valor")
 """
 functions_to_test = [
     #simple_arithimetic, 
@@ -107,7 +107,7 @@ functions_to_test = [
     #dicts,
     #modules,
     #structs,
-    #library
+    library
 ]
 
 import json
