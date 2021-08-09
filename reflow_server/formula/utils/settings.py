@@ -120,3 +120,4 @@ class Settings:
             'true': context.keyword.boolean.true,
             'false': context.keyword.boolean.false
         }
+        self.library = context.library

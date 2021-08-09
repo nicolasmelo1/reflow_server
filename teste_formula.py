@@ -1,10 +1,20 @@
+from reflow_server.authentication import consumers
 from reflow_server.formula.utils import interpreter
 from reflow_server.formula.utils.lexer import Lexer
 from reflow_server.formula.utils.settings import Settings
+from reflow_server.formula.utils.context import Context
 from reflow_server.formula.utils.parser import Parser
 from reflow_server.formula.utils.interpreter import Interpreter
 
-settings = Settings()
+context = Context()
+library = context.add_library_module('HTTP', 'Requisicao')
+method = library.add_method('request', 'requisitar')
+method.add_parameter('url', 'endereco')
+method.add_parameter('method', 'metodo')
+
+struct = library.add_struct('HTTPResponse', 'Resposta')
+struct.add_attribute('content', 'conteudo')
+settings = Settings(context)
 
 simple_arithimetic = r"""(1 + 2) + (2 + 2)"""
 
@@ -95,7 +105,13 @@ struct.c.a
 
 
 library = r"""
-HTTP.get("valor")
+headers = {
+    "Notion-Version": "2021-07-27",
+    "Authorization": "Bearer secret_KkvznlgdwRX9tTItyvX83VtWOp4jp6LiSQV0W5pBYfO"
+}
+
+response = Requisicao.requisitar(metodo="GET", endereco="https://api.notion.com/v1/users", headers=headers)
+response.conteudo
 """
 functions_to_test = [
     #simple_arithimetic, 
@@ -111,7 +127,9 @@ functions_to_test = [
 ]
 
 import json
+import time
 
+start = time.time()
 for function in functions_to_test:
     lexer = Lexer(function, settings)
     parser = Parser(lexer, settings)
@@ -119,14 +137,3 @@ for function in functions_to_test:
     interpreter = Interpreter(settings)
     value = interpreter.evaluate(ast)
     print(value._representation_())
-
-"""
-import traceback
-
-class Teste:
-    def teste(self):
-        print(traceback.print_stack())
-
-teste = Teste()
-teste.teste()
-"""

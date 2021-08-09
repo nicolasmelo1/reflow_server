@@ -180,7 +180,7 @@ def evaluate(expression, context=None):
     """
     if context == None:
         context = Context()
-    settings = Settings()
+    settings = Settings(context)
     lexer = Lexer(expression, settings)
     parser = Parser(lexer, settings)
     ast = parser.parse()

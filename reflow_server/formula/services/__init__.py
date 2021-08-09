@@ -7,7 +7,7 @@ from reflow_server.formulary.models import FormulaVariable, FieldType, FieldNumb
 from reflow_server.formula.services.data import FormulaVariables, EvaluationData, InternalValue
 from reflow_server.formula.utils import evaluate
 from reflow_server.formula.utils.context import Context
-from reflow_server.formula.models import FormulaContextForCompany, FormulaContextAttributeType
+from reflow_server.formula.models import FormulaContextBuiltinLibraryType, FormulaContextForCompany, FormulaContextAttributeType
 
 import queue
 import multiprocessing
@@ -87,6 +87,70 @@ class FormulaService:
 
                 self.context = Context(**formula_attributes)
 
+                # the code here might look kinda confusing at first but it's doing basically the same thing
+                # basically what we are doing on all those for loops is translating the internal library to something
+                # the final user can understand and know.
+                formula_context_library_types = FormulaContextBuiltinLibraryType.objects.filter(context_type_id=formula_context_for_company.context_type_id)
+
+                # first we translate the module
+                for formula_context_library_type_module in formula_context_library_types.filter(
+                    attribute_type__attribute_name='module'
+                ):
+                    module = self.context.add_library_module(
+                        formula_context_library_type_module.original_value,
+                        formula_context_library_type_module.translation
+                    )
+                    # translate the module module_struct_parameters
+                    for formula_context_library_type_struct_parameter in formula_context_library_types.filter(
+                        attribute_type__attribute_name='module_struct_parameter', 
+                        related_to=formula_context_library_type_module.id
+                    ):
+                        module.add_struct_parameter(
+                            formula_context_library_type_struct_parameter.original_value,
+                            formula_context_library_type_struct_parameter.translation
+                        )
+                    
+                    # translate the module methods
+                    for formula_context_library_type_method in formula_context_library_types.filter(
+                        attribute_type__attribute_name='method', 
+                        related_to=formula_context_library_type_module.id
+                    ):
+                        method = module.add_method(
+                            formula_context_library_type_method.original_value,
+                            formula_context_library_type_method.translation
+                        )
+
+                        # translate the module method method_parameters
+                        for formula_context_library_type_method_parameter in formula_context_library_types.filter(
+                            attribute_type__attribute_name='method_parameter', 
+                            related_to=formula_context_library_type_method.id
+                        ):
+                            method.add_parameter(
+                                formula_context_library_type_method_parameter.original_value,
+                                formula_context_library_type_method_parameter.translation
+                            )
+
+                    # translate the module structs
+                    for formula_context_library_type_struct in formula_context_library_types.filter(
+                        attribute_type__attribute_name='struct', 
+                        related_to=formula_context_library_type_module.id
+                    ):
+                        struct = module.add_struct(
+                            formula_context_library_type_struct.original_value,
+                            formula_context_library_type_struct.translation
+                        )
+                        
+                        # translate the module struct attribute
+                        for formula_context_library_type_struct_attribute in formula_context_library_types.filter(
+                            attribute_type__attribute_name='struct_attribute', 
+                            related_to=formula_context_library_type_struct.id
+                        ):
+                            struct.add_attribute(
+                                formula_context_library_type_struct_attribute.original_value,
+                                formula_context_library_type_struct_attribute.translation
+                            )
+                return None
+                
         self.context = Context()
     # ------------------------------------------------------------------------------------------
     def __clean_formula(self, formula, dynamic_form_id, formula_variables):
@@ -143,8 +207,6 @@ class FormulaService:
             str: Returns the formatted and cleaned formula.
         """
         variables = re.findall(r'{{\w*?}}', formula, re.IGNORECASE)
-        print('BREAKPOINT')
-        print(variables)
         for index, formula_variable in enumerate(formula_variables.variables):
             values = FormValue.formula_.values_and_field_type_by_main_formulary_data_id_and_field_id(
                 dynamic_form_id,

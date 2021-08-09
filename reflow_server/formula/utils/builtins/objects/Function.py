@@ -1,4 +1,3 @@
-from reflow_server.formula.utils import interpreter
 from reflow_server.formula.utils.builtins.objects.Object import Object
 from reflow_server.formula.utils.builtins.types import FUNCTION_TYPE
 

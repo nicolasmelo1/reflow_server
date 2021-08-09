@@ -331,7 +331,7 @@ class HashTable:
         else:
             raise Exception('Index to add is out of bounds, resize the array')
     # ------------------------------------------------------------------------------------------
-    def search(self, hasher, key):
+    def search(self, hasher, key, hash_index=None):
         """
         Tries to get the node using the hasher, if it is chained then loop through all nodes to find the key
 
@@ -345,7 +345,8 @@ class HashTable:
         Returns:
             self.NodeType: Returns the node object that holds the value.
         """
-        hash_index = hasher % self.capacity
+        if hash_index == None:
+            hash_index = hasher % self.capacity
         node = self.table[hash_index]
         while node != None and node.key != key and node.next is not None:
             node = node.next
@@ -470,3 +471,69 @@ class HashTable:
         Returns a new array with new_capacity capacity
         """
         return [None] * new_capacity
+############################################################################################
+class Conversor:
+    def __init__(self, settings):
+        from reflow_server.formula.utils.builtins import objects
+        self.objects = objects
+        self.settings = settings
+
+    def python_value_to_flow_object(self, python_value):
+        if isinstance(python_value, str):
+            return self.__python_str_to_flow_string(python_value)
+        elif isinstance(python_value, float):
+            return self.__python_float_to_flow_float(python_value)
+        elif isinstance(python_value, int):
+            return self.__python_int_to_flow_integer(python_value)
+        elif isinstance(python_value, bool):
+            return self.__python_bool_to_flow_boolean(python_value)
+        elif isinstance(python_value, list):
+            return self.__python_list_to_flow_list(python_value)
+        elif isinstance(python_value, dict):
+            return self.__python_dict_to_flow_dict(python_value)
+        elif python_value == None:
+            return self.__python_none_to_flow_null()
+        else:
+            return python_value
+        
+    def __python_str_to_flow_string(self, value):
+        new_string = self.objects.String(self.settings)
+        return new_string._initialize_(value)
+    
+    def __python_float_to_flow_float(self, value):
+        new_float = self.objects.Float(self.settings)
+        return new_float._initialize_(value)
+
+    def __python_int_to_flow_integer(self, value):
+        new_integer = self.objects.Integer(self.settings)
+        return new_integer._initialize_(value)
+    
+    def __python_none_to_flow_null(self):
+        new_none = self.objects.Null(self.settings)
+        return new_none._initialize_()
+
+    def __python_bool_to_flow_boolean(self, value):
+        new_boolean = self.objects.Boolean(self.settings)
+        return new_boolean._initialize_(value)
+    
+    def __python_list_to_flow_list(self, values):
+        new_list = self.objects.List(self.settings)
+
+        array = []
+        for value in values:
+            array.append(self.python_value_to_flow_object(value))
+        
+        new_list._initialize_(array)
+        return new_list
+
+    def __python_dict_to_flow_dict(self, value):
+        new_dict = self.objects.Dict(self.settings)
+        
+        values = []
+        for key, value in value.items():
+            key = self.python_value_to_flow_object(key)
+            value = self.python_value_to_flow_object(value)
+            values.append([key, value])
+        
+        new_dict._initialize_(values)
+        return new_dict

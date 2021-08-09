@@ -1,4 +1,80 @@
 ############################################################################################
+class BuiltinLibraryStruct:
+    def __init__(self, struct_name):
+        self.struct_name = struct_name
+        self.attributes = {}
+    # ------------------------------------------------------------------------------------------
+    def add_attribute(self, attribute_name, translated_attribute_name):
+        self.attributes[attribute_name] = translated_attribute_name
+############################################################################################
+class BuiltinLibraryMethod:
+    def __init__(self, method_name):
+        self.method_name = method_name
+        self.parameters = {}
+    # ------------------------------------------------------------------------------------------
+    def add_parameter(self, parameter_name, translated_parameter_name):
+        self.parameters[parameter_name] = translated_parameter_name
+############################################################################################
+class BuiltinLibraryModule:
+    """
+    This is supposed to have the following structure, so it's easy to index and search for the translation
+    in the tree.
+
+    This is built like this.
+    To build like this we use helper methods so it's easier to build this structure
+    
+    >>> {
+        "HTTP": BuiltinLibraryModule(
+            module_translation='Requisição',
+            struct_parameters={
+                "name": "nome"
+            },
+            methods={
+                "get": BuiltinLibraryMethod(
+                    method_name='pegar',
+                    attributes={
+                        "url": "endereço",
+                        "method": "metodo"
+                    }
+                ),
+                "post": BuiltinLibraryMethod(
+                    method_name='subir',
+                    attributes={
+                        "url": "endereço",
+                        "method": "metodo"
+                    }
+                )
+            },
+            structs={
+                "HTTPResponse": BuiltinLibraryStruct(
+                    struct_name='Resposta'
+                    attributes={
+                        "status_code": "codigo_de_status"
+                    }
+                )
+            }
+        )
+    }
+    """
+    def __init__(self, module_name):
+        self.module_name = module_name
+        self.stuct_parameters = {}
+        self.methods = {}
+        self.structs = {}
+    # ------------------------------------------------------------------------------------------``
+    def add_method(self, original_method_name, method_name_translation):
+        new_library_method = BuiltinLibraryMethod(method_name_translation)
+        self.methods[original_method_name] = new_library_method
+        return new_library_method
+    # ------------------------------------------------------------------------------------------
+    def add_struct(self, original_struct_name, struct_name_translation):
+        new_library_struct = BuiltinLibraryStruct(struct_name_translation)
+        self.structs[original_struct_name] = new_library_struct
+        return new_library_struct
+    # ------------------------------------------------------------------------------------------
+    def add_struct_parameter(self, original_struct_parameter, struct_parameter_translation):
+        self.stuct_parameters[original_struct_parameter] = struct_parameter_translation
+############################################################################################
 class If:
     def __init__(self, if_keyword, else_keyword):
         self.if_keyword = if_keyword
@@ -80,3 +156,9 @@ class Context:
         )
         self.positional_argument_separator = positional_argument_separator
         self.decimal_point_separator = decimal_point_separator
+        self.library = {}
+    # ------------------------------------------------------------------------------------------
+    def add_library_module(self, original_module_name, module_name_translation):
+        new_library = BuiltinLibraryModule(module_name_translation)
+        self.library[original_module_name] = new_library
+        return new_library

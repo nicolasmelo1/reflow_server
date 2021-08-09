@@ -73,3 +73,15 @@ class Dict(Object):
             return self
         else:
             raise Exception('Cannot remove {}'.format(obj._representation_()))
+        
+    def _representation_(self):
+        dictionary_response = {}
+
+        for index in range(0, len(self.hash_table.keys)):
+            key = self.hash_table.keys[index]
+            key_index = self.hash_table.indexes[index]
+            value = self.hash_table.search(key, None, key_index)
+            python_value = value.value._representation_()
+            dictionary_response[key] = python_value
+
+        return dictionary_response
