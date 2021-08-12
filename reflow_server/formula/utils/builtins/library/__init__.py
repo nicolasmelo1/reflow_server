@@ -1,1 +1,1 @@
-from .http import HTTP
+from .HTTP import HTTP
