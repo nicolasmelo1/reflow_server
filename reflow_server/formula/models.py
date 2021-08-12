@@ -156,6 +156,8 @@ class FormulaContextBuiltinLibraryType(models.Model):
     )
     original_value = models.TextField()
     translation = models.TextField()
+    description = models.TextField(default='', blank=True)
+    is_optional_attribute = models.BooleanField(default=False)
     related_to = models.ForeignKey(
         'self', 
         on_delete=models.CASCADE, 

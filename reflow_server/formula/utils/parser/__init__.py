@@ -553,10 +553,14 @@ class Parser:
                     self.get_next_token(TokenType.LEFT_PARENTHESIS)
                     function_arguments = []
                     while TokenType.RIGHT_PARENTHESIS != self.current_token.token_type:
+                        self.__ignore_newline()
+
                         if TokenType.FUNCTION == self.current_token.token_type:
                             argument = self.function_statement()
                         else:
                             argument = self.statement()
+                        self.__ignore_newline()
+                        
                         function_arguments.append(argument)
                         if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
                             self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)

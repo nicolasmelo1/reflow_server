@@ -3,6 +3,40 @@ from reflow_server.formula.utils.settings import TokenType
 
 
 class Lexer:
+    """
+    The lexer is responsible for reading the code and transform everything into tokens.
+
+    WHAT?
+
+    Yep, you've probably already read the tutorials that i've added in the documentation of the formulas
+    but in case you don't already know. The lexer runs in a similar manner to the parser. The parser runs until
+    it finds the END_OF_FILE token. The lexer generate this token if no other token is generated.
+
+    The idea is simple, let's suppose the following script:
+    100+20
+
+    okay so let's divide this into a list so we can pass through each character
+
+    >>> expression = ['1', '0', '0', '+', '2', '0']
+    expression[0] will be 1. the character '1' is what? a number correct? The number is just '1' or '100'? '100' correct?
+    So we do not stop there, let's evaluate the next character, we've got '0'. and the next one '0'. And they are both numbers. 
+    Let's go for the next one, just in case. Uoh we got '+', is it a number? No, what we've got? '1', '0' and '0' so
+    the number probably is '100' so we create a new Token with the value '100'.
+
+    Okay, but the next token is '+', let's evaluate that. It's an operation right? but operations can be ">=" or '==', in other words
+    they can be two characters long. So let's evaluate the next one just to see. It's '2'. Okay, not a valid character for an operation
+    so this operation is '+' so the Token will hold the value '+'
+
+    And last but not least we evaluate '20' to a token the same way as we did for 100 up there. Then we created the last token.
+    But THIS IS NOT THE LAST TOKEN. The last token WILL ALWAYS BE 'END_OF_FILE', so after we generated the Token(NUMBER,20) we 
+    create the TOKEN(END_OF_FILE, None) to indicate that the program has finished evaluating.
+
+    And that's it.
+
+    Args:
+        expression (str): The actual formula to evaluate
+        settings (reflow_server.formula.utils.settings.Setting): The settings so we can translate the formula.
+    """
     def __init__(self, expression, settings):
         self.settings = settings
         self.expression = list(expression)
@@ -38,7 +72,7 @@ class Lexer:
             # be aware, the ordering of the conditions here are extremely important.
             # we can have numbers on variables, but if the first character is a number, it must be considered as a number
             # AND NOT a keyword. If we changed the order 1234 would be an Identity and not a Number.
-            if self.expression[self.current_position] == self.settings.string_delimiter:
+            if self.expression[self.current_position] in self.settings.string_delimiters:
                 return self.__handle_string()
             elif self.expression[self.current_position] in self.settings.valid_numbers_characters:
                 return self.__handle_number()
@@ -124,7 +158,7 @@ class Lexer:
     def __handle_string(self):
         string = []
         counter = 1
-        while not self.peek_and_validate(self.settings.string_delimiter, counter): 
+        while self.peek_next_character(counter) not in self.settings.string_delimiters: 
             string.append(self.expression[self.current_position + counter])
             counter += 1
         self.advance_next_position(counter+1)

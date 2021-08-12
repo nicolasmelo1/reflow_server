@@ -198,8 +198,7 @@ class Interpreter:
     # ------------------------------------------------------------------------------------------  
     def handle_program(self, node):
         record = Record('<main>', 'PROGRAM')
-        HTTP_MODULE = builtins.library.HTTP(self.settings)._initialize_(record)
-        record.assign(HTTP_MODULE.module_name, HTTP_MODULE)
+        self.settings.initialize_builtin_library(record)
         self.global_memory.stack.push(record)
         return self.evaluate(node.block)
     # ------------------------------------------------------------------------------------------

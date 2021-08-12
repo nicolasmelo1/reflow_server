@@ -61,3 +61,12 @@ class TestFormulaView(APIView):
                 'error': 'Unknown error'
             }, status=status.HTTP_502_BAD_GATEWAY)
 
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TesteWebhook(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    def post(self, request):
+        print(request.data)
+        return Response({
+            'status': 'ok'
+        }, status=status.HTTP_200_OK)

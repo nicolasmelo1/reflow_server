@@ -150,7 +150,10 @@ class LibraryModule(Module):
                 self._setattribute_(attribute_key._initialize_(function_name), function_object)
         return self
     
+    def _documentation_(self):
+        raise Exception('You MUST provide a documentation for your formula, check how you do it in reflow_server.formula.utils.services.documentation.DocumentationService')
     
+
 class LibraryStruct(Struct):
     """
     This class is responsible for creating structs, super simple actually.

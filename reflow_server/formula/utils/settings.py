@@ -90,7 +90,7 @@ class Settings:
         """
         self.attribute_character = '.'
         self.comment_character = '#'
-        self.string_delimiter = '"'
+        self.string_delimiters = ['`','"']
         self.operation_characters = ['>' ,'<', '=', '!', '/', '+', '*', '%', '-', '^', ':']
         self.valid_numbers_characters = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         self.valid_characters_for_identity_or_keywords = [
@@ -121,3 +121,11 @@ class Settings:
             'false': context.keyword.boolean.false
         }
         self.library = context.library
+
+    def initialize_builtin_library(self, record):
+        from reflow_server.formula.utils.builtins.library.HTTP import HTTP
+        
+        HTTP_MODULE = HTTP(self)._initialize_(record)
+        #print(HTTP_MODULE._documentation_())
+        record.assign(HTTP_MODULE.module_name, HTTP_MODULE)
+    

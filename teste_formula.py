@@ -103,14 +103,25 @@ struct.c.a = "Ola"
 struct.c.a
 """
 
+teste_webhook = r"""
+response = Requisicao.post(
+    url="https://maker.ifttt.com/trigger/data_created/json/with/key/UsON56lWobTsQ_9eOXhLXytB6Csg6piJVuJDWfw-Cg",  
+    json={
+        "teste": "teste"
+    }
+)
+response.conteudo
+"""
 
 library = r"""
-headers = {
-    "Notion-Version": "2021-07-27",
-    "Authorization": "Bearer secret_KkvznlgdwRX9tTItyvX83VtWOp4jp6LiSQV0W5pBYfO"
-}
-
-response = Requisicao.requisitar(metodo="GET", endereco="https://api.notion.com/v1/users", headers=headers)
+response = Requisicao.post(
+    url="https://maker.ifttt.com/trigger/registro_atualizado_em_negocios/with/key/UsON56lWobTsQ_9eOXhLXytB6Csg6piJVuJDWfw-Cg",  
+    json={
+        "value1": "nicolasmelo12@gmail.com",
+        "value2": "Lucas Melo",
+        "value3": "nicolas.melo@reflow.com.br"
+    }
+)
 response.conteudo
 """
 functions_to_test = [

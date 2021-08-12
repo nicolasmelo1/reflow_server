@@ -373,6 +373,10 @@ PERMISSIONS = {
     ]
 }
 
+# CUSTOM FORMULA BUILTIN CONFIGURATION
+# check formula.utils.settings for reference
+FORMULA_MODULES = ['HTTP']
+
 # CUSTOM ASYNC CONFIGURATION
 # check core.utils.asynchronous file
 ASYNC_RESPONSE_MAXIMUM_CONCURRENCY_THREADS = 20
