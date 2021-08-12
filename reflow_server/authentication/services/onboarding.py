@@ -14,7 +14,7 @@ class OnboardingService(CompanyService):
     .onboard()
     """
     @transaction.atomic
-    def onboard(self, user_email, user_first_name, user_last_name, user_password, user_phone, company_name=None, shared_by=None, partner=None, discount_coupon_name=None):
+    def onboard(self, user_email, user_first_name, user_last_name, user_password, user_phone, company_name=None, shared_by=None, partner=None, discount_coupon_name=None, user_visitor_id=''):
         """
         Onboards a new user and creates a new company (aswell as a new user). Updates the billing info on the fly.
 
@@ -30,7 +30,8 @@ class OnboardingService(CompanyService):
             shared_by (str): the string of the company endpoint if it was shared by some other company (default: {None})
             partner (str): The string of the partner if the user came from a partner. (default: {None})
             discount_coupon (str): The string of the discount coupon to use.
-
+            user_visitor_id (str): The user visitor id, this is the id we set with reflow_tracking application for the user (default: '')
+        
         Returns:
             reflow_server.authentication.models.UserExtended -- returns the created user.
         """
@@ -65,7 +66,8 @@ class OnboardingService(CompanyService):
         # Sends events that the user is onboarding on our platform
         Event.register_event('user_onboarding', {
             'user_id': user.id,
-            'company_id': company.id
+            'company_id': company.id,
+            'visitor_id': user_visitor_id
         })
         
         # update billing information

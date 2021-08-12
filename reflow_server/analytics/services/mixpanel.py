@@ -72,7 +72,8 @@ class MixpanelService:
                     '$email'         : user.email
                 })
     # ------------------------------------------------------------------------------------------
-    def track_user_onboarding(self, user_id, company_id):
+    def track_user_onboarding(self, user_id, company_id, visitor_id):
+        self.mixpanel.alias(user_id, visitor_id)
         self.mixpanel.track(user_id, 'User Onboarding', {
             'company_id': company_id
         })

@@ -12,17 +12,20 @@ class AnalyticsEvents:
         """
         self.analytics_service = AnalyticsService()
     # ------------------------------------------------------------------------------------------
-    def user_onboarding(self, user_id, company_id):
+    def user_onboarding(self, user_id, company_id, visitor_id):
         """
         This event is fired whenever a new user finishes the onboarding.
 
         Args:
             user_id (int): A UserExtended instance id.
             company_id (int): A Company instance id.
+            visitor_id (str): This is a reflow_visitor_id that is defined in reflow_tracking application that tracks
+                              the user before he is a user of reflow, so check itbefore everything
         """
         self.analytics_service.register_event('user_onboarding', 
             user_id=user_id, 
-            company_id=company_id
+            company_id=company_id,
+            visitor_id=visitor_id
         )
     # ------------------------------------------------------------------------------------------
     def user_login(self, user_id, company_id):

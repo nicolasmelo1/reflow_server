@@ -65,6 +65,7 @@ class OnboardingSerializer(serializers.Serializer):
     user_last_name = serializers.CharField(required=True)
     user_email = serializers.CharField(required=True)
     user_password = serializers.CharField(required=True)
+    user_visitor_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def save(self):
         onboarding_service = OnboardingService()
@@ -77,7 +78,8 @@ class OnboardingSerializer(serializers.Serializer):
             self.validated_data.get('company_name', None),
             self.validated_data.get('shared_by', None),
             self.validated_data.get('partner', None),
-            self.validated_data.get('discount_coupon', None)
+            self.validated_data.get('discount_coupon', None),
+            self.validated_data.get('user_visitor_id', '')
         )
         return user
 

@@ -221,7 +221,7 @@ REST_FRAMEWORK = {
 # check reflow_server.core.events file for reference
 EVENTS = {
     'user_onboarding': {
-        'data_parameters': ['user_id', 'company_id'],
+        'data_parameters': ['user_id', 'company_id', 'visitor_id'],
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
     },
     'user_login': {
