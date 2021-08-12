@@ -46,7 +46,7 @@ class MixpanelService:
         if handler:
             if event_name not in ['formulary_updated', 'field_updated']:
                 formulary_was_updated.pop(event_data.get('user_id'), None)
-            self.create_or_update_user_profile(event_data.get('user_id'))
+            self.create_or_update_user_profile(event_data.get('user_id', None))
             handler(**event_data)
             return True
         else:
@@ -62,8 +62,7 @@ class MixpanelService:
         Args:
             user_id: The id of the user you want to save on mixpanel
         """
-        if user_id and user_profile_updated.get(user_id, False) == False:
-            user_profile_updated[user_id] = True
+        if user_id != None and user_profile_updated.get(user_id, False) == False:
             user = UserExtended.objects.filter(id=user_id).first()
             if user:
                 self.mixpanel.people_set(user_id, {
@@ -71,6 +70,7 @@ class MixpanelService:
                     '$last_name'     : user.last_name,
                     '$email'         : user.email
                 })
+                user_profile_updated[user_id] = True
     # ------------------------------------------------------------------------------------------
     def track_user_onboarding(self, user_id, company_id, visitor_id):
         self.mixpanel.alias(user_id, visitor_id)
