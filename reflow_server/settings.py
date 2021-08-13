@@ -198,7 +198,6 @@ STATICFILES_DIRS = [
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
-
 # Non Default django configutations (Channels, Rest Framework, Cors Headers, etc.)
 # https://www.django-rest-framework.org/api-guide/settings/
 # https://channels.readthedocs.io/en/latest/tutorial/index.html
@@ -376,6 +375,7 @@ PERMISSIONS = {
 # CUSTOM FORMULA BUILTIN CONFIGURATION
 # check formula.utils.settings for reference
 FORMULA_MODULES = ['HTTP']
+FORMULA_BUILTIN_MODULES_PATH = 'reflow_server.formula.utils.builtins.library'
 
 # CUSTOM ASYNC CONFIGURATION
 # check core.utils.asynchronous file

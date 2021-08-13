@@ -4,9 +4,6 @@ from reflow_server.formula.utils.builtins import objects as flow_objects
 
 import requests
 
-import urllib.error
-import urllib.request
-import urllib.parse
 import json
 
 
@@ -40,24 +37,24 @@ class HTTP(LibraryModule):
         })
 
     @functionmethod
-    def post(url, data={}, json={}, headers={}, **kwargs):
+    def post(url, data={}, json_data={}, headers={}, **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method': 'POST',
             'url': url,
             'data': data,
-            'json_data': json,
+            'json_data': json_data,
             'headers': headers
         })
 
     @functionmethod
-    def put(url, data, json, headers={}, **kwargs):
+    def put(url, data, json_data, headers={}, **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method': 'PUT',
             'url': url,
             'data': data,
-            'json_data': json,
+            'json_data': json_data,
             'headers': headers
         })
 
@@ -107,96 +104,94 @@ class HTTP(LibraryModule):
         return response
     
     def _documentation_(self):
+        """
+        This is the documentation of the formula, this is required because even if we do not translate the formula documentation directly, we need to have
+        any default value so users can know what to do and translators can understand how to translate the formula.
+        """
         english_url_definition = {
-            'description': 'The url you will make the request to.',
-            'type': 'String'
+            'description': 'The url you will make the request to.'
         }
         english_parameters_definition = {
             'description': 'The parameters to send in the url. For example http://example.com?status=perdido. This is the "status=perdido" part',
-            'type': 'Dictionary'
+            'is_required': False
         }
         english_headers_definition = {
             'description': 'This is more advanced, and it is the data you send in the header of the request',
-            'type': 'Dictionary'
+            'is_required': False
         }
         english_data_definition = {
             'description': 'This data is form-encoded, this means it is not a json, this is similar to a formulary data you are sending',
-            'type': 'Dictionary'
+            'is_required': False
         }
         english_json_definition = {
-            'description': 'This data is form-encoded, this means it is not a json, this is similar to a formulary data you are sending',
-            'type': 'Dictionary'
+            'description': 'This is the json data you want to send',
+            'is_required': False
         }
         return {
-            'english': {
-                'definition': 'Module for making http requests to external software outside of reflow',
-                'methods': {
-                    'get': {
-                        'description': 'Makes GET requests for a given url',
-                        'attributes': {
-                            'url': english_url_definition,
-                            'parameters': english_parameters_definition,
-                            'headers': english_headers_definition
-                        }
-                    },
-                    'delete': {
-                        'description': 'Makes DELETE requests for a given url',
-                        'attributes': {
-                            'url': english_url_definition,
-                            'parameters': english_parameters_definition,
-                            'headers': english_headers_definition
-                        }
-                    },
-                    'post': {
-                        'description': 'Makes POST requests for a given url with some data on the JSON format or Form encoded.',
-                        'attributes': {
-                            'url': english_url_definition,
-                            'data': english_data_definition,
-                            'json_data': english_json_definition,
-                            'headers': english_headers_definition
-                        }
-                    },
-                    'put': {
-                        'description': 'Makes PUT requests for a given url with some data on the JSON format or Form encoded.',
-                        'attributes': {
-                            'url': english_url_definition,
-                            'data': english_data_definition,
-                            'json_data': english_json_definition,
-                            'headers': english_headers_definition
-                        }
-                    },
-                    'request': {
-                        'description': 'Created for advanced users that are in a hole other level, like you. Makes a request for any method you like for a given url.',
-                        'attributes': {
-                            'method': {
-                                'description': 'A "PUT, POST, GET, DELETE, OPTION, etc." method type.',
-                                'type': 'String'
-                            },
-                            'url': english_url_definition,
-                            'data': english_data_definition,
-                            'json_data': english_json_definition,
-                            'headers': english_headers_definition
-                        }
+            'description': 'Module for making http requests to external software outside of reflow',
+            'methods': {
+                'get': {
+                    'description': 'Makes GET requests for a given url',
+                    'attributes': {
+                        'url': english_url_definition,
+                        'parameters': english_parameters_definition,
+                        'headers': english_headers_definition
                     }
                 },
-                'structs': {
-                    'HTTPResponse': {
-                        'description': 'After you make a request this Struct is returned so you can use to query your data. So for example, after this code runs '
-                                       '`response = HTTP.get("www.reflow.com.br")`. You can view the content of the page by making `response.content`, or the status code'
-                                       'by making `response.status_code`',
-                        'attributes': {
-                            'status_code': {
-                                'description': 'The HTTP status code of the request',
-                                'type': 'Integer'
-                            },
-                            'content': {
-                                'description': 'This is a string of the content recieved. If the requests sends a string you should use this',
-                                'type': 'String'
-                            },
-                            'json': {
-                                'description': 'The json data of the request made, this will be generally used for most APIs',
-                                'type': 'Dictionary'
-                            }
+                'delete': {
+                    'description': 'Makes DELETE requests for a given url',
+                    'attributes': {
+                        'url': english_url_definition,
+                        'parameters': english_parameters_definition,
+                        'headers': english_headers_definition
+                    }
+                },
+                'post': {
+                    'description': 'Makes POST requests for a given url with some data on the JSON format or Form encoded.',
+                    'attributes': {
+                        'url': english_url_definition,
+                        'data': english_data_definition,
+                        'json_data': english_json_definition,
+                        'headers': english_headers_definition
+                    }
+                },
+                'put': {
+                    'description': 'Makes PUT requests for a given url with some data on the JSON format or Form encoded.',
+                    'attributes': {
+                        'url': english_url_definition,
+                        'data': english_data_definition,
+                        'json_data': english_json_definition,
+                        'headers': english_headers_definition
+                    }
+                },
+                'request': {
+                    'description': 'Created for advanced users that are in a hole other level, like you. Makes a request for any method you like for a given url.',
+                    'attributes': {
+                        'method': {
+                            'description': 'A "PUT, POST, GET, DELETE, OPTION, etc." method type string.',
+                        },
+                        'url': english_url_definition,
+                        'parameters': english_parameters_definition,
+                        'data': english_data_definition,
+                        'json_data': english_json_definition,
+                        'headers': english_headers_definition
+                    }
+                }
+            },
+            'structs': {
+                'HTTPResponse': {
+                    'description': 'After you make a request this Struct is returned so you can use to query your data. So for example, after this code runs '
+                                    '`response = HTTP.get("www.reflow.com.br")`. You can view the content of the page by making `response.content`, or the status code'
+                                    'by making `response.status_code`',
+                    'attributes': {
+                        'status_code': {
+                            'description': 'The HTTP status code of the request',
+                        },
+                        'content': {
+                            'description': 'This is a string of the content recieved. If the requests sends a string you should use this',
+                        },
+                        'json': {
+                            'description': 'The json data of the request made, this will be generally used for most APIs',
                         }
                     }
                 }

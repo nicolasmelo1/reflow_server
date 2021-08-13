@@ -4,6 +4,7 @@ from reflow_server.core.events import Event
 from reflow_server.authentication.models import Company, UserExtended, ProfileType, VisualizationType
 from reflow_server.authentication.services.company import CompanyService
 from reflow_server.billing.services import BillingService
+from reflow_server.formula.services.formula import FormulaService
 
 
 class OnboardingService(CompanyService):
@@ -72,5 +73,6 @@ class OnboardingService(CompanyService):
         
         # update billing information
         BillingService.create_on_onboarding(company.id, user.id, partner, discount_coupon_name)
-
+        # updates formula context
+        FormulaService.update_company_formula_context(company)
         return user

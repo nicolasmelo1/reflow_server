@@ -3,7 +3,7 @@ from django.conf import settings
 from reflow_server.core.utils.storage import Bucket, BucketUploadException
 from reflow_server.data.services.formulary.data import PostSaveData
 from reflow_server.data.models import FormValue, DynamicForm, Attachments
-from reflow_server.formula.services import FormulaService
+from reflow_server.formula.services.formula import FormulaService
 from reflow_server.data.services.attachments import AttachmentService
 
 import json

@@ -7,7 +7,7 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.data.models import DynamicForm
-from reflow_server.formula.services import FormulaService, FormulaVariables
+from reflow_server.formula.services.formula import FormulaService, FormulaVariables
 from reflow_server.formula.serializers import FormulaSerializer
 
 
@@ -52,7 +52,7 @@ class TestFormulaView(APIView):
                 return Response({
                     'status': 'ok',
                     'data': {
-                        'result': str(value.value._representation_()) if hasattr(value.value, '_representation_') else ''
+                        'result': str(value.value.value) if hasattr(value.value, 'value') else ''
                     }
                 }, status=status.HTTP_200_OK)
         else:
@@ -66,7 +66,6 @@ class TestFormulaView(APIView):
 class TesteWebhook(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     def post(self, request):
-        print(request.data)
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)

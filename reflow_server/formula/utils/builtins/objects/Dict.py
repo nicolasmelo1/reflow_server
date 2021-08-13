@@ -73,7 +73,7 @@ class Dict(Object):
             return self
         else:
             raise Exception('Cannot remove {}'.format(obj._representation_()))
-        
+    # ------------------------------------------------------------------------------------------
     def _representation_(self):
         dictionary_response = {}
 

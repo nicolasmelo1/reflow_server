@@ -338,5 +338,8 @@ class Integer(Object):
     def _representation_(self):
         return int(self.value)
     # ------------------------------------------------------------------------------------------
+    def _safe_representation_(self):
+        return int(self.value)
+    # ------------------------------------------------------------------------------------------
     def _hash_(self):   
         return int(self.value)

@@ -1,5 +1,8 @@
 from reflow_server.formula.utils.context import Context
 
+import re
+
+
 class TokenType:
     ASSIGN='ASSIGN'
     INTEGER='INTEGER'
@@ -93,11 +96,6 @@ class Settings:
         self.string_delimiters = ['`','"']
         self.operation_characters = ['>' ,'<', '=', '!', '/', '+', '*', '%', '-', '^', ':']
         self.valid_numbers_characters = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        self.valid_characters_for_identity_or_keywords = [
-            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-            '_'
-        ] + self.valid_numbers_characters
         self.valid_braces = ['{', '}', '(', ')', '[', ']']
         self.positional_argument_separator = context.positional_argument_separator
         self.decimal_point_character = context.decimal_point_separator
@@ -122,10 +120,13 @@ class Settings:
         }
         self.library = context.library
 
+    def validate_character_for_identity_or_keywords(self, character, is_first_character=False):
+        pattern = re.compile('(?!\d)([\w_])' if is_first_character else'[\w_]')
+        return len(pattern.findall(character)) > 0 if isinstance(character, str) else False
+
     def initialize_builtin_library(self, record):
         from reflow_server.formula.utils.builtins.library.HTTP import HTTP
         
         HTTP_MODULE = HTTP(self)._initialize_(record)
-        #print(HTTP_MODULE._documentation_())
         record.assign(HTTP_MODULE.module_name, HTTP_MODULE)
     

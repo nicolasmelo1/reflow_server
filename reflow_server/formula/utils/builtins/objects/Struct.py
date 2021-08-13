@@ -37,6 +37,3 @@ class Struct(Object):
      
     def _setattribute_(self, variable, element):
         return self.attributes.append(variable._hash_(), variable._representation_(), element)
-
-    def _representation_(self):
-        return self

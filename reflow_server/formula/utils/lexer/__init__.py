@@ -76,7 +76,7 @@ class Lexer:
                 return self.__handle_string()
             elif self.expression[self.current_position] in self.settings.valid_numbers_characters:
                 return self.__handle_number()
-            elif self.expression[self.current_position] in self.settings.valid_characters_for_identity_or_keywords:
+            elif self.settings.validate_character_for_identity_or_keywords(self.expression[self.current_position]):
                 return self.__handle_keyword()
             elif self.expression[self.current_position] in self.settings.operation_characters:
                 return self.__handle_operation()
@@ -176,7 +176,7 @@ class Lexer:
         keyword = []
         counter = 0
 
-        while self.peek_next_character(counter) in self.settings.valid_characters_for_identity_or_keywords: 
+        while self.settings.validate_character_for_identity_or_keywords(self.peek_next_character(counter)): 
             keyword.append(self.expression[self.current_position+counter])
             counter += 1
 

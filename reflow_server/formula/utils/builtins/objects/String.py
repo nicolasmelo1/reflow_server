@@ -171,6 +171,9 @@ class String(Object):
     def _representation_(self):
         return str(self.value)
     # ------------------------------------------------------------------------------------------
+    def _safe_representation_(self):
+        return str(self.value)
+    # ------------------------------------------------------------------------------------------
     def _hash_(self):
         # reference: https://www.geeksforgeeks.org/string-hashing-using-polynomial-rolling-hash-function/#:~:text=String%20hashing%20is%20the%20way,strings%20having%20the%20same%20hash).
         string = str(self.value)

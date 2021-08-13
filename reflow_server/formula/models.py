@@ -44,7 +44,7 @@ class FormulaContextAttributeType(models.Model):
 
 class FormulaBuiltinLibraryModuleType(models.Model):
     """
-    This is not used by anything actually just for sake of organization in the `FormulaContextBuiltinLibraryType`.
+    This is not used by anything actually just for sake of organization in the `FormulaContextBuiltinLibrary`.
     You can define all of the modules you support translation to here. Those are the MODULES, only module names.
 
     You will study more here, but all builtin modules is, as the name suggests, modules. So you will have lots of handy 
@@ -69,7 +69,7 @@ class FormulaBuiltinLibraryModuleAttributeType(models.Model):
     struct - The structs that this module can return (is related to a module)
     struct_attributes - The attributes of the returned struct (is related to a struct)
 
-    This is better explained in `FormulaContextBuiltinLibraryType` model so refer to it's documentation.
+    This is better explained in `FormulaContextBuiltinLibrary` model so refer to it's documentation.
     """
     attribute_name = models.CharField(max_length=240)
     related_to = models.ForeignKey('self', models.CASCADE, blank=True, null=True, db_index=True,
@@ -79,7 +79,7 @@ class FormulaBuiltinLibraryModuleAttributeType(models.Model):
         db_table = 'formula_builtin_library_module_attribute_type'
 
 
-class FormulaContextBuiltinLibraryType(models.Model):
+class FormulaContextBuiltinLibrary(models.Model):
     """
     This might be confusing at first but it is basically how we can change the translation of everything in one single table
     instead of making multiple tables and changing them dynamically.
@@ -157,7 +157,7 @@ class FormulaContextBuiltinLibraryType(models.Model):
     original_value = models.TextField()
     translation = models.TextField()
     description = models.TextField(default='', blank=True)
-    is_optional_attribute = models.BooleanField(default=False)
+    is_required_attribute = models.BooleanField(default=True)
     related_to = models.ForeignKey(
         'self', 
         on_delete=models.CASCADE, 

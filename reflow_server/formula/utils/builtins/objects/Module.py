@@ -25,6 +25,3 @@ class Module(Object):
 
     def _getattribute_(self, variable):
         return self.attributes.search(variable._hash_(), variable._representation_()).value
-    
-    def _representation_(self):
-        return self
