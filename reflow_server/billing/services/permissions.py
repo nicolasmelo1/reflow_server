@@ -1,13 +1,10 @@
 from django.conf import settings
-from django.db.models import Sum
 from django.utils import timezone
 
 from reflow_server.authentication.models import Company
 from reflow_server.billing.models import CompanyBilling
-from reflow_server.data.models import Attachments
 
 from datetime import timedelta
-import functools
 
 
 class BillingPermissionsService:

@@ -25,7 +25,7 @@ services:
   reflow_server:
     tty: true
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: bash -c "python manage.py pre_runserver && python manage.py runserver 0.0.0.0:8000"
     environment:
       - CONFIG=development
       - IS_DOCKER_COMPOSE=True

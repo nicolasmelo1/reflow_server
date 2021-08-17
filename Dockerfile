@@ -9,9 +9,7 @@ ADD requirements.txt /code/
 ADD scripts/development/docker-entrypoint.sh /usr/local/bin/
 
 RUN pip install -r requirements.txt &&\
-    chmod +x /usr/local/bin/docker-entrypoint.sh &&\
-    apt-get update &&\
-    apt-get install -y nodejs
+    chmod +x /usr/local/bin/docker-entrypoint.sh
 
 COPY . /code/
 EXPOSE 8000

@@ -1,8 +1,12 @@
+from reflow_server.billing.models import CompanyBilling
 from django.conf import settings
+from django.utils import timezone
 
-from reflow_server.authentication.models import UserExtended
+from reflow_server.authentication.models import Company, UserExtended
 
 from mixpanel import Mixpanel
+
+from datetime import timedelta
 
 # Formulary_Updated and field_updated events fire for every type of the user
 # this is not ideal for the Analytics user but it is for our logging system.
@@ -10,6 +14,8 @@ from mixpanel import Mixpanel
 # The first key is the user_id, the second is the company_id and the last is the form_id
 formulary_was_updated = {}
 user_profile_updated = {}
+trial_company_ids = set()
+paying_company_ids = set()
 
 class MixpanelService:
     def __init__(self):
@@ -52,6 +58,28 @@ class MixpanelService:
         else:
             return False
     # ------------------------------------------------------------------------------------------
+    def define_company_type(self, company_id=None):
+        if company_id == None:
+            return 'lead'
+        if company_id in trial_company_ids:
+            return 'trial'
+        elif company_id in paying_company_ids:
+            return 'paying'
+        else:
+            # the company_id is not in trial_company_ids nor paying_company_ids variable, so let's define what the company is
+            company_billing = CompanyBilling.objects.filter(company_id=company_id).first()
+            if company_billing:
+                is_trial = company_billing.is_paying_company == False and company_billing.is_supercompany == False
+                if is_trial:
+                    trial_company_ids.add(company_id)
+                    return self.define_company_type(company_id)
+                else:
+                    paying_company_ids.add(company_id)
+                    return self.define_company_type(company_id)
+            else:
+                # the user is not a reflow user
+                return 'lead'
+    # ------------------------------------------------------------------------------------------
     def create_or_update_user_profile(self, user_id=None):
         """
         Every user that we have in our platform should be also saved inside of mixpanel
@@ -69,19 +97,21 @@ class MixpanelService:
                     '$first_name'    : user.first_name,
                     '$last_name'     : user.last_name,
                     '$email'         : user.email,
-                    '$phone'         : user.phone
+                    '$phone'         : user.phone,
                 })
                 user_profile_updated[user_id] = True
     # ------------------------------------------------------------------------------------------
     def track_user_onboarding(self, user_id, company_id, visitor_id):
         self.mixpanel.alias(user_id, visitor_id)
         self.mixpanel.track(user_id, 'User Onboarding', {
-            'company_id': company_id
+            'company_id': company_id,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_user_login(self, user_id, company_id):
         self.mixpanel.track(user_id, 'User Login', {
-            'company_id': company_id
+            'company_id': company_id,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_user_refresh_token(self, user_id, company_id):
@@ -92,7 +122,8 @@ class MixpanelService:
             'company_id': company_id,
             'form_id': form_id,
             'form_record_id': form_data_id,
-            'is_public': is_public
+            'is_public': is_public,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_formulary_data_udated(self, user_id, company_id, form_id, form_data_id, is_public):
@@ -100,20 +131,23 @@ class MixpanelService:
             'company_id': company_id,
             'form_id': form_id,
             'form_record_id': form_data_id,
-            'is_public': is_public
+            'is_public': is_public,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_formulary_created(self, user_id, company_id, form_id):
         self.mixpanel.track(user_id, 'Formulary Created', {
             'company_id': company_id,
-            'form_id': form_id
+            'form_id': form_id,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_formulary_updated(self, user_id, company_id, form_id):
         if formulary_was_updated.get(user_id, {}).get(company_id, {}).get(form_id, False) == False:
             self.mixpanel.track(user_id, 'Formulary Updated', {
                 'company_id': company_id,
-                'form_id': form_id
+                'form_id': form_id,
+                'company_type': self.define_company_type(user_id)
             })
             formulary_was_updated[user_id] = {
                 company_id: {
@@ -122,15 +156,20 @@ class MixpanelService:
             }
     # ------------------------------------------------------------------------------------------
     def track_new_paying_company(self, user_id, company_id, total_paying_value):
+        trial_company_ids.remove(company_id)
+        paying_company_ids.add(company_id)
+
         self.mixpanel.track(user_id, 'Company Started Paying', {
             'company_id': company_id,
-            'total_paying_value': total_paying_value
+            'total_paying_value': total_paying_value,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_updated_billing_information(self, user_id, company_id, total_paying_value):
         self.mixpanel.track('Company Updated Billing Information', {
             'user_id': user_id,
             'company_id': company_id,
+            'company_type': self.define_company_type(user_id),
             'total_paying_value': total_paying_value
         })
     # ------------------------------------------------------------------------------------------
@@ -143,6 +182,7 @@ class MixpanelService:
     def track_theme_select(self, user_id, company_id, theme_id):
         self.mixpanel.track(user_id, 'Selected Theme', {
             'company_id': company_id,
+            'company_type': self.define_company_type(user_id),
             'theme_id': theme_id
         })
     # ------------------------------------------------------------------------------------------
@@ -156,14 +196,16 @@ class MixpanelService:
         self.mixpanel.track(user_id, 'PDF Downloaded', {
             'company_id': company_id,
             'form_id': form_id,
-            'pdf_template_id': pdf_template_id
+            'pdf_template_id': pdf_template_id,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_pdf_template_updated(self, user_id, company_id, form_id, pdf_template_id):
         self.mixpanel.track(user_id, 'PDF Template Updated', {
             'company_id': company_id,
             'form_id': form_id,
-            'pdf_template_id': pdf_template_id
+            'pdf_template_id': pdf_template_id,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_pdf_template_created(self, user_id, company_id, form_id, pdf_template_id):
@@ -174,7 +216,8 @@ class MixpanelService:
             'company_id': company_id,
             'form_id': form_id,
             'kanban_card_id': kanban_card_id,
-            'kanban_dimension_id': kanban_dimension_id
+            'kanban_dimension_id': kanban_dimension_id,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_kanban_default_settings_created(self, user_id, company_id, form_id, kanban_card_id, kanban_dimension_id):
@@ -183,23 +226,27 @@ class MixpanelService:
     def track_kanban_loaded(self, user_id, company_id, form_id):
         self.mixpanel.track(user_id, 'Kanban Eyeballing', {
             'company_id': company_id,
-            'form_id': form_id
+            'form_id': form_id,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_listing_loaded(self, user_id, company_id, form_id):
         self.mixpanel.track(user_id, 'Listing Eyeballing', {
             'company_id': company_id,
-            'form_id': form_id
+            'form_id': form_id,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_dashboard_loaded(self, user_id, company_id, form_id):
         self.mixpanel.track(user_id, 'Dashboard Eyeballing', {
             'company_id': company_id,
-            'form_id': form_id
+            'form_id': form_id,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_notification_loaded(self, user_id, company_id):
         self.mixpanel.track(user_id, 'Notification Eyeballing', {
-            'company_id': company_id
+            'company_id': company_id,
+            'company_type': self.define_company_type(user_id)
         })
     # ------------------------------------------------------------------------------------------

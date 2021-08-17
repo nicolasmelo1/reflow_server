@@ -1,3 +1,5 @@
+from django.conf import settings 
+
 from reflow_server.formula.utils.context import Context
 
 import re
@@ -125,8 +127,17 @@ class Settings:
         return len(pattern.findall(character)) > 0 if isinstance(character, str) else False
 
     def initialize_builtin_library(self, record):
-        from reflow_server.formula.utils.builtins.library.HTTP import HTTP
-        
-        HTTP_MODULE = HTTP(self)._initialize_(record)
-        record.assign(HTTP_MODULE.module_name, HTTP_MODULE)
+        """
+        Responsible for initializing the library so users can use our builtin library in their scripts.
+
+        Args:
+            record (reflow_server.formula.utils.memory.Record): The record of the program which is responsible for holding all
+                                                                of the variables.
+        """
+        for formula_module_name in settings.FORMULA_MODULES:
+            path = "%s.%s" % (settings.FORMULA_BUILTIN_MODULES_PATH, formula_module_name)
+            module = __import__(path, fromlist=[formula_module_name])
+            kls = getattr(module, formula_module_name)
+            formula_builtin_module = kls(self)._initialize_(record)
+            record.assign(formula_builtin_module.module_name, formula_builtin_module)
     

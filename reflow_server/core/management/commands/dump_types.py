@@ -3,13 +3,11 @@ from django.core.management.base import BaseCommand
 from django.apps import apps
 
 import os
-import subprocess
 import re
 
 
 class Command(BaseCommand):
     help = "This command dumps all of the model `types` to fixtures/required_data.json"
-
     def handle(self, *args, **options):
         # get project name where all of our applications live in 
         settings_root = re.sub(r'urls$','', settings.ROOT_URLCONF)

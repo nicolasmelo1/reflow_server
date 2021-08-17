@@ -5,8 +5,16 @@ from reflow_server.formula.models import FormulaContextBuiltinLibrary, FormulaBu
 
 
 class DocumentationService:
-
     def __init__(self):
+        """
+        This is the service responsible for documenting the formulas. First i was thinking about documenting on all languages
+        we support and will support. But later i found that it's not a programmers responsability to translate everything. So we
+        default this documentation to a default language on which is english. So every programmer should provide a documentation at
+        least in english.
+
+        This is supposed to run when you start your application and only that, so everytime you run your app this run and creates or
+        updates the documentation for the formulas.
+        """
         builtin_modules = FormulaBuiltinLibraryModuleType.objects.all()
         self.__builtin_modules = { builtin_module.module_name: builtin_module.id for builtin_module in builtin_modules }
         attribute_context_types = FormulaBuiltinLibraryModuleAttributeType.objects.all()
@@ -15,6 +23,11 @@ class DocumentationService:
         self.__context_types = { context_type.name: context_type.id for context_type in context_types }
 
     def update_documentation(self):
+        """
+        This is the function used to update the documentation for the formulas, be aware that this is the method you run when you
+        start the application, the idea is simple: When we run the command we get all of the formulas in `FORMULA_MODULES` setting and 
+        creates the documentation for it in the database.
+        """
         for formula_module_name in settings.FORMULA_MODULES:
             path = "%s.%s" % (settings.FORMULA_BUILTIN_MODULES_PATH, formula_module_name)
             module = __import__(path, fromlist=[formula_module_name])
@@ -146,6 +159,7 @@ class DocumentationService:
                 )
                 added_or_updated_formula_context_builtin_library_type.append(struct_instance.id)
 
+        # deletes the translation that was not created or updated.
         FormulaContextBuiltinLibrary.objects\
             .filter(context_type_id=self.__context_types['default'], module_type_id=module_instance_id)\
             .exclude(id__in=added_or_updated_formula_context_builtin_library_type)\
