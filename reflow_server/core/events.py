@@ -87,7 +87,7 @@ class Event:
                     raise KeyError("'{kls_name}' has no method named '{event_name}'".format(kls_name=kls, event_name=event_name))
                 
         else:
-            raise KeyError("'{event_name}' was not defined in 'EVENT' setting in 'settings.py'".format(event_name=event_name))
+            raise ValueError("'{event_name}' was not defined in 'EVENT' setting in 'settings.py'".format(event_name=event_name))
     
     @staticmethod
     def validate_data(event_name, data):

@@ -219,6 +219,10 @@ REST_FRAMEWORK = {
 # CUSTOM EVENTS CONFIGURATION
 # check reflow_server.core.events file for reference
 EVENTS = {
+    'user_started_onboarding': {
+        'data_parameters': ['visitor_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
     'user_onboarding': {
         'data_parameters': ['user_id', 'company_id', 'visitor_id'],
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents']

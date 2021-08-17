@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 
+
 class Cors:
     """
     Class created for handling CORS. Like explained in reflow_server.core.middleware.CorsMiddleware i was using
@@ -18,11 +19,11 @@ class Cors:
 
     def is_preflight(self, request):
         """
-        The stuff starts mostly here if you see. With CORS the browser AUTOMATICALLY sends an Option request
+        The stuff starts mostly here if you see. With CORS the browser AUTOMATICALLY sends an OPTION request
         to the server to see all of the cors configuration from the server.
 
         Args:
-            request (django.Request): The Request object from django recieved on the middleware.
+            request (django.http.HttpRequest): The Request object from django recieved on the middleware.
 
         Returns:
             bool: If it is a pre flight (so the browser checking for our backend configuration) we return true, 
@@ -34,6 +35,16 @@ class Cors:
             return False
 
     def handle_preflight(self, request):
+        """
+        When the request is the preflight option request, what we do is send an empty response wthout the actual data so
+        it's faster to send the response.
+
+        Args:
+            request (django.http.HttpRequest): The Request object from django recieved on the middleware.
+
+        Returns:
+            django.http.HttpResponse: Returns an HttpResponse object to the client
+        """
         response = HttpResponse()
         response["Content-Length"] = "0"
         response[self.ACCESS_CONTROL_MAX_AGE] = self.DEFAULT_CORS_PREFLIGHT_MAX_AGE

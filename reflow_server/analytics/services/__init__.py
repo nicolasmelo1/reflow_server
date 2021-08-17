@@ -4,10 +4,35 @@ from reflow_server.core.utils.asynchronous import RunAsyncFunction
 from reflow_server.analytics.models import TypeOfEvent, Event, EventData
 from reflow_server.analytics.services.mixpanel import MixpanelService
 
+import collections
+
 
 class AnalyticsService:
     def __init__(self):
         self.mixpanel_service = MixpanelService()
+    # ------------------------------------------------------------------------------------------
+    def format_request_event(self, event_data, parent_key='', separator='_'):
+        """
+        Formats the data of the event of a request. Since we don't trust that the front-end will give us the formatted data
+        we need to format it. (yeah, i don't trust anyone, not even myself https://i.kym-cdn.com/entries/icons/facebook/000/017/046/BptVE1JIEAAA3dT.jpg)
+
+        Reference: https://stackoverflow.com/a/6027615
+
+        Args:
+            event_name (str): The name of the event. This is one of the keys in 'EVENTS' setting in `settings.py`.
+            event_data (dict): The data of the event, the keys are defined in 'EVENTS' setting with the 'data_parameters' key.
+        
+        Returns:
+            dict: Returns a formated dict
+        """
+        items = []
+        for key, value in event_data.items():
+            new_key = parent_key + separator + key if parent_key != '' else key
+            if isinstance(value, collections.MutableMapping):
+                items.extend(self.format_request_event(value, new_key, separator=separator).items())
+            else:
+                items.append((new_key, value))
+        return dict(items)
     # ------------------------------------------------------------------------------------------
     def dispatch_to_mixpanel(self, event_name, event_data):
         """

@@ -77,8 +77,8 @@ class MixpanelService:
                     paying_company_ids.add(company_id)
                     return self.define_company_type(company_id)
             else:
-                # the user is not a reflow user
-                return 'lead'
+                # the company is not a reflow company
+                return self.define_company_type(None)
     # ------------------------------------------------------------------------------------------
     def create_or_update_user_profile(self, user_id=None):
         """
@@ -100,6 +100,9 @@ class MixpanelService:
                     '$phone'         : user.phone,
                 })
                 user_profile_updated[user_id] = True
+    # ------------------------------------------------------------------------------------------
+    def track_user_started_onboarding(self, visitor_id):
+        self.mixpanel.track(visitor_id, 'User Started Onboarding')
     # ------------------------------------------------------------------------------------------
     def track_user_onboarding(self, user_id, company_id, visitor_id):
         self.mixpanel.alias(user_id, visitor_id)
