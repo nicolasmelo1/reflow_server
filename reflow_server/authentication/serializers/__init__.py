@@ -23,10 +23,11 @@ class LoginSerializer(serializers.Serializer):
 
     def save(self):
         user = authenticate(username=self.validated_data['email'], password=self.validated_data['password'])
-        Event.register_event('user_login', {
-            'user_id': user.id,
-            'company_id': user.company_id
-        })
+        if user:
+            Event.register_event('user_login', {
+                'user_id': user.id,
+                'company_id': user.company_id
+            })
         return user
 
 

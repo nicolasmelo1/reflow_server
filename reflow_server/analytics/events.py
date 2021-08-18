@@ -208,16 +208,18 @@ class AnalyticsEvents:
             total_paying_value=total_paying_value
         )
     # ------------------------------------------------------------------------------------------
-    def removed_old_draft(self, company_id, draft_id, draft_is_public):
+    def removed_old_draft(self, user_id, company_id, draft_id, draft_is_public):
         """
         When the worker removes an old draft from the database.
 
         Args:
+            user_id (int): The user instance id.
             company_id (int): The company of where the draft was removed.
             draft_id (int): The draft id that was removed.
             draft_is_public (bool): If a public user has added a draft defines if the draft removes was a public draft (for anonymous users).
         """
         self.analytics_service.register_event('removed_old_draft', 
+            user_id=user_id,
             company_id=company_id,
             draft_id=draft_id,
             draft_is_public=draft_is_public

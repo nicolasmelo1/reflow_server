@@ -3,7 +3,8 @@ from django.db import transaction
 from reflow_server.core.events import Event
 from reflow_server.formulary.models import Field, Form
 from reflow_server.authentication.models import UserExtended
-from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable
+from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable, \
+    PreNotification
 from reflow_server.notification.services.pre_notification import PreNotificationService
 
 import re
