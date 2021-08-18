@@ -37,6 +37,51 @@ class DocumentationService:
             self.document(formula_module_name, module_documentation)
 
     def document(self, module_name, documentation):
+        """
+        Document the formulas to the users, the required translation and documentation is only english since this
+        is the default language we are using. For portuguese and other languages we translate everything by hand.
+
+        Args:
+            module_name (str): The name of the formula.
+            documentation (dict): Please, follow the following format:
+            >>> {
+                'description' (str): The description of the module
+                'translation' (str): The translation of the module. Defaults to the module_name
+                'struct_parameters': {
+                    '<struct_parameter_name>': {
+                        'description' (str): The description of the struct parameter,
+                        'translation' (str): The translation of the struct parameter. Defaults to the struct_parameter_name,
+                        'is_required' (bool): True if this struct_parameter is required or False if optional. Defaults to True.
+                    }
+                },
+                'methods': {
+                    '<method_name>': {
+                        'description' (str): The description of the method,
+                        'translation' (str): The translation of the method. Defaults to the method_name,
+                        'attributes' : {
+                            '<method_parameter_name>': {
+                                'description' (str): The description of the method.
+                                'translation' (str): The translation of the method. Defaults to the method_name.
+                                'is_required' (bool): True if this method_parameter is required or False if optional. Defaults to True.
+                            }
+                        }
+                    }
+                },
+                'structs': {
+                    '<struct_name>': {
+                        'description' (str): The description of the struct,
+                        'translation' (str): The translation of the struct. Defaults to the struct_name,
+                        'attributes': {
+                            '<struct_attribute_name>': {
+                                'description' (str): The description of the struct_attribute.
+                                'translation' (str): The translation of the struct_attribute. Defaults to the struct_attribute_name.
+                                'is_required' (bool): True if this struct_attribute is required or False if optional. Defaults to True.
+                            }
+                        }
+                    }
+                }
+            }
+        """
         added_or_updated_formula_context_builtin_library_type = []
         
         if module_name not in self.__builtin_modules.keys():

@@ -66,8 +66,12 @@ class MixpanelService:
         elif company_id in paying_company_ids:
             return 'paying'
         else:
+            try:
+                company_id = int(company_id)
+            except Exception as e:
+                pass
             # the company_id is not in trial_company_ids nor paying_company_ids variable, so let's define what the company is
-            company_billing = CompanyBilling.objects.filter(company_id=company_id).first()
+            company_billing = CompanyBilling.objects.filter(company_id=int(company_id)).first()
             if company_billing:
                 is_trial = company_billing.is_paying_company == False and company_billing.is_supercompany == False
                 if is_trial:
@@ -108,13 +112,13 @@ class MixpanelService:
         self.mixpanel.alias(user_id, visitor_id)
         self.mixpanel.track(user_id, 'User Onboarding', {
             'company_id': company_id,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_user_login(self, user_id, company_id):
         self.mixpanel.track(user_id, 'User Login', {
             'company_id': company_id,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_user_refresh_token(self, user_id, company_id):
@@ -126,7 +130,7 @@ class MixpanelService:
             'form_id': form_id,
             'form_record_id': form_data_id,
             'is_public': is_public,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_formulary_data_udated(self, user_id, company_id, form_id, form_data_id, is_public):
@@ -135,14 +139,14 @@ class MixpanelService:
             'form_id': form_id,
             'form_record_id': form_data_id,
             'is_public': is_public,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_formulary_created(self, user_id, company_id, form_id):
         self.mixpanel.track(user_id, 'Formulary Created', {
             'company_id': company_id,
             'form_id': form_id,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_formulary_updated(self, user_id, company_id, form_id):
@@ -150,7 +154,7 @@ class MixpanelService:
             self.mixpanel.track(user_id, 'Formulary Updated', {
                 'company_id': company_id,
                 'form_id': form_id,
-                'company_type': self.define_company_type(user_id)
+                'company_type': self.define_company_type(company_id)
             })
             formulary_was_updated[user_id] = {
                 company_id: {
@@ -165,14 +169,14 @@ class MixpanelService:
         self.mixpanel.track(user_id, 'Company Started Paying', {
             'company_id': company_id,
             'total_paying_value': total_paying_value,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_updated_billing_information(self, user_id, company_id, total_paying_value):
         self.mixpanel.track('Company Updated Billing Information', {
             'user_id': user_id,
             'company_id': company_id,
-            'company_type': self.define_company_type(user_id),
+            'company_type': self.define_company_type(company_id),
             'total_paying_value': total_paying_value
         })
     # ------------------------------------------------------------------------------------------
@@ -185,7 +189,7 @@ class MixpanelService:
     def track_theme_select(self, user_id, company_id, theme_id):
         self.mixpanel.track(user_id, 'Selected Theme', {
             'company_id': company_id,
-            'company_type': self.define_company_type(user_id),
+            'company_type': self.define_company_type(company_id),
             'theme_id': theme_id
         })
     # ------------------------------------------------------------------------------------------
@@ -200,7 +204,7 @@ class MixpanelService:
             'company_id': company_id,
             'form_id': form_id,
             'pdf_template_id': pdf_template_id,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_pdf_template_updated(self, user_id, company_id, form_id, pdf_template_id):
@@ -208,7 +212,7 @@ class MixpanelService:
             'company_id': company_id,
             'form_id': form_id,
             'pdf_template_id': pdf_template_id,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_pdf_template_created(self, user_id, company_id, form_id, pdf_template_id):
@@ -220,7 +224,7 @@ class MixpanelService:
             'form_id': form_id,
             'kanban_card_id': kanban_card_id,
             'kanban_dimension_id': kanban_dimension_id,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_kanban_default_settings_created(self, user_id, company_id, form_id, kanban_card_id, kanban_dimension_id):
@@ -230,26 +234,26 @@ class MixpanelService:
         self.mixpanel.track(user_id, 'Kanban Eyeballing', {
             'company_id': company_id,
             'form_id': form_id,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_listing_loaded(self, user_id, company_id, form_id):
         self.mixpanel.track(user_id, 'Listing Eyeballing', {
             'company_id': company_id,
             'form_id': form_id,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_dashboard_loaded(self, user_id, company_id, form_id):
         self.mixpanel.track(user_id, 'Dashboard Eyeballing', {
             'company_id': company_id,
             'form_id': form_id,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
     def track_notification_loaded(self, user_id, company_id):
         self.mixpanel.track(user_id, 'Notification Eyeballing', {
             'company_id': company_id,
-            'company_type': self.define_company_type(user_id)
+            'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
