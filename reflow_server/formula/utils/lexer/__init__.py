@@ -1,5 +1,6 @@
 from reflow_server.formula.utils.lexer.tokens import Token
 from reflow_server.formula.utils.settings import TokenType
+from reflow_server.formula.utils.builtins.objects.Error import Error
 
 
 class Lexer:
@@ -94,7 +95,7 @@ class Lexer:
                 self.advance_next_position()
                 return Token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR, self.settings.positional_argument_separator)
             else:
-                raise Exception('invalid character: {}'.format(self.expression[self.current_position]))
+                Error(self.settings)._initialize_('SyntaxError', 'invalid character: {}'.format(self.expression[self.current_position]))
         return Token(TokenType.END_OF_FILE, None)
 
     def __handle_braces(self):
@@ -106,7 +107,7 @@ class Lexer:
                     return next_character
                 else:
                     count += 1
-            raise Exception("Need to close '{}'".format(brace_to_close))
+            Error(self.settings)._initialize_('SyntaxError', "Need to close '{}'".format(brace_to_close))
 
         if self.expression[self.current_position] == '(':
             self.advance_next_position()
@@ -136,7 +137,7 @@ class Lexer:
         while self.peek_next_character(counter) in self.settings.valid_numbers_characters or \
               self.peek_next_character(counter) == self.settings.decimal_point_character:
             if self.peek_next_character(counter) == self.settings.decimal_point_character and self.settings.decimal_point_character in number:
-                raise Exception('Invalid number')
+                Error(self.settings)._initialize_('SyntaxError', 'Invalid number: {}'.format(''.join(number)))
             number.append(self.expression[self.current_position + counter])
             counter += 1
         

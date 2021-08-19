@@ -9,7 +9,7 @@ import types
 class Interpreter:
     def __init__(self, settings):
         self.settings = settings
-        self.global_memory = Memory()
+        self.global_memory = Memory(self.settings)
     # ------------------------------------------------------------------------------------------
     def evaluate(self, node, evaluate_function_call=False):
         """
@@ -197,7 +197,7 @@ class Interpreter:
             return node
     # ------------------------------------------------------------------------------------------  
     def handle_program(self, node):
-        record = Record('<main>', 'PROGRAM')
+        record = Record(self.settings, '<main>', 'PROGRAM')
         self.settings.initialize_builtin_library(record)
         self.global_memory.stack.push(record)
         return self.evaluate(node.block)
@@ -383,7 +383,7 @@ class Interpreter:
                         parameter_name = node.parameters[index].left.value.value
 
                         if parameter_name not in function_object.parameters_variables:
-                            raise Exception('parameter of function "{parameter_name}" is not defined in function'.format(parameter_name=parameter_name))
+                            builtins.objects.Error(self.settings)._initialize_('AttributeError', 'parameter of function "{parameter_name}" is not defined in function'.format(parameter_name=parameter_name))
 
                         parameter_value = self.evaluate(node.parameters[index].right)
                         parameters[parameter_name] = parameter_value
@@ -393,14 +393,14 @@ class Interpreter:
                         variable_defined.append(parameter[0])
                 if parameter[0] not in variable_defined:
                     if parameter[1] == None:
-                        raise Exception('parameter "{parameter_name}" was not assigned in the function call'.format(parameter_name=parameter[0]))
+                        builtins.objects.Error(self.settings)._initialize_('AttributeError', 'parameter "{parameter_name}" was not assigned in the function call'.format(parameter_name=parameter[0]))
 
                     parameters[parameter[0]] = parameter[1]
                     variable_defined.append(parameter[0])
             return parameters
         # ------------------------------------------------------------------------------------------
         def create_function_record(parameters):
-            function_record = Record(function_name,'FUNCTION')
+            function_record = Record(self.settings, function_name,'FUNCTION')
 
             # Define the scope of the function in the new function call stack, this means that
             #
@@ -520,7 +520,7 @@ class Interpreter:
                     parameter_name = node.arguments[index].left.value.value
 
                     if parameter_name not in module_object.stuct_parameters_variables:
-                        raise Exception('Argument of struct "{parameter_name}" was not defined in struct'.format(parameter_name=parameter_name))
+                        builtins.objects.Error(self.settings)._initialize_('AttributeError', 'Argument of struct "{parameter_name}" was not defined in struct'.format(parameter_name=parameter_name))
 
                     parameter_value = self.evaluate(node.arguments[index].right, True)
                     arguments_and_values.append([parameter_name, parameter_value])
@@ -530,7 +530,7 @@ class Interpreter:
                     variable_defined.append(parameter[0])
             if parameter[0] not in variable_defined:
                 if parameter[1] == None:
-                    raise Exception('Argument "{parameter_name}" was not assigned in the struct'.format(parameter_name=parameter_name))
+                    builtins.objects.Error(self.settings)._initialize_('AttributeError', 'Argument "{parameter_name}" was not assigned in the struct'.format(parameter_name=parameter_name))
 
                 arguments_and_values.append([parameter[0], self.evaluate(parameter[1], True)])
                 variable_defined.append(parameter[0])
@@ -793,7 +793,7 @@ class Interpreter:
         module_name = module.module_name if hasattr(module, 'module_name') else '<module>'
 
         previous_record = self.global_memory.stack.peek()
-        module_record = Record(module_name, 'MODULE')
+        module_record = Record(self.settings, module_name, 'MODULE')
         self.global_memory.stack.push(module_record)
         # Define the scope of the module
         for key, value in previous_record.members.items():
@@ -824,14 +824,14 @@ class Interpreter:
             string = builtins.objects.String(self.settings)
             return string._initialize_(node.value.value)
         else:
-            raise Exception('Cannot interpret string')
+            builtins.objects.Error(self.settings)._initialize_('SyntaxError', 'Cannot interpret string')
     # ------------------------------------------------------------------------------------------
     def handle_integer(self, node):
         if helpers.is_integer(node.value.value):
             integer = builtins.objects.Integer(self.settings)
             return integer._initialize_(node.value.value)
         else:
-            raise Exception('Cannot interpret integer')
+            builtins.objects.Error(self.settings)._initialize_('SyntaxError', 'Cannot interpret integer')
     # ------------------------------------------------------------------------------------------
     def handle_list(self, node):
         list_value = builtins.objects.List(self.settings)
@@ -855,11 +855,11 @@ class Interpreter:
             float_value = builtins.objects.Float(self.settings)
             return float_value._initialize_(node.value.value)
         else:
-            raise Exception('Cannot interpret float')
+            builtins.objects.Error(self.settings)._initialize_('SyntaxError', 'Cannot interpret float')
     # ------------------------------------------------------------------------------------------
     def handle_boolean(self, node):
         if helpers.is_boolean(node.value.value):
             boolean = builtins.objects.Boolean(self.settings)
             return boolean._initialize_(node.value.value)
         else:
-            raise Exception('Cannot interpret boolean')
+            builtins.objects.Error(self.settings)._initialize_('SyntaxError', 'Cannot interpret boolean')

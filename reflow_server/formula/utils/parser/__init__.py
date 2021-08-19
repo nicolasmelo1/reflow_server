@@ -1,7 +1,6 @@
-from reflow_server.formula.utils.lexer.tokens import Token
 from reflow_server.formula.utils.settings import TokenType, NodeType
 from reflow_server.formula.utils.parser import nodes
-
+from reflow_server.formula.utils.builtins.objects.Error import Error
 
 class Parser:
     def __init__(self, lexer, settings):
@@ -130,7 +129,7 @@ class Parser:
         if token_type == self.current_token.token_type:
             self.current_token = self.lexer.get_next_token
         else:
-            raise Exception('Expected token: {}, current token: {}'.format(token_type, self.current_token.token_type))
+            Error(self.settings)._initialize_('SyntaxError','Expected token: {}, current token: {}'.format(token_type, self.current_token.token_type))
     # ------------------------------------------------------------------------------------------       
     def program(self):
         """
@@ -142,7 +141,7 @@ class Parser:
         block_node = self.block()
         program_node = nodes.Program(block_node)
         if self.current_token.token_type != TokenType.END_OF_FILE:
-            raise Exception('Unexpected end of file, this means your program cannot be executed and was ended abruptly')
+            Error(self.settings)._initialize_('SyntaxError', 'Unexpected end of file, this means your program cannot be executed and was ended abruptly')
 
         return program_node
     # ------------------------------------------------------------------------------------------
@@ -158,6 +157,7 @@ class Parser:
         statement_list: (statement NEWLINE)*
         """
         node = self.statement()
+
         if node != None:
             instructions.append(node)
 
@@ -207,9 +207,9 @@ class Parser:
             else:
                 right = self.expression()
             if (left.node_type not in [NodeType.VARIABLE, NodeType.SLICE, NodeType.ATTRIBUTE]):
-                raise Exception("Cannot assign, can only assign value to a variable, slice or attribute")
+                Error(self.settings)._initialize_('SyntaxError', "Cannot assign, can only assign value to a variable, slice or attribute")
             elif (right == None):
-                raise Exception("You forgot to assign a value to a variable")
+                Error(self.settings)._initialize_('SyntaxError', "You forgot to assign a value to a variable")
             return nodes.Assign(left, right, operation)
         else:
             return node
@@ -336,7 +336,7 @@ class Parser:
             if NodeType.ASSIGN == node.node_type:
                 return nodes.ModuleLiteral(node.left, node)
             else:
-                raise Exception('must be an assignment, a new module or a function')
+                Error(self.settings)._initialize_('SyntaxError', 'must be an assignment, a new module or a function')
     # ------------------------------------------------------------------------------------------
     def parameters(self, parameters_list=[]):
         """
@@ -388,7 +388,7 @@ class Parser:
 
             right = self.disjunction()
             if left == None or right == None:
-                raise Exception("Ops, looks like you forgot to finish the 'or' expression")
+                Error(self.settings)._initialize_('SyntaxError', "Ops, looks like you forgot to finish the 'or' expression")
             return nodes.BooleanOperation(left, right, operation)
         else:
             return node
@@ -408,7 +408,7 @@ class Parser:
 
             right = self.conjunction()
             if left == None or right == None:
-                raise Exception("Ops, looks like you forgot to finish the 'and' expression")
+                Error(self.settings)._initialize_('SyntaxError', "Ops, looks like you forgot to finish the 'and' expression")
 
             return nodes.BooleanOperation(node, right, operation)
         else:
@@ -426,7 +426,7 @@ class Parser:
             self.get_next_token(self.current_token.token_type)
             value = self.inversion()
             if value == None:
-                raise Exception("You forgot to close the 'not' operator")
+                Error(self.settings)._initialize_('SyntaxError', "You forgot to close the 'not' operator")
             return nodes.UnaryConditional(operation, value)
         else:
             return node
@@ -453,7 +453,7 @@ class Parser:
             right = self.comparison()
 
             if left == None or right == None:
-                raise Exception("You are comparing apples to nothing")
+                Error(self.settings)._initialize_('SyntaxError', "You are comparing apples to nothing")
             return nodes.BinaryConditional(left, right, operation)
         else:
             return node

@@ -42,40 +42,52 @@ class Object:
         return self
     # ------------------------------------------------------------------------------------------
     def _in_(self, obj):
-        raise Exception("type '{}' is not iterable, so replace {} with a iterable type".format(self.type, obj._representation_()))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "type '{}' is not iterable, so replace {} with a iterable type".format(self.type, obj._representation_()))
     # ------------------------------------------------------------------------------------------
     def _getattribute_(self, variable):
-        raise Exception("Cannot get attribute '{}'".format(variable._representation_(), self.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('AttributeError',"Cannot get attribute '{}'".format(variable._representation_(), self.type))
     # ------------------------------------------------------------------------------------------
     def _getitem_(self, item):
-        raise Exception("Cannot get item '{}' of type {}".format(item, self.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('AttributeError', "Cannot get item '{}' of type {}".format(item, self.type))
     # ------------------------------------------------------------------------------------------
     def _setattribute_(self, variable, element):
-        raise Exception("Cannot set attribute '{}' of type {}".format(variable._representation_(), self.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('AttributeError', "Cannot set attribute '{}' of type {}".format(variable._representation_(), self.type))
     # ------------------------------------------------------------------------------------------
     def _setitem_(self, item, element):
-        raise Exception("Cannot set element '{}' at item '{}' of type {}".format(element, item, self.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('KeyError', "Cannot set element '{}' at item '{}' of type {}".format(element, item, self.type))
     # ------------------------------------------------------------------------------------------
     def _add_(self, obj):
-        raise Exception("Unsuported operation '+' between types {} and {}".format(self.type, obj.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "Unsuported operation '+' between types {} and {}".format(self.type, obj.type))
     # ------------------------------------------------------------------------------------------
     def _subtract_(self, obj):
-        raise Exception("Unsuported operation '-' between types {} and {}".format(self.type, obj.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "Unsuported operation '-' between types {} and {}".format(self.type, obj.type))
     # ------------------------------------------------------------------------------------------
     def _divide_(self, obj):
-        raise Exception("Unsuported operation '/' between types {} and {}".format(self.type, obj.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "Unsuported operation '/' between types {} and {}".format(self.type, obj.type))
     # ------------------------------------------------------------------------------------------
     def _divide_(self, obj):
-        raise Exception("Unsuported operation '/' between types {} and {}".format(self.type, obj.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "Unsuported operation '/' between types {} and {}".format(self.type, obj.type))
     # ------------------------------------------------------------------------------------------
     def _remainder_(self, obj):
-        raise Exception("Unsuported operation '%' between types {} and {}".format(self.type, obj.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "Unsuported operation '%' between types {} and {}".format(self.type, obj.type))
     # ------------------------------------------------------------------------------------------
     def _multiply_(self, obj):
-        raise Exception("Unsuported operation '*' between types {} and {}".format(self.type, obj.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "Unsuported operation '*' between types {} and {}".format(self.type, obj.type))
     # ------------------------------------------------------------------------------------------
     def _power_(self, obj):
-        raise Exception("Unsuported operation '^' between types {} and {}".format(self.type, obj.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "Unsuported operation '^' between types {} and {}".format(self.type, obj.type))
     # ------------------------------------------------------------------------------------------
     def _equals_(self, obj):
         # your first tought might be, why do we need to initialize it everytime
@@ -123,10 +135,12 @@ class Object:
         return self.new_boolean(is_or)
     # ------------------------------------------------------------------------------------------
     def _unaryplus_(self):
-        raise Exception('Unsuported operand type + for {}'.format(self.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', 'Unsuported operand type + for {}'.format(self.type))
     # ------------------------------------------------------------------------------------------    
     def _unaryminus_(self):
-        raise Exception('Unsuported operand type - for {}'.format(self.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', 'Unsuported operand type - for {}'.format(self.type))
     # ------------------------------------------------------------------------------------------    
     def _representation_(self):
         return self
@@ -135,10 +149,13 @@ class Object:
         return ''
     # ------------------------------------------------------------------------------------------    
     def _hash_(self):
-        raise Exception("'{}' is not hashable".format(self.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "'{}' is not hashable".format(self.type))
     # ------------------------------------------------------------------------------------------    
     def _length_(self):
-        raise Exception("'{}' has no length".format(self.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "'{}' has no length".format(self.type))
     # ------------------------------------------------------------------------------------------    
     def _call_(self, parameters={}):
-        raise Exception("'{}' cannot be called".format(self.type))
+        from reflow_server.formula.utils.builtins.objects.Error import Error
+        Error(self.settings)._initialize_('Error', "'{}' cannot be called".format(self.type))

@@ -14,7 +14,7 @@ method.add_parameter('method', 'metodo')
 
 struct = library.add_struct('HTTPResponse', 'Resposta')
 struct.add_attribute('content', 'conteudo')
-settings = Settings(context)
+settings = Settings(context, True)
 
 simple_arithimetic = r"""(1 + 2) + (2 + 2)"""
 
@@ -103,17 +103,7 @@ struct.c.a = "Ola"
 struct.c.a
 """
 
-teste_webhook = r"""
-response = Requisicao.post(
-    url="https://maker.ifttt.com/trigger/data_created/json/with/key/UsON56lWobTsQ_9eOXhLXytB6Csg6piJVuJDWfw-Cg",  
-    json={
-        "teste": "teste"
-    }
-)
-response.conteudo
-"""
-
-library = r"""
+HTTP_library = r"""
 response = Requisicao.post(
     url="https://maker.ifttt.com/trigger/registro_atualizado_em_negocios/with/key/UsON56lWobTsQ_9eOXhLXytB6Csg6piJVuJDWfw-Cg",  
     json={
@@ -124,6 +114,12 @@ response = Requisicao.post(
 )
 response.conteudo
 """
+
+SMTP_library = r"""
+message = SMTP.build_message("nicolas.melo@reflow.com.br", ["nicolasmelo12@gmail.com"], "Tesssste", "Testinho")
+SMTP.send_email("smtp-relay.gmail.com", 587, "nicolas.melo@reflow.com.br", "Nicolas123!@#", message)
+"""
+
 functions_to_test = [
     #simple_arithimetic, 
     #function,
@@ -134,7 +130,8 @@ functions_to_test = [
     #dicts,
     #modules,
     #structs,
-    library
+    #HTTP_library,
+    SMTP_library,
 ]
 
 import json
@@ -142,9 +139,13 @@ import time
 
 start = time.time()
 for function in functions_to_test:
-    lexer = Lexer(function, settings)
-    parser = Parser(lexer, settings)
-    ast = parser.parse()
-    interpreter = Interpreter(settings)
-    value = interpreter.evaluate(ast)
+    value = None
+    try:
+        lexer = Lexer(function, settings)
+        parser = Parser(lexer, settings)
+        ast = parser.parse()
+        interpreter = Interpreter(settings)
+        value = interpreter.evaluate(ast)
+    except Exception as e:
+        value = e
     print(value._representation_())

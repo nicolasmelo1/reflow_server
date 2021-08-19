@@ -46,7 +46,7 @@ class TestFormulaView(APIView):
             if value.status == 'error':
                 return Response({
                     'status': 'error',
-                    'error': value.value
+                    'error': str(value.value._representation_()) if hasattr(value.value, '_representation_') else ''
                 }, status=status.HTTP_502_BAD_GATEWAY)
             else:
                 return Response({

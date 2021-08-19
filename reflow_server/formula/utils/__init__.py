@@ -1,4 +1,5 @@
 # Python implementation of Reflow formulas
+from reflow_server.formula.utils.builtins.objects.Error import Error
 from reflow_server.formula.utils.lexer import Lexer
 from reflow_server.formula.utils.settings import Settings
 from reflow_server.formula.utils.parser import Parser
@@ -180,11 +181,16 @@ def evaluate(expression, context=None):
     """
     if context == None:
         context = Context()
+    
     settings = Settings(context)
-    lexer = Lexer(expression, settings)
-    parser = Parser(lexer, settings)
-    ast = parser.parse()
-
-    interpreter = Interpreter(settings)
-    value = interpreter.evaluate(ast)
+    value = None
+    
+    try:
+        lexer = Lexer(expression, settings)
+        parser = Parser(lexer, settings)
+        ast = parser.parse()
+        interpreter = Interpreter(settings)
+        value = interpreter.evaluate(ast)
+    except Error as e:
+        value = e
     return value

@@ -378,7 +378,7 @@ PERMISSIONS = {
 
 # CUSTOM FORMULA BUILTIN CONFIGURATION
 # check formula.utils.settings for reference
-FORMULA_MODULES = ['HTTP']
+FORMULA_MODULES = ['HTTP', 'SMTP']
 FORMULA_BUILTIN_MODULES_PATH = 'reflow_server.formula.utils.builtins.library'
 
 # CUSTOM ASYNC CONFIGURATION

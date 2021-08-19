@@ -209,3 +209,9 @@ class LibraryStruct(Struct):
 
         self._initialize_(struct_name, arguments_and_values)
         
+        
+def retrieve_representation(value):
+    try:
+        return value._representation_()
+    except AttributeError as ae:
+        return value

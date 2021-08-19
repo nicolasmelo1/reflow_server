@@ -1,4 +1,3 @@
-from django.conf import settings 
 
 from reflow_server.formula.utils.context import Context
 
@@ -79,7 +78,7 @@ class NodeType:
 
 
 class Settings:
-    def __init__(self, context=Context()):
+    def __init__(self, context=Context(), is_testing=False):
         """
         This is the settings class, this is used on the interpreter, parser and lexer.
         The idea is that with the settings we are able to translate the formula or in other words, the programming language,
@@ -93,6 +92,7 @@ class Settings:
             context (reflow_server.formula.utils.context.Context): The context class so we can translate the language in other
                                                                    languages.
         """
+        self.is_testing = is_testing
         self.attribute_character = '.'
         self.comment_character = '#'
         self.string_delimiters = ['`','"']
@@ -134,6 +134,11 @@ class Settings:
             record (reflow_server.formula.utils.memory.Record): The record of the program which is responsible for holding all
                                                                 of the variables.
         """
+        if self.is_testing:
+            from reflow_server import settings
+        else:
+            from django.conf import settings 
+
         for formula_module_name in settings.FORMULA_MODULES:
             path = "%s.%s" % (settings.FORMULA_BUILTIN_MODULES_PATH, formula_module_name)
             module = __import__(path, fromlist=[formula_module_name])

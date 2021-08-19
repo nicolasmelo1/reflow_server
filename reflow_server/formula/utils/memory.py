@@ -1,5 +1,8 @@
+from reflow_server.formula.utils.builtins.objects.Error import Error
+
+
 class Record:
-    def __init__(self, name, record_type):
+    def __init__(self, settings, name, record_type):
         """
         As you probably have guessed, on Memory you will see an explanation on how the CallStack works.
         But you might ask yourself. Okay, but what are each row?
@@ -16,6 +19,7 @@ class Record:
             name (str): The name of the Record, this is just an identifier, multiple records can have the same name (this happens in a recursion)
             record_type (str): The type of the record, at the time of the writing this can be either PROGRAM or FUNCTION
         """
+        self.settings = settings
         self.name = name
         self.record_type = record_type
         self.__nesting_level = 0
@@ -55,7 +59,7 @@ class Record:
         try:
             return self.members[key]
         except Exception as e:
-            raise Exception('{} was not defined'.format(key))
+            Error(self.settings)._initialize_('MemoryError', '{} was not defined'.format(key))
     # ------------------------------------------------------------------------------------------
     def set_nesting_level(self, nesting_level):
         self.__nesting_level = nesting_level
@@ -69,7 +73,8 @@ class CallStack:
 
     This holds all of the records and it is simple as this. It's just a list that we use to hold all of the records
     """
-    def __init__(self):
+    def __init__(self, settings):
+        self.settings = settings
         self.records = []
     # ------------------------------------------------------------------------------------------
     def push_to_current(self, record):
@@ -105,7 +110,7 @@ class CallStack:
         if len(self.records) < 99:
             self.records.append(record)
         else:
-            raise Exception('Stack is full, this means you are calling too many functions at once, try optimizing your code')
+            Error(self.settings)._initialize_('MemoryError', 'Stack is full, this means you are calling too many functions at once, try optimizing your code')
         return record
     # ------------------------------------------------------------------------------------------
     def pop(self):
@@ -222,6 +227,6 @@ class Memory:
 
     With this information, can you understand how a recursion works?
     """
-    def __init__(self):
-        self.stack = CallStack()
+    def __init__(self, settings):
+        self.stack = CallStack(settings)
         

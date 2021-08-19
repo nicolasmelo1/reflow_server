@@ -8,3 +8,4 @@ from reflow_server.formula.utils.builtins.objects.List import List
 from reflow_server.formula.utils.builtins.objects.Dict import Dict
 from reflow_server.formula.utils.builtins.objects.Module import Module
 from reflow_server.formula.utils.builtins.objects.Struct import Struct
+from reflow_server.formula.utils.builtins.objects.Error import Error

@@ -333,9 +333,11 @@ class FormulaService:
     # ------------------------------------------------------------------------------------------
     def __evaluate(self, formula, result):
         try:
+            formula_result = evaluate(formula, self.context)
+            status = 'error' if getattr(formula_result, 'type', '') == 'error' else 'ok'
             result.put({
-                'status': 'ok',
-                'value': evaluate(formula, self.context)
+                'status': status,
+                'value': formula_result
             })
         except Exception as e:
             result.put({

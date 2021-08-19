@@ -72,7 +72,8 @@ class Dict(Object):
             self.hash_table.remove(obj._hash_(), obj._representation_())
             return self
         else:
-            raise Exception('Cannot remove {}'.format(obj._representation_()))
+            from reflow_server.formula.utils.builtins.objects.Error import Error
+            Error(self.settings)._initialize_('Error', 'Cannot remove {}'.format(obj._representation_()))
     # ------------------------------------------------------------------------------------------
     def _representation_(self):
         dictionary_response = {}
