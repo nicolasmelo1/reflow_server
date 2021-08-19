@@ -27,6 +27,9 @@ class SMTP(LibraryModule):
         subject = retrieve_representation(subject)
         content = retrieve_representation(content)
 
+        if not isinstance(to_emails, list):
+            to_emails = [to_emails]
+
         message = MIMEMultipart()
         message['From'] = from_email
         message['To'] = ', '.join(to_emails)
@@ -52,7 +55,6 @@ class SMTP(LibraryModule):
                                                                     'message = SMTP.build_message("example@reflow.com.br", "example@example.com", "Test", "Content")\n'
                                                                     'SMTP.send_email("smtp.gmail.com", 587, "example@reflow.com.br", "Secret", message)')
         
-
         try:
             client = smtplib.SMTP(server, port)
             # validate TLS

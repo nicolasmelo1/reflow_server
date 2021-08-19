@@ -33,7 +33,8 @@ class TestFormulaView(APIView):
         if serializer.is_valid():
             variables = FormulaVariables()
             for variable_id in serializer.data['variable_ids']:
-                variables.add_variable_id(variable_id)
+                if isinstance(variable_id, int) or variable_id.isdigit():
+                    variables.add_variable_id(variable_id)
             dynamic_form_id = DynamicForm.formula_.latest_main_dynamic_form_id_by_form_id(form_id)
             formula_service = FormulaService(
                 serializer.data['formula'], 

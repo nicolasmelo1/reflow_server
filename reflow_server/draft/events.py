@@ -7,7 +7,7 @@ class DraftBroadcastEvent:
     """
     This class is used for sending real time events for the client about this domain
     """
-    def remove_old_draft(self, user_id, company_id, draft_id, draft_is_public):
+    def removed_old_draft(self, user_id, company_id, draft_id, draft_is_public):
         """
         This event sends to all of the clients of the company that
         a draft has been removed from the backend.

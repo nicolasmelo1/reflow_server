@@ -61,7 +61,8 @@ class FormulaService:
             formula_variables = FormulaVariables()
             variable_ids = FormulaVariable.formula_.variable_ids_by_field_id(field_id)
             for variable_id in variable_ids:
-                formula_variables.add_variable_id(variable_id)
+                if isinstance(variable_id, int) or variable_id.isdigit():
+                    formula_variables.add_variable_id(variable_id)
 
         self.__build_context(company_id)
         self.formula = self.__clean_formula(formula, dynamic_form_id, formula_variables)
