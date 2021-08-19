@@ -1,10 +1,15 @@
+from django.conf import settings
 from django.db import transaction
+from django.apps import apps
+from django.db import models
 
 from reflow_server.rich_text.services.data import PageData
 from reflow_server.rich_text.services.utils import ordered_list_from_serializer_data_for_page_data
 from reflow_server.rich_text.services.block import RichTextImageBlockService, RichTextTableBlockService
 from reflow_server.rich_text.services.exceptions import RichTextBlockException
 from reflow_server.rich_text.models import TextContent, TextPage, TextBlock, TextTextOption
+
+import re
 
 
 class RichTextService:
@@ -255,3 +260,19 @@ class RichTextService:
             self.__remove_old_blocks_and_contents(page_instance, [], [])
             page_instance.delete()
         return True
+
+    @transaction.atomic
+    def copy_page(self, page_id):
+        settings_root = re.sub(r'urls$','', settings.ROOT_URLCONF)
+        rich_text_app_name = [app.replace(settings_root, '') for app in settings.INSTALLED_APPS if 'rich_text' in app] 
+        rich_text_models = apps.get_app_config(rich_text_app_name[0]).get_models()
+        models_to_consider = []
+        for model_class in rich_text_models:
+            if not re.search(r'Type$', model_class._meta.object_name):
+                for field in model_class._meta.fields:
+                    if isinstance(field, models.ForeignKey):
+                        print(field.remote_field.model)
+                        # TODO: Continue tomorrow
+                #print(model_class._meta.__dict__)
+        #app_models = ['{}.{}'.format(app_label, model._meta.object_name) for model in apps.get_app_config(app_label).get_models() if re.search(r'Type$', model._meta.object_name)]
+        

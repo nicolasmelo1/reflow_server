@@ -17,8 +17,6 @@ from reflow_server.kanban.services import KanbanCardService, KanbanService
 from reflow_server.notification.services.notification_configuration import NotificationConfigurationService
 from reflow_server.dashboard.services.dashboard_configuration import DashboardChartConfigurationService
 
-import re
-
 
 class ThemeSelectService:
     def __init__(self, theme_id, company_id, user_id):

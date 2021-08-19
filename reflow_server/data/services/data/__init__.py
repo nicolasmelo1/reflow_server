@@ -220,7 +220,6 @@ class DataService(DataSort, DataSearch):
                 from_date, 
                 to_date + timedelta(days=1)
             )
-
         else:
             self._data = DynamicForm.data_.dynamic_forms_by_company_id_and_form_id_orderd_by_updated_at(
                 self.company_id, 

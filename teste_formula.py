@@ -117,9 +117,8 @@ response.conteudo
 
 SMTP_library = r"""
 message = SMTP.build_message("nicolas.melo@reflow.com.br", ["nicolasmelo12@gmail.com"], "Tesssste", "Testinho")
-SMTP.send_email("smtp-relay.gmail.com", 587, "nicolas.melo@reflow.com.br", "Nicolas123!@#", message)
+SMTP.send_email("smtp.gmail.com", 587, "nicolas.melo@reflow.com.br", "Nicolas123!@#", message)
 """
-
 functions_to_test = [
     #simple_arithimetic, 
     #function,

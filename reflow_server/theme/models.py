@@ -4,11 +4,12 @@ from reflow_server.theme.managers import ThemeThemeManager, ThemeFormThemeManage
     ThemeFieldOptionThemeManager, ThemeKanbanCardThemeManager, ThemeFormulaVariableThemeManager, \
     ThemeKanbanCardFieldThemeManager, ThemeNotificationConfigurationThemeManager, \
     ThemeNotificationConfigurationVariableThemeManager, ThemeTypeThemeManager, ThemeDashboardChartConfigurationThemeManager, \
-    ThemeKanbanDefaultManager
+    ThemeKanbanDefaultManager, ThemePDFTemplateConfigurationManager, ThemePDFTemplateConfigurationVariablesManager
 from reflow_server.formulary.models.abstract import AbstractField, AbstractFieldOptions, AbstractForm, AbstractFormulaVariable
 from reflow_server.notification.models.abstract import AbstractNotificationConfiguration 
 from reflow_server.kanban.models.abstract import AbstractKanbanCard, AbstractKanbanCardField, AbstractKanbanDimensionOrder
 from reflow_server.dashboard.models.abstract import AbstractDashboardChartConfiguration
+from reflow_server.pdf_generator.models.abstract import AbstractPDFTemplateConfiguration
 
 
 class ThemeType(models.Model):
@@ -251,3 +252,32 @@ class ThemeDashboardChartConfiguration(AbstractDashboardChartConfiguration):
         db_table = 'theme_dashboard_chart_configuration'
 
     theme_ = ThemeDashboardChartConfigurationThemeManager()
+
+
+class ThemePDFTemplateConfiguration(AbstractPDFTemplateConfiguration):
+    """
+    See `reflow_server.pdf_generator.models.abstract.AbstractPDFTemplateConfiguration` for reference
+    """
+    form = models.ForeignKey('theme.ThemeForm', models.CASCADE, db_index=True)
+    theme = models.ForeignKey('theme.Theme', models.CASCADE, db_index=True)
+
+    class Meta:
+        db_table = 'theme_pdf_template_configuration'
+    
+    objects = models.Manager()
+    theme_ = ThemePDFTemplateConfigurationManager()
+
+
+class ThemePDFTemplateConfigurationVariables(models.Model):
+    """
+    See `reflow_server.pdf_generator.models.PDFTemplateConfigurationVariables` for reference
+    """
+    pdf_template = models.ForeignKey('theme.ThemePDFTemplateConfiguration', models.CASCADE, db_index=True,
+                                     related_name='theme_template_configuration_variables')
+    field = models.ForeignKey('theme.ThemeField', models.CASCADE, db_index=True)
+
+    class Meta:
+        db_table = 'theme_pdf_template_configuration_variables'
+    
+    objects = models.Manager()
+    theme_ = ThemePDFTemplateConfigurationVariablesManager()

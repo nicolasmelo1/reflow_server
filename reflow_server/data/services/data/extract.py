@@ -42,7 +42,6 @@ class DataExtractService:
 
         to_date = DataService.validate_and_extract_date_from_string(to_date)
         from_date = DataService.validate_and_extract_date_from_string(from_date)
-
         # get correct data to pass as parameters
         converted_search_data = data_service.convert_search_query_parameters(search_field, search_value, search_exact)
         converted_sort_data = data_service.convert_sort_query_parameters(sort_field, sort_value)

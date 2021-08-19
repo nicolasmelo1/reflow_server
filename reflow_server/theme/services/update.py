@@ -1,18 +1,18 @@
 from django.db import transaction
 
-from reflow_server.theme.models import Theme, ThemeType, ThemeForm, \
+from reflow_server.theme.models import Theme, ThemePDFTemplateConfiguration, ThemeType, ThemeForm, \
     ThemeField, ThemeFieldOptions, ThemeKanbanDefault, ThemeKanbanCard, \
     ThemeKanbanCardField, ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable, \
     ThemeDashboardChartConfiguration, ThemeFormulaVariable
 from reflow_server.theme.services.data import ThemeReference
 
+
 from reflow_server.formulary.models import Form, Field, FieldOptions, FormulaVariable
 from reflow_server.kanban.models import KanbanDefault, KanbanCard, KanbanCardField
 from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable
 from reflow_server.dashboard.models import DashboardChartConfiguration
-
-import re
-
+from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFTemplateConfigurationVariables
+from reflow_server.rich_text.services import RichTextService
 
 class ThemeUpdateService:
     def __init__(self):
@@ -197,10 +197,11 @@ class ThemeUpdateService:
         for field in formula_fields:
             formula_variable_ids = FormulaVariable.theme_.variable_ids_by_field_id(field.id)
 
-            for formula_variable_id in formula_variable_ids:
+            for index, formula_variable_id in enumerate(formula_variable_ids):
                 ThemeFormulaVariable.theme_.create_theme_formula_variable(
                     self.theme_reference.get_field_reference(field.id).id,
-                    self.theme_reference.get_field_reference(formula_variable_id).id
+                    self.theme_reference.get_field_reference(formula_variable_id).id,
+                    index
                 )
                 
         return True
@@ -305,6 +306,17 @@ class ThemeUpdateService:
                 theme_instance.id
             )
         return True
+    
+    def __create_theme_pdf_template(self, theme_instance, form_ids, company_id, user_id):
+        rich_text_service = RichTextService(company_id, user_id)
+        for pdf_template_configuration in PDFTemplateConfiguration.objects.filter(form_id__in=form_ids, company_id=company_id, user_id=user_id):
+            rict_text_page_id = pdf_template_configuration.rich_text_page_id
+            if rict_text_page_id:
+                rich_text_service.copy_page(rict_text_page_id)
+                # TODO: Continue tomorrow
+
+                
+                
 
     @transaction.atomic
     def create_or_update(self, theme_type_id, display_name, is_public, description, user_id, company_id, form_ids=[], theme_id=None):
@@ -344,7 +356,6 @@ class ThemeUpdateService:
             if form_id not in cleaned_form_ids and form_id != None:
                 cleaned_form_ids.append(form_id)
 
-        dependable_forms = Field.objects.filter(form__depends_on_id__in=cleaned_form_ids, form_field_as_option__isnull=False).values_list('form__depends_on_id', 'form_field_as_option__form__depends_on_id')
         # if we are updating a theme and it has form_ids to set we delete the theme and create everything again, this way
         # we keep all of the theme data "written in stone"
         if theme_id and len(form_ids) > 0:
@@ -360,4 +371,8 @@ class ThemeUpdateService:
             self.__create_theme_kanban(theme_instance, cleaned_form_ids, company_id, user_id)
             self.__create_theme_notification(theme_instance, cleaned_form_ids, company_id, user_id)
             self.__create_theme_dashboard(theme_instance, cleaned_form_ids, company_id, user_id)
+
+            #self.__create_theme_pdf_template(theme_instance, cleaned_form_ids, company_id, user_id)
+            # TODO: Continue tomorrow
+            #1/0
         return theme_instance

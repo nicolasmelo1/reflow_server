@@ -5,20 +5,22 @@ class ThemeFormulaVariableThemeManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
-    def create_theme_formula_variable(self, theme_field_id, theme_field_variable_id):
+    def create_theme_formula_variable(self, theme_field_id, theme_field_variable_id, order):
         """
         Creates a new ThemeFormulaVarible instance.
 
         Args:
             theme_field_id (int): A ThemeField instance id
             theme_field_variable_id (int): A ThemeField instance id
+            order (int): The ordering of formula variable
 
         Returns:
             reflow_server.theme.models.ThemeFormulaVariable: The newly created ThemeFormulaVariable instance
         """
         return self.get_queryset().create(
             field_id=theme_field_id,
-            variable_id=theme_field_variable_id
+            variable_id=theme_field_variable_id,
+            order=order
         )
 
     def variable_ids_by_theme_field_id(self, theme_field_id):

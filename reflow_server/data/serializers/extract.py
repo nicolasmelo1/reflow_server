@@ -37,20 +37,24 @@ class ExtractDataSerializer(serializers.Serializer):
         super(ExtractDataSerializer, self).__init__(**kwargs)
     # ------------------------------------------------------------------------------------------
     def validate(self, data):
-        if self.data_extract_service.is_valid_data(data['from_date'], data['to_date'], 
-                                              data.get('sort_value', []), data.get('sort_field', []),
-                                              data.get('search_value', []), data.get('search_field', []), 
-                                              data.get('search_exact', [])):
+        if self.data_extract_service.is_valid_data(
+            data['from_date'], data['to_date'],
+            data.get('sort_value', []), data.get('sort_field', []),
+            data.get('search_value', []), data.get('search_field', []), 
+            data.get('search_exact', [])
+        ):
             return data
         else:
             raise serializers.ValidationError(detail='invalid_data')
     # ------------------------------------------------------------------------------------------
     def save(self):
         data = self.validated_data
-        return self.data_extract_service.extract(data['format'], data['from_date'], data['to_date'], 
-                                            data.get('sort_value', []), data.get('sort_field', []),
-                                            data.get('search_value', []), data.get('search_field', []), 
-                                            data.get('search_exact', []))
+        return self.data_extract_service.extract(
+            data['format'], data['from_date'], data['to_date'], 
+            data.get('sort_value', []), data.get('sort_field', []),
+            data.get('search_value', []), data.get('search_field', []), 
+            data.get('search_exact', [])
+        )
 
 ############################################################################################
 class ExtractFormSerializer(serializers.ModelSerializer):

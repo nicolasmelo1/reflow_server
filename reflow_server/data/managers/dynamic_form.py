@@ -129,10 +129,11 @@ class DynamicFormDataManager(models.Manager):
             of ordered DynamicForm instances by `updated_at` and filtered by `company_id`
             and `form_id`
         """
-        return self.dynamic_forms_by_company_id_and_form_id_orderd_by_updated_at(company_id, form_id)\
-            .filter(
-                updated_at__range=[updated_at_start_date, updated_at_end_date],
-            )
+        return self.get_queryset().filter(
+            company_id=company_id, 
+            form_id=form_id,
+            updated_at__range=(updated_at_start_date, updated_at_end_date)
+        ).order_by('-updated_at')
 
     def dynamic_forms_by_dynamic_form_ids_ordered(self, dynamic_form_ids):
         """

@@ -3,6 +3,7 @@ from django.db import models
 from reflow_server.pdf_generator.managers import PDFTemplateConfigurationPDFGeneratorManager, \
     PDFTemplateConfigurationVariablesPDFGeneratorManager, PDFGeneratedPDFGeneratorManager, \
     PDFTemplateAllowedTextBlockPDFGeneratorManager
+from reflow_server.pdf_generator.models.abstract import AbstractPDFTemplateConfiguration
 
 
 class PDFTemplateAllowedTextBlock(models.Model):
@@ -17,25 +18,22 @@ class PDFTemplateAllowedTextBlock(models.Model):
     pdf_generator_ = PDFTemplateAllowedTextBlockPDFGeneratorManager()
 
 
-class PDFTemplateConfiguration(models.Model):
+class PDFTemplateConfiguration(AbstractPDFTemplateConfiguration):
     """
     This model holds the template configuration data. You will notice some small things.
     First this is not obligatory bounded to the rich_text TextPage. The templates holds some basic information
     about the template like the name of the template, the company that it is bounded to, the user
     and the formulary.
     """
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    name = models.CharField(max_length=500)
     form = models.ForeignKey('formulary.Form', models.CASCADE, db_index=True)
     company = models.ForeignKey('authentication.Company', models.CASCADE, db_index=True)
     user = models.ForeignKey('authentication.UserExtended', models.CASCADE, db_index=True)
-    rich_text_page = models.ForeignKey('rich_text.TextPage', models.CASCADE, db_index=True, null=True)
 
     class Meta:
         db_table = 'pdf_template_configuration'
         ordering = ('-updated_at',)
 
+    objects = models.Manager()
     pdf_generator_ = PDFTemplateConfigurationPDFGeneratorManager()
 
 
@@ -52,6 +50,7 @@ class PDFTemplateConfigurationVariables(models.Model):
     class Meta:
         db_table = 'pdf_template_configuration_variables'
 
+    objects = models.Manager()
     pdf_generator_ = PDFTemplateConfigurationVariablesPDFGeneratorManager()
 
 
