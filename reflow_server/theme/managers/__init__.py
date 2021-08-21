@@ -10,6 +10,9 @@ from .field import FieldThemeManager
 from .field_options import FieldOptionsThemeManager
 from .notification_configuration import NotificationConfigurationThemeManager
 from .notification_configuration_variable import NotificationConfigurationVariableThemeManager
+from .pdf_template_allowed_text_block import PDFTemplateAllowedTextBlockThemeManager
+from .pdf_template_configuration import PDFTemplateConfigurationThemeManager
+from .pdf_template_configuration_variables import PDFTemplateConfigurationVariableThemeManager
 from .theme import ThemeThemeManager
 from .theme_type import ThemeTypeThemeManager
 from .theme_form import ThemeFormThemeManager

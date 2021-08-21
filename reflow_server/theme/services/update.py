@@ -1,18 +1,21 @@
 from django.db import transaction
 
-from reflow_server.theme.models import Theme, ThemePDFTemplateConfiguration, ThemeType, ThemeForm, \
+from reflow_server.theme.models import Theme, ThemePDFTemplateConfiguration, ThemePDFTemplateConfigurationVariables, ThemeType, ThemeForm, \
     ThemeField, ThemeFieldOptions, ThemeKanbanDefault, ThemeKanbanCard, \
     ThemeKanbanCardField, ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable, \
     ThemeDashboardChartConfiguration, ThemeFormulaVariable
 from reflow_server.theme.services.data import ThemeReference
 
-
 from reflow_server.formulary.models import Form, Field, FieldOptions, FormulaVariable
 from reflow_server.kanban.models import KanbanDefault, KanbanCard, KanbanCardField
 from reflow_server.notification.models import NotificationConfiguration, NotificationConfigurationVariable
 from reflow_server.dashboard.models import DashboardChartConfiguration
-from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFTemplateConfigurationVariables
+from reflow_server.pdf_generator.models import PDFTemplateConfiguration, PDFTemplateConfigurationVariables, PDFTemplateAllowedTextBlock
+from reflow_server.rich_text.models import TextContent
 from reflow_server.rich_text.services import RichTextService
+
+import re
+
 
 class ThemeUpdateService:
     def __init__(self):
@@ -308,15 +311,77 @@ class ThemeUpdateService:
         return True
     
     def __create_theme_pdf_template(self, theme_instance, form_ids, company_id, user_id):
-        rich_text_service = RichTextService(company_id, user_id)
-        for pdf_template_configuration in PDFTemplateConfiguration.objects.filter(form_id__in=form_ids, company_id=company_id, user_id=user_id):
-            rict_text_page_id = pdf_template_configuration.rich_text_page_id
-            if rict_text_page_id:
-                rich_text_service.copy_page(rict_text_page_id)
-                # TODO: Continue tomorrow
+        """
+        Creates a ThemePDFTemplateConfiguration and ThemePDFTemplateConfigurationVariables by the pdf_templates that the
+        user has created for the particular formularies he selected. This considers ONLY the templates that the user had 
+        created but not ALL of the templates.
 
-                
-                
+        Args:
+            theme_instance (reflow_server.theme.models.Theme): The Theme instance you have created to be used here
+            form_ids (list(int)): list of ints where each int is a Form instance id.
+            company_id (int): The id of the company that is creating this theme
+            user_id (int): The id of the user that is creating this theme
+
+        Returns:
+            bool: return True to indicate everything has been created
+        """
+        def handle_custom_content(custom_value):
+            """
+            This is the callback function that is fired whenever we find a custom content variable while copying 
+            the pdf template to the formulary of the user.
+
+            Returns:
+                (None, str): if None is returned we ignore this custom content
+            """
+            finds = re.findall('\d+', custom_value)
+            new_custom_value = ''
+            if len(finds) > 0:
+                field_variable = self.theme_reference.get_field_reference(int(finds[0])).id
+                new_custom_value += 'fieldVariable-{} fromConnectedField-'.format(field_variable)
+                if len(finds) > 1:
+                    from_connected_field = self.theme_reference.get_field_reference(int(finds[1])).id
+                    new_custom_value += '{}'.format(from_connected_field)
+                return new_custom_value
+            else:
+                return None
+
+        rich_text_service = RichTextService(company_id, user_id)
+        allowed_block_ids_for_pdf = PDFTemplateAllowedTextBlock.theme_.all_pdf_template_allowed_text_block_ids()
+
+        for pdf_template_configuration in PDFTemplateConfiguration.theme_.pdf_template_configuration_by_form_ids_company_id_and_user_id(
+            form_ids, 
+            company_id, 
+            user_id
+        ):
+            # get the rich_text page_id of the template configuration and the variables
+            pdf_template_configuration_variables = PDFTemplateConfigurationVariables.theme_.pdf_template_configuration_variables_by_pdf_template_configuration_id(
+                pdf_template_configuration.id
+            )
+            rict_text_page_id = pdf_template_configuration.rich_text_page_id
+            
+            theme_pdf_template_configuration = ThemePDFTemplateConfiguration.theme_.create_theme_pdf_template_configuration(
+                theme_id=theme_instance.id,
+                theme_form_id=self.theme_reference.get_formulary_reference(pdf_template_configuration.form.id).id,
+                name=pdf_template_configuration.name
+            )
+            # rich text is not obligatory so only add it if needed
+            if rict_text_page_id:
+                page_data = rich_text_service.copy_page(
+                    rict_text_page_id, 
+                    allowed_block_ids_for_pdf, 
+                    handle_custom_content
+                )
+                page_instance = rich_text_service.save_rich_text(page_data)
+                # as said before, it's not obligatory, so add it after
+                theme_pdf_template_configuration.rich_text_page = page_instance
+                theme_pdf_template_configuration.save()
+            
+            for pdf_template_configuration_variable in pdf_template_configuration_variables:
+                ThemePDFTemplateConfigurationVariables.theme_.create_theme_pdf_template_configuration_variable(
+                    pdf_template=theme_pdf_template_configuration,
+                    field_id=self.theme_reference.get_field_reference(pdf_template_configuration_variable.field.id).id
+                )
+        return True
 
     @transaction.atomic
     def create_or_update(self, theme_type_id, display_name, is_public, description, user_id, company_id, form_ids=[], theme_id=None):
@@ -371,8 +436,5 @@ class ThemeUpdateService:
             self.__create_theme_kanban(theme_instance, cleaned_form_ids, company_id, user_id)
             self.__create_theme_notification(theme_instance, cleaned_form_ids, company_id, user_id)
             self.__create_theme_dashboard(theme_instance, cleaned_form_ids, company_id, user_id)
-
-            #self.__create_theme_pdf_template(theme_instance, cleaned_form_ids, company_id, user_id)
-            # TODO: Continue tomorrow
-            #1/0
+            self.__create_theme_pdf_template(theme_instance, cleaned_form_ids, company_id, user_id)
         return theme_instance

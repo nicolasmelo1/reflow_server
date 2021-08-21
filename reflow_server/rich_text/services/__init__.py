@@ -1,15 +1,15 @@
-from django.conf import settings
+from reflow_server.rich_text.managers import text_table_option
 from django.db import transaction
-from django.apps import apps
-from django.db import models
 
 from reflow_server.rich_text.services.data import PageData
 from reflow_server.rich_text.services.utils import ordered_list_from_serializer_data_for_page_data
 from reflow_server.rich_text.services.block import RichTextImageBlockService, RichTextTableBlockService
 from reflow_server.rich_text.services.exceptions import RichTextBlockException
-from reflow_server.rich_text.models import TextContent, TextPage, TextBlock, TextTextOption
+from reflow_server.rich_text.models import TextContent, TextPage, TextBlock, TextTextOption, \
+    TextTableOptionRowDimension, TextTableOptionColumnDimension
 
 import re
+import uuid
 
 
 class RichTextService:
@@ -138,6 +138,8 @@ class RichTextService:
                     }
                 )
                 saved_uuids_contents_reference[str(content.uuid)] = content_instance
+            # break the line for every new block
+            raw_text += '\n'
 
         self.__remove_old_blocks_and_contents(
             page_instance, 
@@ -262,17 +264,85 @@ class RichTextService:
         return True
 
     @transaction.atomic
-    def copy_page(self, page_id):
-        settings_root = re.sub(r'urls$','', settings.ROOT_URLCONF)
-        rich_text_app_name = [app.replace(settings_root, '') for app in settings.INSTALLED_APPS if 'rich_text' in app] 
-        rich_text_models = apps.get_app_config(rich_text_app_name[0]).get_models()
-        models_to_consider = []
-        for model_class in rich_text_models:
-            if not re.search(r'Type$', model_class._meta.object_name):
-                for field in model_class._meta.fields:
-                    if isinstance(field, models.ForeignKey):
-                        print(field.remote_field.model)
-                        # TODO: Continue tomorrow
-                #print(model_class._meta.__dict__)
-        #app_models = ['{}.{}'.format(app_label, model._meta.object_name) for model in apps.get_app_config(app_label).get_models() if re.search(r'Type$', model._meta.object_name)]
-        
+    def copy_page(self, page_id, allowed_blocks, custom_content_callback=None):
+        """
+        This method is responsible for copying a page and duplicating to a new page_id.
+        This can be used specially for themes when we are creating and selecting a theme but also for other
+        things like duplicating a pdf template, or others.
+
+        Args:
+            page_id (int): The page id you wish to duplicate
+            allowed_blocks (int): The allowed block_type instance ids. The idea is that sometimes not all blocks should be 
+                                  allowed to exists in a rich text. For example in the PDF Generator we sometimes need a set
+                                  of blocks, on other use cases this might be different.
+            custom_content_callback(function): This is a callback function used for handling the custom contents in the contents 
+                                               inside of the rich_text. The function recieves a string which is the custom_value.
+                                               The function should return a value, if None is returned we ignore the content and do not
+                                               consider it.
+        """
+        block_instances_to_copy = TextBlock.objects.filter(page_id=page_id)
+        content_instances_to_copy = TextContent.objects.filter(block__in=block_instances_to_copy).order_by('block__order', 'order')
+        block_to_content_reference = {}
+        old_block_uuid_to_new_uuid_reference = {}
+        for content_instance_to_copy in content_instances_to_copy:
+            content_block_id = content_instance_to_copy.block_id
+            block_to_content_reference[content_block_id] = block_to_content_reference.get(content_block_id, [])
+            block_to_content_reference[content_block_id].append(content_instance_to_copy)
+
+        # create PageData
+        page_data = PageData(allowed_blocks=allowed_blocks)
+        for block in block_instances_to_copy:
+            new_block_uuid = str(uuid.uuid4())
+            old_block_uuid_to_new_uuid_reference[block.uuid] = new_block_uuid
+
+            # we do a trick here to change the uuid of the block without any issues.
+            block_data = page_data.add_block(
+                new_block_uuid, 
+                block.block_type.id, 
+                old_block_uuid_to_new_uuid_reference.get(getattr(block.depends_on, 'uuid', None), None)
+            )
+            if block.text_option:
+                block_data.append_text_block_type_data(block.text_option.alignment_type_id)
+            if block.image_option:
+                block_data.append_image_block_type_data(
+                    block.image_option.file_image_uuid,
+                    block.image_option.link,
+                    block.image_option.file_name,
+                    block.image_option.size_relative_to_view
+                )
+            if block.table_option:
+                table_option_row_dimension = TextTableOptionRowDimension.objects.filter(text_table_option=block.table_option.text_table_option).values_list('height', flat=True)
+                table_option_column_dimension = TextTableOptionColumnDimension.objects.filter(text_table_option=block.table_option.text_table.option).values_list('width', flat=True)
+
+                block_data.append_table_block_type_data(
+                    block.table_option.border_color,
+                    table_option_column_dimension,
+                    table_option_row_dimension
+                )
+            
+            for content in block_to_content_reference[block.id]:
+                is_to_ignore_content = False
+                content_uuid = uuid.uuid4()
+                
+                custom_value = content.custom_value
+                if content.is_custom:
+                    custom_value = custom_content_callback(content.custom_value)
+                    if custom_value == None:
+                        is_to_ignore_content = True
+                if not is_to_ignore_content:
+                    block_data.add_content(
+                        str(content_uuid), 
+                        content.text, 
+                        content.is_bold,
+                        content.is_italic,
+                        content.is_underline,
+                        content.is_code,
+                        content.is_custom,
+                        custom_value,
+                        content.latex_equation,
+                        content.marker_color,
+                        content.text_color,
+                        content.text_size,
+                        content.link
+                    )
+        return page_data

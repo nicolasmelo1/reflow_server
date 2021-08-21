@@ -4,6 +4,8 @@ from reflow_server.pdf_generator.managers import PDFTemplateConfigurationPDFGene
     PDFTemplateConfigurationVariablesPDFGeneratorManager, PDFGeneratedPDFGeneratorManager, \
     PDFTemplateAllowedTextBlockPDFGeneratorManager
 from reflow_server.pdf_generator.models.abstract import AbstractPDFTemplateConfiguration
+from reflow_server.theme.managers import PDFTemplateAllowedTextBlockThemeManager, PDFTemplateConfigurationVariableThemeManager, \
+    PDFTemplateConfigurationThemeManager
 
 
 class PDFTemplateAllowedTextBlock(models.Model):
@@ -16,7 +18,7 @@ class PDFTemplateAllowedTextBlock(models.Model):
         db_table = 'pdf_template_allowed_text_block'
 
     pdf_generator_ = PDFTemplateAllowedTextBlockPDFGeneratorManager()
-
+    theme_ = PDFTemplateAllowedTextBlockThemeManager()
 
 class PDFTemplateConfiguration(AbstractPDFTemplateConfiguration):
     """
@@ -35,6 +37,7 @@ class PDFTemplateConfiguration(AbstractPDFTemplateConfiguration):
 
     objects = models.Manager()
     pdf_generator_ = PDFTemplateConfigurationPDFGeneratorManager()
+    theme_ = PDFTemplateConfigurationThemeManager()
 
 
 class PDFTemplateConfigurationVariables(models.Model):
@@ -52,6 +55,7 @@ class PDFTemplateConfigurationVariables(models.Model):
 
     objects = models.Manager()
     pdf_generator_ = PDFTemplateConfigurationVariablesPDFGeneratorManager()
+    theme_ = PDFTemplateConfigurationVariableThemeManager()
 
 
 class PDFGenerated(models.Model):

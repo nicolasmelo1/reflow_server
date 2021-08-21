@@ -3,7 +3,7 @@ from django.db import transaction
 from reflow_server.core.events import Event
 from reflow_server.theme.models import Theme, ThemeForm, ThemeField, ThemeFieldOptions, ThemeKanbanDefault, \
     ThemeKanbanCard, ThemeKanbanCardField, ThemeNotificationConfiguration, ThemeNotificationConfigurationVariable, \
-    ThemeDashboardChartConfiguration, ThemeFormulaVariable
+    ThemeDashboardChartConfiguration, ThemeFormulaVariable, ThemePDFTemplateConfiguration, ThemePDFTemplateConfigurationVariables
 from reflow_server.theme.services.data import ThemeReference
 from reflow_server.authentication.models import UserExtended
 from reflow_server.formulary.models import Field, Form
@@ -16,6 +16,12 @@ from reflow_server.formulary.services.fields import FieldService
 from reflow_server.kanban.services import KanbanCardService, KanbanService
 from reflow_server.notification.services.notification_configuration import NotificationConfigurationService
 from reflow_server.dashboard.services.dashboard_configuration import DashboardChartConfigurationService
+from reflow_server.pdf_generator.services import PDFGeneratorService
+from reflow_server.pdf_generator.services.data import PDFVariablesData
+from reflow_server.pdf_generator.models import PDFTemplateAllowedTextBlock
+from reflow_server.rich_text.services import RichTextService
+
+import re
 
 
 class ThemeSelectService:
@@ -214,7 +220,7 @@ class ThemeSelectService:
             )
 
             formula_variable_ids = [
-                FormulaVariableData(self.theme_reference.get_formulary_reference(theme_formula_variable_id).id)
+                FormulaVariableData(self.theme_reference.get_field_reference(theme_formula_variable_id).id)
                 for theme_formula_variable_id in theme_formula_variable_ids
             ]
 
@@ -313,6 +319,67 @@ class ThemeSelectService:
             )
         return True
 
+    def __create_pdf_template(self):
+        """
+        When the user selects a theme we append the PDFTemplate to the user. We append all of the PDFConfiguration templates
+        to the forms of the user.
+
+        Returns:
+            bool: Return True indicating everything went fine or False if not.
+        """
+        def handle_custom_content(custom_value):
+            """
+            This is the callback function that is fired whenever we find a custom content variable while copying 
+            the pdf template to the formulary of the user.
+
+            Returns:
+                (None, str): if None is returned we ignore this custom content
+            """
+            finds = re.findall('\d+', custom_value)
+            new_custom_value = ''
+            if len(finds) > 0:
+                field_variable = self.theme_reference.get_field_reference(int(finds[0])).id
+                new_custom_value += 'fieldVariable-{} fromConnectedField-'.format(field_variable)
+                if len(finds) > 1:
+                    from_connected_field = self.theme_reference.get_field_reference(int(finds[1])).id
+                    new_custom_value += '{}'.format(from_connected_field)
+                return new_custom_value
+            else:
+                return None
+        # initialize the services and get all of the allowed blocks for pdfs
+        rich_text_service = RichTextService(self.company_id, self.user_id)
+        allowed_block_ids_for_pdf = PDFTemplateAllowedTextBlock.theme_.all_pdf_template_allowed_text_block_ids()
+
+        # gets all of the ThemePDFTemplateConfiguration instances for the particular theme and loops through it
+        for theme_pdf_template_configuration in ThemePDFTemplateConfiguration.theme_.theme_pdf_template_configurations_by_theme_id(self.theme.id):
+            pdf_generator_service = PDFGeneratorService(
+                self.user_id, 
+                self.company_id, 
+                self.theme_reference.get_formulary_reference(theme_pdf_template_configuration.form.id).form_name
+            )
+            # retrieves all of the variables for this particular theme
+            theme_pdf_template_configuration_variables = ThemePDFTemplateConfigurationVariables.theme_.theme_pdf_template_configuration_variables_by_theme_pdf_template_configuration_id(
+                theme_pdf_template_configuration.id
+            )
+
+            rict_text_page_id = theme_pdf_template_configuration.rich_text_page_id
+            pdf_variables_data = PDFVariablesData(None)
+            
+            page_data = None
+            if rict_text_page_id:
+                page_data = rich_text_service.copy_page(rict_text_page_id, allowed_block_ids_for_pdf, handle_custom_content)
+
+            for theme_pdf_template_configuration_variable in theme_pdf_template_configuration_variables:
+                pdf_variables_data.add_variable(self.theme_reference.get_field_reference(theme_pdf_template_configuration_variable.field.id).id)
+            
+            pdf_generator_service.save_pdf_template(
+                name=theme_pdf_template_configuration.name, 
+                pdf_variables_data=pdf_variables_data,
+                page_data=page_data
+            )
+            
+        return True
+
     @transaction.atomic
     def select(self):
         """
@@ -331,6 +398,7 @@ class ThemeSelectService:
         self.__create_kanban()
         self.__create_notification()
         self.__create_dashboard()
+        self.__create_pdf_template()
 
         Event.register_event('theme_select', {
             'user_id': self.user_id,

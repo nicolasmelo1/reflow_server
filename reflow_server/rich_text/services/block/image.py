@@ -87,6 +87,7 @@ class RichTextImageBlockService:
             block_with_file = TextBlock.rich_text_.text_block_by_file_image_uuid(image_uuid)
 
             # we check if a block already exists with the specific image_uuid, if it exists we copy the image of this block to the new block.
+            # in other words, we duplicate the image
             if block_with_file: 
                 file_size = block_with_file.image_option.file_size
                 file_name = block_with_file.image_option.file_name

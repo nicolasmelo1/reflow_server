@@ -76,8 +76,8 @@ class BlockData:
 
         Args:
             border_color (str): The color of the border of the table
-            column_dimensions (list(dict) || list(int)): The list of the dimensions as % for each column.
-            row_dimensions (list(dict) || list(int)): The list of the dimensions as px for each row.
+            column_dimensions (list({'width': int}) || list(int)): The list of the dimensions as % for each column.
+            row_dimensions (list({'height': int}) || list(int)): The list of the dimensions as px for each row.
         """
         self.border_color = border_color
         self.column_dimensions = [column_dimension if str(column_dimension).isdigit() else column_dimension['width'] for column_dimension in column_dimensions]
