@@ -280,8 +280,8 @@ class RichTextService:
                                                The function should return a value, if None is returned we ignore the content and do not
                                                consider it.
         """
-        block_instances_to_copy = TextBlock.objects.filter(page_id=page_id)
-        content_instances_to_copy = TextContent.objects.filter(block__in=block_instances_to_copy).order_by('block__order', 'order')
+        block_instances_to_copy = TextBlock.rich_text_.text_blocks_by_page_id(page_id)
+        content_instances_to_copy = TextContent.rich_text_.text_contents_by_page_id(page_id).order_by('block__order', 'order')
         block_to_content_reference = {}
         old_block_uuid_to_new_uuid_reference = {}
         for content_instance_to_copy in content_instances_to_copy:
@@ -301,6 +301,7 @@ class RichTextService:
                 block.block_type.id, 
                 old_block_uuid_to_new_uuid_reference.get(getattr(block.depends_on, 'uuid', None), None)
             )
+            # for each block type we append the custom options to the data.
             if block.text_option:
                 block_data.append_text_block_type_data(block.text_option.alignment_type_id)
             if block.image_option:
