@@ -14,9 +14,9 @@ from reflow_server.formulary.models import Field
 
 class TestarFilter(APIView):
     def get(self, request):
-        field = Field.objects.filter(id=756).first()
+        field = Field.objects.filter(id=758).first()
         filter_condition_data = FilterConditionData(
-            field, 'contains', False, 'casa'
+            field, 'between', False, '2021-05-20 00:00:00', '2021-05-28 00:00:00'
         )
         
         form_ids_to_filter = DynamicForm.objects.filter(company_id=1, depends_on__isnull=True).values_list('id', flat=True)

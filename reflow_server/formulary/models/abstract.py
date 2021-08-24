@@ -71,6 +71,9 @@ class AbstractFieldStates(models.Model):
     or many other configurations of a field the data he saved before the change is preserved with its state.
 
     This way we prevent the user from loosing important data when he changes something in the formulary.
+
+    Although the data is safe, some stuff like ordering or searching through your data might not return 
+    some old values.
     """
     date_configuration_date_format_type = models.ForeignKey('formulary.FieldDateFormatType', on_delete=models.CASCADE, blank=True, null=True, db_index=True)
     period_configuration_period_interval_type = models.ForeignKey('formulary.FieldPeriodIntervalType', on_delete=models.CASCADE, blank=True, null=True, db_index=True)

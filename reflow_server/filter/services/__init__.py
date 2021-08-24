@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.db.models.expressions import ExpressionWrapper
 
 from reflow_server.filter.models import Filter, FilterCondition, FilterConditionalType, FilterConectorType
 from reflow_server.data.models import FormValue, DynamicForm
@@ -24,7 +25,18 @@ class FilterConditionData:
             return value
 
 class FilterDataService:
-    def __init__(self, form_data_ids_to_filter=[]):     
+    def __init__(self, form_data_ids_to_filter=[]):
+        """
+        This is service responsible for filtering data. This is basically all that does. It is not supposed 
+        to do anything else. The idea of filtering is to support many types of data filtering so users can save
+        their filters and do stuff with it. This is used when retrieving the data for the user in the listing, 
+        dashboard or kanban visualization, which are one of the most obvious ways to filter data BUT this
+        can also be used for enabling user permissions, notifications and others.
+
+        Args:
+            form_data_ids_to_filter (list, optional): The DynamicForm instance ids to filter, those are the ones
+                                                      that have depends_on as None. Defaults to [].
+        """
         self.form_data_ids_to_filter = form_data_ids_to_filter
 
         # format data first
@@ -71,42 +83,42 @@ class FilterDataService:
         if 'contains' in condition.conditional:
             return models.Q(
                 field_id=condition.field.id,
-                value__icontains=condition.value
+                value2__icontains=condition.value
             )
         elif 'between' in condition.conditional:
             return models.Q(
                 field_id=condition.field.id, 
-                value__range=[condition.value, condition.value2]
+                value2__range=[condition.value, condition.value2]
             )
         elif 'greater_than' in condition.conditional:
             return models.Q(
                 field_id=condition.field.id,
-                value__gt=condition.value
+                value2__gt=condition.value
             )
         elif 'less_than' in condition.conditional:
             return models.Q(
                 field_id=condition.field.id,
-                value__lt=condition.value
+                value2__lt=condition.value
             )
         elif 'greater_than_equal' in condition.conditional:
             return models.Q(
                 field_id=condition.field.id,
-                value__gte=condition.value
+                value2__gte=condition.value
             )
         elif 'less_than_equal' in condition.conditional:
             return models.Q(
                 field_id=condition.field.id,
-                value__lte=condition.value
+                value2__lte=condition.value
             )
         elif 'is_empty' in condition.conditional:
             return models.Q(
                 field_id=condition.field.id,
-                value__in=[None, '']
+                value2__in=[None, '']
             )
         else:
             return models.Q(
                 field_id=condition.field.id, 
-                value=condition.value
+                value2=condition.value
             )
 
     def __anotation(self, condition):
@@ -120,10 +132,13 @@ class FilterDataService:
         return models.Case(
             models.When(
                 field_type__type='date', 
-                then=models.Func(
-                    models.F('value'),
-                    models.Value(settings.DEFAULT_PSQL_DATE_FIELD_FORMAT), 
-                    function='to_timestamp'
+                then=ExpressionWrapper(
+                        models.Func(
+                        models.F('value'),
+                        models.Value(settings.DEFAULT_PSQL_DATE_FIELD_FORMAT), 
+                        function='to_timestamp'
+                    ),
+                    output_field=models.DateTimeField()
                 )
             )
         )
@@ -135,13 +150,39 @@ class FilterDataService:
         q.add(~models.Q(value__in=['#N/A, #ERROR']))
         return models.Case(
             models.When(
-                q, 
+                condition=q, 
                 then=models.functions.comparison.Cast('value', output_field=models.IntegerField())
             )
         )
     
     def _anotate_form(self, condition):
-        pass
+        if condition.field.form_field_as_option_id:
+            when_clauses = []
+            form_field_type_values = FormValue.objects.annotate(
+                value2=models.functions.comparison.Cast('value', output_field=models.IntegerField())
+            ).filter(
+                field_id=condition.field.id, 
+                field_type=condition.field.type
+            ).values_list('value2', flat=True)
+            
+            form_values = FormValue.objects.filter( 
+                models.Q(field_id=condition.field.form_field_as_option_id, form_id__in=form_field_type_values) |
+                models.Q(field_id=condition.field.form_field_as_option_id, form__depends_on_id__in=form_field_type_values)
+            ).values(
+                'form__depends_on_id', 
+                'form_id', 
+                'value'
+            )
+            for form_value in form_values:
+                when_clauses.append(
+                    models.When(
+                        condition=models.Q(value=str(form_value['form_id'])), 
+                        then=models.Value(form_value['value'], output_field=models.TextField())
+                    )
+                )
+            return models.Case(*when_clauses)
+        else:
+            return models.F('value')
 
     def search(self, condition_data):
         ids_to_filter = self.form_data_ids_to_filter
@@ -157,7 +198,7 @@ class FilterDataService:
             form_value = FormValue.objects
 
             if annotation:
-                form_value.annotate(value2=annotation)
+                form_value = form_value.annotate(value2=annotation)
 
             print(form_value.filter(form__depends_on_id__in=ids_to_filter).filter(conditional))
             # reference: https://stackoverflow.com/a/29149972
