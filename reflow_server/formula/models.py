@@ -4,6 +4,11 @@ from reflow_server.formula.managers import FormulaContextForCompanyFormulaManage
 
 
 class FormulaContextForCompany(models.Model):
+    """
+    Holds the context for the company. This is the translation we will use for the formula for the particular 
+    company. Right now we default them to portuguese but we soon enough we will default them
+    to english instead.
+    """
     company = models.OneToOneField('authentication.Company', on_delete=models.CASCADE, db_index=True)
     context_type = models.ForeignKey('formula.FormulaContextType', on_delete=models.CASCADE, db_index=True)
 

@@ -23,6 +23,7 @@ urlpatterns = [
     re_path(r'^billing/', include('reflow_server.billing.urls'), name='billing_app'),
     re_path(r'^analytics/', include('reflow_server.analytics.urls'), name='analytics_app'),
     re_path(r'^authentication/', include('reflow_server.authentication.urls'), name='authentication_app'),
+    re_path(r'^filter/', include('reflow_server.filter.urls'), name='filter_app'),
     re_path(r'^formula/', include('reflow_server.formula.urls'), name='formula_app'),
     re_path(r'^notification/', include('reflow_server.notification.urls'), name='notification_app'),
     re_path(r'^kanban/', include('reflow_server.kanban.urls'), name='kanban_app'),
