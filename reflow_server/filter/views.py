@@ -16,11 +16,11 @@ class TestarFilter(APIView):
     def get(self, request):
         field = Field.objects.filter(id=758).first()
         filter_condition_data = FilterConditionData(
-            field, 'between', False, '2021-05-20 00:00:00', '2021-05-28 00:00:00'
+            field, field.type.type, 'between', False, '2021-05-20 00:00:00', '2021-05-28 00:00:00'
         )
         
         form_ids_to_filter = DynamicForm.objects.filter(company_id=1, depends_on__isnull=True).values_list('id', flat=True)
-        filter_service = FilterDataService(form_ids_to_filter)
+        filter_service = FilterDataService(1 , form_ids_to_filter)
         filter_service.search([filter_condition_data])
         return Response({
             'status': 'ok'

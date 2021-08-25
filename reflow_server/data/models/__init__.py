@@ -13,7 +13,8 @@ from reflow_server.formula.managers import FormValueFormulaManager, \
     DynamicFormFormulaManager
 from reflow_server.pdf_generator.managers import FormValuePDFGeneratorManager, \
     DynamicFormPDFGeneratorManager
-from reflow_server.draft.managers.attachment import AttachmentsDraftManager
+from reflow_server.draft.managers import AttachmentsDraftManager
+from reflow_server.filter.managers import FormValueFilterManager
 
 import uuid
 
@@ -91,6 +92,7 @@ class FormValue(AbstractFieldStates):
         app_label = 'data'
 
     objects = models.Manager()
+    filter_ = FormValueFilterManager()
     data_ = FormValueDataManager()
     kanban_ = FormValueKanbanManager()
     formulary_ = FormValueFormularyManager()
