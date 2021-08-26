@@ -28,3 +28,19 @@ class FormValueFilterManager(models.Manager):
             return self.get_queryset().filter(field_id=field_id).latest('updated_at')
         except:
             return None
+
+    def distinct_main_form_ids_by_field_id(self, field_id):
+        return self.get_queryset().filter(
+                field_id=field_id
+            ).values_list(
+                'form__depends_on_id', flat=True
+            ).distinct()
+
+    def distinct_main_form_ids_excluding_main_form_data_ids_by_main_form_data_ids(self, main_form_data_ids_to_exclude, main_form_data_ids):
+        return self.get_queryset().filter(
+                form__depends_on_id__in=main_form_data_ids
+            ).exclude(
+                form__depends_on_id__in=main_form_data_ids_to_exclude
+            ).values_list(
+                'form__depends_on_id', flat=True
+            ).distinct()

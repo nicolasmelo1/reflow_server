@@ -116,8 +116,8 @@ response.conteudo
 """
 
 SMTP_library = r"""
-message = SMTP.build_message("nicolas.melo@reflow.com.br", ["nicolasmelo12@gmail.com"], "Tesssste", "Testinho")
-SMTP.send_email("smtp.gmail.com", 587, "nicolas.melo@reflow.com.br", "Nicolas123!@#", message)
+message = SMTP.build_message("nicolas.melo1@hotmail.com", ["nicolasmelo12@gmail.com"], "Tesssste", "Testinho")
+SMTP.send_email("smtp.office365.com", 587, "nicolas.melo1@hotmail.com", "Nicolas1234!@#", message)
 """
 functions_to_test = [
     #simple_arithimetic, 
