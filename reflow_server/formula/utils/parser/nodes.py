@@ -400,6 +400,25 @@ class String:
             ) 
         ), indent=4) 
 ############################################################################################
+class Datetime:
+    node_type = NodeType.DATETIME
+    
+    def __init__(self, value):
+        self.value = value
+    
+    def __str__(self):
+        return json.dumps(json.loads(
+            (
+                '{'
+                '   "node": "%s",'
+                '   "value": "%s" '
+                '}' % (
+                    self.node_type,
+                    self.value.value
+                )
+            ) 
+        ))
+############################################################################################
 class Null:
     node_type = NodeType.NULL
 

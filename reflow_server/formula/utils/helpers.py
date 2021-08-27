@@ -19,7 +19,125 @@ def is_float(value):
     except:
         return False
 # ------------------------------------------------------------------------------------------
+############################################################################################
+class DatetimeHelper:
+    valid_formats = [
+        'YYYY',
+        'MM',
+        'DD',
+        'hh',
+        'HH',
+        'mm',
+        'ss',
+        'SSS',
+        'AA'
+    ]
+    
+    valid_attributes = [
+        'year',
+        'month',
+        'day',
+        'hour',
+        'minute',
+        'second',
+        'microsecond'
+    ]
 
+    def validate_format(self, datetime_format):
+        if datetime_format not in self.valid_formats:
+            raise Exception('Not a valid datetime format')
+    
+    def get_regex(self, datetime_format):
+        self.validate_format(datetime_format)
+
+        if datetime_format == 'YYYY':
+            return r'(\d{4})'
+        elif datetime_format == 'MM':
+            return r'(0[1-9]|1[0-2]|[1-9])'
+        elif datetime_format == 'DD':
+            return r'(0[1-9]|1[0-9]|2[0-9]|3[0-1]|[1-9])'
+        elif datetime_format == 'hh':
+            return r'(0[0-9]|1[0-9]|2[0-4]|[1-9])'
+        elif datetime_format == 'HH':
+            return r'(0[0-9]|1[0-2]|[1-9])'
+        elif datetime_format == 'mm':
+            return r'(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])?'
+        elif datetime_format == 'ss':
+            return r'(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])?'
+        elif datetime_format == 'AA':
+            return r'(am|pm|AM|PM)?'
+        else:
+            return r'(\d{3})?'
+
+    def append_values(self, datetime_format, value):
+        if datetime_format == 'YYYY':
+            self.date_year = {
+                'format': datetime_format,
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_format == 'MM':
+            self.date_month = {
+                'format': datetime_format,
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_format == 'DD':
+            self.date_day = {
+                'format': datetime_format,
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_format == 'hh':
+            self.date_hour = getattr(self, 'date_hour', {}) 
+            self.date_hour.update({
+                'format': datetime_format,
+                'value': int(value) if value != '' else 0
+            })
+        elif datetime_format == 'HH':
+            self.date_hour = getattr(self, 'date_hour', {})
+            self.date_hour.update({
+                'format': datetime_format,
+                'value': int(value) if value != '' else 0
+            })
+        elif datetime_format == 'mm':
+            self.date_minute = {
+                'format': datetime_format,
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_format == 'ss':
+            self.date_second = {
+                'format': datetime_format,
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_format == 'AA':
+            self.date_hour = getattr(self, 'date_hour', {}) 
+            self.date_hour.update({
+                'am_or_pm': 'pm' if value.lower() == 'pm' else 'am'
+            })
+        elif datetime_format == 'SSS':
+            self.date_microsecond = {
+                'format': datetime_format,
+                'value': int(value) if value != '' else 0
+            }
+
+    def get_value(self, datetime_definition):
+        if datetime_definition == 'year' and hasattr(self, 'date_year'):
+            return self.date_year['value']
+        elif datetime_definition == 'month' and hasattr(self, 'date_month'):
+            return self.date_month['value']
+        elif datetime_definition == 'day' and hasattr(self, 'date_day'):
+            return self.date_day['value']
+        elif datetime_definition == 'hour' and hasattr(self, 'date_hour'):
+            if self.date_hour.get('am_or_pm'):
+                return self.date_hour['value'] + 12 if self.date_hour['am_or_pm'] == 'pm' else self.date_hour['value']
+            else:
+                return self.date_hour['value']
+        elif datetime_definition == 'minute' and hasattr(self, 'date_minute'):
+            return self.date_minute['value']
+        elif datetime_definition == 'second' and hasattr(self, 'date_second'):
+            return self.date_second['value']
+        elif datetime_definition == 'microsecond' and hasattr(self, 'date_microsecond'):
+            return self.date_microsecond['value']
+        else:
+            return 0
 ############################################################################################
 class DynamicArray:
     """

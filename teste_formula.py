@@ -1,3 +1,4 @@
+from reflow_server import dashboard
 from reflow_server.authentication import consumers
 from reflow_server.formula.utils import interpreter
 from reflow_server.formula.utils.lexer import Lexer
@@ -14,7 +15,7 @@ method.add_parameter('method', 'metodo')
 
 struct = library.add_struct('HTTPResponse', 'Resposta')
 struct.add_attribute('content', 'conteudo')
-settings = Settings(context, True)
+settings = Settings(context, is_testing=True)
 
 simple_arithimetic = r"""(1 + 2) + (2 + 2)"""
 
@@ -119,6 +120,14 @@ SMTP_library = r"""
 message = SMTP.build_message("nicolas.melo1@hotmail.com", ["nicolasmelo12@gmail.com"], "Tesssste", "Testinho")
 SMTP.send_email("smtp.office365.com", 587, "nicolas.melo1@hotmail.com", "Nicolas1234!@#", message)
 """
+
+datetime = r"""
+# Testar comentários
+data = ~D[2012-4-12 23:11]
+
+data
+"""
+
 functions_to_test = [
     #simple_arithimetic, 
     #function,
@@ -130,7 +139,8 @@ functions_to_test = [
     #modules,
     #structs,
     #HTTP_library,
-    SMTP_library,
+    #SMTP_library,
+    datetime
 ]
 
 import json
@@ -139,12 +149,15 @@ import time
 start = time.time()
 for function in functions_to_test:
     value = None
-    try:
-        lexer = Lexer(function, settings)
-        parser = Parser(lexer, settings)
-        ast = parser.parse()
-        interpreter = Interpreter(settings)
-        value = interpreter.evaluate(ast)
-    except Exception as e:
-        value = e
+    #try:
+    lexer = Lexer(function, settings)
+    parser = Parser(lexer, settings)
+    ast = parser.parse()
+    interpreter = Interpreter(settings)
+    value = interpreter.evaluate(ast)
+    #except Exception as e:
+     #   value = e
     print(value._representation_())
+end = time.time()
+
+print(end-start)

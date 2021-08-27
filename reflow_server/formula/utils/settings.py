@@ -1,4 +1,6 @@
 
+from reflow_server.formula.utils.helpers import DatetimeHelper
+import time
 from reflow_server.formula.utils.context import Context
 
 import re
@@ -9,6 +11,7 @@ class TokenType:
     INTEGER='INTEGER'
     FLOAT='FLOAT'
     BOOLEAN='BOOLEAN'
+    DATETIME='DATETIME'
     POSITIONAL_ARGUMENT_SEPARATOR='POSITIONAL_ARGUMENT_SEPARATOR'
     STRING='STRING'
     FUNCTION='FUNCTION'
@@ -59,6 +62,7 @@ class NodeType:
     FORMULA='FORMULA'
     FLOAT='FLOAT'
     STRING='STRING'
+    DATETIME='DATETIME'
     BOOLEAN='BOOLEAN'
     NULL='NULL'
     UNARY_OPERATION='UNARY_OPERATION'
@@ -78,7 +82,7 @@ class NodeType:
 
 
 class Settings:
-    def __init__(self, context=Context(), is_testing=False):
+    def __init__(self, context=Context(), timezone='GMT', is_testing=False):
         """
         This is the settings class, this is used on the interpreter, parser and lexer.
         The idea is that with the settings we are able to translate the formula or in other words, the programming language,
@@ -93,12 +97,18 @@ class Settings:
                                                                    languages.
         """
         self.is_testing = is_testing
+        self.sigil_string = '~'
         self.attribute_character = '.'
         self.comment_character = '#'
         self.string_delimiters = ['`','"']
         self.operation_characters = ['>' ,'<', '=', '!', '/', '+', '*', '%', '-', '^', ':']
         self.valid_numbers_characters = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         self.valid_braces = ['{', '}', '(', ')', '[', ']']
+        self.timezone = timezone
+        self.datetime_helper = DatetimeHelper()
+
+        self.datetime_date_format = context.datetime.date_format
+        self.datetime_time_format = context.datetime.time_format
         self.positional_argument_separator = context.positional_argument_separator
         self.decimal_point_character = context.decimal_point_separator
         self.inversion_keyword = context.keyword.inversion
@@ -121,6 +131,37 @@ class Settings:
             'false': context.keyword.boolean.false
         }
         self.library = context.library
+
+    def time_format_to_regex(self, match_the_format=False):
+        if match_the_format and hasattr(self, 'cached_datetime_time_format_regex'):
+            return self.cached_datetime_time_format_regex
+
+        time_format = self.datetime_time_format
+        characters_that_doesnt_mean_anything = self.datetime_time_format
+        for key in self.datetime_helper.valid_formats:
+            time_format = time_format.replace(key, f'({key})' if match_the_format else self.datetime_helper.get_regex(key))
+            characters_that_doesnt_mean_anything = characters_that_doesnt_mean_anything.replace(key, '')
+
+        characters_that_doesnt_mean_anything = set(characters_that_doesnt_mean_anything)
+        for_regex = ''.join([f"\{character}" for character in characters_that_doesnt_mean_anything])
+        other_strings_regex = f"([{for_regex}])"
+        time_format = re.sub(other_strings_regex, other_strings_regex + '?', time_format)
+        
+        if match_the_format:
+            self.cached_datetime_time_format_regex = time_format
+        return time_format
+
+    def date_format_to_regex(self, match_the_format=False):
+        if match_the_format and hasattr(self, 'cached_datetime_date_format_regex'):
+            return self.cached_datetime_date_format_regex
+
+        date_format = self.datetime_date_format
+        for key in self.datetime_helper.valid_formats:
+            date_format = date_format.replace(key, f'({key})' if match_the_format else self.datetime_helper.get_regex(key))
+        
+        if match_the_format:
+            self.cached_datetime_date_format_regex = date_format
+        return date_format
 
     def validate_character_for_identity_or_keywords(self, character, is_first_character=False):
         pattern = re.compile('(?!\d)([\w_])' if is_first_character else'[\w_]')

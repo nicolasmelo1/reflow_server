@@ -183,6 +183,8 @@ class Interpreter:
             return self.handle_null(node)
         elif node.node_type == NodeType.STRING:
             return self.handle_string(node)
+        elif node.node_type == NodeType.DATETIME:
+            return self.handle_datetime(node)
         elif node.node_type == NodeType.FLOAT:
             return self.handle_float(node)
         elif node.node_type == NodeType.LIST:
@@ -818,6 +820,10 @@ class Interpreter:
     def handle_null(self, node):
         null = builtins.objects.Null(self.settings)
         return null._initialize_()
+    # ------------------------------------------------------------------------------------------
+    def handle_datetime(self, node):
+        datetime = builtins.objects.Datetime(self.settings)
+        return datetime._initialize_(node.value.value)
     # ------------------------------------------------------------------------------------------
     def handle_string(self, node):
         if helpers.is_string(node.value.value):

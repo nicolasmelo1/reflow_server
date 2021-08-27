@@ -17,6 +17,9 @@ class FilterDataService:
         dashboard or kanban visualization, which are one of the most obvious ways to filter data BUT this
         can also be used for enabling user permissions, notifications and others.
 
+        Also this is used for the conditions on a single record/data. Like for example conditional sections. This way
+        we can verify if a condition should be open or not.
+
         Args:
             company_id (int): A Company instance id.
         """
@@ -36,6 +39,18 @@ class FilterDataService:
             self.filter_conector_type_reference[filter_conditional_type.id] = filter_conector_type.name
     
     def filter_condition_data_by_filter_id(self, filter_id):
+        """
+        By a Filter instance id we create a FilterConditionData that we can use for searching or validating the data on.
+
+        Args:
+            filter_id (int): A Filter instance id
+
+        Raises:
+            AssertionError: The conditional or connector does not exist.
+
+        Returns:
+            list(FilterConditionData): A list of FilterConditionData objects that will be used for searching or filtering.
+        """
         conditions = FilterCondition.objects.filter(id=filter_id)
         conditions_data = []
         
@@ -61,44 +76,117 @@ class FilterDataService:
         return conditions_data
 
     def __filter_types_for_validate(self, condition, formulary_data_data):
-        if condition.conditional == 'contains' and formulary_data_data.formulary_values.get(condition.field.name, None):
-            for formulary_field_value in formulary_data_data.formulary_values[condition.field.name]:
-                if condition.value in formulary_field_value:
-                    return True
-        if condition.conditional == 'between' and formulary_data_data.formulary_values.get(condition.field.name, None):
-            pass 
+        """
+        Handles each type of filtering for the 'validate' method. If you don't know what '.validate()' is
+        or does you might want to check this method before returning here.
+
+        The idea is that this is supposed for handling each type of conditional comparison for a single record/data.
+        For that we need to use the FilterFormularyDataData object. This object has the formulary_values dict
+        which holds all of the fields as a dict and each key is a list of values.
+
+        So in order to validate, as you might already know, we need to check if each value matches a particular condition.
+        Beware i said "each" so we need to loop through each item in the list of values for the particular field_name.
+
+        The most difficult part here might be the lambda function when calling the `handle_comparison`. In JS this is something very
+        well known and used called a 'callback'. The idea is to validate the logic we call a function defined outside of `handle_comparison`
+        function. We define this function directly when calling handle_comparison using lambda.
+
+        This:
+        >>> if condition.conditional == 'equals':
+                return handle_comparison(lambda formulary_field_value: condition.value == formulary_field_value)
+
+        could be written as:
+        >>> if condition.conditional == 'equals':
+                def handle_equals(formulary_field_value):
+                    return condition.value == formulary_field_value
+                return handle_comparison(handle_equals)
+
+        Notice that we are passing a function to a function. We do something similar in the functionmethod decorator in the formulas but it is lot more complex.
+
+        Args:
+            condition (FilterConditionData): the FilterConditionData object that contains all of the data needed for the filtering.
+            formulary_data_data (FilterFormularyDataData): A FilterFormularyDataData object with the actual data of the record/data to 
+                                                           validate the conditionals to.
+
+        Returns:
+            bool: Returns true or false weather the condition is true or false
+        """
+        def handle_comparison(condition_logic_callback):
+            if formulary_data_data.formulary_values.get(condition.field.name, None):
+                for formulary_field_value in formulary_data_data.formulary_values[condition.field.name]:
+                    if condition_logic_callback(formulary_field_value):
+                        return not condition.is_negation
+            return condition.is_negation
+
+        if condition.conditional == 'equals':
+            return handle_comparison(lambda formulary_field_value: condition.value == formulary_field_value)
+        if condition.conditional == 'contains':
+            return handle_comparison(lambda formulary_field_value: condition.value in formulary_field_value)
+        elif condition.conditional == 'between':
+            return handle_comparison(lambda formulary_field_value: condition.value <= formulary_field_value <= condition.value2)
+        elif condition.conditional == 'greater_than':
+            return handle_comparison(lambda formulary_field_value: condition.value > formulary_field_value)
+        elif condition.conditional == 'less_than':
+            return handle_comparison(lambda formulary_field_value: condition.value < formulary_field_value)
+        elif condition.conditional == 'greater_than_equals':
+            return handle_comparison(lambda formulary_field_value: condition.value >= formulary_field_value)
+        elif condition.conditional == 'less_than_equals':
+            return handle_comparison(lambda formulary_field_value: condition.value <= formulary_field_value)
+        elif condition.conditional == 'is_empty':
+            if formulary_data_data.formulary_values.get(condition.field.name, None) == None:
+                return not condition.is_negation
+            else:
+                return handle_comparison(lambda formulary_field_value: formulary_field_value in ['', None])
+        return condition.is_negation
+
 
     def __filter_types_for_search(self, condition, main_form_data_ids_to_filter):
-        if condition.conditional == 'contains':
-            return models.Q(
-                field_id=condition.field.id,
-                value2__icontains=condition.value
-            )
+        """
+        As the name suggests this is responsible for handling every filter type for the 'search'.
+        If you don't know what `.search()` does you might want to read the method documentation before coming here.
+
+        This basically creates a query to add in the django ORM .filter() clause.
+
+        Args:
+            condition (FilterConditionData): the FilterConditionData object that contains all of the data needed for the filtering.
+            main_form_data_ids_to_filter (list(int)): This is all of the main_form_data_ids (or DynamicForm instance ids with depends_on = None)
+                                                      that we are using in our search. This is needed only for the 'is_empty' clause if the 
+                                                      field_id doesn't exist for a particular dynamic_form instance.
+
+        Returns:
+            django.db.models.Q: A Q object for using in the `.filter()` clause of django ORM. 
+        """
+        def handle_filter_query(query):
+            return models.Q(field_id=condition.field.id, **query)
+
+        if condition.conditional == 'equals':
+            return handle_filter_query({
+                'value2': condition.value
+            })
+        elif condition.conditional == 'contains':
+            return handle_filter_query({
+                'value2__icontains': condition.value
+            })
         elif condition.conditional == 'between':
-            return models.Q(
-                field_id=condition.field.id,
-                value2__range=[condition.value, condition.value2]
-            )
+            return handle_filter_query({
+                'value2__range': [condition.value, condition.value2]
+            })
         elif condition.conditional == 'greater_than':
-            return models.Q(
-                field_id=condition.field.id,
-                value2__gt=condition.value
-            )
+            return handle_filter_query({
+                'value2__gt': condition.value
+            })
         elif condition.conditional == 'less_than':
-            return models.Q(
-                field_id=condition.field.id,
-                value2__lt=condition.value
-            )
+            return handle_filter_query({
+                'value2__lt': condition.value
+            })
         elif condition.conditional == 'greater_than_equal':
-            return models.Q(
-                field_id=condition.field.id,
-                value2__gte=condition.value
-            )
+            return handle_filter_query({
+                'value2__gte': condition.value
+            })
         elif condition.conditional == 'less_than_equal':
-            return models.Q(
-                field_id=condition.field.id,
-                value2__lte=condition.value
-            )
+            return handle_filter_query({
+                'value2__lte': condition.value
+            })
         elif condition.conditional == 'is_empty':
             # we retrieve not only the form records/data when the field is empty or None but also the ones where
             # the field doesn't exist at all
@@ -111,10 +199,12 @@ class FilterDataService:
                 main_form_data_ids_to_filter
             )
             return models.Q(
-                models.Q(
-                    field_id=condition.field.id,
-                    value2__isnull=True
-                ) |
+                handle_filter_query({
+                    'value2__isnull': True
+                }) |
+                handle_filter_query({
+                    'value2': ''
+                }) |
                 models.Q(
                     form__depends_on_id__in=main_form_data_ids_where_field_id_does_not_exist
                 )
@@ -126,6 +216,17 @@ class FilterDataService:
             )
 
     def __anotation(self, condition):
+        """
+        Before doing this FilterDataService we were casting directly in the filter and it was bad because the .filter() function became so bloated and
+        with so much thing that this was difficult to debug and know what was happening. Here we are doing differently we change the data using Case Where
+        statements. This way we can modify the values to be the ones that we use for filtering and keep the actual filter conditional sleek and simple.
+
+        Args:
+            condition (FilterConditionData): the FilterConditionData object that contains all of the data needed for the condition.
+        
+        Retuns:
+            (django.db.models.Case | django.db.models.F): Returns a F object with the 'value' column or a Case When clause.
+        """
         handler = getattr(self, '_anotate_%s' % condition.field_type, None)
         if handler:
             return handler(condition)
@@ -138,10 +239,10 @@ class FilterDataService:
                 field_type__type='date', 
                 then=ExpressionWrapper(
                         models.Func(
-                        models.F('value'),
-                        models.Value(settings.DEFAULT_PSQL_DATE_FIELD_FORMAT), 
-                        function='to_timestamp'
-                    ),
+                            models.F('value'),
+                            models.Value(settings.DEFAULT_PSQL_DATE_FIELD_FORMAT), 
+                            function='to_timestamp'
+                        ),
                     output_field=models.DateTimeField()
                 )
             )
@@ -282,7 +383,7 @@ class FilterDataService:
             conditional = self.__filter_types_for_search(condition, main_form_data_ids_to_filter)
             annotation = self.__anotation(condition)
 
-            form_value = FormValue.objects
+            form_value = FormValue.filter_.get_queryset()
 
             if annotation:
                 form_value = form_value.annotate(value2=annotation)
@@ -298,12 +399,38 @@ class FilterDataService:
             # ids retrieved filtering it.
             main_form_ids = form_value.values_list('form__depends_on__id', flat=True).distinct()
             if condition.connector == 'or':
-                main_form_data_ids_to_consider.append(main_form_ids)
+                main_form_data_ids_to_consider.extend(list(main_form_ids))
             else:
                 main_form_data_ids_to_filter = main_form_ids
-                main_form_data_ids_to_consider = main_form_data_ids_to_filter
+                main_form_data_ids_to_consider = list(main_form_data_ids_to_filter)
         return main_form_data_ids_to_consider
 
-    def validate(self, formulary_data_data, conditions_data):
+    def validate(self, conditions_data, formulary_data_data):
+        """
+        Validates a set of conditions for a specific data/record. While search works for a group of records/data
+        the validate works for a single and only record. Also the return changes, while on 'search' we return the
+        DynamicForm instance ids that matches the specific set of conditions here we only return True or False.
+        True means that the set of conditions passes and is valid and False if the set of conditions does not pass
+        for the specific record.
+
+        Args:
+            conditions_data (list(FilterConditionData)): A list of FilterConditionData instances that we use to validate.
+            formulary_data_data (FilterFormularyDataData): A FilterFormularyDataData class that is used to hold all of the data
+                                                           of each field for a particular field.
+
+        Returns:
+            bool: Returns True if the set of conditionals is valid for this particular formulary data or False if it's invalid.
+        """
+        result = None
         for condition_data in conditions_data:
-            pass
+            result_of_conditional_evaluation = self.__filter_types_for_validate(condition_data, formulary_data_data)
+            
+            if result == None:
+                result = result_of_conditional_evaluation
+            else:
+                if condition_data.connector == 'or':
+                    result = result_of_conditional_evaluation or result
+                else:
+                    result = result_of_conditional_evaluation and result
+        
+        return result

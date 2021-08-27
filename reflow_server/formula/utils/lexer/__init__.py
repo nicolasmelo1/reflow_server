@@ -2,6 +2,8 @@ from reflow_server.formula.utils.lexer.tokens import Token
 from reflow_server.formula.utils.settings import TokenType
 from reflow_server.formula.utils.builtins.objects.Error import Error
 
+import re
+
 
 class Lexer:
     """
@@ -43,6 +45,7 @@ class Lexer:
         self.expression = list(expression)
         self.current_position = 0
 
+
     def advance_next_position(self, positions_to_advance=1):
         self.current_position += positions_to_advance
 
@@ -65,8 +68,23 @@ class Lexer:
         """
         return self.peek_next_character(number_of_characters_to_peek) == character
 
+    def __validate_closure_of_braces(self, brace_to_close, closing_brace):
+        count = 0
+        while self.current_position + count < len(self.expression):
+            next_character = self.peek_and_validate(closing_brace, count)
+            if next_character:
+                return next_character
+            else:
+                count += 1
+        Error(self.settings)._initialize_('SyntaxError', "Need to close '{}'".format(brace_to_close))
+
     def __current_token_is_space_or_tab(self):
         return self.current_position < len(self.expression) - 1 and self.expression[self.current_position] in [' ', '\t']
+
+    def __ignore_comments(self):
+        if self.current_position < len(self.expression) - 1 and self.expression[self.current_position] == self.settings.comment_character:
+            while self.expression[self.current_position] != '\n':
+                self.current_position += 1
 
     def __handle_current_token(self):
         if self.current_position < len(self.expression):
@@ -77,14 +95,14 @@ class Lexer:
                 return self.__handle_string()
             elif self.expression[self.current_position] in self.settings.valid_numbers_characters:
                 return self.__handle_number()
+            elif self.expression[self.current_position] in self.settings.sigil_string and self.peek_and_validate('D') and self.peek_and_validate('[', 2):
+                return self.__handle_datetime()
             elif self.settings.validate_character_for_identity_or_keywords(self.expression[self.current_position]):
                 return self.__handle_keyword()
             elif self.expression[self.current_position] in self.settings.operation_characters:
                 return self.__handle_operation()
             elif self.expression[self.current_position] in self.settings.valid_braces:
                 return self.__handle_braces()
-            elif self.expression[self.current_position] == self.settings.comment_character:
-                return self.__handle_comment()
             elif self.expression[self.current_position] == self.settings.attribute_character:
                 self.advance_next_position()
                 return Token(TokenType.ATTRIBUTE, self.settings.attribute_character)
@@ -97,40 +115,40 @@ class Lexer:
             else:
                 Error(self.settings)._initialize_('SyntaxError', 'invalid character: {}'.format(self.expression[self.current_position]))
         return Token(TokenType.END_OF_FILE, None)
-
+    
     def __handle_braces(self):
-        def validate_closure_of_braces(brace_to_close, closing_brace):
-            count = 0
-            while self.current_position + count < len(self.expression):
-                next_character = self.peek_and_validate(closing_brace, count)
-                if next_character:
-                    return next_character
-                else:
-                    count += 1
-            Error(self.settings)._initialize_('SyntaxError', "Need to close '{}'".format(brace_to_close))
-
         if self.expression[self.current_position] == '(':
             self.advance_next_position()
-            validate_closure_of_braces('(', ')')
+            self.__validate_closure_of_braces('(', ')')
             return Token(TokenType.LEFT_PARENTHESIS, '(')
         elif self.expression[self.current_position] == ')':
             self.advance_next_position()
             return Token(TokenType.RIGHT_PARENTHESIS, ')')
         elif self.expression[self.current_position] == '[':
             self.advance_next_position()
-            validate_closure_of_braces('[', ']')
+            self.__validate_closure_of_braces('[', ']')
             return Token(TokenType.LEFT_BRACKETS, '[')
         elif self.expression[self.current_position] == ']':
             self.advance_next_position()
             return Token(TokenType.RIGHT_BRACKETS, ']')
         elif self.expression[self.current_position] == '{':
             self.advance_next_position()
-            validate_closure_of_braces('{', '}')
+            self.__validate_closure_of_braces('{', '}')
             return Token(TokenType.LEFT_BRACES, '{')
         elif self.expression[self.current_position] == '}':
             self.advance_next_position()
             return Token(TokenType.RIGHT_BRACES, '}')
-        
+    
+    def __handle_datetime(self):
+        counter = 3
+        datetime = [] 
+        self.__validate_closure_of_braces('[', ']')
+        while self.peek_next_character(counter) != ']':
+            datetime.append(self.expression[self.current_position + counter])
+            counter += 1
+        self.advance_next_position(counter + 1)
+        return Token(TokenType.DATETIME, ''.join(datetime))
+
     def __handle_number(self):
         number = []
         counter = 0
@@ -146,15 +164,6 @@ class Lexer:
             return Token(TokenType.FLOAT, ''.join(number))
         else:
             return Token(TokenType.INTEGER, ''.join(number))
-    
-    def __handle_comment(self):
-        comment = []
-        counter = 1
-        while not self.peek_and_validate('\n', counter):
-            comment.append(self.expression[self.current_position + counter])
-            counter += 1
-        self.advance_next_position(counter)
-        return Token(TokenType.COMMENT, ''.join(comment))
 
     def __handle_string(self):
         string = []
@@ -273,4 +282,5 @@ class Lexer:
     def get_next_token(self):
         while self.__current_token_is_space_or_tab():
             self.current_position += 1
+        self.__ignore_comments()
         return self.__handle_current_token()

@@ -106,6 +106,7 @@ class Parser:
             | FLOAT 
             | STRING
             | BOOLEAN
+            | DATETIME
             | variable
             | LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
             | LEFT_BRACES dict
@@ -453,7 +454,7 @@ class Parser:
             right = self.comparison()
 
             if left == None or right == None:
-                Error(self.settings)._initialize_('SyntaxError', "You are comparing apples to nothing")
+                Error(self.settings)._initialize_('SyntaxError', "In your comparison, one of the values is wrong")
             return nodes.BinaryConditional(left, right, operation)
         else:
             return node
@@ -627,6 +628,10 @@ class Parser:
         elif TokenType.INTEGER == self.current_token.token_type:
             node = nodes.Integer(token)
             self.get_next_token(TokenType.INTEGER)
+            return node
+        elif TokenType.DATETIME == self.current_token.token_type:
+            node = nodes.Datetime(token)
+            self.get_next_token(TokenType.DATETIME)
             return node
         elif TokenType.NULL == self.current_token.token_type:
             node = nodes.Null()
