@@ -19,7 +19,7 @@ class Parser:
         // The parser uses recursion in order to transverse all of the tokens of the expression. The original article where
         // this was inspired from (Reference: https://ruslanspivak.com/lsbasi-part7/) uses while loops in order to transverse the
         // hole structure. I was also using this, but then i came in to conclusion that since it also uses recursion, using ONLY 
-        // recursion would be easier to comprehend. (Not that recursion is an easy topic)
+        // recursion would be easier to comprehend. (Note that recursion is an easy topic)
         // 
         // IF YOU DON'T UNDERSTAND AT FIRST DON'T WORRY, actually writting parsers is really difficult topic, and i don't know much of it either
         // I go most by trial and error. So there is a BIG room for improvement here.
@@ -549,6 +549,14 @@ class Parser:
         node = self.atom()
 
         if self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS, TokenType.ATTRIBUTE, TokenType.LEFT_BRACES]:
+            # this is in a while because i can have a function that returns a function like 
+            # function do_something() do
+            #   function another_one do
+            #       "result"
+            #   end
+            # end
+            # 
+            # do_something()() -> Will be "result"
             while self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS, TokenType.ATTRIBUTE]:
                 if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
                     self.get_next_token(TokenType.LEFT_PARENTHESIS)

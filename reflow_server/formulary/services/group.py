@@ -6,6 +6,20 @@ class GroupService(Settings):
     def __init__(self, company_id):
         self.company_id = company_id
     
+    def check_if_name_exists(self, name, group_id):
+        """
+        We only accept unique names for groups, this is used for when we edit the group.
+        Othewise this is not used.
+
+        Args:
+            name (str): The name of the group that you are trying to set
+            group_id (int): The group_id that is being edited, this way we can exclude it from the query.
+
+        Returns:
+            bool: True or false weather it exist or not.
+        """
+        return Group.objects.filter(company_id=self.company_id, name=name).exclude(id=group_id).exists()
+
     def update_group(self, instance, name, enabled, order):
         """
         Updates a Group instance with new data. Usually groups are just a group of formularies.
@@ -48,10 +62,18 @@ class GroupService(Settings):
             reflow_server.formulary.models.Group: The newly created Group instance.
         """
         existing_groups = Group.objects.filter(company_id=self.company_id).order_by('order')
+
         if existing_groups:
             order = existing_groups[existing_groups.count() - 1].order + 1
         else:
             order = 1
+        
+        groups_label_names = existing_groups.values_list('name', flat=True)
+        # group names should be unique
+        count = 1
+        while name in groups_label_names:
+            name = name + str(count)
+            count += 1
 
         self.update_order(existing_groups, order)
 

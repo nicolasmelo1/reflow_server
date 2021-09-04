@@ -42,6 +42,27 @@ class FormularyService(Settings):
     def formulary_names_the_user_has_access_to(self):
         return FormAccessedBy.formulary_.main_form_names_accessed_by_user_id_and_enabled_ordered_by_order(self.user_id)
     # ------------------------------------------------------------------------------------------
+    def check_if_unique_formulary_label_name(self, label_name, group, instance_id=None):
+        """
+        We can have only one formulary label name  for each group. Groups cannot have the same page name inside of them.
+
+        Args:
+            label_name (str): The name of the formulary you are adding
+            group (reflow_server.formulary.models.Group): The Group instance recieved by the request.
+            instance_id (int, optional): The id of the formulary you are updating IF you are updating. Defaults to None.
+
+        Returns:
+            bool: Return True if Form with label name does not exist for a particular Group and False if it does.
+        """
+        return Form.objects.filter(
+            group__company_id=self.company_id, 
+            label_name=label_name, 
+            depends_on__isnull=True,
+            group=group
+        ).exclude(
+            id=instance_id
+        ).exists()
+    # ------------------------------------------------------------------------------------------
     def save_formulary(self, enabled, label_name, order, group, formulary_uuid=None, instance=None, is_adding_theme=False):
         """
         Saves a new formulary or updates an existing formulary. When the formulary is added `instance` will be None,

@@ -1,6 +1,5 @@
 
 from reflow_server.formula.utils.helpers import DatetimeHelper
-import time
 from reflow_server.formula.utils.context import Context
 
 import re
@@ -92,6 +91,26 @@ class Settings:
         For example, in some places like Brazil float numbers are written with ',' as the decimal separator. In others like
         the United States, '.' is prefered.
 
+        Settings is an object that needs to be passed arround inside of flow. You create a single Settings instance before running your flow script
+        and then pass it around. You will see that the interpreter, parser and lexer, all of them, recieves the settings instance.
+
+        In the interpreter you will see that all of the Flow objects like strings, Float, Structs and so on recieves the settings object. Even the default bultin library 
+        recieves the settings class, that's because we need it to know what we should do.
+
+        This is actually one of the main differences that makes Flow what it is. We bound the evaluation to a context, this way we can keep it easy to manage.
+
+        WHY DO YOU NOT CREATE A GLOBAL SETTINGS?
+        Because of the context. If this was a language running in someones computer we wouldn't need to do this but since this is a single server and 
+        will probably need to handle multiple requests the Settings will change for each user. So we need to pass this instance around. That's the "easiest" way to handle this.
+
+        WHY NOT USE CONTEXT DIRECTLY SINCE IT'S BASICALLY THE SAME?
+        THe Context object is a class that holds another classes/objects. It works like the Facade Pattern for my understanding (i don't know much about them). Because of this, Context
+        can change the code more often than Settings, here we have a more structured way of defining the values that will not change often. Also this can hold other stuff that
+        is not context related but more general functions/methods on how the language work.
+
+        Since this is passed around, you can add multiple handy methods here. But try to keep it as clean as possible. See that instead of context.keyword.inversion we use 
+        inversion_keyword attribute only, so it's a simple flat key to check. This make it easier to retrieve stuff when needed. 
+
         Args:
             context (reflow_server.formula.utils.context.Context): The context class so we can translate the language in other
                                                                    languages.
@@ -107,6 +126,11 @@ class Settings:
         self.timezone = timezone
         self.datetime_helper = DatetimeHelper()
 
+        self.reflow_company_id = context.reflow.company_id
+        self.reflow_user_id = context.reflow.user_id
+        self.reflow_dynamic_form_id = context.reflow.dynamic_form_id
+
+        self.datetime_date_character = context.datetime.date_character
         self.datetime_date_format = context.datetime.date_format
         self.datetime_time_format = context.datetime.time_format
         self.positional_argument_separator = context.positional_argument_separator
@@ -133,6 +157,18 @@ class Settings:
         self.library = context.library
 
     def time_format_to_regex(self, match_the_format=False):
+        """
+        This needs to live here and not in the helper because this is a helper that uses the data from the context.
+        Also this caches the format of the context so we don't need to re-evaluate everytime.
+
+        Args:
+            match_the_format (bool, optional): Regex for matching the format and not the value. "What?" 
+                                               Instead of a regex like \d{4} for example to match year we will generate something like
+                                               (YYYY), in other words, this matches the `YYYY-MM-DD` format and not the value. Defaults to False.
+
+        Returns:
+            str: The regex to be used on the format or on the value
+        """
         if match_the_format and hasattr(self, 'cached_datetime_time_format_regex'):
             return self.cached_datetime_time_format_regex
 

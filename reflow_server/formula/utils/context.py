@@ -76,7 +76,8 @@ class BuiltinLibraryModule:
         self.stuct_parameters[original_struct_parameter] = struct_parameter_translation
 ############################################################################################
 class Datetime:
-    def __init__(self, date_format, time_format):
+    def __init__(self, date_character, date_format, time_format):
+        self.date_character = date_character
         self.date_format = date_format
         self.time_format = time_format
 ############################################################################################
@@ -108,12 +109,18 @@ class Keywords:
         self.boolean = boolean
         self.if_block = if_block
 ############################################################################################
+class Reflow:
+    def __init__(self, company_id=None, user_id=None, dynamic_form_id=None):
+        self.dynamic_form_id = dynamic_form_id
+        self.company_id = company_id
+        self.user_id = user_id
+############################################################################################
 class Context:
     def __init__(self, includes='in', conjunction='and', disjunction='or', inversion='not', 
                  block_do='do', block_end='end', null='None', boolean_true='True',
                  boolean_false='False', if_if='if', if_else='else', function='function',
                  module='module', decimal_point_separator='.', positional_argument_separator=',',
-                 date_format='YYYY-MM-DD', hour_format='hh:mm:ss.SSS'):
+                 date_character='D', date_format='YYYY-MM-DD', hour_format='hh:mm:ss.SSS'):
         """
         Responsible for creating the context for the formula evaluation, with this we can translate the formulas to other
         languages, which is something impossible in languages like python, javascript or others.
@@ -143,6 +150,14 @@ class Context:
                                                      but we can translate to ',' if needed. Defaults to '.'.
             positional_argument_separator (str, optional): The positional arguments separator, on most languages it is represented
                                                            as ',', but on others like excel this can be ';'. Defaults to ','.
+            date_character(str, optional): The charcter to create a new date, did you know that you write 'date' in russia like 'Дата'?
+                                           this means that in russia instead of creating a date like ~D[2018-03-01] he should be able to create
+                                           like: ~Д[2018-03-01], this way it's easier to understand the concept in all languages. Defaults to 'D' as in date
+            date_format(str, optional): The format of the date, we are trying to support the hole format available in moment.js, but at this time we only
+                                        support YYYY, MM and DD. You can rearange them the way you want. Defaults to 'YYYY-MM-DD'.
+            hour_format(str, optional): The format of the date, similar to the above, we want to try to support all of the formats of moment.js but at the time
+                                        we only support HH:mm:ss and SSS. HH is for 24 hour date format, hh for 12-hour date format, mm for minutes, ss for seconds 
+                                        and SSS for microsecond, AA is also supported for AM or PM. Defaults to 'hh:mm:ss.SSS'
         """
         block = Block(block_do, block_end)
         boolean = Boolean(boolean_true, boolean_false)
@@ -163,12 +178,17 @@ class Context:
         self.positional_argument_separator = positional_argument_separator
         self.decimal_point_separator = decimal_point_separator
         self.datetime = Datetime(
+            date_character,
             date_format,
             hour_format
         )
         self.library = {}
+        self.reflow = Reflow()
     # ------------------------------------------------------------------------------------------
     def add_library_module(self, original_module_name, module_name_translation):
         new_library = BuiltinLibraryModule(module_name_translation)
         self.library[original_module_name] = new_library
         return new_library
+    # ------------------------------------------------------------------------------------------
+    def add_reflow_data(self, company_id, user_id, dynamic_form_id=None):
+        self.reflow = Reflow(company_id, user_id, dynamic_form_id)

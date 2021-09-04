@@ -2,20 +2,22 @@ from django.conf import settings
 
 from reflow_server.data.models import FormValue
 from reflow_server.data.services.representation import RepresentationService
-from reflow_server.formulary.models import FormulaVariable, FieldType, FieldNumberFormatType
+from reflow_server.formulary.models import FieldDateFormatType, FormulaVariable, FieldType, FieldNumberFormatType
 from reflow_server.formula.services.data import FormulaVariables, EvaluationData, InternalValue
 from reflow_server.formula.utils import evaluate
+from reflow_server.formula.utils.helpers import DatetimeHelper
 from reflow_server.formula.utils.context import Context
 from reflow_server.formula.models import FormulaContextBuiltinLibrary, FormulaContextForCompany, FormulaContextAttributeType, \
     FormulaContextType
 
+from datetime import datetime
 import queue
 import multiprocessing
 import re
 
 
 class FormulaService:
-    def __init__(self, formula, company_id, dynamic_form_id=None, field_id=None, formula_variables=None):
+    def __init__(self, formula, user_id, company_id, dynamic_form_id=None, field_id=None, formula_variables=None, is_debug_mode=False):
         """
         This service is handy for interacting with formulas in reflow, this service holds all of the logic needed to run our programming
         language. This is the interface you generally will use for interacting with formulas. Simple as that.
@@ -57,6 +59,7 @@ class FormulaService:
             formula_variables (reflow_server.formula.services.FormulaVariables, optional): A FormulaVariables object that has a list of all variable_ids, each variable_id is a Field
                                                                                            instance id. Defaults to None.
         """
+        self.is_debug_mode = False
         if formula_variables == None:
             formula_variables = FormulaVariables()
             variable_ids = FormulaVariable.formula_.variable_ids_by_field_id(field_id)
@@ -64,10 +67,10 @@ class FormulaService:
                 if isinstance(variable_id, int) or variable_id.isdigit():
                     formula_variables.add_variable_id(variable_id)
 
-        self.__build_context(company_id)
+        self.__build_context(user_id, company_id, dynamic_form_id)
         self.formula = self.__clean_formula(formula, dynamic_form_id, formula_variables)
     # ------------------------------------------------------------------------------------------
-    def __build_context(self, company_id):
+    def __build_context(self, user_id, company_id, dynamic_form_id):
         """
         This builds the context, the context is a way that we use to translate the formula for many languages like
         portuguese, english, spanish and others. The idea is that the formulas needed to be translatable so it is easier 
@@ -77,6 +80,9 @@ class FormulaService:
         Args:
             company_id (int): A Company instance id
         """
+        self.context = Context()
+        self.context.add_reflow_data(company_id, user_id, dynamic_form_id)
+
         formula_context_for_company = FormulaContextForCompany.formula_.formula_context_for_company_by_company_id(company_id)
         if formula_context_for_company:
             formula_context_attributes = FormulaContextAttributeType.objects.filter(context_type_id=formula_context_for_company.context_type_id).values('attribute_type__name', 'translation')
@@ -87,6 +93,7 @@ class FormulaService:
                     formula_attributes[key] = formula_context_attribute['translation']
 
                 self.context = Context(**formula_attributes)
+                self.context.add_reflow_data(company_id, user_id, dynamic_form_id)
 
                 # the code here might look kinda confusing at first but it's doing basically the same thing
                 # basically what we are doing on all those for loops is translating the internal library to something
@@ -152,7 +159,6 @@ class FormulaService:
                             )
                 return None
                 
-        self.context = Context()
     # ------------------------------------------------------------------------------------------
     def __clean_formula(self, formula, dynamic_form_id, formula_variables):
         """
@@ -216,6 +222,7 @@ class FormulaService:
             if len(values) == 1:
                 handler = getattr(self, '_clean_formula_%s' % formula_variable.field_type, None)
                 # if there is no handler for the field type, consider it as a string by default
+                # if you have a handler you can bypass the representation of the data
                 representation = RepresentationService(
                     field_type=formula_variable.field_type,
                     date_format_type_id=formula_variable.date_format_id,
@@ -269,6 +276,11 @@ class FormulaService:
         actual_number = actual_number.replace('.', self.context.decimal_point_separator)
         return actual_number
     # ------------------------------------------------------------------------------------------
+    def _clean_formula_date(self, representation, value):
+        python_datetime_value = datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT)
+        flow_formated_datetime = python_datetime_value.strftime(DatetimeHelper.to_python_format(self.context.datetime.date_format, self.context.datetime.time_format))
+        return f'~{self.context.datetime.date_character}[{flow_formated_datetime}]'
+    # ------------------------------------------------------------------------------------------
     def evaluate_to_internal_value(self):
         """
         Evaluate the formula and transform the result to internal value.
@@ -311,6 +323,13 @@ class FormulaService:
     
         return InternalValue('-', default_field_type)
     # ------------------------------------------------------------------------------------------
+    def _to_internal_value_datetime(self, formula_result):
+        field_type = FieldType.objects.filter(type='date').first()
+        date_format_type = FieldDateFormatType.objects.filter(type='datetime').first()
+        value = formula_result.value._representation_().strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+
+        return InternalValue(value, field_type, date_format_type=date_format_type)
+    # ------------------------------------------------------------------------------------------
     def _to_internal_value_int(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
@@ -333,18 +352,32 @@ class FormulaService:
         return InternalValue(value, field_type)
     # ------------------------------------------------------------------------------------------
     def __evaluate(self, formula, result):
-        try:
+        """
+        If on development, we will let the errors occur freely while on production errors should all be supressed Except the ones
+        that is from the language itself.
+
+        Args:
+            formula (str): The actual formula string
+            result (): Where you put the values of the result
+        """
+        def evaluate_result():
             formula_result = evaluate(formula, self.context)
             status = 'error' if getattr(formula_result, 'type', '') == 'error' else 'ok'
             result.put({
                 'status': status,
                 'value': formula_result
             })
-        except Exception as e:
-            result.put({
-                'status': 'error',
-                'value': str(e)
-            })
+        
+        if settings.ENV == 'development':
+            evaluate_result()
+        else:
+            try:
+                evaluate_result()
+            except Exception as e:
+                result.put({
+                    'status': 'error',
+                    'value': str(e)
+                })
     # ------------------------------------------------------------------------------------------
     def evaluate(self):
         """
@@ -354,13 +387,13 @@ class FormulaService:
 
         The idea is simple: if we can run a programming language inside of the server, how to tank the server?
         Simple, just run an infinite loop and tank the server. Also we can add formulas like 1123123123 ^ 123123123123 that
-        can take too long, on this case we kill the process.
+        can take too long. On all of those cases we kill the process when it takes too long.
 
         Returns:
             reflow_server.formula.services.data.EvaluationData: The Evaluation data is a object we use to retrieve the data and understand
                                                                 what we need to evaluate for with the result.
-        """      
-        try: 
+        """     
+        def run_evaluation_as_another_process():
             result = multiprocessing.Queue()
             process = multiprocessing.Process(target=self.__evaluate, args=(self.formula, result))
             process.start()
@@ -369,10 +402,16 @@ class FormulaService:
                 process.terminate()
             result = result.get(timeout=settings.FORMULA_MAXIMUM_EVAL_TIME/2)
             return EvaluationData(result['status'], result['value'])
-        except queue.Empty as qe:
-            return EvaluationData('error', 'Took too long')
-        except Exception as e:
-            return EvaluationData('error', 'Unknown error')
+
+        if settings.ENV == 'development': 
+            return run_evaluation_as_another_process()
+        else:
+            try: 
+                return run_evaluation_as_another_process()
+            except queue.Empty as qe:
+                return EvaluationData('error', 'Took too long')
+            except Exception as e:
+                return EvaluationData('error', 'Unknown error')
     # ------------------------------------------------------------------------------------------
     @staticmethod
     def update_company_formula_context(company):

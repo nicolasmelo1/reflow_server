@@ -38,6 +38,7 @@ class TestFormulaView(APIView):
             dynamic_form_id = DynamicForm.formula_.latest_main_dynamic_form_id_by_form_id(form_id)
             formula_service = FormulaService(
                 serializer.data['formula'], 
+                request.user.id,
                 company_id, 
                 dynamic_form_id=dynamic_form_id, 
                 formula_variables=variables

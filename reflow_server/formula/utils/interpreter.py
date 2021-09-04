@@ -4,6 +4,7 @@ from reflow_server.formula.utils import builtins
 from reflow_server.formula.utils import helpers
 
 import types
+import re
 
 
 class Interpreter:
@@ -383,9 +384,8 @@ class Interpreter:
                 if index < len(node.parameters):
                     if node.parameters[index].node_type == NodeType.ASSIGN:
                         parameter_name = node.parameters[index].left.value.value
-
                         if parameter_name not in function_object.parameters_variables:
-                            builtins.objects.Error(self.settings)._initialize_('AttributeError', 'parameter of function "{parameter_name}" is not defined in function'.format(parameter_name=parameter_name))
+                            builtins.objects.Error(self.settings)._initialize_('AttributeError', 'parameter "{parameter_name}" is not defined in function'.format(parameter_name=parameter_name))
 
                         parameter_value = self.evaluate(node.parameters[index].right)
                         parameters[parameter_name] = parameter_value
@@ -822,8 +822,79 @@ class Interpreter:
         return null._initialize_()
     # ------------------------------------------------------------------------------------------
     def handle_datetime(self, node):
+        """
+        Handles a datetime node created with ~D[] attribute. This was living inside of the Datetime object but later we decided 
+        to add all of the logic inside of the handle_datetime interpreted, that's because we will often need to create a datetime
+        object outside of the interpreted in the lib. So what we send to the constructor are just integers representing each part of the date 
+        like Year, Month, Day, hour and stuff like that.
+
+        Okay, so how does this work. You need to keep attention on two things: 
+        1 - The instantiation of DatetimeHelper object
+        2 - The get_formated function
+
+        So, how does this work? 
+
+        1 - We check if the value has a date or date and time. Then we get the regex to retrieve the values of the date and of the format.
+        2 - regex to retrieve values of the date are like \d{4}-(0[1-9]|1[0-2]|[1-9])-(0[1-9]|1[0-9]|2[0-9]|3[0-1]|[1-9]) for the YYYY-MM-DD format.
+        super duper simple. (doesn't give too much attention on the regex renerated right now, but you can configure what each format like YYYY, MM or DD will match 
+        on the DatetimeHelper object). The regex of the format is something like (YYYY)-(MM)-(DD), yeah, it's dumb as that, but we will use both regexes.
+        3 - For dates, the value needs to be completely written like '2020-5-23' which is 23 of May of 2020. But for dates however, they are optional and each part
+        is optional. You can write like '~D[2020-5-23 11]' and it will automatically match this as 11 o'clock of 23rd of May. The seconds, microseconds and everything else 
+        is optional and we evaluate automatically.
+        4 - That's what the `get_formated()` function does, for every format like 'YYYY' it appends the value inside of datehelper object. This way we are able to identify
+        what each part of the datetime format each value refers to. We can know that 2020 refers to the 'YYYY', that 5 referes to 'MM' and so on. And by doing so
+        we are able to add default values if the value is incomplete.
+
+        Args:
+            node (reflow_server.formula.utils.parser.nodes.Datetime): The datetime node. That holds the date as a string, all of the convertion is handled here.
+
+        Returns:
+            reflow_server.formula.utils.builtins.objects.Datetime: Returns a new Datetime object
+        """
+        value = node.value.value
+        datetime_helper = helpers.DatetimeHelper()
+       
+        def get_formated(value, value_regex, format_regex, original_format):
+            matched_values = re.findall(value_regex, value)
+            matched_format = re.findall(format_regex, original_format)[0]
+            if len(matched_values) > 0:
+                matched_values = matched_values[0]
+                for index, matched_character in enumerate(matched_format):
+                    datetime_helper.append_values(matched_character, matched_values[index])
+            else:
+                builtins.objects.Error(self.settings)._initialize_('Error', 'Invalid part of datetime: "{}"'.format(value))\
+        
+        splited_datetime_by_date_and_time = value.split(' ', 1)
+        if len(splited_datetime_by_date_and_time) > 0:
+            if re.search(self.settings.date_format_to_regex(), splited_datetime_by_date_and_time[0]):
+                get_formated(
+                    splited_datetime_by_date_and_time[0],
+                    self.settings.date_format_to_regex(),
+                    self.settings.date_format_to_regex(True),
+                    self.settings.datetime_date_format
+                )
+                if len(splited_datetime_by_date_and_time) > 1:
+                    get_formated(
+                        splited_datetime_by_date_and_time[1],
+                        self.settings.time_format_to_regex(),
+                        self.settings.time_format_to_regex(True),
+                        self.settings.datetime_time_format
+                    )
+            else:
+                builtins.objects.Error(self.settings)._initialize_('Error', 'Invalid datetime: "{}"'.format(value))
+        else:
+            builtins.objects.Error(self.settings)._initialize_('Error', 'Invalid datetime: "{}"'.format(value))
+        
         datetime = builtins.objects.Datetime(self.settings)
-        return datetime._initialize_(node.value.value)
+        return datetime._initialize_(
+            year=datetime_helper.get_value('year'),
+            month=datetime_helper.get_value('month'),
+            day=datetime_helper.get_value('day'),
+            hour=datetime_helper.get_value('hour'),
+            minute=datetime_helper.get_value('minute'),
+            second=datetime_helper.get_value('second'),
+            microsecond=datetime_helper.get_value('microsecond')
+        )
     # ------------------------------------------------------------------------------------------
     def handle_string(self, node):
         if helpers.is_string(node.value.value):

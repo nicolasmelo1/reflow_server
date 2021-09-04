@@ -172,6 +172,10 @@ def evaluate(expression, context=None):
 
     and so on.
 
+    >>> IMPORTANT:
+    `settings.py` is one of the most important files, this file holds the Settings class, this class is passed around in the language. So this is where
+    we will keep all of the data needed to run and evaluate the program.
+
     Args:
         expression (str): The actual formula
         context (reflow_server.formula.utils.context.Context, optional): The context object so you can translate the formula to other languages. Defaults to None.

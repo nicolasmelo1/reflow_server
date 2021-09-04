@@ -79,6 +79,7 @@ class PostSave:
             
             formula = FormulaService(
                 process.form_value_instance.field.formula_configuration,
+                self.user_id,
                 self.company_id, 
                 dynamic_form_id=process.section_instance.depends_on.id,
                 field_id=process.form_value_instance.field_id
@@ -88,6 +89,7 @@ class PostSave:
 
             process.form_value_instance.field_type = formula_result.field_type
             process.form_value_instance.number_configuration_number_format_type = formula_result.number_format_type
+            process.form_value_instance.date_configuration_date_format_type = formula_result.date_format_type
             process.form_value_instance.value = str(value)
         return process
 

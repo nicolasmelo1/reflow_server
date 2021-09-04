@@ -107,9 +107,9 @@ struct.c.a
 HTTP_library = r"""
 response = Requisicao.post(
     url="https://maker.ifttt.com/trigger/registro_atualizado_em_negocios/with/key/UsON56lWobTsQ_9eOXhLXytB6Csg6piJVuJDWfw-Cg",  
-    json={
+    json_data={
         "value1": "nicolasmelo12@gmail.com",
-        "value2": "Lucas Melo",
+        "value2": ~D[2012-04-12 23:12],
         "value3": "nicolas.melo@reflow.com.br"
     }
 )
@@ -121,12 +121,14 @@ message = SMTP.build_message("nicolas.melo1@hotmail.com", ["nicolasmelo12@gmail.
 SMTP.send_email("smtp.office365.com", 587, "nicolas.melo1@hotmail.com", "Nicolas1234!@#", message)
 """
 
-datetime = r"""
-# Testar comentários
-data = ~D[2012-4-12 23:11]
+from datetime import datetime
+from reflow_server.formula.utils.helpers import DatetimeHelper
 
-data
-"""
+date_string = f"~D[{datetime.strptime('2012-04-11 11:11:11', '%Y-%m-%d %H:%M:%S').strftime(DatetimeHelper.to_python_format(context.datetime.date_format, context.datetime.time_format))}]"
+datetime_test = r"""
+# Testar comentários
+~D[2012-04-11 11:11:11] == {}
+""".format(date_string)
 
 functions_to_test = [
     #simple_arithimetic, 
@@ -140,7 +142,7 @@ functions_to_test = [
     #structs,
     #HTTP_library,
     #SMTP_library,
-    datetime
+    datetime_test
 ]
 
 import json
@@ -156,7 +158,7 @@ for function in functions_to_test:
     interpreter = Interpreter(settings)
     value = interpreter.evaluate(ast)
     #except Exception as e:
-     #   value = e
+    #value = e
     print(value._representation_())
 end = time.time()
 

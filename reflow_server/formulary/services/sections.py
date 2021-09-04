@@ -21,6 +21,15 @@ class SectionService(Settings):
         section_ids = PublicAccessField.formulary_.section_ids_by_public_access_key(public_access_key)
         return Form.formulary_.form_sections_by_section_ids_company_ids_and_main_form_id(section_ids, self.company_id, self.form_id)
     # ------------------------------------------------------------------------------------------
+    def check_if_unique_section_label_name(self, label_name, instance_id=None):
+        return Form.objects.filter(
+            depends_on__group__company_id=self.company_id, 
+            label_name=label_name, 
+            depends_on_id=self.form_id
+        ).exclude(
+            id=instance_id
+        ).exists()
+    # ------------------------------------------------------------------------------------------
     def save_section(self, enabled, label_name, order, conditional_value, 
                      section_type, conditional_type, conditional_on_field, show_label_name,
                      conditional_excludes_data_if_not_set, section_uuid=None, instance=None):

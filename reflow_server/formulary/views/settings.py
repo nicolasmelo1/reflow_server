@@ -63,8 +63,8 @@ class GroupEditSettingsView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({
-                'status': 'ok',
-                'data': None
+                'status': 'error',
+                'error': serializer.errors
             }, status=status.HTTP_502_BAD_GATEWAY)
     # ------------------------------------------------------------------------------------------
     def delete(self, request, company_id, group_id):
@@ -98,8 +98,8 @@ class FormularySettingsView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({
-                'status': 'ok',
-                'data': None
+                'status': 'error',
+                'error': serializer.errors
             }, status=status.HTTP_502_BAD_GATEWAY)
     # ------------------------------------------------------------------------------------------
 
@@ -145,11 +145,11 @@ class FormularySettingsEditView(APIView):
                 'status': 'ok',
                 'data': serializer.data
             }, status=status.HTTP_200_OK)
-
-        return Response({
-            'status': 'ok',
-            'data': None
-        }, status=status.HTTP_502_BAD_GATEWAY)
+        else:
+            return Response({
+                'status': 'error',
+                'error': serializer.errors
+            }, status=status.HTTP_502_BAD_GATEWAY)
     # ------------------------------------------------------------------------------------------
     def delete(self, request, company_id, form_id):
         instance = Form.objects.filter(id=form_id, group__company_id=company_id, depends_on__isnull=True).first()
@@ -191,12 +191,12 @@ class SectionSettingsView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({
-                'status': 'ok',
-                'data': None
+                'status': 'error',
+                'error': serializer.errors
             }, status=status.HTTP_502_BAD_GATEWAY)
     # ------------------------------------------------------------------------------------------
 
-
+    
 ############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class SectionSettingsEditView(APIView):
@@ -233,8 +233,8 @@ class SectionSettingsEditView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({
-                'status': 'ok',
-                'data': None
+                'status': 'error',
+                'error': serializer.errors
             }, status=status.HTTP_502_BAD_GATEWAY)
     # ------------------------------------------------------------------------------------------
     def delete(self, request, company_id, form_id, section_id):

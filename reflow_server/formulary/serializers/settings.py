@@ -191,18 +191,24 @@ class SectionSerializer(serializers.ModelSerializer):
     form_name = serializers.CharField(allow_blank=True, allow_null=True)
     form_fields = FieldSerializer(many=True, required=False, allow_null=True)
 
+    def validate(self, data):
+        self.section_service = SectionService(
+            user_id=self.context['user_id'], 
+            company_id=self.context['company_id'], 
+            form_id=self.context['form_id']
+        )
+        if self.section_service.check_if_unique_section_label_name(data['label_name'], self.instance.id if self.instance else None):
+            raise serializers.ValidationError(detail={'detail': 'label_name', 'reason': 'must_be_unique'})
+        else:
+            return data
+
     def save(self):
         if self.instance:
             instance = self.instance
         else:
             instance = self.Meta.model()
 
-        section_service = SectionService(
-            user_id=self.context['user_id'], 
-            company_id=self.context['company_id'], 
-            form_id=self.context['form_id']
-        )
-        instance = section_service.save_section(
+        instance = self.section_service.save_section(
             enabled=self.validated_data['enabled'],
             label_name=self.validated_data['label_name'],
             order=self.validated_data['order'],
@@ -250,14 +256,20 @@ class FormularySerializer(serializers.ModelSerializer):
         if not is_loading_sections:
             self.fields.pop('depends_on_form')
 
+    def validate(self, data):
+        self.formulary_service = FormularyService(user_id=self.context['user_id'], company_id=self.context['company_id'])
+        if self.formulary_service.check_if_unique_formulary_label_name(data['label_name'], data['group'], data['id']):
+            raise serializers.ValidationError(detail={'detail': 'label_name', 'reason': 'must_be_unique'})
+        else:
+            return data
+
     def save(self):
         if self.instance:
             instance = self.instance
         else:
             instance = self.Meta.model()
 
-        formulary_service = FormularyService(user_id=self.context['user_id'], company_id=self.context['company_id'])
-        instance = formulary_service.save_formulary(
+        instance = self.formulary_service.save_formulary(
             enabled=self.validated_data['enabled'], 
             label_name=self.validated_data['label_name'], 
             order=self.validated_data['order'], 
@@ -282,6 +294,13 @@ class GroupSerializer(serializers.ModelSerializer):
     """
     id = serializers.IntegerField(allow_null=True)
     form_group = FormularySerializer(many=True, required=False, allow_null=True)
+
+    def validate(self, data):
+        self.group_service = GroupService(self.context['company_id'])
+        if self.group_service.check_if_name_exists(data['name'], self.instance.id):
+            raise serializers.ValidationError(detail={'detail': 'label_name', 'reason': 'must_be_unique'})
+        else:
+            return data
 
     def update(self, instance, validated_data):
         group_service = GroupService(self.context['company_id'])

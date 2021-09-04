@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 # ------------------------------------------------------------------------------------------
 def is_integer(value):
     try:
@@ -57,9 +60,9 @@ class DatetimeHelper:
         elif datetime_format == 'DD':
             return r'(0[1-9]|1[0-9]|2[0-9]|3[0-1]|[1-9])'
         elif datetime_format == 'hh':
-            return r'(0[0-9]|1[0-9]|2[0-4]|[1-9])'
+            return r'(0[0-9]|1[0-9]|2[0-3]|[1-9])'
         elif datetime_format == 'HH':
-            return r'(0[0-9]|1[0-2]|[1-9])'
+            return r'(0[1-9]|1[0-2]|[1-9])'
         elif datetime_format == 'mm':
             return r'(0[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])?'
         elif datetime_format == 'ss':
@@ -69,7 +72,50 @@ class DatetimeHelper:
         else:
             return r'(\d{3})?'
 
+    @staticmethod
+    def to_python_format(date_format, time_format):
+        """
+        Converts a date_format and a time_format to something that Python can actually understand and convert
+
+        Args:
+            date_format (str): The format of the date to be used.
+            time_format (str): The format of the time to be used and converted.
+        
+        Returns:
+            str: Returns the date and time formated to something that python can actually understand.
+        """
+        date_format = date_format.replace('YYYY', '%Y')
+        date_format = date_format.replace('MM', '%m')
+        date_format = date_format.replace('DD', '%d')
+
+        time_format = time_format.replace('hh', '%H')
+        time_format = time_format.replace('HH', '%I')
+        time_format = time_format.replace('mm', '%M')
+        time_format = time_format.replace('ss', '%S')
+        time_format = time_format.replace('SSS', '%f')
+        time_format = time_format.replace('AA', '%p')
+
+        return f'{date_format} {time_format}'
+    
     def append_values(self, datetime_format, value):
+        """
+        This might doesn't make any sense at all, but this is how we retrieve the values using this function.
+
+        We DO NOT append and retrieve the values directly you will see is that we create some attributes in the class
+        'date_year', 'date_month' and so on. All of those attributes are a dict that holds the data needed for retrieving the
+        value you appended.
+
+        But why do we do this you might ask. So suppose the format have the AM/PM part in the date. This comes last in the hour it will be
+        something like 11:20:52 PM, this means this time is 23:20:52 in the 24hour date format. So what we need? We store the value of the hour
+        which is 11, with this value we also store the `am_or_pm` in the dict that we will use for adding by 12. So, like i said before, 11 PM is actually
+        23 in the 24 hour time format. So it is 11 + 12. That's why we need to store the values BEFORE retrieving the actual value. This way
+        when we retrieve the value we can format a to something python actually can understand and interpret
+
+        Args:
+            datetime_format: must comply with `valid_formats` list, but we do not validate here, this is because we send everything to be evaluated here
+                             but we only save what is needed.
+            value: The value to be appended.
+        """
         if datetime_format == 'YYYY':
             self.date_year = {
                 'format': datetime_format,
@@ -119,6 +165,18 @@ class DatetimeHelper:
             }
 
     def get_value(self, datetime_definition):
+        """
+        Returns the actual value from the values appended in the `append_values()` method.
+
+        Here we actually transform the date value to something that python can understand. Sometimes you can convert something while appending
+        and sometimes you need to convert while retrieving the value. So it needs some thinking before you come up with a solution.
+
+        Args:
+            datetime_definition (str): One of the strings defined in `valid_attributes` array in the instantiation of this class.
+
+        Returns:
+            int: returns an int needed refering for the value you are trying to retrieve  
+        """
         if datetime_definition == 'year' and hasattr(self, 'date_year'):
             return self.date_year['value']
         elif datetime_definition == 'month' and hasattr(self, 'date_month'):
@@ -609,6 +667,8 @@ class Conversor:
             return self.__python_list_to_flow_list(python_value)
         elif isinstance(python_value, dict):
             return self.__python_dict_to_flow_dict(python_value)
+        elif isinstance(python_value, datetime):
+            return self.__python_datetime_to_flow_datetime(python_value)
         elif python_value == None:
             return self.__python_none_to_flow_null()
         else:
@@ -634,6 +694,10 @@ class Conversor:
         new_boolean = self.objects.Boolean(self.settings)
         return new_boolean._initialize_(value)
     
+    def __python_datetime_to_flow_datetime(self, value):
+        new_datetime = self.objects.Datetime(self.settings)
+        return new_datetime._initialize_(value.year, value.month, value.day, value.hour, value.minute, value.second, value.microsecond)
+        
     def __python_list_to_flow_list(self, values):
         new_list = self.objects.List(self.settings)
 

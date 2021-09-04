@@ -4,9 +4,10 @@ from reflow_server.formula.utils.builtins import objects as flow_objects
 
 import requests
 
+from datetime import datetime
 import json
 
-
+    
 class HTTPResponse(LibraryStruct):
     """
     Class ressponsible for evaluating the responses of the request, you can retrieve it as content, or as JSON by now.
@@ -72,9 +73,17 @@ class HTTP(LibraryModule):
     def request(method, url, parameters={}, data={}, json_data={}, headers={}, **kwargs):
         settings = kwargs['__settings__']
 
+        def complex_objects_to_json_serializable(value):
+            if isinstance(value, datetime):
+                return value.isoformat()
+            else:
+                return value
+
         if isinstance(json_data, flow_objects.Dict):
             json_data = json_data._representation_()
-
+            json_data = json.dumps(json_data, default = complex_objects_to_json_serializable)
+            json_data = json.loads(json_data)
+            
         if isinstance(data, flow_objects.Dict):
             data = data._representation_()
 

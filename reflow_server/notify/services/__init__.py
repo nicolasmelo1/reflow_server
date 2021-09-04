@@ -1,6 +1,4 @@
-from django.db.models import QuerySet
 from django.conf import settings
-
 
 from reflow_server.notify.services.mail import MailService
 from reflow_server.notify.services.push import PushService
