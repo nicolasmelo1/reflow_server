@@ -34,6 +34,9 @@ class ReflowModuleService:
             'form_field_as_option_id'
         ).first()
 
+        if not isinstance(values, list):
+            values = [values]
+            
         if field and len(values) > 0:
             representation_service = RepresentationService(
                 field_type=field['type__type'],
