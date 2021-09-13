@@ -28,13 +28,14 @@ class DocumentationService:
         start the application, the idea is simple: When we run the command we get all of the formulas in `FORMULA_MODULES` setting and 
         creates the documentation for it in the database.
         """
-        for formula_module_name in settings.FORMULA_MODULES:
-            path = "%s.%s" % (settings.FORMULA_BUILTIN_MODULES_PATH, formula_module_name)
-            module = __import__(path, fromlist=[formula_module_name])
-            kls = getattr(module, formula_module_name)
-            formula_builtin_module = kls(None)
-            module_documentation = formula_builtin_module._documentation_()
-            self.document(formula_module_name, module_documentation)
+        for formulas_for_context in settings.FORMULA_MODULES.values():
+            for formula_module_name in formulas_for_context:
+                path = "%s.%s" % (settings.FORMULA_BUILTIN_MODULES_PATH, formula_module_name)
+                module = __import__(path, fromlist=[formula_module_name])
+                kls = getattr(module, formula_module_name)
+                formula_builtin_module = kls(None)
+                module_documentation = formula_builtin_module._documentation_()
+                self.document(formula_module_name, module_documentation)
 
     def document(self, module_name, documentation):
         """

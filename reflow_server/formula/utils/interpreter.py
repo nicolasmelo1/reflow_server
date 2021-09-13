@@ -255,11 +255,12 @@ class Interpreter:
             else:
                 parameters.append([parameter.value.value, None])
 
-        function = function._initialize_(record, parameters, node.block, self)
         if is_anonymous_function:
             function_name = '<lambda>'
         else:
             function_name = node.variable.value.value
+
+        function = function._initialize_(record, parameters, node.block, self, function_name)
         record.assign(function_name, function)
 
         return function
@@ -335,7 +336,6 @@ class Interpreter:
                 else:
                     parameters.append([parameter.value.value, None])
 
-
         module = module._initialize_(module_name, record, parameters)
 
         for module_literal in node.module_literals:
@@ -363,8 +363,8 @@ class Interpreter:
         """
         # <lambda> is not a valid variable, remember that, so it's ok to add it 
         function_name = node.name.value.value if node.name.node_type == NodeType.VARIABLE else '<lambda>'
-        record = self.global_memory.stack.peek()
         function_object = self.evaluate(node.name)
+        function_object.function_name = function_name
         # ------------------------------------------------------------------------------------------
         def retrieve_function_parameters():
             # Gets the positional parameters and also the values parameters
@@ -400,80 +400,8 @@ class Interpreter:
                     parameters[parameter[0]] = parameter[1]
                     variable_defined.append(parameter[0])
             return parameters
-        # ------------------------------------------------------------------------------------------
-        def create_function_record(parameters):
-            function_record = Record(self.settings, function_name,'FUNCTION')
-
-            # Define the scope of the function in the new function call stack, this means that
-            #
-            # variable = 1
-            # function test() do  
-            #   variable
-            # end
-
-            # 'variable' will be available inside of the function even though it was defined outside of the function.
-            for key, value in function_object.scope.members.items():
-                function_record.assign(key, value)
-
-            for parameter_name, parameter_value in parameters.items():
-                function_record.assign(parameter_name, parameter_value)
-            return function_record
-        # ------------------------------------------------------------------------------------------
-        def to_evaluate_function(push_to_current=False):
-            """
-            This is a function used to evaluate the function, when the function is in a recursion, in order to tail call
-            optimize the function call we send this function so we can evaluate it after. The idea is simple, if push_to_current
-            is False we push the record to a new stack, otherwise we push the new record to the current record position.
-
-            Args:
-                push_to_current (bool, optional): If set to False, we will create a new record in the memory, otherwise we push the record to the current
-                                                  record that is running. Defaults to False.
-
-            Returns:
-                reflow_server.formula.utils.builtins.objects.*: Returns the actual value, result of the function.
-            """
-            parameters = retrieve_function_parameters()
-            record = create_function_record(parameters)
-            if push_to_current:
-                self.global_memory.stack.push_to_current(record)
-            else:
-                self.global_memory.stack.push(record)
-
-            result = function_object._call_(parameters) 
-                        
-            if push_to_current == False:
-                self.global_memory.stack.pop()  
-            return result
-
-        # If this condition is set this means we are inside a recursion (we are in a function named fibonacci, and calling it again)
-        # we NEED TO DO THIS TO ACCEPT TAIL CALL OPTIMIZATION
-        # this is because if we didn't do this we would reach the maximum recursion depth of python. Since we don't want this, we send a function to evaluate the function
-        # later. 
-        # This is heavily inspired in a technique called trampoline: https://blog.logrocket.com/using-trampolines-to-manage-large-recursive-loops-in-javascript-d8c9db095ae3/
-        # or in python: http://vdelia.github.io/functional/trampoline/2015/06/26/trampoline.html
-
-        # When we call the function “.handle_function_call()” we will evaluate the function body. 
-        # Pay attention that we call the “.evaluate()“ function again while evaluating this function result. 
-        # This means that before returning the result of this call, we will call “.handle_function_call()” again. 
-        # And again, and again, for every recursion call. This will reach the maximum recursion depth of the language, in this case, Python.
-        # So what we do to solve this? We do not evaluate directly in the function call, we return early the result of ‘.handle_function_call()’, 
-        # which will be a function, so with that “.handle_function_call()“ will leave the python call stack and we are free to evaluate the result later
-        is_in_recursion = function_name == record.name
         
-        if is_in_recursion:
-            return to_evaluate_function
-        else:
-            parameters = retrieve_function_parameters()
-            record = create_function_record(parameters)
-            self.global_memory.stack.push(record)
-
-            result = function_object._call_(parameters)
-            # If the result is a function we evaluate the function in a loop.
-            while isinstance(result, types.FunctionType):
-                result = result(True)
-        
-            self.global_memory.stack.pop()
-            return result
+        return function_object._call_(retrieve_function_parameters())
     # ------------------------------------------------------------------------------------------
     def handle_struct(self, node):
         """

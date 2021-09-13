@@ -17,7 +17,7 @@ class FormularyPermissionsService:
             bool: True id the user can access this formulary_id or False if not.
         """
         if formulary_id:
-            if int(formulary_id) in FormularyService(user_id, company_id).formulary_ids_the_user_has_access_to:
+            if int(formulary_id) in FormularyService(user_id, company_id).formulary_ids_the_user_has_access_to_that_are_enabled:
                 return True
         elif formulary_name:
             if formulary_name in FormularyService(user_id, company_id).formulary_names_the_user_has_access_to:

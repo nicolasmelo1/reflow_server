@@ -37,7 +37,7 @@ class PDFGeneratorService:
         form_from_connected_field_helper = {}
         form_options = [self.form]
         formulary_service = FormularyService(self.user_id, self.company_id)
-        form_ids_the_user_has_access_to = formulary_service.formulary_ids_the_user_has_access_to
+        form_ids_the_user_has_access_to = formulary_service.formulary_ids_the_user_has_access_to_that_are_enabled
         form_type_fields = Field.pdf_generator_.form_fields_by_main_form_id_and_company_id(self.form.id, self.company_id)
         for field in form_type_fields:
             if field.form_field_as_option.form.depends_on_id in form_ids_the_user_has_access_to:

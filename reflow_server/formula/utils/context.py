@@ -120,7 +120,7 @@ class Context:
                  block_do='do', block_end='end', null='None', boolean_true='True',
                  boolean_false='False', if_if='if', if_else='else', function='function',
                  module='module', decimal_point_separator='.', positional_argument_separator=',',
-                 date_character='D', date_format='YYYY-MM-DD', hour_format='hh:mm:ss.SSS'):
+                 date_character='D', date_format='YYYY-MM-DD', hour_format='hh:mm:ss.SSS', flow_context='formula'):
         """
         Responsible for creating the context for the formula evaluation, with this we can translate the formulas to other
         languages, which is something impossible in languages like python, javascript or others.
@@ -162,6 +162,7 @@ class Context:
         block = Block(block_do, block_end)
         boolean = Boolean(boolean_true, boolean_false)
         if_block = If(if_if, if_else)
+        self.flow_context = 'formula' if flow_context not in ['formula', 'automation'] else flow_context
 
         self.keyword = Keywords(
             includes, 

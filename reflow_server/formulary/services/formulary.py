@@ -36,6 +36,10 @@ class FormularyService(Settings):
     # ------------------------------------------------------------------------------------------
     @property
     def formulary_ids_the_user_has_access_to(self):
+        return FormAccessedBy.formulary_.main_form_ids_accessed_by_user_id_ordered_by_order(self.user_id)
+    # ------------------------------------------------------------------------------------------
+    @property
+    def formulary_ids_the_user_has_access_to_that_are_enabled(self):
         return FormAccessedBy.formulary_.main_form_ids_accessed_by_user_id_and_enabled_ordered_by_order(self.user_id)
     # ------------------------------------------------------------------------------------------
     @property

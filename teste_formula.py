@@ -1,5 +1,3 @@
-from reflow_server import dashboard
-from reflow_server.authentication import consumers
 from reflow_server.formula.utils import interpreter
 from reflow_server.formula.utils.lexer import Lexer
 from reflow_server.formula.utils.settings import Settings
@@ -38,7 +36,7 @@ function fibonacci(n, a=0, b=1) do
     end
 end
 
-fibonacci(10)
+fibonacci(1000)
 """
 
 anonymous_formulas = r"""
@@ -121,6 +119,13 @@ message = SMTP.build_message("nicolas.melo1@hotmail.com", ["nicolasmelo12@gmail.
 SMTP.send_email("smtp.office365.com", 587, "nicolas.melo1@hotmail.com", "Nicolas1234!@#", message)
 """
 
+List_library = r"""
+list = [1,2,3]
+new_list = List.map(list, function (elem, ind) do
+    ind
+end)
+new_list
+"""
 from datetime import datetime
 from reflow_server.formula.utils.helpers import DatetimeHelper
 
@@ -142,7 +147,9 @@ functions_to_test = [
     #structs,
     #HTTP_library,
     #SMTP_library,
-    datetime_test
+    #datetime_test,
+    List_library,
+    
 ]
 
 import json

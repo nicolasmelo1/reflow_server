@@ -17,7 +17,7 @@ import re
 
 
 class FormulaService:
-    def __init__(self, formula, user_id, company_id, dynamic_form_id=None, field_id=None, formula_variables=None, is_debug_mode=False):
+    def __init__(self, formula, user_id, company_id, formula_context='formula', dynamic_form_id=None, field_id=None, formula_variables=None):
         """
         This service is handy for interacting with formulas in reflow, this service holds all of the logic needed to run our programming
         language. This is the interface you generally will use for interacting with formulas. Simple as that.
@@ -59,7 +59,7 @@ class FormulaService:
             formula_variables (reflow_server.formula.services.FormulaVariables, optional): A FormulaVariables object that has a list of all variable_ids, each variable_id is a Field
                                                                                            instance id. Defaults to None.
         """
-        self.is_debug_mode = False
+        self.formula_context = formula_context
         if formula_variables == None:
             formula_variables = FormulaVariables()
             variable_ids = FormulaVariable.formula_.variable_ids_by_field_id(field_id)
@@ -80,7 +80,7 @@ class FormulaService:
         Args:
             company_id (int): A Company instance id
         """
-        self.context = Context()
+        self.context = Context(formula_context=self.formula_context)
         self.context.add_reflow_data(company_id, user_id, dynamic_form_id)
 
         formula_context_for_company = FormulaContextForCompany.formula_.formula_context_for_company_by_company_id(company_id)
@@ -92,7 +92,7 @@ class FormulaService:
                     key = formula_context_attribute['attribute_type__name']
                     formula_attributes[key] = formula_context_attribute['translation']
 
-                self.context = Context(**formula_attributes)
+                self.context = Context(**formula_attributes, formula_context=self.formula_context)
                 self.context.add_reflow_data(company_id, user_id, dynamic_form_id)
 
                 # the code here might look kinda confusing at first but it's doing basically the same thing

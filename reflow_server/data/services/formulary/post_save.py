@@ -81,6 +81,7 @@ class PostSave:
                 process.form_value_instance.field.formula_configuration,
                 self.user_id,
                 self.company_id, 
+                formula_context='formula',
                 dynamic_form_id=process.section_instance.depends_on.id,
                 field_id=process.form_value_instance.field_id
             )

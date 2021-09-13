@@ -1,0 +1,10 @@
+last_pool = Automation.last_pooling_data()
+new_pool = Automation.new_pooling_data()
+
+if last_pool != new_pool:
+    email = new_pool["data"][1]["email"]
+    subject = new_pool["data"][1]["subject"]
+
+    Automation.trigger_action(data={
+        "field_id": field
+    })

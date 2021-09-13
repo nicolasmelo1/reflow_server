@@ -126,6 +126,7 @@ class Settings:
         self.timezone = timezone
         self.datetime_helper = DatetimeHelper()
 
+        self.flow_context = context.flow_context
         self.reflow_company_id = context.reflow.company_id
         self.reflow_user_id = context.reflow.user_id
         self.reflow_dynamic_form_id = context.reflow.dynamic_form_id
@@ -216,7 +217,8 @@ class Settings:
         else:
             from django.conf import settings 
 
-        for formula_module_name in settings.FORMULA_MODULES:
+        module_names = settings.FORMULA_MODULES['default'] + settings.FORMULA_MODULES.get(self.flow_context, [])
+        for formula_module_name in module_names:
             path = "%s.%s" % (settings.FORMULA_BUILTIN_MODULES_PATH, formula_module_name)
             module = __import__(path, fromlist=[formula_module_name])
             kls = getattr(module, formula_module_name)

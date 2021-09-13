@@ -31,6 +31,19 @@ class FormAccessedByFormularyManager(models.Manager):
         """
         return self.main_forms_accessed_by_user_id_and_enabled_ordered_by_order(user_id).values_list('form__form_name', flat=True)
 
+    def main_form_ids_accessed_by_user_id_ordered_by_order(self, user_id):
+        """
+        Gets a list of Form id's. This is used so we can know the id of the formularies the user has access to. Different from
+        `.main_form_ids_accessed_by_user_id_and_enabled_ordered_by_order()` function 
+
+        Args:
+            user_id (int): A UserExtended instance id.
+
+        Returns:
+            django.db.models.QuerySet(int): A queryset of Form instance ids
+        """
+        return self.get_queryset().filter(user_id=user_id, form__depends_on__isnull=True).order_by('form__order').values_list('form_id', flat=True)
+
     def main_form_ids_accessed_by_user_id_and_enabled_ordered_by_order(self, user_id):
         """
         Gets a list of Form id's. This is used so we can know the id of the formularies the user has access to.

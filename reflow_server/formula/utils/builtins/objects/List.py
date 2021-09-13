@@ -8,11 +8,11 @@ class List(Object):
         super().__init__(LIST_TYPE, settings)
     # ------------------------------------------------------------------------------------------
     def _initialize_(self, array=[]):
-        self.array = DynamicArray(array)
-        self.represented_items_in_array = []
-        for element in array:
-            if hasattr(element, '_representation_'):
-                self.represented_items_in_array.append(element._representation_())
+        self.cached_number_of_elements = len(array)
+        self.has_to_request_new_representation = True
+        self.cached_representation = [element._representation_() for element in array if hasattr(element, '_representation_')]
+        
+        self.array = DynamicArray(array)        
         return super()._initialize_()
     # ------------------------------------------------------------------------------------------
     def _add_(self, obj):
@@ -27,16 +27,23 @@ class List(Object):
             return super()._add_(obj)
     # ------------------------------------------------------------------------------------------
     def _getitem_(self, index):
-        return self.array[int(index._representation_())]
+        if not isinstance(index, int): 
+            index = index._representation_()
+        return self.array[index]
     # ------------------------------------------------------------------------------------------
     def _setitem_(self, index, element):
-        if hasattr(element, '_representation_'):
-            self.represented_items_in_array[int(index._representation_())] = element._representation_()
+        self.has_to_request_new_representation = True
         return self.array.insert_at(element, int(index._representation_()))
     # ------------------------------------------------------------------------------------------
     def _in_(self, obj):
         return self.new_boolean(obj._representation_() in self.represented_items_in_array)
     # ------------------------------------------------------------------------------------------
     def _representation_(self):
-        return self.represented_items_in_array
+        if getattr(self, 'has_to_request_new_representation', True):
+            self.cached_representation = [
+                self.array[index]._representation_() for index in range(0, self.array.number_of_elements) if hasattr(self.array[index], '_representation_')
+            ]
+            self.has_to_request_new_representation = False
+
+        return self.cached_representation 
     

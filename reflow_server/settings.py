@@ -68,6 +68,8 @@ INSTALLED_APPS = [
     'reflow_server.theme',
     'reflow_server.rich_text',
     'reflow_server.pdf_generator',
+    'reflow_server.automation',
+    'reflow_server.integration',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -379,7 +381,19 @@ PERMISSIONS = {
 
 # CUSTOM FORMULA BUILTIN CONFIGURATION
 # check formula.utils.settings for reference
-FORMULA_MODULES = ['HTTP', 'SMTP', 'Reflow']
+FORMULA_MODULES = {
+    'default': [
+        'HTTP', 
+        'SMTP', 
+        'Reflow', 
+        'Datetime',
+        'List'
+    ],
+    'automation': [
+        'Automation'
+    ]
+}
+
 FORMULA_BUILTIN_MODULES_PATH = 'reflow_server.formula.utils.builtins.library'
 
 # CUSTOM ASYNC CONFIGURATION
