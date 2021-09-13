@@ -80,7 +80,7 @@ class FormulaService:
         Args:
             company_id (int): A Company instance id
         """
-        self.context = Context(formula_context=self.formula_context)
+        self.context = Context(flow_context=self.formula_context)
         self.context.add_reflow_data(company_id, user_id, dynamic_form_id)
 
         formula_context_for_company = FormulaContextForCompany.formula_.formula_context_for_company_by_company_id(company_id)
@@ -92,7 +92,7 @@ class FormulaService:
                     key = formula_context_attribute['attribute_type__name']
                     formula_attributes[key] = formula_context_attribute['translation']
 
-                self.context = Context(**formula_attributes, formula_context=self.formula_context)
+                self.context = Context(**formula_attributes, flow_context=self.formula_context)
                 self.context.add_reflow_data(company_id, user_id, dynamic_form_id)
 
                 # the code here might look kinda confusing at first but it's doing basically the same thing
