@@ -1,4 +1,4 @@
-from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryModule, functionmethod
+from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryModule, functionmethod, retrieve_representation
 from reflow_server.formula.utils.builtins import objects as flow_objects
 
 
@@ -10,14 +10,11 @@ class Reflow(LibraryModule):
     @functionmethod
     def create_record(template_name, page_name, data, **kwargs):
         from reflow_server.formula.services.reflow_module import ReflowModuleService, ReflowModuleServiceException
-
         settings = kwargs['__settings__']
-
-        if isinstance(page_name, flow_objects.String):
-            page_name = page_name._representation_()
-
-        if isinstance(data, flow_objects.Dict):
-            data = data._representation_()
+        
+        template_name = retrieve_representation(template_name)
+        page_name = retrieve_representation(page_name)
+        data = retrieve_representation(data)
         
         try:
             reflow_module_service = ReflowModuleService(
