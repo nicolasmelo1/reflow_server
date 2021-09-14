@@ -393,6 +393,9 @@ class FormulaService:
             reflow_server.formula.services.data.EvaluationData: The Evaluation data is a object we use to retrieve the data and understand
                                                                 what we need to evaluate for with the result.
         """     
+        from django import db
+        db.connections.close_all()
+        
         def run_evaluation_as_another_process():
             result = multiprocessing.Queue()
             process = multiprocessing.Process(target=self.__evaluate, args=(self.formula, result))
