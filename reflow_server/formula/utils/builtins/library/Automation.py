@@ -27,4 +27,6 @@ class Automation(LibraryModule):
             print(data)
 
     def _documentation_(self):
-        return {}
+        return {
+            'description': 'Flow module created to be used inside of the automation only, this is not available in the formulary',
+        }

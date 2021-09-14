@@ -1,4 +1,5 @@
 from django.conf import settings
+from django import db
 
 from reflow_server.data.models import FormValue
 from reflow_server.data.services.representation import RepresentationService
@@ -361,6 +362,8 @@ class FormulaService:
             result (): Where you put the values of the result
         """
         def evaluate_result():
+            db.connection.connect()
+
             formula_result = evaluate(formula, self.context)
             status = 'error' if getattr(formula_result, 'type', '') == 'error' else 'ok'
             result.put({
