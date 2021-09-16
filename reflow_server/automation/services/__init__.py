@@ -1,15 +1,12 @@
 from reflow_server.automation.models import AutomationTrigger
+from reflow_server.formula.services.formula import FlowFormulaService
+from reflow_server.automation.services.triggers import TriggerService
 
 
 class AutomationService:
     def __init__(self, company_id):
         self.company_id = company_id
 
-    def trigger(self, app_name, trigger_name):
-        automation_trigger = AutomationTrigger.objects.filter(
-            app_trigger__automation_app__name=app_name, 
-            app_trigger__name=trigger_name, 
-            automation__company_id=self.company_id
-        )
-        formula = automation_trigger.app_trigger.script
-        
+    def trigger(self, user_id, app_name, trigger_name, trigger_data):
+        trigger_service = TriggerService(company_id=self.company_id, user_id=user_id)
+        trigger_service.activate_trigger(app_name, trigger_name, trigger_data)

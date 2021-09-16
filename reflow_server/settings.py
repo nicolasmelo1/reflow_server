@@ -407,7 +407,7 @@ JWT_HEADER_TYPES = ('Client',)
 
 # FORMULA CONFIGURATION
 # check formula.utils.parser file
-FORMULA_MAXIMUM_EVAL_TIME = 10
+FORMULA_MAXIMUM_EVAL_TIME = 20
 
 # DATE FIELD CONFIGURATION
 # check formulary.models.FieldDateFormatType

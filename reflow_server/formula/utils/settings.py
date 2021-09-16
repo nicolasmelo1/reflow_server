@@ -127,9 +127,12 @@ class Settings:
         self.datetime_helper = DatetimeHelper()
 
         self.flow_context = context.flow_context
+        self.reflow_automation_action_data = context.reflow.automation.action_data
+        self.reflow_automation_trigger_data = context.reflow.automation.trigger_data
+        self.reflow_automation_id = context.reflow.automation.id
         self.reflow_company_id = context.reflow.company_id
         self.reflow_user_id = context.reflow.user_id
-        self.reflow_dynamic_form_id = context.reflow.dynamic_form_id
+        self.reflow_dynamic_form_id = context.reflow.formula.dynamic_form_id
 
         self.datetime_date_character = context.datetime.date_character
         self.datetime_date_format = context.datetime.date_format

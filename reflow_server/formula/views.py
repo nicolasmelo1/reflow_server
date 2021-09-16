@@ -7,7 +7,7 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.data.models import DynamicForm
-from reflow_server.formula.services.formula import FormulaService, FormulaVariables
+from reflow_server.formula.services.formula import FlowFormulaService, FormulaVariables
 from reflow_server.formula.serializers import FormulaSerializer
 
 
@@ -36,7 +36,7 @@ class TestFormulaView(APIView):
                 if isinstance(variable_id, int) or variable_id.isdigit():
                     variables.add_variable_id(variable_id)
             dynamic_form_id = DynamicForm.formula_.latest_main_dynamic_form_id_by_form_id(form_id)
-            formula_service = FormulaService(
+            formula_service = FlowFormulaService(
                 serializer.data['formula'], 
                 request.user.id,
                 company_id, 

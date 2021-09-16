@@ -7,9 +7,8 @@ from reflow_server.formulary.models import FieldDateFormatType, FormulaVariable,
 from reflow_server.formula.services.data import FormulaVariables, EvaluationData, InternalValue
 from reflow_server.formula.utils import evaluate
 from reflow_server.formula.utils.helpers import DatetimeHelper
-from reflow_server.formula.utils.context import Context
-from reflow_server.formula.models import FormulaContextBuiltinLibrary, FormulaContextForCompany, FormulaContextAttributeType, \
-    FormulaContextType
+from reflow_server.formula.services.utils import build_context
+from reflow_server.formula.models import FormulaContextForCompany, FormulaContextType
 
 from datetime import datetime
 import queue
@@ -17,8 +16,8 @@ import multiprocessing
 import re
 
 
-class FormulaService:
-    def __init__(self, formula, user_id, company_id, formula_context='formula', dynamic_form_id=None, field_id=None, formula_variables=None):
+class FlowFormulaService:
+    def __init__(self, formula, user_id, company_id, dynamic_form_id=None, field_id=None, formula_variables=None, automation_id=None, is_automation_trigger=True):
         """
         This service is handy for interacting with formulas in reflow, this service holds all of the logic needed to run our programming
         language. This is the interface you generally will use for interacting with formulas. Simple as that.
@@ -60,7 +59,6 @@ class FormulaService:
             formula_variables (reflow_server.formula.services.FormulaVariables, optional): A FormulaVariables object that has a list of all variable_ids, each variable_id is a Field
                                                                                            instance id. Defaults to None.
         """
-        self.formula_context = formula_context
         if formula_variables == None:
             formula_variables = FormulaVariables()
             variable_ids = FormulaVariable.formula_.variable_ids_by_field_id(field_id)
@@ -68,98 +66,11 @@ class FormulaService:
                 if isinstance(variable_id, int) or variable_id.isdigit():
                     formula_variables.add_variable_id(variable_id)
 
-        self.__build_context(user_id, company_id, dynamic_form_id)
+        context_type_id = FormulaContextForCompany.formula_.formula_context_for_company_by_company_id(company_id)
+        self.context = build_context(context_type_id, 'formula')
+        self.context.add_reflow_data(company_id, user_id, dynamic_form_id=dynamic_form_id)
+
         self.formula = self.__clean_formula(formula, dynamic_form_id, formula_variables)
-    # ------------------------------------------------------------------------------------------
-    def __build_context(self, user_id, company_id, dynamic_form_id):
-        """
-        This builds the context, the context is a way that we use to translate the formula for many languages like
-        portuguese, english, spanish and others. The idea is that the formulas needed to be translatable so it is easier 
-        to use for people that do not live in countries like united states, canada. So it becomes easier for non programmers
-        to program something complex using our formulas.
-
-        Args:
-            company_id (int): A Company instance id
-        """
-        self.context = Context(flow_context=self.formula_context)
-        self.context.add_reflow_data(company_id, user_id, dynamic_form_id)
-
-        formula_context_for_company = FormulaContextForCompany.formula_.formula_context_for_company_by_company_id(company_id)
-        if formula_context_for_company:
-            formula_context_attributes = FormulaContextAttributeType.objects.filter(context_type_id=formula_context_for_company.context_type_id).values('attribute_type__name', 'translation')
-            if formula_context_attributes:
-                formula_attributes = {}
-                for formula_context_attribute in formula_context_attributes:
-                    key = formula_context_attribute['attribute_type__name']
-                    formula_attributes[key] = formula_context_attribute['translation']
-
-                self.context = Context(**formula_attributes, flow_context=self.formula_context)
-                self.context.add_reflow_data(company_id, user_id, dynamic_form_id)
-
-                # the code here might look kinda confusing at first but it's doing basically the same thing
-                # basically what we are doing on all those for loops is translating the internal library to something
-                # the final user can understand and know.
-                formula_context_library_types = FormulaContextBuiltinLibrary.objects.filter(context_type_id=formula_context_for_company.context_type_id)
-
-                # first we translate the module
-                for formula_context_library_type_module in formula_context_library_types.filter(
-                    attribute_type__attribute_name='module'
-                ):
-                    module = self.context.add_library_module(
-                        formula_context_library_type_module.original_value,
-                        formula_context_library_type_module.translation
-                    )
-                    # translate the module module_struct_parameters
-                    for formula_context_library_type_struct_parameter in formula_context_library_types.filter(
-                        attribute_type__attribute_name='module_struct_parameter', 
-                        related_to=formula_context_library_type_module.id
-                    ):
-                        module.add_struct_parameter(
-                            formula_context_library_type_struct_parameter.original_value,
-                            formula_context_library_type_struct_parameter.translation
-                        )
-                    
-                    # translate the module methods
-                    for formula_context_library_type_method in formula_context_library_types.filter(
-                        attribute_type__attribute_name='method', 
-                        related_to=formula_context_library_type_module.id
-                    ):
-                        method = module.add_method(
-                            formula_context_library_type_method.original_value,
-                            formula_context_library_type_method.translation
-                        )
-
-                        # translate the module method method_parameters
-                        for formula_context_library_type_method_parameter in formula_context_library_types.filter(
-                            attribute_type__attribute_name='method_parameter', 
-                            related_to=formula_context_library_type_method.id
-                        ):
-                            method.add_parameter(
-                                formula_context_library_type_method_parameter.original_value,
-                                formula_context_library_type_method_parameter.translation
-                            )
-
-                    # translate the module structs
-                    for formula_context_library_type_struct in formula_context_library_types.filter(
-                        attribute_type__attribute_name='struct', 
-                        related_to=formula_context_library_type_module.id
-                    ):
-                        struct = module.add_struct(
-                            formula_context_library_type_struct.original_value,
-                            formula_context_library_type_struct.translation
-                        )
-                        
-                        # translate the module struct attribute
-                        for formula_context_library_type_struct_attribute in formula_context_library_types.filter(
-                            attribute_type__attribute_name='struct_attribute', 
-                            related_to=formula_context_library_type_struct.id
-                        ):
-                            struct.add_attribute(
-                                formula_context_library_type_struct_attribute.original_value,
-                                formula_context_library_type_struct_attribute.translation
-                            )
-                return None
-                
     # ------------------------------------------------------------------------------------------
     def __clean_formula(self, formula, dynamic_form_id, formula_variables):
         """
@@ -362,6 +273,9 @@ class FormulaService:
             result (): Where you put the values of the result
         """
         def evaluate_result():
+            # okay, so why do we need this you might ask, it is because we were getting the following error 
+            # "SSL error: decryption failed or bad record mac django"
+            # To solve this i relied on this response: https://stackoverflow.com/a/68849119 simple and elegant
             db.connection.connect()
 
             formula_result = evaluate(formula, self.context)

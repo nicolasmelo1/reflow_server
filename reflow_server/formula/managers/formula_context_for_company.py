@@ -6,5 +6,5 @@ class FormulaContextForCompanyFormulaManager(models.Manager):
         return super().get_queryset()
 
     def formula_context_for_company_by_company_id(self, company_id):
-        return self.get_queryset().filter(company_id=company_id).first() 
+        return self.get_queryset().filter(company_id=company_id).values_list('context_type_id', flat=True).first() 
         

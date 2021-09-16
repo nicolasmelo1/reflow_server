@@ -1,4 +1,7 @@
 ############################################################################################
+from reflow_server import automation
+
+
 class BuiltinLibraryStruct:
     def __init__(self, struct_name):
         self.struct_name = struct_name
@@ -109,11 +112,22 @@ class Keywords:
         self.boolean = boolean
         self.if_block = if_block
 ############################################################################################
-class Reflow:
-    def __init__(self, company_id=None, user_id=None, dynamic_form_id=None):
+class ReflowFormula:
+    def __init__(self, dynamic_form_id=None):
         self.dynamic_form_id = dynamic_form_id
+############################################################################################
+class ReflowAutomation:
+    def __init__(self, automation_id=None, trigger_data=None, action_data=None):
+        self.id = automation_id
+        self.trigger_data = trigger_data
+        self.action_data = action_data
+############################################################################################
+class Reflow:
+    def __init__(self, company_id=None, user_id=None, dynamic_form_id=None, automation_id=None, automation_trigger_data=None, automation_action_data=None):
         self.company_id = company_id
         self.user_id = user_id
+        self.automation = ReflowAutomation(automation_id, automation_trigger_data, automation_action_data)
+        self.formula = ReflowFormula(dynamic_form_id)
 ############################################################################################
 class Context:
     def __init__(self, includes='in', conjunction='and', disjunction='or', inversion='not', 
@@ -191,5 +205,6 @@ class Context:
         self.library[original_module_name] = new_library
         return new_library
     # ------------------------------------------------------------------------------------------
-    def add_reflow_data(self, company_id, user_id, dynamic_form_id=None):
-        self.reflow = Reflow(company_id, user_id, dynamic_form_id)
+    def add_reflow_data(self, company_id, user_id, dynamic_form_id=None, automation_id=None, 
+                        automation_trigger_data=None, automation_action_data=None):
+        self.reflow = Reflow(company_id, user_id, dynamic_form_id, automation_id, automation_trigger_data, automation_action_data)

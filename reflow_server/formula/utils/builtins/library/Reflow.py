@@ -8,6 +8,11 @@ class Reflow(LibraryModule):
         return self
     
     @functionmethod
+    def debug(element, **kwargs):
+        print(element)
+        return flow_objects.Null(kwargs['__settings__'])._initialize_()
+    
+    @functionmethod
     def create_record(template_name, page_name, data, **kwargs):
         from reflow_server.formula.services.reflow_module import ReflowModuleService, ReflowModuleServiceException
         settings = kwargs['__settings__']

@@ -23,9 +23,11 @@ class TriggerType(models.Model):
 
 class AutomationApp(models.Model):
     name = models.CharField(max_length=500)
+    label_name = models.CharField(max_length=500)
+    flow_context = models.ForeignKey('formula.FormulaContextType', on_delete=models.CASCADE, null=True)
     description = models.TextField()
     website = models.CharField(max_length=500)
-    logo_url = models.CharField(max_length=500)
+    logo_url = models.CharField(max_length=500, null=True)
     integration_authentication = models.ForeignKey('integration.IntegrationAuthentication', on_delete=models.CASCADE, null=True)
         
     class Meta:
@@ -37,9 +39,9 @@ class AutomationAppTrigger(models.Model):
     description = models.TextField()
     script = models.TextField()
     automation_app = models.ForeignKey('automation.AutomationApp', on_delete=models.CASCADE)
-    input_formulary = models.ForeignKey('automation.AutomationInputFormulary', on_delete=models.CASCADE)
+    input_formulary = models.ForeignKey('automation.AutomationInputFormulary', on_delete=models.CASCADE, null=True)
     trigger_type = models.ForeignKey('automation.TriggerType', on_delete=models.CASCADE)
-    trigger_webhook = models.CharField(max_length=500)
+    trigger_webhook = models.CharField(max_length=500, null=True, blank=True)
 
     class Meta:
         db_table = 'automation_app_trigger'
@@ -50,7 +52,7 @@ class AutomationAppAction(models.Model):
     description = models.TextField()
     script = models.TextField()
     automation_app = models.ForeignKey('automation.AutomationApp', on_delete=models.CASCADE)
-    input_formulary = models.ForeignKey('automation.AutomationInputFormulary', on_delete=models.CASCADE)
+    input_formulary = models.ForeignKey('automation.AutomationInputFormulary', on_delete=models.CASCADE, null=True)
 
     class Meta:
         db_table = 'automation_app_action'
@@ -130,6 +132,7 @@ class Automation(models.Model):
     name = models.CharField(max_length=500)
     description = models.TextField()
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE)
+    user = models.ForeignKey('authentication.UserExtended', on_delete=models.CASCADE, null=True)
 
     class Meta:
         db_table = 'automation'

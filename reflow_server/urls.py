@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from reflow_server import automation
 from django.urls import re_path, include
 from django.contrib import admin
 
@@ -22,6 +23,7 @@ urlpatterns = [
     re_path(r'^dashboard/', include('reflow_server.dashboard.urls'), name='dashboard_app'),
     re_path(r'^billing/', include('reflow_server.billing.urls'), name='billing_app'),
     re_path(r'^analytics/', include('reflow_server.analytics.urls'), name='analytics_app'),
+    re_path(r'^automation/', include('reflow_server.automation.urls'), name='automation_app'),
     re_path(r'^authentication/', include('reflow_server.authentication.urls'), name='authentication_app'),
     re_path(r'^filter/', include('reflow_server.filter.urls'), name='filter_app'),
     re_path(r'^formula/', include('reflow_server.formula.urls'), name='formula_app'),

@@ -1,18 +1,12 @@
 from reflow_server.formula.utils import interpreter
+from reflow_server.formula.utils.builtins.objects.Error import Error
 from reflow_server.formula.utils.lexer import Lexer
 from reflow_server.formula.utils.settings import Settings
 from reflow_server.formula.utils.context import Context
 from reflow_server.formula.utils.parser import Parser
 from reflow_server.formula.utils.interpreter import Interpreter
 
-context = Context()
-library = context.add_library_module('HTTP', 'Requisicao')
-method = library.add_method('request', 'requisitar')
-method.add_parameter('url', 'endereco')
-method.add_parameter('method', 'metodo')
-
-struct = library.add_struct('HTTPResponse', 'Resposta')
-struct.add_attribute('content', 'conteudo')
+context = Context(flow_context='automation')
 settings = Settings(context, is_testing=True)
 
 simple_arithimetic = r"""(1 + 2) + (2 + 2)"""
@@ -126,6 +120,17 @@ new_list = List.map(list, function (elem, ind) do
 end)
 new_list
 """
+
+automation_library = r"""
+Automation.trigger_action({
+    "Field 1": "value"
+    "Field 2": "value2"
+    "field 3": {
+        "field": 23
+    }
+})
+"""
+
 from datetime import datetime
 from reflow_server.formula.utils.helpers import DatetimeHelper
 
@@ -148,8 +153,8 @@ functions_to_test = [
     #HTTP_library,
     #SMTP_library,
     #datetime_test,
-    List_library,
-    
+    #List_library,
+    automation_library
 ]
 
 import json
@@ -158,14 +163,14 @@ import time
 start = time.time()
 for function in functions_to_test:
     value = None
-    #try:
-    lexer = Lexer(function, settings)
-    parser = Parser(lexer, settings)
-    ast = parser.parse()
-    interpreter = Interpreter(settings)
-    value = interpreter.evaluate(ast)
-    #except Exception as e:
-    #value = e
+    try:
+        lexer = Lexer(function, settings)
+        parser = Parser(lexer, settings)
+        ast = parser.parse()
+        interpreter = Interpreter(settings)
+        value = interpreter.evaluate(ast)
+    except Error as e:
+        value = e
     print(value._representation_())
 end = time.time()
 

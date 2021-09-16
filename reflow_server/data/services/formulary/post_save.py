@@ -3,7 +3,7 @@ from django.conf import settings
 from reflow_server.core.utils.storage import Bucket, BucketUploadException
 from reflow_server.data.services.formulary.data import PostSaveData
 from reflow_server.data.models import FormValue, DynamicForm, Attachments
-from reflow_server.formula.services.formula import FormulaService
+from reflow_server.formula.services.formula import FlowFormulaService
 from reflow_server.data.services.attachments import AttachmentService
 
 import json
@@ -77,7 +77,7 @@ class PostSave:
     def _post_process_formula(self, process):
         if process.form_value_instance.field.formula_configuration not in ('', None):
             
-            formula = FormulaService(
+            formula = FlowFormulaService(
                 process.form_value_instance.field.formula_configuration,
                 self.user_id,
                 self.company_id, 
