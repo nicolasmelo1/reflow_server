@@ -6,6 +6,7 @@ from reflow_server.formula.models import FormulaContextType
 from reflow_server.formula.services.data import EvaluationData
 from reflow_server.formula.services.utils import build_context
 from reflow_server.formula.utils import evaluate
+from reflow_server.authentication.models import UserExtended 
 
 import queue
 import multiprocessing
@@ -19,25 +20,38 @@ def create_connection(alias=DEFAULT_DB_ALIAS):
     return backend.DatabaseWrapper(database, alias)
 
 
+contexts = {}
+
 class FlowAutomationService:
-    def __init__(self, context_type_id, company_id, user_id, automation_id, trigger_data=None, action_data=None):
+    def __init__(self, context_type_id, company_id, user_id, automation_id, trigger_data=None, action_data=None, debug_trigger=False):
         self.company_id = company_id
         self.user_id = user_id
         self.automation_id = automation_id
         self.trigger_data = trigger_data
         self.action_data = action_data
+        self.debug_trigger = debug_trigger
+
+        user_timezone = UserExtended.formula_.timezone_by_user_id(user_id)
 
         if context_type_id == None:
             context_type_id = FormulaContextType.objects.filter(name='default').values_list('id', flat=True).first()
 
-        self.context = build_context(context_type_id, 'automation')
+        if contexts.get(context_type_id, None):
+            self.context = contexts[context_type_id]
+        else:
+            contexts[context_type_id] = build_context(context_type_id, 'automation')
+            self.context = contexts[context_type_id]
+        
         self.context.add_reflow_data(
             company_id, 
             user_id, 
             automation_id=automation_id, 
             automation_trigger_data=trigger_data, 
-            automation_action_data=action_data
+            automation_action_data=action_data,
+            automation_debug_trigger=debug_trigger
         )
+        print(user_timezone)
+        self.context.datetime.timezone = user_timezone
     # ------------------------------------------------------------------------------------------
     def __evaluate(self, formula, result):
         """

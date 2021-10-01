@@ -239,12 +239,12 @@ EVENTS = {
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
     },
     'formulary_data_created': {
-        'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id', 'is_public'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataBroadcastEvent']
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id', 'is_public', 'data'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataBroadcastEvent', 'reflow_server.automation.events.AutomationEvent']
     },
     'formulary_data_updated': {
-        'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id', 'is_public'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataBroadcastEvent']
+        'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id', 'is_public', 'data'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataBroadcastEvent', 'reflow_server.automation.events.AutomationEvent']
     },
     'formulary_created': {
         'data_parameters': ['user_id', 'company_id', 'form_id'],

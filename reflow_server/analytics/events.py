@@ -69,7 +69,7 @@ class AnalyticsEvents:
             company_id=company_id
         )
     # ------------------------------------------------------------------------------------------
-    def formulary_data_created(self, user_id, company_id, form_id, form_data_id, is_public):
+    def formulary_data_created(self, user_id, company_id, form_id, form_data_id, is_public, data):
         """
         This event is fired when the a new record is created in the formulary. So the formulary is created but when we add
         new data to it.
@@ -90,7 +90,7 @@ class AnalyticsEvents:
             is_public=is_public
         )
     # ------------------------------------------------------------------------------------------
-    def formulary_data_updated(self, user_id, company_id, form_id, form_data_id, is_public):
+    def formulary_data_updated(self, user_id, company_id, form_id, form_data_id, is_public, data):
         """
         Similar to `.formulary_data_created()` except it works when the data was updated in a formulary.
 

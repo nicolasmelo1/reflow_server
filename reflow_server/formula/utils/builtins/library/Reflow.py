@@ -9,7 +9,6 @@ class Reflow(LibraryModule):
     
     @functionmethod
     def debug(element, **kwargs):
-        print(element)
         return flow_objects.Null(kwargs['__settings__'])._initialize_()
     
     @functionmethod
@@ -27,7 +26,8 @@ class Reflow(LibraryModule):
                 settings.reflow_user_id, 
                 settings.reflow_dynamic_form_id
             )
-            return reflow_module_service.create_record(template_name, page_name, data)
+            formulary_record_id = reflow_module_service.create_record(template_name, page_name, data)
+            return flow_objects.Integer(kwargs['__settings__'])._initialize_(formulary_record_id)
         except ReflowModuleServiceException as rmse:
             flow_objects.Error(kwargs['__settings__'])._initialize_('Error', str(rmse))
     

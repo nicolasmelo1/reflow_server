@@ -1,10 +1,10 @@
 from django.db import models
 
 from reflow_server.billing.managers import CompanyChargeBillingManager, PartnerDefaultAndDiscountsBillingManager, \
-    DiscountByIndividualNameForCompanyBillingManager, DiscountCouponBillingManager, CompanyCouponsBillingManager
+    DiscountByIndividualNameForCompanyBillingManager, DiscountCouponBillingManager, CompanyCouponsBillingManager, \
+    CompanyChargeSentBillingManager
 
 
-# Create your models here.
 class ChargeType(models.Model):
     """
     This model is a `type` so it contains required data used for this program to work. This model holds
@@ -273,3 +273,19 @@ class CompanyCharge(models.Model):
 
     objects = models.Manager()
     billing_ = CompanyChargeBillingManager()
+
+
+class CompanyChargeSent(models.Model):
+    """
+    When the Payment Gateway sends a charge we save it here so we can track when the user had been charged.
+    """
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    total_value = models.DecimalField(max_digits=10, decimal_places=2)
+    company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, related_name='company_charges_sent')
+    
+    class Meta:
+        db_table = 'company_bill_created'
+
+    objects = models.Manager()
+    billing_ = CompanyChargeSentBillingManager()

@@ -33,8 +33,6 @@ class List(LibraryModule):
 
     @functionmethod
     def for_each(list_data, function, **kwargs):
-        print(function.parameters)
-
         if not isinstance(list_data, flow_objects.List):
             flow_objects.Error(kwargs['__settings__'])._initialize_('Error', "'list_data' should be a list")
 

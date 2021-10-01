@@ -11,6 +11,7 @@ from reflow_server.formulary.managers import UserExtendedFormularyManager
 from reflow_server.notification.managers import UserExtendedNotificationManager
 from reflow_server.theme.managers import UserExtendedThemeManager
 from reflow_server.draft.managers import UserExtendedDraftManager
+from reflow_server.formula.managers import UserExtendedFormulaManager
 
 import uuid
 
@@ -128,6 +129,7 @@ class UserExtended(AbstractUser):
     profile = models.ForeignKey('authentication.ProfileType', on_delete=models.CASCADE, default=None)
     phone = models.CharField(max_length=250, default=None, null=True, blank=True)
     timezone = models.IntegerField(default=-3)
+    timezone_name = models.CharField(max_length=400, default='Brazil/East')
     is_admin = models.BooleanField(default=False)
     data_type = models.ForeignKey('authentication.VisualizationType', on_delete=models.CASCADE, default=None, null=True)
     temp_password = models.CharField(max_length=250, default=None, null=True, blank=True)
@@ -146,6 +148,7 @@ class UserExtended(AbstractUser):
     notification_ = UserExtendedNotificationManager()
     theme_ = UserExtendedThemeManager()
     draft_ = UserExtendedDraftManager()
+    formula_ = UserExtendedFormulaManager()
 
     def make_temporary_password(self):
         from reflow_server.authentication.utils.jwt_auth import JWT

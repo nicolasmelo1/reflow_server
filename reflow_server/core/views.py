@@ -13,6 +13,7 @@ from reflow_server.formulary.models import SectionType, FieldType, FieldPeriodIn
 from reflow_server.dashboard.models import AggregationType, ChartType
 from reflow_server.rich_text.models import TextAlignmentType, TextBlockType
 from reflow_server.theme.models import ThemeType
+from reflow_server.automation.models import AutomationInputSectionType, AutomationInputFieldType
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -57,6 +58,8 @@ class TypesView(APIView):
         chart_type = list(ChartType.objects.all().values())
         alignment_type = list(TextAlignmentType.objects.all().values()) 
         block_type = list(TextBlockType.objects.all().values())
+        automation_input_section_type = list(AutomationInputSectionType.objects.all().values())
+        automation_input_field_type = list(AutomationInputFieldType.objects.all().values())
 
         return Response({
            'status': 'ok',
@@ -75,6 +78,10 @@ class TypesView(APIView):
                    'field_period_interval_type': field_period_interval_type,
                    'field_type': field_type,
                    'form_type': section_type
+               },
+               'automation': {
+                   'input_section_type': automation_input_section_type,
+                   'input_field_type': automation_input_field_type
                },
                'rich_text': {
                    'alignment_type': alignment_type,

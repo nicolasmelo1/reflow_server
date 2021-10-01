@@ -9,6 +9,7 @@ from reflow_server.formula.utils import evaluate
 from reflow_server.formula.utils.helpers import DatetimeHelper
 from reflow_server.formula.services.utils import build_context
 from reflow_server.formula.models import FormulaContextForCompany, FormulaContextType
+from reflow_server.authentication.models import UserExtended 
 
 from datetime import datetime
 import queue
@@ -17,7 +18,7 @@ import re
 
 
 class FlowFormulaService:
-    def __init__(self, formula, user_id, company_id, dynamic_form_id=None, field_id=None, formula_variables=None, automation_id=None, is_automation_trigger=True):
+    def __init__(self, formula, user_id, company_id, dynamic_form_id=None, field_id=None, formula_variables=None):
         """
         This service is handy for interacting with formulas in reflow, this service holds all of the logic needed to run our programming
         language. This is the interface you generally will use for interacting with formulas. Simple as that.
@@ -59,6 +60,7 @@ class FlowFormulaService:
             formula_variables (reflow_server.formula.services.FormulaVariables, optional): A FormulaVariables object that has a list of all variable_ids, each variable_id is a Field
                                                                                            instance id. Defaults to None.
         """
+        user_timezone = UserExtended.formula_.timezone_by_user_id(user_id)
         if formula_variables == None:
             formula_variables = FormulaVariables()
             variable_ids = FormulaVariable.formula_.variable_ids_by_field_id(field_id)
@@ -69,7 +71,9 @@ class FlowFormulaService:
         context_type_id = FormulaContextForCompany.formula_.formula_context_for_company_by_company_id(company_id)
         self.context = build_context(context_type_id, 'formula')
         self.context.add_reflow_data(company_id, user_id, dynamic_form_id=dynamic_form_id)
-
+        
+        self.context.datetime.timezone = user_timezone
+        
         self.formula = self.__clean_formula(formula, dynamic_form_id, formula_variables)
     # ------------------------------------------------------------------------------------------
     def __clean_formula(self, formula, dynamic_form_id, formula_variables):

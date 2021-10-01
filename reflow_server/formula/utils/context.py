@@ -79,7 +79,8 @@ class BuiltinLibraryModule:
         self.stuct_parameters[original_struct_parameter] = struct_parameter_translation
 ############################################################################################
 class Datetime:
-    def __init__(self, date_character, date_format, time_format):
+    def __init__(self, timezone, date_character, date_format, time_format):
+        self.timezone = timezone
         self.date_character = date_character
         self.date_format = date_format
         self.time_format = time_format
@@ -117,16 +118,17 @@ class ReflowFormula:
         self.dynamic_form_id = dynamic_form_id
 ############################################################################################
 class ReflowAutomation:
-    def __init__(self, automation_id=None, trigger_data=None, action_data=None):
+    def __init__(self, automation_id=None, trigger_data=None, action_data=None, debug_trigger=False):
         self.id = automation_id
         self.trigger_data = trigger_data
         self.action_data = action_data
+        self.debug_trigger = debug_trigger
 ############################################################################################
 class Reflow:
-    def __init__(self, company_id=None, user_id=None, dynamic_form_id=None, automation_id=None, automation_trigger_data=None, automation_action_data=None):
+    def __init__(self, company_id=None, user_id=None, dynamic_form_id=None, automation_id=None, automation_trigger_data=None, automation_action_data=None, debug_trigger=False):
         self.company_id = company_id
         self.user_id = user_id
-        self.automation = ReflowAutomation(automation_id, automation_trigger_data, automation_action_data)
+        self.automation = ReflowAutomation(automation_id, automation_trigger_data, automation_action_data, debug_trigger)
         self.formula = ReflowFormula(dynamic_form_id)
 ############################################################################################
 class Context:
@@ -134,7 +136,8 @@ class Context:
                  block_do='do', block_end='end', null='None', boolean_true='True',
                  boolean_false='False', if_if='if', if_else='else', function='function',
                  module='module', decimal_point_separator='.', positional_argument_separator=',',
-                 date_character='D', date_format='YYYY-MM-DD', hour_format='hh:mm:ss.SSS', flow_context='formula'):
+                 timezone='GMT', date_character='D', date_format='YYYY-MM-DD', hour_format='hh:mm:ss.SSS', 
+                 flow_context='formula'):
         """
         Responsible for creating the context for the formula evaluation, with this we can translate the formulas to other
         languages, which is something impossible in languages like python, javascript or others.
@@ -164,6 +167,8 @@ class Context:
                                                      but we can translate to ',' if needed. Defaults to '.'.
             positional_argument_separator (str, optional): The positional arguments separator, on most languages it is represented
                                                            as ',', but on others like excel this can be ';'. Defaults to ','.
+            timezone (str, optional): The timezone of the flow context, flow is timezone aware EVERYTIME, we know where the code is running 
+                                      so we use this. The timezone is based on pytz database, so use this. Defaults to 'GMT'.
             date_character(str, optional): The charcter to create a new date, did you know that you write 'date' in russia like 'Дата'?
                                            this means that in russia instead of creating a date like ~D[2018-03-01] he should be able to create
                                            like: ~Д[2018-03-01], this way it's easier to understand the concept in all languages. Defaults to 'D' as in date
@@ -193,6 +198,7 @@ class Context:
         self.positional_argument_separator = positional_argument_separator
         self.decimal_point_separator = decimal_point_separator
         self.datetime = Datetime(
+            timezone,
             date_character,
             date_format,
             hour_format
@@ -206,5 +212,13 @@ class Context:
         return new_library
     # ------------------------------------------------------------------------------------------
     def add_reflow_data(self, company_id, user_id, dynamic_form_id=None, automation_id=None, 
-                        automation_trigger_data=None, automation_action_data=None):
-        self.reflow = Reflow(company_id, user_id, dynamic_form_id, automation_id, automation_trigger_data, automation_action_data)
+                        automation_trigger_data=None, automation_action_data=None, automation_debug_trigger=False):
+        self.reflow = Reflow(
+            company_id, 
+            user_id, 
+            dynamic_form_id, 
+            automation_id, 
+            automation_trigger_data, 
+            automation_action_data,
+            automation_debug_trigger
+        )

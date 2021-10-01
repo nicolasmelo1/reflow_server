@@ -3,7 +3,7 @@ from django.db import transaction
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.billing.models import CurrentCompanyCharge, DiscountByIndividualValueQuantity, \
     IndividualChargeValueType, DiscountByIndividualNameForCompany, CompanyCharge, \
-    CompanyBilling, PartnerDefaultAndDiscounts
+    CompanyBilling, PartnerDefaultAndDiscounts, CompanyChargeSent
 from reflow_server.billing.services.data import TotalData, CompanyChargeData
 from reflow_server.billing.services.vindi import VindiService
 
@@ -239,3 +239,21 @@ class ChargeService:
                     attempt_count=attempt_count
                 )
         return True
+
+    
+    @staticmethod
+    def add_new_company_charge_sent(vindi_customer_id, total_value):
+        """
+        When the vindi charge is sent to the user we update here, this is only used for analytics purpose, it does not serve anything inside of the application.
+        This way we can have analytics like: understand the number of user that we billed for each month and then compare by the paid.
+
+        Args:
+            vindi_customer_id (str): The vindi client id. This is a string although the string is a number
+            total_value (float): The amout the user needs to pay
+        """
+        company_billing = CompanyBilling.objects.filter(vindi_client_id=vindi_customer_id).first()
+        if company_billing:
+            CompanyChargeSent.billing_.create_company_charge_sent(
+                company_id=company_billing.company_id,
+                total_value=total_value,
+            )

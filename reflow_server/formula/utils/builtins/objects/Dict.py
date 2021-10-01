@@ -81,7 +81,7 @@ class Dict(Object):
         for index in range(0, len(self.hash_table.keys)):
             key = self.hash_table.keys[index]
             key_index = self.hash_table.indexes[index]
-            value = self.hash_table.search(key, None, key_index)
+            value = self.hash_table.search(None, key, key_index)
             python_value = value.value._representation_()
             dictionary_response[key] = python_value
 

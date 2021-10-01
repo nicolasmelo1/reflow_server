@@ -40,7 +40,6 @@ class TestFormulaView(APIView):
                 serializer.data['formula'], 
                 request.user.id,
                 company_id, 
-                formula_context='formula',
                 dynamic_form_id=dynamic_form_id, 
                 formula_variables=variables
             )

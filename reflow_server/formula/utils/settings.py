@@ -81,7 +81,7 @@ class NodeType:
 
 
 class Settings:
-    def __init__(self, context=Context(), timezone='GMT', is_testing=False):
+    def __init__(self, context=Context(), is_testing=False):
         """
         This is the settings class, this is used on the interpreter, parser and lexer.
         The idea is that with the settings we are able to translate the formula or in other words, the programming language,
@@ -123,12 +123,13 @@ class Settings:
         self.operation_characters = ['>' ,'<', '=', '!', '/', '+', '*', '%', '-', '^', ':']
         self.valid_numbers_characters = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         self.valid_braces = ['{', '}', '(', ')', '[', ']']
-        self.timezone = timezone
+        self.timezone = context.datetime.timezone
         self.datetime_helper = DatetimeHelper()
 
         self.flow_context = context.flow_context
         self.reflow_automation_action_data = context.reflow.automation.action_data
         self.reflow_automation_trigger_data = context.reflow.automation.trigger_data
+        self.reflow_automation_debug_trigger = context.reflow.automation.debug_trigger
         self.reflow_automation_id = context.reflow.automation.id
         self.reflow_company_id = context.reflow.company_id
         self.reflow_user_id = context.reflow.user_id

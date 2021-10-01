@@ -716,6 +716,5 @@ class Conversor:
             key = self.python_value_to_flow_object(key)
             value = self.python_value_to_flow_object(value)
             values.append([key, value])
-        
         new_dict._initialize_(values)
         return new_dict

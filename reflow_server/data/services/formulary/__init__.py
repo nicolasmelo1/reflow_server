@@ -78,7 +78,8 @@ class FormularyDataService(PreSave, PostSave):
                 'company_id': self.company_id,
                 'form_id': self.form.id,
                 'is_public': is_public,
-                'form_data_id': formulary_instance_id
+                'form_data_id': formulary_instance_id,
+                'data': self.formulary_data
             })
         else:
             Event.register_event('formulary_data_updated', {
@@ -86,7 +87,8 @@ class FormularyDataService(PreSave, PostSave):
                 'company_id': self.company_id,
                 'form_id': self.form.id,
                 'is_public': is_public,
-                'form_data_id': formulary_instance_id
+                'form_data_id': formulary_instance_id,
+                'data': self.formulary_data
             })
         # updates the pre_notifications
         PreNotificationService.update(self.company_id)

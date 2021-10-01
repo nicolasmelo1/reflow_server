@@ -92,7 +92,7 @@ class ReflowModuleService:
             else:
                 raise ReflowModuleServiceException('invalid_field')
 
-    def create_record(self, template_name,  page_name, data):
+    def create_record(self, template_name, page_name, data):
         """
         I don't like it much, it's bloated with logic here, because reflow is actually a really complex piece of software and not 
         a so easy one.
@@ -123,7 +123,7 @@ class ReflowModuleService:
             ReflowModuleServiceException: invalid_section_name - When the section name provided doesn't exist for the particular page/formulary
             ReflowModuleServiceException: invalid_value_type_for_section_type - When the section is a multi-section it should be a list, otherwise it should be a form
             ReflowModuleServiceException: items_of_multi_section_should_be_a_dict - When it is a multi-section, all of the items should be a dict and not of any other type
-            ReflowModuleServiceException: invalid_field - THe field does not exist for the section provided.
+            ReflowModuleServiceException: invalid_field - The field does not exist for the section provided.
 
         Returns:
             int: Returns the id of the instance added, if you want to make use of this you can.
@@ -143,9 +143,11 @@ class ReflowModuleService:
                         for field_label_name, values in section_field_values.items():
                             self.__handle_field_values_when_creating_or_updating_record(section_data, section.id, field_label_name, values)
 
-                    elif section.type.type == 'multi-form' and isinstance(section_field_values, list):
+                    elif section.type.type == 'multi-form' and (isinstance(section_field_values, list) or isinstance(section_field_values, dict)):
+                        if isinstance(section_field_values, dict):
+                            section_field_values = [section_field_values]
                         for multi_section_data_item in section_field_values:
-                            if isinstance(section_data, dict):
+                            if isinstance(multi_section_data_item, dict):
                                 for field_label_name, values in multi_section_data_item.items():
                                     self.__handle_field_values_when_creating_or_updating_record(section_data, section.id, field_label_name, values)
                             else:
