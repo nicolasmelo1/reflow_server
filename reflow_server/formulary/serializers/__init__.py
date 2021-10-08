@@ -42,17 +42,18 @@ class GetGroupSerializer(serializers.ModelSerializer):
 ############################################################################################
 class FormFieldTypeOptionsSerializer(serializers.ModelSerializer):
     value = ValueField(source='*')
-
+    uuid = serializers.CharField(source='form.uuid')
+    
     class Meta:
         model = FormValue
-        fields = ('form_id', 'value')
+        fields = ('form_id', 'uuid', 'value')
 
 
 ############################################################################################
 class UserFieldTypeOptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserExtended
-        fields = ('id', 'first_name', 'last_name')
+        fields = ('id', 'first_name', 'last_name', 'email')
 
 
 ############################################################################################

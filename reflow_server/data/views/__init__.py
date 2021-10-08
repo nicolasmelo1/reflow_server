@@ -5,11 +5,12 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+from reflow_server.authentication import serializers
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.core.utils.storage import BucketUploadException
 from reflow_server.core.utils.pagination import Pagination
-from reflow_server.data.serializers import FormDataSerializer, DataSerializer
+from reflow_server.data.serializers import FormDataSerializer, DataSerializer, LastValuesSerializer
 from reflow_server.data.models import DynamicForm
 from reflow_server.data.services import DataService, AttachmentService
 from reflow_server.formulary.models import Form
@@ -199,3 +200,27 @@ class DownloadFileView(APIView):
             return Response({
                 'status': 'error'
             })
+
+class APIConfigurationLastValueForFieldDataView(APIView):
+    """
+    Return the last values by each field he has access to. The idea is that, in the api documentation
+    we want to send the actual values to him that he can use this way we can show him a more concise example.
+
+    Methods:
+        GET: Return the last inserted values for each field in the formulary to the user.
+    """
+    def get(self, request, company_id, form):
+        formulary_instance = Form.objects.filter(group__company_id=company_id, form_name=form).first()
+
+        if formulary_instance:
+            data_service = DataService(request.user.id, company_id)
+            last_values_for_field_ids = data_service.get_last_values_for_every_field(formulary_instance)
+            serializer = LastValuesSerializer(last_values_for_field_ids, many=True)
+            return Response({
+                'status': 'ok',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            'status': 'error'
+        }, status=status.HTTP_400_BAD_REQUEST)

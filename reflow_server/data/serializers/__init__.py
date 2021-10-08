@@ -139,4 +139,11 @@ class DataSerializer(serializers.Serializer):
                     data[depends_on_id]['dynamic_form_value'].append(form_value_data)
         
         return data.values()
-        
+
+############################################################################################
+class LastValuesSerializer(serializers.Serializer):
+    """
+    Serializer responsible for retrieve the last values for every field of a particular formulary
+    """
+    field_id = serializers.IntegerField()
+    last_values = serializers.ListField()

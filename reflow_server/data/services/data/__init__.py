@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from reflow_server.data.services.data.sort import DataSort
 from reflow_server.data.services.data.search import DataSearch
 from reflow_server.data.services.data.data import FieldData
@@ -144,6 +146,47 @@ class DataService(DataSort, DataSearch):
         ]
 
         return formatted_search
+    # ------------------------------------------------------------------------------------------
+    def get_last_values_for_every_field(self, form_instance):
+        class LastValue:
+            def __init__(self, field_id, last_values):
+                self.field_id = field_id
+                self.last_values = last_values
+
+        form_record_ids_accessed_by_user = self.get_user_form_data_ids_from_form_id(form_instance.id)
+        all_field_ids_in_formulary = Field.objects.filter(form__depends_on_id=form_instance.id).values('id', 'type_id')
+
+        last_five_by_field_id = []
+        for field in all_field_ids_in_formulary:
+            field_id = field['id']
+            field_type_id = field['type_id']
+            last_five_values_form_field = FormValue.objects.filter(
+                form__depends_on_id__in=form_record_ids_accessed_by_user, 
+                field_id=field_id, 
+                field_type_id=field_type_id
+            ).exclude(
+                value=''
+            ).order_by(
+                '-updated_at'
+            )[:5]
+            last_five_values = []
+            for form_value in last_five_values_form_field:
+                if form_value.field_type.type == 'date':
+                    last_five_values.append(
+                        datetime.strptime(form_value.value, settings.DEFAULT_DATE_FIELD_FORMAT).isoformat()
+                    )
+                elif form_value.field_type.type == 'number':
+                    last_five_values.append(
+                        int(form_value.value)/int(settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT)
+                    )
+                else:
+                    last_five_values.append(form_value.value)
+            
+            last_five_by_field_id.append(LastValue(
+                field_id=field_id,
+                last_values=last_five_values
+            ))
+        return last_five_by_field_id
     # ------------------------------------------------------------------------------------------
     def all_form_data_a_user_has_access_to(self):
         """
