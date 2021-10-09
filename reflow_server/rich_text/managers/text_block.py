@@ -12,7 +12,7 @@ class TextBlockRichTextManager(models.Manager):
 
         Args:
             file_image_uuid (str): The uuid of the image file you have saved, we use this uuid so the user can duplicate freely the images.
-
+            file_name (str): The name of the file you have saved.
         Returns:
             reflow_server.rich_text.models.TextBlock: A single TextBlock instance that is returned if it matches the
                                                       criteria. Otherwise return None.
