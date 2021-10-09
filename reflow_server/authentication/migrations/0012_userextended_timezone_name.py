@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userextended',
             name='timezone_name',
-            field=models.CharField(default='Brazil/East', max_length=400),
+            field=models.CharField(default='America/Sao_Paulo', max_length=400),
         ),
     ]
