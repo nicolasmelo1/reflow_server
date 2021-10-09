@@ -129,7 +129,7 @@ class UserExtended(AbstractUser):
     profile = models.ForeignKey('authentication.ProfileType', on_delete=models.CASCADE, default=None)
     phone = models.CharField(max_length=250, default=None, null=True, blank=True)
     timezone = models.IntegerField(default=-3)
-    timezone_name = models.CharField(max_length=400, default='Brazil/East')
+    timezone_name = models.CharField(max_length=400, default='America/Sao_Paulo')
     is_admin = models.BooleanField(default=False)
     data_type = models.ForeignKey('authentication.VisualizationType', on_delete=models.CASCADE, default=None, null=True)
     temp_password = models.CharField(max_length=250, default=None, null=True, blank=True)
