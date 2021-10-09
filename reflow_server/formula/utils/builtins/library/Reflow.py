@@ -9,6 +9,7 @@ class Reflow(LibraryModule):
     
     @functionmethod
     def debug(element, **kwargs):
+        print(element)
         return flow_objects.Null(kwargs['__settings__'])._initialize_()
     
     @functionmethod
