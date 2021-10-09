@@ -1,14 +1,22 @@
+import pytz
 from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryModule, functionmethod, \
     retrieve_representation
 from reflow_server.formula.utils.builtins import objects as flow_objects
 
 from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 
 class Datetime(LibraryModule):
     def _initialize_(self, scope):
         super()._initialize_(scope=scope, struct_parameters=[])
         return self
+
+    @functionmethod
+    def now(self, **kwargs):
+        settings = kwargs['__settings__']
+        now = datetime.now(pytz.timezone(settings.timezone))
+        return flow_objects.Datetime(kwargs['__settings__'])._initialize_(now.year, now.month, now.day, now.hour, now.minute, now.second, now.microsecond)
 
     @functionmethod
     def date_add(self, value, years=None, months=None, days=None, hours=None, minutes=None, seconds=None, microseconds=None, **kwargs):
@@ -61,6 +69,9 @@ class Datetime(LibraryModule):
             "description": "Module responsible for doing stuff with datetime, this is responsible for things like adding dates, getting the current "
                            "date and so on.",
             "methods": {
+                "now": {
+                    'description': 'Get the current date and time of the user local.'
+                },
                 "date_add": {
                     'description': 'Adds or subtracts years, months, days, hours, minutes, seconds or microseconds to a date',
                     'attributes': {
