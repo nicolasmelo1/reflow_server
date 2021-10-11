@@ -149,13 +149,13 @@ registro =  {
     }
 }
 
-parcela = List.create_range(1, 3)
-List.for_each(parcela, function () do
-    novo_registro = registro
-    novo_registro["Informações Financeiras"]["Data Pagamento"] = Datetime.date_add(novo_registro["Informações Financeiras"]["Data Pagamento"], months=1)
+indices = []
+parcela = []
+List.for_each(["hey", "valor1"], function (elemento) do
+    # novo_registro["Informações Financeiras"]["Data Pagamento"] = Datetime.date_add(novo_registro["Informações Financeiras"]["Data Pagamento"], months=1)
 end)
 
-registro
+indices
 """
 
 functions_to_test = [

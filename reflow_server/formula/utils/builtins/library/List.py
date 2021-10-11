@@ -1,3 +1,4 @@
+import reflow_server
 from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryModule, functionmethod, \
     retrieve_representation
 from reflow_server.formula.utils.builtins import objects as flow_objects
@@ -49,7 +50,7 @@ class List(LibraryModule):
     def append(list_data, element, **kwargs):
         if not isinstance(list_data, flow_objects.List):
             flow_objects.Error(kwargs['__settings__'])._initialize_('Error', "'list_data' should be a list")
-        if not isinstance(element, flow_objects.Object):
+        if not isinstance(element, flow_objects.Object.Object):
             flow_objects.Error(kwargs['__settings__'])._initialize_('Error', "'element' is invalid")
 
         list_data.array.append(element)     
