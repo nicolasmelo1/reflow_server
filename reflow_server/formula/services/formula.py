@@ -184,10 +184,14 @@ class FlowFormulaService:
         splitted_value = [character for character in splitted_value if character.isdigit() or character == decimal_separator]
         # decimal separator is replaced to '.' so we can transform to float.
         # we should consider 20,0% as 0,20 don't you think? So that's why we do this. and then we convert back to string
-        actual_number = ''.join(splitted_value).replace(
-            decimal_separator, 
-            '.'
-        )
+        if (decimal_separator != '' and decimal_separator in splitted_value):
+            actual_number = ''.join(splitted_value).replace(
+                decimal_separator, 
+                '.'
+            )
+        else:
+            actual_number = ''.join(splitted_value)
+            
         actual_number = str(float(actual_number)/representation.number_format_type.base)
         actual_number = actual_number.replace('.', self.context.decimal_point_separator)
         return actual_number
