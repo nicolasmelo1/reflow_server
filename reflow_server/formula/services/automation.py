@@ -50,7 +50,6 @@ class FlowAutomationService:
             automation_action_data=action_data,
             automation_debug_trigger=debug_trigger
         )
-        print(user_timezone)
         self.context.datetime.timezone = user_timezone
     # ------------------------------------------------------------------------------------------
     def __evaluate(self, formula, result):

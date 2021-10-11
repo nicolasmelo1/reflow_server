@@ -10,5 +10,4 @@ class DataConsumer:
     for further explanation.
     """
     async def send_formulary_data_added_or_updated(self, event):
-        print(event)
         await self.send(text_data=json.dumps(event))

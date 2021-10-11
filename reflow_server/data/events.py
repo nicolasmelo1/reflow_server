@@ -19,7 +19,6 @@ class DataBroadcastEvent:
         """
         form_name = Form.data_.form_name_by_form_id_and_company_id(form_id, company_id)
         for user in UserExtended.data_.users_active_by_company_id(company_id):
-            print(user)
             group_name = 'user_{}'.format(user.id)
             ChannelLayer.broadcast_to_group(group_name, 'send_formulary_data_added_or_updated', {
                 'dynamic_form_id': dynamic_form_id,
@@ -30,13 +29,7 @@ class DataBroadcastEvent:
             })
 
     def formulary_data_updated(self, user_id, company_id, form_id, form_data_id, is_public, data):
-        print('updated_formulary_event')
         self.send_updated_formulary(company_id, form_data_id, form_id, user_id)
 
     def formulary_data_created(self, user_id, company_id, form_id, form_data_id, is_public, data):
-        print('created_formulary_event')
-        print(company_id)
-        print(user_id)
-        print(form_id)
-        print(form_data_id)
         self.send_updated_formulary(company_id, form_data_id, form_id, user_id)
