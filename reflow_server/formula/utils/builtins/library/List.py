@@ -1,12 +1,37 @@
 from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryModule, functionmethod, \
     retrieve_representation
 from reflow_server.formula.utils.builtins import objects as flow_objects
+from reflow_server.formula.utils.builtins.objects.Integer import Integer
 
 
 class List(LibraryModule):
     def _initialize_(self, scope):
         super()._initialize_(scope=scope, struct_parameters=[])
         return self
+
+    @functionmethod
+    def range(start, end, steps=1, **kwargs):
+        def is_valid_parameter(parameter):
+            return isinstance(parameter, flow_objects.Integer) or \
+                isinstance(parameter, int)
+
+        start = retrieve_representation(start)
+        end = retrieve_representation(end)
+        steps = retrieve_representation(steps)
+
+        is_valid_start = is_valid_parameter(start)
+        is_valid_end = is_valid_parameter(end)
+        is_valid_steps = is_valid_parameter(steps)
+        if is_valid_start and is_valid_end and is_valid_steps and steps != 0:
+            new_range = [flow_objects.Integer(kwargs['__settings__'])._initialize_(element) for element in range(start, end, steps)]
+            
+            new_list = flow_objects.List(kwargs['__settings__'])
+            return new_list._initialize_(new_range)
+        elif steps == 0:
+            flow_objects.Error(kwargs['__settings__'])._initialize_('Error', "`steps` cannot be 0")
+        else:
+            flow_objects.Error(kwargs['__settings__'])._initialize_('Error', "`start`, `end` or `step` should be an integer")
+
 
     @functionmethod
     def length(list_data, **kwargs):
@@ -87,6 +112,27 @@ class List(LibraryModule):
                         'list_data': {
                             'description': 'The list to find the length to',
                             'is_required': True
+                        }
+                    }
+                },
+                "range": {
+                    'description': 'Creates a new list from start to finish and by each step. Example:\n'
+                                   '>>> List.range(0, 5) == [0, 1, 2, 3, 4]\n'
+                                   '>>> List.range(0, 5, 2) == [0, 2, 4]\n'
+                                   '>>> List.range(5, 1, -1) == [5, 4, 3, 2]\n',
+                    'attributes': {
+                        'start': {
+                            'description': 'A number, that should be an integer of where the list starts, from what number the list starts counting',
+                            'is_required': True,
+                        },
+                        'end': {
+                            'description': 'A number, that should be an integer of where the list ends, from what number the list end counting. '
+                                           'The end IS NOT CONSIDERED, so if you want the 5 to be on the list you should pass the value 6.',
+                            'is_required': True,
+                        },
+                        'steps': {
+                            'description': 'A number, this is each step of the list, if you add 2, it will skip 2 for all values, so, [1, 3, 5] and so on. Defaults to 1.',
+                            'is_required': False,
                         }
                     }
                 },

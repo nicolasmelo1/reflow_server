@@ -137,8 +137,8 @@ from reflow_server.formula.utils.helpers import DatetimeHelper
 date_string = f"~D[{datetime.strptime('2012-04-11 11:11:11', '%Y-%m-%d %H:%M:%S').strftime(DatetimeHelper.to_python_format(context.datetime.date_format, context.datetime.time_format))}]"
 datetime_test = r"""
 # Testar comentários
-~D[2012-04-11 11:11:11] == {}
-""".format(date_string)
+List.range(5, 1, -1)
+"""
 
 functions_to_test = [
     #simple_arithimetic, 
@@ -152,9 +152,9 @@ functions_to_test = [
     #structs,
     #HTTP_library,
     #SMTP_library,
-    #datetime_test,
+    datetime_test,
     #List_library,
-    automation_library
+    #automation_library
 ]
 
 import json
