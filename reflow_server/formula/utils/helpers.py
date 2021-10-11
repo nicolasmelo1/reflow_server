@@ -598,7 +598,7 @@ class HashTable:
         
         if self.number_of_elements + 1 > self.capacity:
             self.__resize(2 * self.capacity)
-    
+
         self.indexes.append(hash_index)
         self.keys.append(key)
         self.values.append(value)

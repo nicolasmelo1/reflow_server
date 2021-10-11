@@ -13,8 +13,8 @@ class List(LibraryModule):
     @functionmethod
     def create_range(start, end, steps=1, **kwargs):
         def is_valid_parameter(parameter):
-            return isinstance(parameter, flow_objects.Integer) or \
-                isinstance(parameter, int)
+            return isinstance(parameter, flow_objects.Integer) or isinstance(parameter. flow_objects.Float) or \
+                isinstance(parameter, int) or isinstance(parameter, float)
 
         start = retrieve_representation(start)
         end = retrieve_representation(end)
@@ -24,8 +24,7 @@ class List(LibraryModule):
         is_valid_end = is_valid_parameter(end)
         is_valid_steps = is_valid_parameter(steps)
         if is_valid_start and is_valid_end and is_valid_steps and steps != 0:
-            new_range = [flow_objects.Integer(kwargs['__settings__'])._initialize_(element) for element in range(start, end, steps)]
-            
+            new_range = [flow_objects.Integer(kwargs['__settings__'])._initialize_(element) for element in range(round(start), round(end), round(steps))]
             new_list = flow_objects.List(kwargs['__settings__'])
             return new_list._initialize_(new_range)
         elif steps == 0:
