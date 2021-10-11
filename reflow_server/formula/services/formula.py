@@ -12,6 +12,7 @@ from reflow_server.formula.models import FormulaContextForCompany, FormulaContex
 from reflow_server.authentication.models import UserExtended 
 
 from datetime import datetime
+import logging
 import queue
 import multiprocessing
 import re
@@ -191,7 +192,7 @@ class FlowFormulaService:
             )
         else:
             actual_number = ''.join(splitted_value)
-            
+
         actual_number = str(float(actual_number)/representation.number_format_type.base)
         actual_number = actual_number.replace('.', self.context.decimal_point_separator)
         return actual_number
@@ -285,7 +286,8 @@ class FlowFormulaService:
             # "SSL error: decryption failed or bad record mac django"
             # To solve this i relied on this response: https://stackoverflow.com/a/68849119 simple and elegant
             db.connection.connect()
-
+            
+            logging.error(formula)
             formula_result = evaluate(formula, self.context)
             status = 'error' if getattr(formula_result, 'type', '') == 'error' else 'ok'
             result.put({
