@@ -79,7 +79,7 @@ class AbstractFieldStates(models.Model):
     period_configuration_period_interval_type = models.ForeignKey('formulary.FieldPeriodIntervalType', on_delete=models.CASCADE, blank=True, null=True, db_index=True)
     number_configuration_mask = models.CharField(max_length=250, blank=True, null=True) # Needs to be removed
     number_configuration_number_format_type = models.ForeignKey('formulary.FieldNumberFormatType', on_delete=models.CASCADE, blank=True, null=True, db_index=True)
-    formula_configuration = models.CharField(max_length=1000, blank=True, null=True)
+    formula_configuration = models.TextField(blank=True, null=True)
     is_long_text_rich_text = models.BooleanField(default=False, blank=True, null=True)
 
     class Meta:
