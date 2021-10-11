@@ -10,7 +10,7 @@ class List(LibraryModule):
         return self
 
     @functionmethod
-    def range(start, end, steps=1, **kwargs):
+    def create_range(start, end, steps=1, **kwargs):
         def is_valid_parameter(parameter):
             return isinstance(parameter, flow_objects.Integer) or \
                 isinstance(parameter, int)
@@ -115,7 +115,7 @@ class List(LibraryModule):
                         }
                     }
                 },
-                "range": {
+                "create_range": {
                     'description': 'Creates a new list from start to finish and by each step. Example:\n'
                                    '>>> List.range(0, 5) == [0, 1, 2, 3, 4]\n'
                                    '>>> List.range(0, 5, 2) == [0, 2, 4]\n'
