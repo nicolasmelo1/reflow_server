@@ -13,7 +13,7 @@ class List(LibraryModule):
     @functionmethod
     def create_range(start, end, steps=1, **kwargs):
         def is_valid_parameter(parameter):
-            return isinstance(parameter, flow_objects.Integer) or isinstance(parameter. flow_objects.Float) or \
+            return isinstance(parameter, flow_objects.Integer) or isinstance(parameter, flow_objects.Float) or \
                 isinstance(parameter, int) or isinstance(parameter, float)
 
         start = retrieve_representation(start)
