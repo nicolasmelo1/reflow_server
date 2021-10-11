@@ -36,9 +36,9 @@
   },
   "databases": {
     "name": "reflow",
-    "user": "postgres",
-    "password": "",
-    "host": "db",
+    "user": "reflowDev",
+    "password": "Reflow123",
+    "host": "reflow-db-prod.cyoa1wdpodtn.us-east-1.rds.amazonaws.com",
     "port": 5432
   },
   "aws": {

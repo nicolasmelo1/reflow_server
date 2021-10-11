@@ -559,6 +559,7 @@ class Interpreter:
                 record = self.global_memory.stack.peek()
                 root_list = record.get(variable_name)
             else:
+                
                 root_list = self.evaluate(left_of_slice)
             
             next_list = None
@@ -569,11 +570,10 @@ class Interpreter:
             # 2. variavel[1][2] and stop there since variavel[1][2][0] is the actual value we want to change
             # in other words, the list_to_change in the example above is variavel[1][2] (it returns a list)
             while len(slices_stack) > 0:
-                list_to_change = root_list if next_list == None else next_list
+                list_or_dict_to_change = root_list if next_list == None else next_list
                 index_or_key = slices_stack.pop()
-                next_list = list_to_change._getitem_(index_or_key)
-        
-            list_to_change._setitem_(index_or_key, variable_value)
+                next_list = list_or_dict_to_change._getitem_(index_or_key)
+            list_or_dict_to_change._setitem_(index_or_key, variable_value)
         elif node.left.node_type == NodeType.ATTRIBUTE:
             struct_object = self.evaluate(node.left.left)
             attribute_right = node.left.right_value

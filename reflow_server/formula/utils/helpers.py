@@ -588,12 +588,17 @@ class HashTable:
             key ([float, int, string, boolean]): The Key can be of type bool, int, str or float.
             value (any): The actual value you are holding can be of any type, there are no limitations.
         """
+        # we first check to see if the key was already inserted, if it was this means we are actually changing the value
+        # of an existing key so we need to insert again.
+        if key in self.keys.array:
+            self.remove(hasher, key)
+
         hash_node = self.HashNode(self.number_of_removed_elements, self.number_of_elements, hasher, key, value)
         hash_index = hasher % self.capacity
         
         if self.number_of_elements + 1 > self.capacity:
             self.__resize(2 * self.capacity)
-
+    
         self.indexes.append(hash_index)
         self.keys.append(key)
         self.values.append(value)

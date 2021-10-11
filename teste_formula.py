@@ -137,7 +137,25 @@ from reflow_server.formula.utils.helpers import DatetimeHelper
 date_string = f"~D[{datetime.strptime('2012-04-11 11:11:11', '%Y-%m-%d %H:%M:%S').strftime(DatetimeHelper.to_python_format(context.datetime.date_format, context.datetime.time_format))}]"
 datetime_test = r"""
 # Testar comentários
-List.range(5, 1, -1)
+registro =  {
+    "Informações Financeiras": {
+        "Seguradora": "teste",
+        "Tipo de Processo": "teste",
+        "Nome Tomador/Réu": "teste",
+        "Nome Autor/Segurado": "teste",
+        "Valor Prêmio Cobrado": 1236.0,
+        "Data Pagamento": ~D[2020-10-01],
+        "Quantidade de Parcelas": 12.0
+    }
+}
+
+parcela = List.create_range(1, 3)
+List.for_each(parcela, function () do
+    novo_registro = registro
+    novo_registro["Informações Financeiras"]["Data Pagamento"] = Datetime.date_add(novo_registro["Informações Financeiras"]["Data Pagamento"], months=1)
+end)
+
+registro
 """
 
 functions_to_test = [
