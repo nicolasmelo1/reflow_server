@@ -13,6 +13,14 @@ class Reflow(LibraryModule):
         return flow_objects.Null(kwargs['__settings__'])._initialize_()
     
     @functionmethod
+    def get_current_record_id(**kwargs):
+        settings = kwargs['__settings__']
+        if isinstance(settings.reflow_dynamic_form_id, int):
+            return flow_objects.Integer(settings)._initialize_(settings.reflow_dynamic_form_id)
+        else:
+            return flow_objects.Null(settings)._initialize_()
+
+    @functionmethod
     def create_record(template_name, page_name, data, **kwargs):
         from reflow_server.formula.services.reflow_module import ReflowModuleService, ReflowModuleServiceException
         settings = kwargs['__settings__']
@@ -36,6 +44,10 @@ class Reflow(LibraryModule):
         return {
             'description': 'Creates an api that enables users to work and manage reflow inside of the formulas',
             'methods': {
+                'get_current_record_id': {
+                    'description': 'Gets the id of the record being created. This will only be available if you are'
+                                   'using this inside of the formula, otherwise this will not be available.'
+                },
                 'create_record': {
                     'description': 'Creates a new record in a page',
                     'attributes': {

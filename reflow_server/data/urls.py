@@ -4,13 +4,14 @@ from reflow_server.authentication.services.routes import register_can_be_public_
 from reflow_server.core.decorators import validate_billing, authorize_external_response
 from reflow_server.data.views import FormularyDataView, FormularyDataEditView, DataView, DownloadFileView, \
     APIConfigurationLastValueForFieldDataView
-from reflow_server.data.views.external import ExtractFileExternalView
+from reflow_server.data.views.external import ExtractFileExternalView, APIExternalView
 from reflow_server.data.views.extract import GetExtractDataView, ExtractDataBuilderView
 
 
 external_urlpatterns = [
     re_path(r'^extract/(?P<company_id>\d+)/(?P<user_id>\d+)/(?P<form_name>\w+)/$', 
         authorize_external_response(ExtractFileExternalView.as_view()), name='data_external_file_data'),
+    re_path(r'^api/(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/(?P<form_name>\w+)/$', APIExternalView.as_view(), name='data_external_api')
 ]
 
 urlpatterns = [

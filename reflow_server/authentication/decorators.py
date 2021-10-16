@@ -117,3 +117,11 @@ def permission_required(function):
             return decorated(request, *args, **kwargs)
         
     return permission_required_wrap
+# ------------------------------------------------------------------------------------------
+def api_token_required(function):
+    @wraps(function)
+    def api_token_required_wrap(request, *args, **kwargs):
+        from reflow_server.billing.decorators import validate_billing
+        return validate_billing(function(request, *args, **kwargs))
+    
+    return api_token_required_wrap

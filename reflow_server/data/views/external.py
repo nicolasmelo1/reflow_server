@@ -32,3 +32,14 @@ class ExtractFileExternalView(APIView):
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class APIExternalView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def post(self, request, company_id, form_name):
+        data = request.data
+        return Response({
+            'status': 'ok'
+        }, status=status.HTTP_200_OK)

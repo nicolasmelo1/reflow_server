@@ -97,7 +97,7 @@ struct.c.a
 """
 
 HTTP_library = r"""
-response = Requisicao.post(
+response = HTTP.post(
     url="https://maker.ifttt.com/trigger/registro_atualizado_em_negocios/with/key/UsON56lWobTsQ_9eOXhLXytB6Csg6piJVuJDWfw-Cg",  
     json_data={
         "value1": "nicolasmelo12@gmail.com",
@@ -114,7 +114,7 @@ SMTP.send_email("smtp.office365.com", 587, "nicolas.melo1@hotmail.com", "Nicolas
 """
 
 List_library = r"""
-list = [1,2,3]
+list = ["a","b","c"]
 new_list = List.map(list, function (elem, ind) do
     ind
 end)
@@ -157,8 +157,8 @@ functions_to_test = [
     #structs,
     #HTTP_library,
     #SMTP_library,
-    datetime_test,
-    #List_library,
+    #datetime_test,
+    List_library,
     #automation_library
 ]
 
