@@ -129,7 +129,7 @@ class FormularyDataEditView(APIView):
             company_id,
             form
         )
-
+        
         serializer = FormDataSerializer(
             instance=instance.depends_on if instance.depends_on else instance,
             user_id=request.user.id, 

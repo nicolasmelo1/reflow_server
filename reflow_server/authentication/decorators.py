@@ -119,9 +119,11 @@ def permission_required(function):
     return permission_required_wrap
 # ------------------------------------------------------------------------------------------
 def api_token_required(function):
+    from reflow_server.billing.decorators import validate_billing
+
     @wraps(function)
+    @get_company_id_as_int
     def api_token_required_wrap(request, *args, **kwargs):
-        from reflow_server.billing.decorators import validate_billing
-        return validate_billing(function(request, *args, **kwargs))
+        return function(request, *args, **kwargs)
     
     return api_token_required_wrap

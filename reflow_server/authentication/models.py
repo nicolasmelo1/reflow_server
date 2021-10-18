@@ -160,6 +160,20 @@ class UserExtended(AbstractUser):
 
 
 class PublicAccess(models.Model):
+    """
+    This key is used to give to the user an access to his account in the public. This public key is used so we can do stuff
+    as if we were the user and while logged out. For example, for embedding a formulary in a website we should give the users of 
+    this website to save data to the formulary. But we don't want to display everything just some stuff, for that we use the publicKey
+    this public key is used so we can give the user of this website the access as if the user of this website was the user of reflow
+    that gave the access for his stuff with the public key.
+
+    Confusing right?
+    But not that much.
+
+    We are reflow@reflow.com.br, we have an reflow account, we create a new public formulary, the users that add data on this public
+    formulary will not be logged in right? They will not neccessarily have a reflow account right? So we have a public key that basically is the
+    same as saying that the data that is inserted in this formulary belongs do reflow@reflow.com.br
+    """
     user = models.OneToOneField('authentication.UserExtended', on_delete=models.CASCADE, db_index=True)
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, db_index=True)
     public_key = models.UUIDField(default=uuid.uuid4, null=True, blank=True, db_index=True)
@@ -169,3 +183,15 @@ class PublicAccess(models.Model):
         
     objects = models.Manager()
     authentication_ = PublicAccessAuthenticationManager()
+
+
+class APIAccessToken(models.Model):
+    user = models.OneToOneField('authentication.UserExtended', on_delete=models.CASCADE, db_index=True)
+    company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, db_index=True)
+    access_token = models.UUIDField(default=uuid.uuid4, null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = 'api_access_token'
+
+    objects = models.Manager()
+    

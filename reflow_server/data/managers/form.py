@@ -12,6 +12,9 @@ class FormDataManager(models.Manager):
             enabled=True
         )
     # ------------------------------------------------------------------------------------------
+    def exists_form_name_of_company_id(self, main_form_name, company_id):
+        return self.get_queryset().filter(form_name=main_form_name, enabled=True, group__enabled=True, group__company_id=company_id).exists()
+    # ------------------------------------------------------------------------------------------
     def form_name_by_form_id_and_company_id(self, form_id, company_id):
         """
         Returns a the form_name of a MAIN FORM (Not a section) by it's form_id and the company_id.

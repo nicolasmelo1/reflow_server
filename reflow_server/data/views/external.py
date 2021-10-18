@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.data.serializers.extract import ExtractFileSerializer
+from reflow_server.data.services.api import APIService
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -39,7 +40,17 @@ class APIExternalView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request, company_id, form_name):
-        data = request.data
-        return Response({
-            'status': 'ok'
-        }, status=status.HTTP_200_OK)
+        api_service = APIService(company_id, request.user.id)
+        data = request.data        
+        if api_service.validate_formulary_name(form_name):
+            api_service.save(data)
+            return Response({
+                'status': 'ok'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'error',
+                'error': {
+                    'reason': 'formulary_does_not_exist'
+                }
+            }, status=status.HTTP_403_FORBIDDEN)
