@@ -1,4 +1,5 @@
 from django.conf import settings
+
 from itsdangerous import URLSafeSerializer
 
 class Encrypt:

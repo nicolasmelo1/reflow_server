@@ -28,7 +28,7 @@
   "vindi": {
     "host": "https://sandbox-app.vindi.com.br/api/v1",
     "public_api_key": "uNZqO8kJbVRIRSiBEsbyWRGtpTGLd432AxXHYltw_Ow",
-    "private_api_key": "knbtmIJp7smiSzQdThuAquX80aHCGDV9VO2L6_mYOuU",
+    "private_api_key": "eo-qKpn1BJzLehW2YBTLwO8qlcmhaFvckv2nEDF8f7M",
     "webhook_secret_key": "test",
     "payment_methods": {
         "invoice": "cash"

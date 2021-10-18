@@ -115,7 +115,7 @@ class CreditCardView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def delete(self, request, company_id):
-        billing_service = BillingService(company_id)
+        billing_service = BillingService(company_id, request.user.id)
         billing_service.remove_credit_card()
         return Response({
             'status': 'ok'
