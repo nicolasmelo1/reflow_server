@@ -177,16 +177,25 @@ class RepresentationService:
         try:
             if self.form_field_as_option_id:
                 if not self.load_ids and value != '' and self.form_field_as_option_id:
-                    obj = FormValue.data_.form_value_by_form_id_and_field_id(form_id=int(value), field_id=self.form_field_as_option_id)
-                    if obj:
-                        representation_service = self.__class__(
-                            obj.field_type,
-                            obj.date_configuration_date_format_type_id,
-                            obj.number_configuration_number_format_type_id,
-                            obj.form_field_as_option_id,
-                            self.load_ids
-                        )
-                        value = representation_service.representation(obj.value)
+                    # we get all of the form_values that match the condition, we match the formulary
+                    # not the section, this means that sometimes the section is multi_form, so we have multiple
+                    # fields matching the connection, so in order to display the value right we get all of the values it should connect to.
+                    form_values_connected = FormValue.data_.form_value_by_form_id_and_field_id(
+                        int(value), 
+                        self.form_field_as_option_id
+                    )
+                    if form_values_connected:
+                        values_to_display = []
+                        for form_value_connected in form_values_connected:
+                            representation_service = self.__class__(
+                                form_value_connected.field_type,
+                                form_value_connected.date_configuration_date_format_type_id,
+                                form_value_connected.number_configuration_number_format_type_id,
+                                form_value_connected.form_field_as_option_id,
+                                self.load_ids
+                            )
+                            values_to_display.append(representation_service.representation(form_value_connected.value))
+                        return ' | '.join(values_to_display)
                     else:
                         value = ''
             else:

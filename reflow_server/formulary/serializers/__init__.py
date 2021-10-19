@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
 from reflow_server.core.relations import ValueField
+from reflow_server.data.services.representation import RepresentationService
 from reflow_server.formulary.relations import SectionRelation, FormRelation, PublicAccessFieldRelation
 from reflow_server.formulary.models import Form, Group, PublicAccessForm
 from reflow_server.formulary.services.public import PublicFormularyService
 from reflow_server.authentication.models import UserExtended
-from reflow_server.data.models import FormValue
+from reflow_server.data.models import DynamicForm, FormValue
 
 ############################################################################################
 class GetFormSerializer(serializers.ModelSerializer):
@@ -37,18 +38,28 @@ class GetGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ('id', 'form_group','name')
-
-
 ############################################################################################
 class FormFieldTypeOptionsSerializer(serializers.ModelSerializer):
-    value = ValueField(source='*')
-    uuid = serializers.CharField(source='form.uuid')
-    
+    def to_representation(self, instance):
+        form_values = FormValue.objects.filter(field_id=self.context['field_id'], form__depends_on=instance)
+        represented_values = []
+        for form_value in form_values:
+            representation_service = RepresentationService(
+                form_value.field_type,
+                form_value.date_configuration_date_format_type_id,
+                form_value.number_configuration_number_format_type_id,
+                form_value.form_field_as_option_id
+            )
+            represented_values.append(representation_service.representation(form_value.value))
+        return {
+            'value': ' | '.join(represented_values),
+            'form_id': instance.id,
+            'uuid': instance.uuid
+        }
+
     class Meta:
-        model = FormValue
-        fields = ('form_id', 'uuid', 'value')
-
-
+        model = DynamicForm
+        fields = '__all__'
 ############################################################################################
 class UserFieldTypeOptionsSerializer(serializers.ModelSerializer):
     class Meta:

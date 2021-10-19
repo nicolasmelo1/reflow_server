@@ -8,7 +8,7 @@ from reflow_server.formulary.services.default_attachment import DefaultAttachmen
 from reflow_server.formulary.serializers import GetFormSerializer, GetGroupSerializer, FormFieldTypeOptionsSerializer, \
     UserFieldTypeOptionsSerializer, PublicAccessFormSerializer
 from reflow_server.formulary.models import Form, FormAccessedBy, Group, Field, PublicAccessForm, UserAccessedBy
-from reflow_server.data.models import FormValue
+from reflow_server.data.models import FormValue, DynamicForm
 
 
 class GetGroupsView(APIView):
@@ -64,16 +64,21 @@ class FormFieldTypeOptionsView(APIView):
         pagination = Pagination.handle_pagination(
             current_page=int(request.query_params.get('page', 1)),
             items_per_page=15
-        )        
+        )    
+
+
         form_field = Field.objects.filter(id=field_id).first()
-        instances = FormValue.formulary_.form_values_by_company_id_field_id_search_value_and_form_id(
+        dynamic_form_ids = FormValue.formulary_.distinct_main_form_id_by_company_id_field_id_search_value_and_form_id(
             company_id=company_id, 
             field_id=form_field.form_field_as_option, 
             search=search, 
             section_id=section_id
         )
+        instances = DynamicForm.objects.filter(id__in=dynamic_form_ids)
         total_number_of_pages, instances = pagination.paginate_queryset(instances)
-        serializer = FormFieldTypeOptionsSerializer(instance=instances, many=True)
+        serializer = FormFieldTypeOptionsSerializer(instance=instances, many=True, context={
+            'field_id': form_field.form_field_as_option_id
+        })
         return Response({
             'status': 'ok',
             'pagination': {

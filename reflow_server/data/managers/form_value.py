@@ -148,7 +148,7 @@ class FormValueDataManager(models.Manager):
         """
         return self.get_queryset().filter(id=form_value_id).values_list('value', flat=True).first()
     # ------------------------------------------------------------------------------------------   
-    def form_value_by_form_id_and_field_id(self, form_id, field_id):
+    def form_value_by_form_id_and_field_id(self, main_form_id, field_id):
         """
         Returns a single dict based on a FormValue containing the following keys: `value`, `field_type__type`, `form_field_as_option_id`
 
@@ -159,7 +159,7 @@ class FormValueDataManager(models.Manager):
         Returns:
             reflow_server.data.models.FormValue: A FormValue instance
         """
-        return self.get_queryset().filter(form_id=form_id, field_id=field_id).first()
+        return self.get_queryset().filter(form__depends_on_id=main_form_id, field_id=field_id)
     # ------------------------------------------------------------------------------------------
     def value_and_form_depends_on_id_by_depends_on_ids_field_type_id_and_field_id_excluding_null_and_empty(self, depends_on_ids, field_type_id, field_id):
         """

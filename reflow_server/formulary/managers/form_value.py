@@ -5,7 +5,7 @@ class FormValueFormularyManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
     
-    def form_values_by_company_id_field_id_search_value_and_form_id(self, company_id, field_id, search=None, section_id=None):
+    def distinct_main_form_id_by_company_id_field_id_search_value_and_form_id(self, company_id, field_id, search=None, section_id=None):
         """
         Gets a queryset of FormValue instances based on a company_id and a field_id.
 
@@ -21,11 +21,22 @@ class FormValueFormularyManager(models.Manager):
                                                                             based on the parameters
         """
         if search:
-            return self.get_queryset().filter(company_id=company_id, field_id=field_id, value__icontains=search)
+            return self.get_queryset().filter(
+                company_id=company_id, 
+                field_id=field_id, 
+                value__icontains=search
+            ).values_list('form__depends_on_id', flat=True).distinct()
         elif section_id and str(section_id).isdigit(): 
-            return self.get_queryset().filter(company_id=company_id, field_id=field_id, form_id=int(section_id))
+            return self.get_queryset().filter(
+                company_id=company_id, 
+                field_id=field_id, 
+                form_id=int(section_id)
+            ).values_list('form__depends_on_id', flat=True).distinct()
         else:
-            return self.get_queryset().filter(company_id=company_id, field_id=field_id)
+            return self.get_queryset().filter(
+                company_id=company_id, 
+                field_id=field_id
+            ).values_list('form__depends_on_id', flat=True).distinct()
 
     def latest_form_value_field_type_by_field_id(self, field_id):
         return self.get_queryset().filter(field_id=field_id).order_by('-updated_at').first()

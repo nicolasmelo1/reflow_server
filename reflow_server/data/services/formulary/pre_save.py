@@ -197,22 +197,7 @@ class PreSave(Validator):
             value = field_data.value
         
         return value
-
-    def _clean_form(self, formulary_data, field, field_data):
-        """
-        We need this cleaning because sometimes it will be easier to just match the main_form instead of the section of the
-        field directly.
-        """
-        if field_data.value not in [None, ''] and str(field_data.value).isdigit():
-            is_it_matching_to_a_main_form_instead_of_a_section = DynamicForm.objects.filter(id=field_data.value, depends_on_id__isnull=True).exists()
-            if is_it_matching_to_a_main_form_instead_of_a_section:
-                section_id_to_match = FormValue.objects.filter(form__depends_on_id=field_data.value, field=field.form_field_as_option_id).values_list('form_id', flat=True).first()
-                return section_id_to_match
-            else:
-                return field_data.value
-        else:
-            return field_data.value
-
+    
     def _clean_formula(self, formulary_data, field, field_data):
         """
         Similar to `self._clean_id` we use this to bypass the empty value for formulas, this way this value is evaluated after it has been saved.
