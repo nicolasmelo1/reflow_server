@@ -40,6 +40,13 @@ class GetGroupSerializer(serializers.ModelSerializer):
         fields = ('id', 'form_group','name')
 ############################################################################################
 class FormFieldTypeOptionsSerializer(serializers.ModelSerializer):
+    """
+    Yes, this is strange, but since we match to the formulary and not section we need to do this in order to display all the 
+    options formated.
+
+    But why formated? Because sometimes we can match for more than one formValue (the value is from a multi_section) so we display
+    the value to the user like "value1 | value2"
+    """
     def to_representation(self, instance):
         form_values = FormValue.objects.filter(field_id=self.context['field_id'], form__depends_on=instance)
         represented_values = []

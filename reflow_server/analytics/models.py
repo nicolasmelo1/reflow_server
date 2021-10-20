@@ -1,6 +1,19 @@
 from django.db import models
 
 from reflow_server.analytics.managers import TypeOfEventAnalyticsManager, EventAnalyticsManager
+from reflow_server.authentication.managers import CompanyAnalyticsAuthenticationManager
+
+
+class CompanyAnalytics(models.Model):
+    company = models.OneToOneField('authentication.Company', on_delete=models.CASCADE, default=None)
+    number_of_employees = models.IntegerField(null=True, default=0)
+    sector = models.CharField(max_length=500, default=None, null=True, blank=True)
+
+    class Meta:
+        db_table = 'company_analytics'
+
+    objects = models.Manager()
+    authentication_ = CompanyAnalyticsAuthenticationManager()
 
 
 class TypeOfEvent(models.Model):

@@ -5,7 +5,7 @@ from reflow_server.authentication.models import Company, UserExtended, ProfileTy
 from reflow_server.authentication.services.company import CompanyService
 from reflow_server.billing.services import BillingService
 from reflow_server.formula.services.formula import FlowFormulaService
-
+from reflow_server.analytics.models import CompanyAnalytics
 
 class OnboardingService(CompanyService):
     """
@@ -15,7 +15,9 @@ class OnboardingService(CompanyService):
     .onboard()
     """
     @transaction.atomic
-    def onboard(self, user_email, user_first_name, user_last_name, user_password, user_phone, company_name=None, shared_by=None, partner=None, discount_coupon_name=None, user_visitor_id=''):
+    def onboard(self, user_email, user_first_name, user_last_name, user_password, 
+                user_phone, company_name=None, company_number_of_employees=0, company_sector='',
+                shared_by=None, partner=None, discount_coupon_name=None, user_visitor_id=''):
         """
         Onboards a new user and creates a new company (aswell as a new user). Updates the billing info on the fly.
 
@@ -28,6 +30,8 @@ class OnboardingService(CompanyService):
 
         Keyword Arguments:
             company_name (str): the company name, if it has one (default: {None})
+            company_number_of_employees (str): The number of employees of the company.
+            company_sector (str): The market sector that the company operates.
             shared_by (str): the string of the company endpoint if it was shared by some other company (default: {None})
             partner (str): The string of the partner if the user came from a partner. (default: {None})
             discount_coupon (str): The string of the discount coupon to use.
@@ -49,6 +53,12 @@ class OnboardingService(CompanyService):
             partner=partner
         )
 
+        CompanyAnalytics.authentication_.create_company_analytics(
+            company.id,
+            company_number_of_employees,
+            company_sector
+        )
+        
         admin_profile_id = ProfileType.objects.get(name='admin').id
 
         visualization_type_id = VisualizationType.objects.filter(name='listing').values_list('id', flat=True).first()

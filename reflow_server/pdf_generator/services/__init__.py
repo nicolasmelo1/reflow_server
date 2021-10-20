@@ -163,7 +163,7 @@ class PDFGeneratorService:
             # if the form_value is a connection field get the values of the connected formulary/
             if form_value.field_type.type == 'form':
                 # if recieves a section needs to get the main_form_id so we get all of the fields
-                main_form_data_id = DynamicForm.pdf_generator_.main_formulary_data_id_by_section_data_id(int(form_value.value))
+                main_form_data_id = form_value.value
                 connected_form_values = FormValue.pdf_generator_.form_values_by_field_ids_and_form_data_id_and_forms_connected_to(
                     field_ids=field_ids, 
                     form_data_id=main_form_data_id if main_form_data_id else int(form_value.value)

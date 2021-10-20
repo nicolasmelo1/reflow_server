@@ -42,7 +42,7 @@ class APIExternalView(APIView):
     def post(self, request, company_id, form_name):
         api_service = APIService(company_id, request.user.id)
         data = request.data        
-        if api_service.validate_formulary_name(form_name):
+        if api_service.validate(form_name, data):
             api_service.save(data)
             return Response({
                 'status': 'ok'

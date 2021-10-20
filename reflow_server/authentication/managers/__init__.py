@@ -1,3 +1,4 @@
 from .user_extended import UserExtendedAuthenticationManager
 from .company import CompanyAuthenticationManager
 from .public_access import PublicAccessAuthenticationManager
+from .company_analytics import CompanyAnalyticsAuthenticationManager
