@@ -27,3 +27,10 @@ class FormDataManager(models.Manager):
             (None, str): Returns the name of the formulary (Remember that the name is similar to the ID of the formulary, it's NOT the label_name)
         """
         return self.get_queryset().filter(id=form_id, group__company_id=company_id).values_list('form_name', flat=True).first()
+    # ------------------------------------------------------------------------------------------
+    def section_type_and_id_by_label_name_main_form_name_and_company_id(self, section_label_name, main_form_name, company_id):
+        return self.get_queryset().filter(
+            label_name=section_label_name, 
+            depends_on__form_name=main_form_name, 
+            depends_on__group__company_id=company_id
+        ).values('id', 'type__type').first()

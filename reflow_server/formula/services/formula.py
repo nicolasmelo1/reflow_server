@@ -19,7 +19,7 @@ import re
 
 
 class FlowFormulaService:
-    def __init__(self, formula, user_id, company_id, dynamic_form_id=None, field_id=None, formula_variables=None):
+    def __init__(self, formula, user_id, company_id, dynamic_form_id=None, field_id=None, formula_variables=None, is_testing=False):
         """
         This service is handy for interacting with formulas in reflow, this service holds all of the logic needed to run our programming
         language. This is the interface you generally will use for interacting with formulas. Simple as that.
@@ -60,6 +60,7 @@ class FlowFormulaService:
             field_id (int, optional): The formula is usually bounded to a field, this is the field id the formula is bounded to. Defaults to None.
             formula_variables (reflow_server.formula.services.FormulaVariables, optional): A FormulaVariables object that has a list of all variable_ids, each variable_id is a Field
                                                                                            instance id. Defaults to None.
+            is_testing(bool, optional): If you are testing out the formula then the clean process will create dummy values if nothing is found.
         """
         user_timezone = UserExtended.formula_.timezone_by_user_id(user_id)
         if formula_variables == None:
@@ -70,6 +71,7 @@ class FlowFormulaService:
                     formula_variables.add_variable_id(variable_id)
 
         context_type_id = FormulaContextForCompany.formula_.formula_context_for_company_by_company_id(company_id)
+        self.is_testing = is_testing
         self.context = build_context(context_type_id, 'formula')
         self.context.add_reflow_data(company_id, user_id, dynamic_form_id=dynamic_form_id)
         
@@ -198,7 +200,11 @@ class FlowFormulaService:
         return actual_number
     # ------------------------------------------------------------------------------------------
     def _clean_formula_date(self, representation, value):
-        python_datetime_value = datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT)
+        if value in ['', None] and self.is_testing:
+            python_datetime_value = datetime.now()
+        else:
+            python_datetime_value = datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT)
+
         flow_formated_datetime = python_datetime_value.strftime(DatetimeHelper.to_python_format(self.context.datetime.date_format, self.context.datetime.time_format))
         return f'~{self.context.datetime.date_character}[{flow_formated_datetime}]'
     # ------------------------------------------------------------------------------------------

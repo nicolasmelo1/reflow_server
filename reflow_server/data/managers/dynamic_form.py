@@ -198,3 +198,16 @@ class DynamicFormDataManager(models.Manager):
         )\
             .exclude(id__in=dynamic_form_ids)\
             .delete()
+    
+    def main_form_uuid_by_form_record_id_and_company_id(self, form_record_id, company_id):
+        return self.get_queryset().filter(id=form_record_id, depends_on__isnull=True, company_id=company_id).values_list('uuid', flat=True).first()
+    
+    def section_record_id_and_uuid_by_section_id_and_main_form_id_excluding_ids_and_ordering_by_udated_at(self, section_id, main_form_record_id, section_ids_to_ignore):
+        return self.get_queryset().filter(
+            form_id=section_id, 
+            depends_on_id=main_form_record_id
+        ).exclude(
+            id__in=section_ids_to_ignore
+        ).order_by(
+            '-updated_at'
+        ).values('id', 'uuid').first()

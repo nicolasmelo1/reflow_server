@@ -59,13 +59,13 @@ end)(2)(3)
 
 dicts = r"""
 dicionario = {
-    "teste": [1, 2, {
-        "teste com lista": function() do
-            3
-        end
-    }]
+    "teste": "1",
+    "teste2": {
+        "teste1": 1,
+        "teste3": 3,
+    }
 }
-dicionario["teste"][2]["teste com lista"]()
+dicionario["teste2"]["teste3"]
 """
 
 modules = r"""
@@ -152,13 +152,13 @@ functions_to_test = [
     #anonymous_formulas,
     #lists,
     #anonymous_function_call,
-    #dicts,
+    dicts,
     #modules,
     #structs,
     #HTTP_library,
     #SMTP_library,
     #datetime_test,
-    List_library,
+    #List_library,
     #automation_library
 ]
 

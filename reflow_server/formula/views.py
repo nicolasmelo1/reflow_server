@@ -41,7 +41,8 @@ class TestFormulaView(APIView):
                 request.user.id,
                 company_id, 
                 dynamic_form_id=dynamic_form_id, 
-                formula_variables=variables
+                formula_variables=variables,
+                is_testing=True
             )
             value = formula_service.evaluate()
             

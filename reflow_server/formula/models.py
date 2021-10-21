@@ -40,7 +40,7 @@ class FormulaAttributeType(models.Model):
 
 class FormulaContextAttributeType(models.Model):
     context_type = models.ForeignKey('formula.FormulaContextType', on_delete=models.CASCADE, db_index=True, related_name='formula_context_type_attributes')
-    attribute_type = models.ForeignKey('formula.FormulaAttributeType', on_delete=models.CASCADE, db_index=True, related_name='formula_context_type_attributes')
+    attribute_type = models.ForeignKey('formula.FormulaAttributeType', on_delete=models.CASCADE, db_index=True, related_name='formula_attribute_type_attributes')
     translation = models.TextField()
 
     class Meta:
