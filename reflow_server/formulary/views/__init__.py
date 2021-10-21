@@ -59,7 +59,7 @@ class FormFieldTypeOptionsView(APIView):
     """
     def get(self, request, company_id, form, field_id):
         search = request.query_params.get('search', None)
-        section_id = request.query_params.get('value_id', None)
+        main_record_id = request.query_params.get('value_id', None)
         
         pagination = Pagination.handle_pagination(
             current_page=int(request.query_params.get('page', 1)),
@@ -68,11 +68,11 @@ class FormFieldTypeOptionsView(APIView):
 
 
         form_field = Field.objects.filter(id=field_id).first()
-        dynamic_form_ids = FormValue.formulary_.distinct_main_form_id_by_company_id_field_id_search_value_and_form_id(
+        dynamic_form_ids = FormValue.formulary_.distinct_main_form_id_by_company_id_field_id_search_value_and_main_record_id(
             company_id=company_id, 
             field_id=form_field.form_field_as_option, 
             search=search, 
-            section_id=section_id
+            main_record_id=main_record_id
         )
         instances = DynamicForm.objects.filter(id__in=dynamic_form_ids)
         total_number_of_pages, instances = pagination.paginate_queryset(instances)

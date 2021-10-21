@@ -313,7 +313,7 @@ class FormValueDataManager(models.Manager):
                 company_id=company_id, 
                 field_id=form_field_as_option_id,
                 **search_value_dict
-            ).values_list('form', flat=True)
+            ).values_list('form__depends_on_id', flat=True)
         )
         return self.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(company_id, depends_on_forms, [field_id], [field_type])\
             .filter(value__in=real_search_values)\

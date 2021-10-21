@@ -49,20 +49,25 @@ class APIService:
                 is_valid_multi_section = section_type_name == 'multi-form' and isinstance(data[section_label_name], list)
 
                 if is_valid_unique_section or is_valid_multi_section:
-                    section_data = formulary_data.add_section_data(section_id, str(uuid.uuid4()))
-                    if self.form_record_id:
-                        section_record_id_and_uuid = DynamicForm.data_.section_record_id_and_uuid_by_section_id_and_main_form_id_excluding_ids_and_ordering_by_udated_at(
-                            section_id,
-                            self.form_record_id,
-                            section_ids_to_ignore
-                        )
-                        if section_record_id_and_uuid:
-                            section_record_id = section_record_id_and_uuid['id']
-                            section_record_uuid = section_record_id_and_uuid['uuid']
+                    if isinstance(data[section_label_name], dict):
+                        data[section_label_name] = [data[section_label_name]]
 
-                            section_ids_to_ignore.append(section_record_id)
-                            section_data.section_uuid = section_record_uuid
-                            section_data.section_data_id = section_record_id
+                    for section_data in data[section_label_name]:
+                        section_data = formulary_data.add_section_data(section_id, str(uuid.uuid4()))
+                        if self.form_record_id:
+                            section_record_id_and_uuid = DynamicForm.data_.section_record_id_and_uuid_by_section_id_and_main_form_id_excluding_ids_and_ordering_by_udated_at(
+                                section_id,
+                                self.form_record_id,
+                                section_ids_to_ignore
+                            )
+                            if section_record_id_and_uuid:
+                                section_record_id = section_record_id_and_uuid['id']
+                                section_record_uuid = section_record_id_and_uuid['uuid']
+
+                                section_ids_to_ignore.append(section_record_id)
+                                section_data.section_uuid = section_record_uuid
+                                section_data.section_data_id = section_record_id
+                                
                     field_label_names = data[section_label_name].keys()
                     for field_label_name in field_label_names:
                         field_name_and_id = Field.objects.filter(label_name=field_label_name, form_id=section_id).values('name', 'id').first()
@@ -70,7 +75,9 @@ class APIService:
                             field_name = field_name_and_id['name']
                             field_id = field_name_and_id['id']
 
-                            # TODO: Translate fields
+                            values = data[section_label_name][field_label_name]
+                            
+                            
                         else:
                             raise APIException('invalid_field_name', json.loads({'label_name': section_label_name, 'type': section_type_name}))
 
