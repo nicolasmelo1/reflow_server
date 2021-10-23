@@ -41,16 +41,17 @@ class APIExternalView(APIView):
 
     def post(self, request, company_id, form_name):
         api_service = APIService(company_id, request.user.id)
-        data = request.data        
+        data = request.data
         if api_service.validate(form_name, data):
-            api_service.save(data)
+            formulary_record = api_service.save()
             return Response({
-                'status': 'ok'
+                'status': 'ok',
+                'data': {
+                    'formulary_record_id': formulary_record.id
+                }
             }, status=status.HTTP_200_OK)
         else:
             return Response({
                 'status': 'error',
-                'error': {
-                    'reason': 'formulary_does_not_exist'
-                }
+                'error': api_service.error
             }, status=status.HTTP_403_FORBIDDEN)

@@ -186,6 +186,9 @@ class PublicAccess(models.Model):
 
 
 class APIAccessToken(models.Model):
+    """
+    The token for the API need to be defined in the header of each call from the API.
+    """
     user = models.OneToOneField('authentication.UserExtended', on_delete=models.CASCADE, db_index=True)
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, db_index=True)
     access_token = models.UUIDField(default=uuid.uuid4, null=True, blank=True, db_index=True)

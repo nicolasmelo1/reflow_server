@@ -585,3 +585,11 @@ class FormValueDataManager(models.Manager):
             return self.get_queryset().filter(field_id=field_id).latest('updated_at')
         except:
             return None
+    # ------------------------------------------------------------------------------------------
+    def form_value_id_by_section_record_id_and_field_id_excluding_form_value_ids(self, section_record_id, field_id, form_value_ids_to_ignore):
+        return self.get_queryset().filter(
+            field_id=field_id, 
+            form_id=section_record_id
+        ).excludes(
+            id__in=form_value_ids_to_ignore
+        ).values_list('id', flat=True).first()

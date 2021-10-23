@@ -1,5 +1,5 @@
 from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryModule, functionmethod, \
-    LibraryStruct
+    LibraryStruct, retrieve_representation
 from reflow_server.formula.utils.builtins import objects as flow_objects
 
 import requests
@@ -28,49 +28,53 @@ class HTTP(LibraryModule):
         return self
     
     @functionmethod
-    def get(url, parameters={}, headers={}, **kwargs):
+    def get(url, parameters={}, headers={}, basic_auth=None, **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method':'GET', 
             'url':url, 
+            'basic_auth': basic_auth,
             'parameters':parameters,
             'headers': headers
         })
 
     @functionmethod
-    def post(url, data={}, json_data={}, headers={}, **kwargs):
+    def post(url, data={}, json_data={}, headers={}, basic_auth=None, **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method': 'POST',
             'url': url,
             'data': data,
+            'basic_auth': basic_auth,
             'json_data': json_data,
             'headers': headers
         })
 
     @functionmethod
-    def put(url, data, json_data, headers={}, **kwargs):
+    def put(url, data, json_data, headers={}, basic_auth=None, **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method': 'PUT',
             'url': url,
             'data': data,
+            'basic_auth': basic_auth,
             'json_data': json_data,
             'headers': headers
         })
 
     @functionmethod
-    def delete(url, parameters, headers={}, **kwargs):
+    def delete(url, parameters, headers={}, basic_auth=None, **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method':'DELETE', 
             'url':url, 
             'parameters':parameters,
+            'basic_auth': basic_auth,
             'headers': headers
         })
 
     @functionmethod
-    def request(method, url, parameters={}, data={}, json_data={}, headers={}, **kwargs):
+    def request(method, url, parameters={}, data={}, json_data={}, headers={}, basic_auth=None, **kwargs):
         settings = kwargs['__settings__']
 
         def complex_objects_to_json_serializable(value):
@@ -96,11 +100,19 @@ class HTTP(LibraryModule):
         if isinstance(url, flow_objects.String):
             url = url._representation_()
         
+        basic_auth = retrieve_representation(basic_auth)
+        if not isinstance(basic_auth, list) or not len(basic_auth) == 2:
+            basic_auth = None
+        elif isinstance(basic_auth, list):
+            basic_auth = tuple(basic_auth)
+
         headers['User-Agent'] = 'FLOW_HTTP'
         headers['X-Powered-By'] = 'reflow'
 
         try:
-            request_response = requests.request(method, url=url, json=json_data, data=data, headers=headers, params=parameters)
+            request_response = requests.request(
+                method, url=url, json=json_data, data=data, headers=headers, params=parameters, auth=basic_auth
+            )
             response = HTTPResponse(
                 settings=settings,
                 response=request_response
@@ -136,6 +148,10 @@ class HTTP(LibraryModule):
             'description': 'This is the json data you want to send',
             'is_required': False
         }
+        english_basic_auth_definition = {
+            'description': 'Defines a basic authentication if it has any for the api',
+            'is_required': False
+        }
         return {
             'description': 'Module for making http requests to external software outside of reflow',
             'methods': {
@@ -144,7 +160,8 @@ class HTTP(LibraryModule):
                     'attributes': {
                         'url': english_url_definition,
                         'parameters': english_parameters_definition,
-                        'headers': english_headers_definition
+                        'headers': english_headers_definition,
+                        'basic_auth': english_basic_auth_definition
                     }
                 },
                 'delete': {
@@ -152,7 +169,8 @@ class HTTP(LibraryModule):
                     'attributes': {
                         'url': english_url_definition,
                         'parameters': english_parameters_definition,
-                        'headers': english_headers_definition
+                        'headers': english_headers_definition,
+                        'basic_auth': english_basic_auth_definition
                     }
                 },
                 'post': {
@@ -161,7 +179,8 @@ class HTTP(LibraryModule):
                         'url': english_url_definition,
                         'data': english_data_definition,
                         'json_data': english_json_definition,
-                        'headers': english_headers_definition
+                        'headers': english_headers_definition,
+                        'basic_auth': english_basic_auth_definition
                     }
                 },
                 'put': {
@@ -170,7 +189,8 @@ class HTTP(LibraryModule):
                         'url': english_url_definition,
                         'data': english_data_definition,
                         'json_data': english_json_definition,
-                        'headers': english_headers_definition
+                        'headers': english_headers_definition,
+                        'basic_auth': english_basic_auth_definition
                     }
                 },
                 'request': {
@@ -183,7 +203,8 @@ class HTTP(LibraryModule):
                         'parameters': english_parameters_definition,
                         'data': english_data_definition,
                         'json_data': english_json_definition,
-                        'headers': english_headers_definition
+                        'headers': english_headers_definition,
+                        'basic_auth': english_basic_auth_definition
                     }
                 }
             },
