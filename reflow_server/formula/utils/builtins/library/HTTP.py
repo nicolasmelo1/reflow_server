@@ -51,7 +51,7 @@ class HTTP(LibraryModule):
         })
 
     @functionmethod
-    def put(url, data, json_data, headers={}, basic_auth=None, **kwargs):
+    def put(url, data={}, json_data={}, headers={}, basic_auth=None, **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method': 'PUT',
@@ -74,7 +74,7 @@ class HTTP(LibraryModule):
         })
 
     @functionmethod
-    def request(method, url, parameters={}, data={}, json_data={}, headers={}, basic_auth=None, **kwargs):
+    def request(method, url, parameters={}, data={}, json_data={}, headers={}, basic_auth=[], **kwargs):
         settings = kwargs['__settings__']
 
         def complex_objects_to_json_serializable(value):
