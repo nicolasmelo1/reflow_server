@@ -28,7 +28,7 @@ class HTTP(LibraryModule):
         return self
     
     @functionmethod
-    def get(url, parameters={}, headers={}, basic_auth=None, **kwargs):
+    def get(url, parameters={}, headers={}, basic_auth=[], **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method':'GET', 
@@ -39,7 +39,7 @@ class HTTP(LibraryModule):
         })
 
     @functionmethod
-    def post(url, data={}, json_data={}, headers={}, basic_auth=None, **kwargs):
+    def post(url, data={}, json_data={}, headers={}, basic_auth=[], **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method': 'POST',
@@ -51,7 +51,7 @@ class HTTP(LibraryModule):
         })
 
     @functionmethod
-    def put(url, data={}, json_data={}, headers={}, basic_auth=None, **kwargs):
+    def put(url, data={}, json_data={}, headers={}, basic_auth=[], **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method': 'PUT',
@@ -63,7 +63,7 @@ class HTTP(LibraryModule):
         })
 
     @functionmethod
-    def delete(url, parameters, headers={}, basic_auth=None, **kwargs):
+    def delete(url, parameters, headers={}, basic_auth=[], **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method':'DELETE', 
