@@ -202,9 +202,9 @@ class FlowFormulaService:
 
             actual_number = str(float(actual_number)/representation.number_format_type.base)
             actual_number = actual_number.replace('.', self.context.decimal_point_separator)
+            return actual_number
         else:
-            value = '1'
-        return actual_number
+            return '1'
     # ------------------------------------------------------------------------------------------
     def _clean_formula_date(self, representation, value):
         if representation != None and value != None:
