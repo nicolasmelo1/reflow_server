@@ -33,7 +33,7 @@ class UsersService:
         BillingService(self.company.id, self.user_id).update_charge()
 
     @transaction.atomic
-    def create(self, email, first_name, last_name, profile, has_api_access_key, field_option_ids_accessed_by, form_ids_accessed_by, users_accessed_by, change_password_url):
+    def create(self, email, first_name, last_name, profile, has_api_access_key, field_option_ids_accessed_by=[], form_ids_accessed_by=[], users_accessed_by=[], change_password_url=None):
         """
         Creates a new user with it's permissions. When we create a new user we also create the billing
 
@@ -67,7 +67,7 @@ class UsersService:
             visualization_type_id
         )
 
-        self.__update_api_access_key_of_user(instance.id, has_api_access_key)
+        self.update_api_access_key_of_user(self.company.id, instance.id, has_api_access_key)
         self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)
         self.__create_new_user_notify_update_billing_and_add_kanban_defaults(instance, change_password_url)
         self.__update_user_users_permission(instance.id, users_accessed_by)
@@ -75,7 +75,7 @@ class UsersService:
         return instance
 
     @transaction.atomic
-    def update(self, user_id, email, first_name, last_name, profile, has_api_access_key, field_option_ids_accessed_by, form_ids_accessed_by, users_accessed_by):
+    def update(self, user_id, email, first_name, last_name, profile, has_api_access_key, field_option_ids_accessed_by=[], form_ids_accessed_by=[], users_accessed_by=[]):
         """
         Updates a user and it's permissions to both formularies and options.
 
@@ -110,7 +110,7 @@ class UsersService:
                 'user_id': user_id,
                 'company_id': self.company.id
             })
-            self.__update_api_access_key_of_user(instance.id, has_api_access_key)
+            self.update_api_access_key_of_user(self.company.id, instance.id, has_api_access_key)
             self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)
             self.__update_user_users_permission(instance.id, users_accessed_by)
         return instance
@@ -126,21 +126,23 @@ class UsersService:
                     user_option_id=created_user_id
                 )
 
-    def __update_api_access_key_of_user(self, user_id, has_api_access_key=False):
+    @staticmethod
+    def update_api_access_key_of_user(company_id, user_id, has_api_access_key=False):
         """
         Function used to update access token of the user, if has_api_access_key is set to false
         then we will delete any api key set for him, otherwise we update or create a new API key.
 
         Args:
+            company_id (int): The id of the company.
             user_id (int): A UserExtended instance id
             has_api_access_key (bool, optional): True or False wheather the user has developer access or not. 
             Defaults to False.
         """
         if has_api_access_key:
-            if not APIAccessToken.authentication_.exists_by_user_id_and_company_id(user_id, self.company.id):
-                APIAccessToken.authentication_.create(self.company.id, user_id)
+            if not APIAccessToken.authentication_.exists_by_user_id_and_company_id(user_id, company_id):
+                APIAccessToken.authentication_.create(company_id, user_id)
         else:
-            APIAccessToken.authentication_.delete(self.company.id, user_id)
+            APIAccessToken.authentication_.delete(company_id, user_id)
     
     def __create_new_user_notify_update_billing_and_add_kanban_defaults(self, instance, change_password_url):
         """

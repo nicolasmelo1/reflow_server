@@ -1,8 +1,10 @@
 from django.db import transaction
+from reflow_server.authentication.services.users import UsersService
 
 from reflow_server.core.events import Event
 from reflow_server.authentication.models import Company, UserExtended, ProfileType, VisualizationType
 from reflow_server.authentication.services.company import CompanyService
+from reflow_server.authentication.services.users import UserService
 from reflow_server.billing.services import BillingService
 from reflow_server.formula.services.formula import FlowFormulaService
 from reflow_server.analytics.models import CompanyAnalytics
@@ -81,6 +83,9 @@ class OnboardingService(CompanyService):
             'visitor_id': user_visitor_id
         })
         
+        # Added api acess for newly created user since he cannot edit itself
+        # TODO: need to change this once the user can edit himself
+        UserService.update_api_access_key_of_user(company.id, user.id, True)
         # update billing information
         BillingService.create_on_onboarding(company.id, user.id, partner, discount_coupon_name)
         # updates formula context
