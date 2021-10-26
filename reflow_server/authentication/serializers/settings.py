@@ -54,7 +54,7 @@ class UserSettingsSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(allow_blank=False, allow_null=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
     first_name = serializers.CharField(allow_blank=False, allow_null=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
     last_name = serializers.CharField(allow_blank=False, allow_null=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
-    has_api_access_key = HasAPIAccessKeyRelation(default=False, source='id')
+    has_api_access_key = HasAPIAccessKeyRelation(default=False, source='*')
     option_accessed_by_user = OptionAccessedByRelation(many=True)
     form_accessed_by_user = FormAccessedByRelation(many=True)
     user_accessed_by_user = UserAccessedByRelation(many=True)
@@ -82,6 +82,7 @@ class UserSettingsSerializer(serializers.ModelSerializer):
             validated_data.get('first_name'),
             validated_data.get('last_name'),
             validated_data.get('profile'),
+            validated_data.get('has_api_access_key', False),
             [option_accessed_by_user['field_option_id'] for option_accessed_by_user in validated_data.get('option_accessed_by_user', [])],
             [form_accessed_by_user['form_id'] for form_accessed_by_user in validated_data.get('form_accessed_by_user', [])],
             user_accessed_by_data,
@@ -98,6 +99,7 @@ class UserSettingsSerializer(serializers.ModelSerializer):
             validated_data.get('first_name'),
             validated_data.get('last_name'),
             validated_data.get('profile'),
+            validated_data.get('has_api_access_key', False),
             [option_accessed_by_user['field_option_id'] for option_accessed_by_user in validated_data.get('option_accessed_by_user', [])],
             [form_accessed_by_user['form_id'] for form_accessed_by_user in validated_data.get('form_accessed_by_user', [])],
             user_accessed_by_data

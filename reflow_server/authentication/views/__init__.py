@@ -42,7 +42,9 @@ class LoginView(APIView):
                 first_form_the_user_has_access_to = formulary_service.formulary_names_the_user_has_access_to
                 form_name = first_form_the_user_has_access_to[0] if first_form_the_user_has_access_to else ''
 
-                user_serializer = UserSerializer(instance=request.user)
+                user_serializer = UserSerializer(instance=request.user, context={
+                    'company_id': request.user.company.id
+                })
 
                 return Response({
                     'status': 'ok',
@@ -215,9 +217,11 @@ class UserView(APIView):
         GET: Returns the user data to the user. This holds all of the user data. Obviously the user
         needs to be logged in to use this.
     """
-    def get(self, request):
+    def get(self, request, company_id):
         instance = UserExtended.authentication_.user_by_user_id(request.user.id)
-        serializer = UserSerializer(instance=instance)
+        serializer = UserSerializer(instance=instance, context={
+            'company_id': company_id
+        })
         return Response({
             'status': 'ok',
             'data': serializer.data
@@ -236,7 +240,7 @@ class UserVisualizationTypeView(APIView):
     """
     authentication_classes = [CsrfExemptSessionAuthentication]
 
-    def put(self, request, visualization_type_id):
+    def put(self, request, company_id, visualization_type_id):
         UserExtended.authentication_.update_user_visualization_type(request.user.id, visualization_type_id)
 
         return Response({

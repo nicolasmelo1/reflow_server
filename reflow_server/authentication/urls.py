@@ -24,12 +24,15 @@ settings_urlpatterns = [
 loginrequired_urlpatterns = [
     register_admin_only_url(re_path(r'^settings/', include(settings_urlpatterns))),
     re_path(r'^test_token/$', jwt_required(TestTokenView.as_view()), name='authentication_test_token'),
-    re_path(r'^user/', include([
-        re_path(r'^$', permission_required(UserView.as_view()), name='authentication_user'),
-        re_path(r'^visualization_type/(?P<visualization_type_id>\d+)/$', permission_required(UserVisualizationTypeView.as_view()), 
-        name='authentication_user_set_visualization_type_id')
-    ])),
-    re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/company/$', permission_required(CompanyView.as_view()), name='authentication_company')
+    re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/', include([
+        re_path(r'^user/', include([
+            re_path(r'^$', permission_required(UserView.as_view()), name='authentication_user'),
+            re_path(r'^visualization_type/(?P<visualization_type_id>\d+)/$', permission_required(UserVisualizationTypeView.as_view()), 
+            name='authentication_user_set_visualization_type_id')
+        ])),
+        re_path(r'^company/$', permission_required(CompanyView.as_view()), name='authentication_company')
+
+    ]))
 ]
 
 urlpatterns = [

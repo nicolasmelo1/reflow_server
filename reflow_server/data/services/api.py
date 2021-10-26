@@ -45,7 +45,6 @@ class APIService:
             return False
         
     def save(self):
-        print(self.formulary_data_service.form_name)
         return self.formulary_data_service.save()
 
     def __transform_data(self, form_name, data):

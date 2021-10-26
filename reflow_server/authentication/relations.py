@@ -6,14 +6,20 @@ from reflow_server.formulary.models import OptionAccessedBy, FormAccessedBy, \
 from reflow_server.billing.models import CompanyBilling
 
 
-class HasAPIAccessKeyRelation(serializers.BooleanField):
+class HasAPIAccessKeyRelation(serializers.Field):
     def to_representation(self, value):
         has_access_key = APIAccessToken.authentication_.exists_by_user_id_and_company_id(
-            value, 
+            value.id, 
             self.context.get('company_id', None)
         )
-        return super().to_representation(has_access_key)
+        return has_access_key
 
+    def to_internal_value(self, data):
+        if not isinstance(data, bool):
+            data = False
+        return {
+            'has_api_access_key': data
+        }
 
 class UserAccessedByRelation(serializers.ModelSerializer):
     user_option_id = serializers.IntegerField()    

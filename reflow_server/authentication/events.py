@@ -22,3 +22,17 @@ class AuthenticationBroadcastEvent:
                 'company_id': company_id
             })
             
+    def user_updated(self, user_id, company_id):
+        """
+        This event sends to all of the clients of the company that
+        the user they are in have updated their information.
+
+        Args:
+            user_id (int): The UserExtended instance id of the user that had updated their information
+        """
+        group_name = 'user_{}'.format(user_id)
+        ChannelLayer.broadcast_to_group(group_name, 'send_user_was_updated', {
+            'user_id': user_id,
+            'company_id': company_id
+        })
+        

@@ -1,9 +1,32 @@
 from django.db import models
 
+import uuid
+
 
 class APIAccessTokenAuthenticationManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
+
+    def create(self, company_id, user_id):
+        """
+        Actually just create a new access token if it doesn't exist.
+
+        Args:
+            company_id (int): The Company instance id.
+            user_id (int): The User instance id.
+        
+        Returns:
+            reflow_server.authentication.models.APIAccessToken: The created APIAccessToken instance.
+        """
+        instance = self.get_queryset().create(
+            user_id=user_id, 
+            company_id=company_id, 
+            access_token=str(uuid.uuid4())
+        )
+        return instance
+
+    def delete(self, company_id, user_id):
+        return self.get_queryset().filter(user_id=user_id, company_id=company_id).delete()
 
     def user_id_by_secret_access_token_and_company_id(self, secret_access_token, company_id):
         """

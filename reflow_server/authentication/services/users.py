@@ -1,7 +1,7 @@
 from django.db import transaction
 
 from reflow_server.core.events import Event
-from reflow_server.authentication.models import UserExtended, Company, VisualizationType
+from reflow_server.authentication.models import APIAccessToken, UserExtended, Company, VisualizationType
 from reflow_server.billing.services import BillingService
 from reflow_server.formulary.models import UserAccessedBy, Field
 from reflow_server.formulary.services.formulary import FormularyService
@@ -33,7 +33,7 @@ class UsersService:
         BillingService(self.company.id, self.user_id).update_charge()
 
     @transaction.atomic
-    def create(self, email, first_name, last_name, profile, field_option_ids_accessed_by, form_ids_accessed_by, users_accessed_by, change_password_url):
+    def create(self, email, first_name, last_name, profile, has_api_access_key, field_option_ids_accessed_by, form_ids_accessed_by, users_accessed_by, change_password_url):
         """
         Creates a new user with it's permissions. When we create a new user we also create the billing
 
@@ -42,6 +42,7 @@ class UsersService:
             first_name (str): The first name of the user
             last_name (str): The last name of the user, the name of the user must contain the first and the last name.
             profile (reflow_server.authentication.models.Profiles): this is an `reflow_server.authentication.models.Profiles` model.
+            has_api_access_key (bool): this is a true or false argument if the user has access to the API or not.
             field_option_ids_accessed_by (list(int)): The integers in this list are ids of formularies the user has access to. The ones that
                                                       are not in this list are removed from the user. So if the user has access to the form_id 23
                                                       but this list is [24,25] the user will have access to form_ids 24 and 25 and will lose the access
@@ -66,6 +67,7 @@ class UsersService:
             visualization_type_id
         )
 
+        self.__update_api_access_key_of_user(instance.id, has_api_access_key)
         self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)
         self.__create_new_user_notify_update_billing_and_add_kanban_defaults(instance, change_password_url)
         self.__update_user_users_permission(instance.id, users_accessed_by)
@@ -73,7 +75,7 @@ class UsersService:
         return instance
 
     @transaction.atomic
-    def update(self, user_id, email, first_name, last_name, profile, field_option_ids_accessed_by, form_ids_accessed_by, users_accessed_by):
+    def update(self, user_id, email, first_name, last_name, profile, has_api_access_key, field_option_ids_accessed_by, form_ids_accessed_by, users_accessed_by):
         """
         Updates a user and it's permissions to both formularies and options.
 
@@ -83,6 +85,7 @@ class UsersService:
             first_name (str): The first name of the user
             last_name (str): The last name of the user, the name of the user must contain the first and the last name.
             profile (reflow_server.authentication.models.Profiles): this is an `reflow_server.authentication.models.Profiles` model.
+            has_api_access_key (bool): this is a true or false argument if the user has access to the API or not.
             field_option_ids_accessed_by (list(int)): The integers in this list are ids of formularies the user has access to. The ones that
                                                       are not in this list are removed from the user. So if the user has access to the form_id 23
                                                       but this list is [24,25] the user will have access to form_ids 24 and 25 and will lose the access
@@ -103,6 +106,11 @@ class UsersService:
         )
         
         if instance:
+            Event.register_event('user_updated', {
+                'user_id': user_id,
+                'company_id': self.company.id
+            })
+            self.__update_api_access_key_of_user(instance.id, has_api_access_key)
             self.__update_user_formularies_and_options_permissions(instance.id, form_ids_accessed_by, field_option_ids_accessed_by)
             self.__update_user_users_permission(instance.id, users_accessed_by)
         return instance
@@ -118,6 +126,22 @@ class UsersService:
                     user_option_id=created_user_id
                 )
 
+    def __update_api_access_key_of_user(self, user_id, has_api_access_key=False):
+        """
+        Function used to update access token of the user, if has_api_access_key is set to false
+        then we will delete any api key set for him, otherwise we update or create a new API key.
+
+        Args:
+            user_id (int): A UserExtended instance id
+            has_api_access_key (bool, optional): True or False wheather the user has developer access or not. 
+            Defaults to False.
+        """
+        if has_api_access_key:
+            if not APIAccessToken.authentication_.exists_by_user_id_and_company_id(user_id, self.company.id):
+                APIAccessToken.authentication_.create(self.company.id, user_id)
+        else:
+            APIAccessToken.authentication_.delete(self.company.id, user_id)
+    
     def __create_new_user_notify_update_billing_and_add_kanban_defaults(self, instance, change_password_url):
         """
         This function notifies a new user with an email with his new password but also creates the billing information of this user.

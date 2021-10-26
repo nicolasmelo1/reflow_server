@@ -69,6 +69,32 @@ class AnalyticsEvents:
             company_id=company_id
         )
     # ------------------------------------------------------------------------------------------
+    def user_created(self, user_id, company_id):
+        """
+        This event is fired when a new user is added to a company.
+
+        Args:
+            user_id (int): The id of the user that was added.
+            company_id (int): The id of the company where the user was added.
+        """
+        self.analytics_service.register_event('user_created', 
+            company_id=company_id,
+            user_id=user_id
+        )
+    # ------------------------------------------------------------------------------------------
+    def user_updated(self, user_id, company_id):
+        """
+        This event is fired when a user is updated.
+
+        Args:
+            user_id (int): The UserExtended instance id of the user that was updated.
+            company_id (int): The Company instance id on what company does this user was updated. 
+        """
+        self.analytics_service.register_event('user_updated', 
+            user_id=user_id, 
+            company_id=company_id
+        )
+    # ------------------------------------------------------------------------------------------
     def formulary_data_created(self, user_id, company_id, form_id, form_data_id, is_public, data):
         """
         This event is fired when the a new record is created in the formulary. So the formulary is created but when we add

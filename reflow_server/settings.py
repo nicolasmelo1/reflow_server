@@ -238,6 +238,14 @@ EVENTS = {
         'data_parameters': ['user_id', 'company_id'],
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
     },
+    'user_created': {
+        'data_parameters': ['user_id', 'company_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+    },
+    'user_updated': {
+        'data_parameters': ['user_id', 'company_id'],
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.authentication.events.AuthenticationBroadcastEvent']
+    },
     'formulary_data_created': {
         'data_parameters': ['user_id', 'company_id', 'form_id', 'form_data_id', 'is_public', 'data'],
         'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.data.events.DataBroadcastEvent', 'reflow_server.automation.events.AutomationEvent']

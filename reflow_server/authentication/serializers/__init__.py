@@ -9,9 +9,7 @@ from reflow_server.authentication.services.onboarding import OnboardingService
 from reflow_server.authentication.services.password import PasswordService
 from reflow_server.authentication.services.company import CompanyService
 from reflow_server.authentication.utils.jwt_auth import JWT
-from reflow_server.authentication.relations import CompanyBillingRelation
-
-import unicodedata
+from reflow_server.authentication.relations import CompanyBillingRelation, HasAPIAccessKeyRelation
 
 
 class LoginSerializer(serializers.Serializer):
@@ -35,6 +33,8 @@ class UserSerializer(serializers.ModelSerializer):
     """
     Serializer responsible for retrieving and recieving user data.
     """
+    has_api_access_key = HasAPIAccessKeyRelation(default=False, source='*')
+
     class Meta:
         model = UserExtended
         exclude = ('password', 'temp_password')

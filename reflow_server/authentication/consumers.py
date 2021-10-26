@@ -11,3 +11,6 @@ class AuthenticationConsumer:
     """
     async def send_company_was_updated(self, event):
         await self.send(text_data=json.dumps(event))
+    
+    async def send_user_was_updated(self, event):
+        await self.send(text_data=json.dumps(event))
