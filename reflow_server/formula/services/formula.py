@@ -154,7 +154,11 @@ class FlowFormulaService:
                     value = representation.representation(values[0]['value'])
                     value_to_replace = '"{}"'.format(value)
             else:
-                value_to_replace = '""'
+                handler = getattr(self, '_clean_formula_%s' % formula_variable.field_type, None)
+                if handler:
+                    value_to_replace = handler(None, None)
+                else:
+                    value_to_replace = '""'
             formula = formula.replace(variables[index], value_to_replace, 1)
         return formula
     # ------------------------------------------------------------------------------------------
@@ -171,42 +175,48 @@ class FlowFormulaService:
         is divide by the base and then transform it again to string changing the decimal_separator with the CONTEXT decimal separator.
 
         Args:
-            representation (reflow_server.data.services.representation.RepresentationService): The representationService object for the field
-            value (str): The actual value to subtitute for
+            representation (reflow_server.data.services.representation.RepresentationService, None): The representationService object for the field
+            value (str, None): The actual value to subtitute for
 
         Returns:
             str: The new value to substitute the variable for
         """
-        value = representation.representation(value)
-        value = value if value not in ['', None] else '1'
+        if representation != None and value != None:
+            value = representation.representation(value)
+            value = value if value not in ['', None] else '1'
 
-        decimal_separator = representation.number_format_type.decimal_separator
-        decimal_separator = decimal_separator if decimal_separator else ''
-        # split the values and get only decimal separator and numbers (prefix and suffix are removed)
-        splitted_value = list(value)
-        splitted_value = [character for character in splitted_value if character.isdigit() or character == decimal_separator]
-        # decimal separator is replaced to '.' so we can transform to float.
-        # we should consider 20,0% as 0,20 don't you think? So that's why we do this. and then we convert back to string
-        if (decimal_separator != '' and decimal_separator in splitted_value):
-            actual_number = ''.join(splitted_value).replace(
-                decimal_separator, 
-                '.'
-            )
+            decimal_separator = representation.number_format_type.decimal_separator
+            decimal_separator = decimal_separator if decimal_separator else ''
+            # split the values and get only decimal separator and numbers (prefix and suffix are removed)
+            splitted_value = list(value)
+            splitted_value = [character for character in splitted_value if character.isdigit() or character == decimal_separator]
+            # decimal separator is replaced to '.' so we can transform to float.
+            # we should consider 20,0% as 0,20 don't you think? So that's why we do this. and then we convert back to string
+            if (decimal_separator != '' and decimal_separator in splitted_value):
+                actual_number = ''.join(splitted_value).replace(
+                    decimal_separator, 
+                    '.'
+                )
+            else:
+                actual_number = ''.join(splitted_value)
+
+            actual_number = str(float(actual_number)/representation.number_format_type.base)
+            actual_number = actual_number.replace('.', self.context.decimal_point_separator)
         else:
-            actual_number = ''.join(splitted_value)
-
-        actual_number = str(float(actual_number)/representation.number_format_type.base)
-        actual_number = actual_number.replace('.', self.context.decimal_point_separator)
+            value = '1'
         return actual_number
     # ------------------------------------------------------------------------------------------
     def _clean_formula_date(self, representation, value):
-        if value in ['', None] and self.is_testing:
-            python_datetime_value = datetime.now()
-        else:
-            python_datetime_value = datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT)
+        if representation != None and value != None:
+            if value in ['', None] and self.is_testing:
+                python_datetime_value = datetime.now()
+            else:
+                python_datetime_value = datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT)
 
-        flow_formated_datetime = python_datetime_value.strftime(DatetimeHelper.to_python_format(self.context.datetime.date_format, self.context.datetime.time_format))
-        return f'~{self.context.datetime.date_character}[{flow_formated_datetime}]'
+            flow_formated_datetime = python_datetime_value.strftime(DatetimeHelper.to_python_format(self.context.datetime.date_format, self.context.datetime.time_format))
+            return f'~{self.context.datetime.date_character}[{flow_formated_datetime}]'
+        else:
+            return '""'
     # ------------------------------------------------------------------------------------------
     def evaluate_to_internal_value(self):
         """
