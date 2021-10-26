@@ -5,7 +5,7 @@ from reflow_server.authentication.services.company import CompanyService
 from reflow_server.authentication.services.data import UserAccessedByData
 from reflow_server.authentication.models import UserExtended, Company
 from reflow_server.authentication.relations import OptionAccessedByRelation, FormAccessedByRelation, \
-    FormularyOptionsRelation, UserAccessedByRelation
+    FormularyOptionsRelation, UserAccessedByRelation, HasAPIAccessKeyRelation
 from reflow_server.formulary.models import Group
 
 
@@ -41,10 +41,20 @@ class CompanySettingsSerializer(serializers.ModelSerializer):
 
 
 class UserSettingsSerializer(serializers.ModelSerializer):
+    """
+    Used for creating, updating or retrieving the users FOR THE SETTINGS,
+    this means we are going to update or create an instance with this data.
+
+    On the app this will be used for the settings and configuration.
+
+    Contexts: 
+        company_id (int): A Company instance id.
+    """
     id = serializers.IntegerField(allow_null=True)
     email = serializers.EmailField(allow_blank=False, allow_null=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
     first_name = serializers.CharField(allow_blank=False, allow_null=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
     last_name = serializers.CharField(allow_blank=False, allow_null=False, error_messages={'invalid': 'invalid', 'blank': 'blank'})
+    has_api_access_key = HasAPIAccessKeyRelation(default=False, source='id')
     option_accessed_by_user = OptionAccessedByRelation(many=True)
     form_accessed_by_user = FormAccessedByRelation(many=True)
     user_accessed_by_user = UserAccessedByRelation(many=True)
@@ -101,6 +111,7 @@ class UserSettingsSerializer(serializers.ModelSerializer):
             'first_name', 
             'last_name', 
             'profile', 
+            'has_api_access_key',
             'option_accessed_by_user', 
             'form_accessed_by_user', 
             'user_accessed_by_user', 

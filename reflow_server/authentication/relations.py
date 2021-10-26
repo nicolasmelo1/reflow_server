@@ -1,8 +1,18 @@
 from rest_framework import serializers
 
+from reflow_server.authentication.models import APIAccessToken
 from reflow_server.formulary.models import OptionAccessedBy, FormAccessedBy, \
     Field, FieldOptions, Form, UserAccessedBy
 from reflow_server.billing.models import CompanyBilling
+
+
+class HasAPIAccessKeyRelation(serializers.BooleanField):
+    def to_representation(self, value):
+        has_access_key = APIAccessToken.authentication_.exists_by_user_id_and_company_id(
+            value, 
+            self.context.get('company_id', None)
+        )
+        return super().to_representation(has_access_key)
 
 
 class UserAccessedByRelation(serializers.ModelSerializer):

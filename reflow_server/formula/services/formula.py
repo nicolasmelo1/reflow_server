@@ -154,7 +154,7 @@ class FlowFormulaService:
                     value = representation.representation(values[0]['value'])
                     value_to_replace = '"{}"'.format(value)
             else:
-                value_to_replace = ""
+                value_to_replace = '""'
             formula = formula.replace(variables[index], value_to_replace, 1)
         return formula
     # ------------------------------------------------------------------------------------------

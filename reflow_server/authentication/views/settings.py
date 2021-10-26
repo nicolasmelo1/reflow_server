@@ -68,14 +68,18 @@ class UserSettingsView(APIView):
 
     def get(self, request, company_id):
         instances = UserExtended.authentication_.users_active_by_company_id_ordered_by_descending_id(company_id)
-        serializer = UserSettingsSerializer(instance=instances, many=True)
+        serializer = UserSettingsSerializer(instance=instances, many=True, context={
+            'company_id': company_id
+        })
         return Response({
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
     
     def post(self, request, company_id):
-        serializer = UserSettingsSerializer(data=request.data)
+        serializer = UserSettingsSerializer(data=request.data, context={
+            'company_id': company_id
+        })
         if serializer.is_valid():
             serializer.save(company_id, request.user.id)
             return Response({
@@ -101,7 +105,9 @@ class UserSettingsEditView(APIView):
 
     def put(self, request, company_id, user_id):
         instance = UserExtended.authentication_.user_active_by_user_id_and_company_id(user_id, company_id)
-        serializer = UserSettingsSerializer(data=request.data, instance=instance)
+        serializer = UserSettingsSerializer(data=request.data, instance=instance, context={
+            'company_id': company_id
+        })
         is_self = UsersService.is_self(int(user_id), int(request.user.id))
         if not is_self and serializer.is_valid():
             try:

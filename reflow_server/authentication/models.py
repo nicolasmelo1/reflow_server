@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 from reflow_server.authentication.managers import UserExtendedAuthenticationManager, \
-    CompanyAuthenticationManager, PublicAccessAuthenticationManager
+    CompanyAuthenticationManager, PublicAccessAuthenticationManager, APIAccessTokenAuthenticationManager
 from reflow_server.billing.managers import UserExtendedBillingManager, CompanyBillingManager, \
     AddressHelperBillingManager
 from reflow_server.data.managers import UserExtendedDataManager
@@ -188,13 +188,20 @@ class PublicAccess(models.Model):
 class APIAccessToken(models.Model):
     """
     The token for the API need to be defined in the header of each call from the API.
+
+    WHY IS THIS NOT DEFINED IN THE USER ITSELF? 
+
+    Because the access token is for each company. Imagine a user is an admin of a company, but another
+    he's just a simple user and does not have api privileges, this way you can still enable the user
+    to use the api in one company and not the other. It keeps everything isolated.
     """
     user = models.OneToOneField('authentication.UserExtended', on_delete=models.CASCADE, db_index=True)
     company = models.ForeignKey('authentication.Company', on_delete=models.CASCADE, db_index=True)
-    access_token = models.UUIDField(default=uuid.uuid4, null=True, blank=True, db_index=True)
+    access_token = models.CharField(max_length=500, null=True, blank=True, db_index=True)
 
     class Meta:
         db_table = 'api_access_token'
 
     objects = models.Manager()
+    authentication_ = APIAccessTokenAuthenticationManager()
     

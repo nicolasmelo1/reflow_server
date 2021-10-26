@@ -109,8 +109,8 @@ response.conteudo
 """
 
 SMTP_library = r"""
-message = SMTP.build_message("nicolas.melo1@hotmail.com", ["nicolasmelo12@gmail.com"], "Tesssste", "Testinho")
-SMTP.send_email("smtp.office365.com", 587, "nicolas.melo1@hotmail.com", "Nicolas1234!@#", message)
+message = SMTP.build_message("reflow@reflow.com.br", ["nicolasmelo12@gmail.com"], "Tesssste", "Testinho")
+SMTP.send_email("smtp.gmail.com", 587, "reflow@reflow.com.br", "Reflow1234!@#", message)
 """
 
 List_library = r"""
@@ -152,11 +152,11 @@ functions_to_test = [
     #anonymous_formulas,
     #lists,
     #anonymous_function_call,
-    dicts,
+    #dicts,
     #modules,
     #structs,
     #HTTP_library,
-    #SMTP_library,
+    SMTP_library,
     #datetime_test,
     #List_library,
     #automation_library
