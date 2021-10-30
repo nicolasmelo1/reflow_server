@@ -391,11 +391,12 @@ PERMISSIONS = {
 # check formula.utils.settings for reference
 FORMULA_MODULES = {
     'default': [
-        'HTTP', 
-        'SMTP', 
-        'Reflow', 
+        'HTTP',
+        'SMTP',
+        'Reflow',
         'Datetime',
-        'List'
+        'List',
+        'String'
     ],
     'automation': [
         'Automation'

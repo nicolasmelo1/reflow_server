@@ -43,3 +43,16 @@ class APIAccessTokenAuthenticationManager(models.Manager):
 
     def exists_by_user_id_and_company_id(self, user_id, company_id):
         return self.get_queryset().filter(user_id=user_id, company_id=company_id).exists()
+
+    def access_token_by_user_id_and_company_id(self, user_id, company_id):
+        """
+        Checks if the secret access token company and user_id and retrieves the access_token.
+
+        Args:
+            user_id (int): A UserExtended instance id.
+            company_id (int): A Company instance id.
+
+        Returns:
+            (str, None): Returns the access_token or None if it doesn't exists.
+        """
+        return self.get_queryset().filter(user_id=user_id, company_id=company_id).values_list('access_token', flat=True).first()

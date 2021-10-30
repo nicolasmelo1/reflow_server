@@ -21,6 +21,16 @@ class HasAPIAccessKeyRelation(serializers.Field):
             'has_api_access_key': data
         }
 
+
+class APIAccessKeyRelation(serializers.Field):
+    def to_representation(self, value):
+        access_key = APIAccessToken.authentication_.access_token_by_user_id_and_company_id(
+            value.id, 
+            self.context.get('company_id', None)
+        )
+        return access_key
+
+
 class UserAccessedByRelation(serializers.ModelSerializer):
     user_option_id = serializers.IntegerField()    
     field_id = serializers.IntegerField()

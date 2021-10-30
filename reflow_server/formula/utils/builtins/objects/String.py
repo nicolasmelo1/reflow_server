@@ -168,6 +168,12 @@ class String(Object):
         else:
             return super().new_boolean(True)
     # ------------------------------------------------------------------------------------------
+    def _getitem_(self, index):
+        if not isinstance(index, int): 
+            index = index._representation_()
+        extracted_character = self._representation_()[index]
+        return self.__class__(self.settings)._initialize_(extracted_character)
+    # ------------------------------------------------------------------------------------------
     def _representation_(self):
         return str(self.value)
     # ------------------------------------------------------------------------------------------

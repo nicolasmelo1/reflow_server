@@ -8,6 +8,7 @@ from reflow_server.billing.services import BillingService
 from reflow_server.formula.services.formula import FlowFormulaService
 from reflow_server.analytics.models import CompanyAnalytics
 
+
 class OnboardingService(CompanyService):
     """
     Service used to onboard a user to Reflow, used on onboarding

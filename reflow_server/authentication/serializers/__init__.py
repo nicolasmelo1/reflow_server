@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 
 from rest_framework import serializers
+from reflow_server.authentication.managers import api_access_token
 
 from reflow_server.core.events import Event
 from reflow_server.authentication.models import UserExtended, Company
@@ -9,7 +10,7 @@ from reflow_server.authentication.services.onboarding import OnboardingService
 from reflow_server.authentication.services.password import PasswordService
 from reflow_server.authentication.services.company import CompanyService
 from reflow_server.authentication.utils.jwt_auth import JWT
-from reflow_server.authentication.relations import CompanyBillingRelation, HasAPIAccessKeyRelation
+from reflow_server.authentication.relations import CompanyBillingRelation, APIAccessKeyRelation
 
 
 class LoginSerializer(serializers.Serializer):
@@ -33,7 +34,7 @@ class UserSerializer(serializers.ModelSerializer):
     """
     Serializer responsible for retrieving and recieving user data.
     """
-    has_api_access_key = HasAPIAccessKeyRelation(default=False, source='*')
+    api_access_key = APIAccessKeyRelation(default=False, source='*')
 
     class Meta:
         model = UserExtended
