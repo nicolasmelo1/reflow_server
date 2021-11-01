@@ -137,9 +137,9 @@ from reflow_server.formula.utils.helpers import DatetimeHelper
 date_string = f"~D[{datetime.strptime('2012-04-11 11:11:11', '%Y-%m-%d %H:%M:%S').strftime(DatetimeHelper.to_python_format(context.datetime.date_format, context.datetime.time_format))}]"
 datetime_test = r"""
 date1 =  ~D[2020-10-10]
-date2 = ~D[2022-11-11]
+date2 = ~D[2021-11-11]
 
-Datetime.difference(date2, date1, year=True)
+Datetime.difference(date2, date1, month=True)
 """
 
 functions_to_test = [

@@ -156,17 +156,17 @@ class Datetime(LibraryModule):
             delta = relativedelta(bigger_date, smaller_date)
             result = bigger_date - smaller_date
 
-            if year._boolean_()._representation_():
+            if isinstance(year, flow_objects.Object.Object) and year._boolean_()._representation_():
                 return flow_objects.Integer(kwargs['__settings__'])._initialize_(delta.years)
-            elif month._boolean_()._representation_():
+            elif isinstance(month, flow_objects.Object.Object) and month._boolean_()._representation_():
                 return flow_objects.Integer(kwargs['__settings__'])._initialize_(delta.months + (delta.years)*12)
-            elif day._boolean_()._representation_():
+            elif isinstance(day, flow_objects.Object.Object) and day._boolean_()._representation_():
                 return flow_objects.Integer(kwargs['__settings__'])._initialize_(result / timedelta(days=1))
-            elif hour._boolean_()._representation_():
+            elif isinstance(hour, flow_objects.Object.Object) and hour._boolean_()._representation_():
                 return flow_objects.Integer(kwargs['__settings__'])._initialize_(result / timedelta(hours=1))
-            elif minute._boolean_()._representation_():
+            elif isinstance(minute, flow_objects.Object.Object) and minute._boolean_()._representation_():
                 return flow_objects.Integer(kwargs['__settings__'])._initialize_(result / timedelta(minutes=1))
-            elif second._boolean_()._representation_():
+            elif isinstance(second, flow_objects.Object.Object) and second._boolean_()._representation_():
                 return flow_objects.Integer(kwargs['__settings__'])._initialize_(result / timedelta(seconds=1))
             else:
                 return flow_objects.Integer(kwargs['__settings__'])._initialize_(result / timedelta(microseconds=1))
