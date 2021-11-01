@@ -38,6 +38,15 @@ class Number(LibraryModule):
         else:
             flow_objects.Error(kwargs['__settings__'])._initialize_('Error', '`number` should be a number')
 
+    @functionmethod
+    def to_string(number, **kwargs):
+        number = retrieve_representation(number)
+    
+        if isinstance(number, int) or isinstance(number, float):
+            return flow_objects.String(kwargs['__settings__'])._initialize_(str(number))
+        else:
+            flow_objects.Error(kwargs['__settings__'])._initialize_('Error', '`number` should be a number')
+
     def _documentation_(self):
         """
         This is the documentation of the formula, this is required because even if we do not translate the formula documentation directly, we need to have
@@ -67,6 +76,15 @@ class Number(LibraryModule):
                     'attributes': {
                         'number': {
                             'description': "This is the number that we want to create",
+                            'is_required': True
+                        }
+                    }
+                },
+                'to_string': {
+                    'description': "This method is responsible for converting a number to a string.",
+                    'attributes': {
+                        'number': {
+                            'description': "This is the number that we want to convert to a string",
                             'is_required': True
                         }
                     }
