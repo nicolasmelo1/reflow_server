@@ -396,7 +396,8 @@ FORMULA_MODULES = {
         'Reflow',
         'Datetime',
         'List',
-        'String'
+        'String',
+        'Number'
     ],
     'automation': [
         'Automation'
