@@ -1,10 +1,10 @@
-import pytz
 from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryModule, functionmethod, \
     retrieve_representation
 from reflow_server.formula.utils.builtins import objects as flow_objects
 
 from dateutil.relativedelta import relativedelta
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
 
 
 class Datetime(LibraryModule):
@@ -21,11 +21,51 @@ class Datetime(LibraryModule):
     @functionmethod
     def year(date, **kwargs):
         if isinstance(date, flow_objects.Datetime):
-            date = retrieve_representation(date)
-            year = date.year
-            return flow_objects.Integer(kwargs['__settings__'])._initialize_(year)
+            return flow_objects.Integer(kwargs['__settings__'])._initialize_(date.year)
         else:
             flow_objects.Error(kwargs['__settings__'])._initialize_('Error', 'Invalid date, should be a date')
+
+    @functionmethod
+    def month(date, **kwargs):
+        if isinstance(date, flow_objects.Datetime):
+            return flow_objects.Integer(kwargs['__settings__'])._initialize_(date.month)
+        else:
+            flow_objects.Error(kwargs['__settings__'])._initialize_('Error', 'Invalid date, should be a datetime value')
+
+    @functionmethod
+    def day(date, **kwargs):
+        if isinstance(date, flow_objects.Datetime):
+            return flow_objects.Integer(kwargs['__settings__'])._initialize_(date.day)
+        else:
+            flow_objects.Error(kwargs['__settings__'])._initialize_('Error', 'Invalid date, should be a datetime value')
+
+    @functionmethod
+    def hour(date, **kwargs):
+        if isinstance(date, flow_objects.Datetime):
+            return flow_objects.Integer(kwargs['__settings__'])._initialize_(date.hour)
+        else:
+            flow_objects.Error(kwargs['__settings__'])._initialize_('Error', 'Invalid date, should be a datetime value')
+
+    @functionmethod
+    def minute(date, **kwargs):
+        if isinstance(date, flow_objects.Datetime):
+            return flow_objects.Integer(kwargs['__settings__'])._initialize_(date.minute)
+        else:
+            flow_objects.Error(kwargs['__settings__'])._initialize_('Error', 'Invalid date, should be a datetime value')
+
+    @functionmethod
+    def second(date, **kwargs):
+        if isinstance(date, flow_objects.Datetime):
+            return flow_objects.Integer(kwargs['__settings__'])._initialize_(date.second)
+        else:
+            flow_objects.Error(kwargs['__settings__'])._initialize_('Error', 'Invalid date, should be a datetime value')
+
+    @functionmethod
+    def microsecond(date, **kwargs):
+        if isinstance(date, flow_objects.Datetime):
+            return flow_objects.Integer(kwargs['__settings__'])._initialize_(date.microsecond)
+        else:
+            flow_objects.Error(kwargs['__settings__'])._initialize_('Error', 'Invalid date, should be a datetime value')
 
     @functionmethod
     def new_date(year, month, day, hour=0, minute=0, second=0, microsecond=0, **kwargs):
@@ -108,6 +148,31 @@ class Datetime(LibraryModule):
         else:
             flow_objects.Error(kwargs['__settings__'])._initialize_('Error', 'Invalid value for function')
     
+    @functionmethod
+    def difference(bigger_date, smaller_date, year=False, month=False, day=False, hour=False, minute=False, second=False, **kwargs):
+        if isinstance(bigger_date, flow_objects.Datetime) and isinstance(smaller_date, flow_objects.Datetime):
+            bigger_date = retrieve_representation(bigger_date)
+            smaller_date = retrieve_representation(smaller_date)
+            delta = relativedelta(bigger_date, smaller_date)
+            result = bigger_date - smaller_date
+
+            if year._boolean_()._representation_():
+                return flow_objects.Integer(kwargs['__settings__'])._initialize_(delta.years)
+            elif month._boolean_()._representation_():
+                return flow_objects.Integer(kwargs['__settings__'])._initialize_(delta.months + (delta.years)*12)
+            elif day._boolean_()._representation_():
+                return flow_objects.Integer(kwargs['__settings__'])._initialize_(result / timedelta(days=1))
+            elif hour._boolean_()._representation_():
+                return flow_objects.Integer(kwargs['__settings__'])._initialize_(result / timedelta(hours=1))
+            elif minute._boolean_()._representation_():
+                return flow_objects.Integer(kwargs['__settings__'])._initialize_(result / timedelta(minutes=1))
+            elif second._boolean_()._representation_():
+                return flow_objects.Integer(kwargs['__settings__'])._initialize_(result / timedelta(seconds=1))
+            else:
+                return flow_objects.Integer(kwargs['__settings__'])._initialize_(result / timedelta(microseconds=1))
+        else:
+            flow_objects.Error(kwargs['__settings__'])._initialize_('Error', 'Invalid value for function')
+
     def _documentation_(self):
         """
         This is the documentation of the formula, this is required because even if we do not translate the formula documentation directly, we need to have
@@ -126,6 +191,65 @@ class Datetime(LibraryModule):
                     'attributes': {
                         'date': {
                             'description': 'The actual date to extract the year from.',
+                            'is_required': True
+                        }
+                    }
+                },
+                'month': {
+                    'description': 'Retrieve the month of a date. Example:\n'
+                                   '>>> Datetime.year(~D[2020-10-12]) == 10',
+                    'attributes': {
+                        'date': {
+                            'description': 'The actual date to extract the month from.',
+                            'is_required': True
+                        }
+                    }
+                },
+                'day': {
+                    'description': 'Retrieve the day of a date. Example:\n'
+                                   '>>> Datetime.year(~D[2020-10-12]) == 12',
+                    'attributes': {
+                        'date': {
+                            'description': 'The actual date to extract the day from.',
+                            'is_required': True
+                        }
+                    }
+                },
+                'hour': {
+                    'description': 'Retrieve the hour of a date. Example:\n'
+                                   '>>> Datetime.year(~D[2020-10-12 20:11:40]) == 20',
+                    'attributes': {
+                        'date': {
+                            'description': 'The actual date to extract the hour from.',
+                            'is_required': True
+                        }
+                    }
+                },
+                'minute': {
+                    'description': 'Retrieve the minute of a date. Example:\n'
+                                   '>>> Datetime.year(~D[2020-10-12 20:11:40]) == 11',
+                    'attributes': {
+                        'date': {
+                            'description': 'The actual date to extract the minute from.',
+                            'is_required': True
+                        }
+                    }
+                },
+                'second': {
+                    'description': 'Retrieve the second of a date. Example:\n'
+                                   '>>> Datetime.year(~D[2020-10-12 20:11:40]) == 40',
+                    'attributes': {
+                        'date': {
+                            'description': 'The actual date to extract the second from.',
+                            'is_required': True
+                        }
+                    }
+                },
+                'microsecond': {
+                    'description': 'Retrieve the microsecond of a date.',
+                    'attributes': {
+                        'date': {
+                            'description': 'The actual date to extract the microsecond from.',
                             'is_required': True
                         }
                     }
@@ -198,6 +322,46 @@ class Datetime(LibraryModule):
                         },
                         'microseconds': {
                             'description': 'Number of microseconds you want to add or subtract. Defaults to None.',
+                            'is_required': False
+                        }
+                    }
+                },
+                'difference': {
+                    'description': "Retrieve the difference from two dates. This will always retrieve the difference in microseconds "
+                                   "but you can extract by other dimensions like year, days or so. Example: \n"
+                                   "Datetime.difference(~D[2021-11-11, ~D[2020-10-10]) == 86400000000000 \n"
+                                   "Datetime.difference(~D[2021-11-11, ~D[2020-10-10], month=True) == 13",
+                    'attributes': {
+                        'bigger_date': {
+                            'description': 'The bigger date you want to compare.',
+                            'is_required': True
+                        },
+                        'smaller_date': {
+                            'description': 'The smaller date you want to compare.',
+                            'is_required': True
+                        },
+                        'year': {
+                            'description': 'If you want to retrieve the difference in years. Defaults to False.',
+                            'is_required': False
+                        },
+                        'month': {
+                            'description': 'If you want to retrieve the difference in months. Defaults to False.',
+                            'is_required': False
+                        },
+                        'day': {
+                            'description': 'If you want to retrieve the difference in days. Defaults to False.',
+                            'is_required': False
+                        },
+                        'hour': {
+                            'description': 'If you want to retrieve the difference in hours. Defaults to False.',
+                            'is_required': False
+                        },
+                        'minute': {
+                            'description': 'If you want to retrieve the difference in minutes. Defaults to False.',
+                            'is_required': False
+                        },
+                        'second': {
+                            'description': 'If you want to retrieve the difference in seconds. Defaults to False.',
                             'is_required': False
                         }
                     }

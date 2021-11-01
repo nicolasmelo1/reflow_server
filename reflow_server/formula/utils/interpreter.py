@@ -863,6 +863,7 @@ class Interpreter:
             builtins.objects.Error(self.settings)._initialize_('SyntaxError', 'Cannot interpret float')
     # ------------------------------------------------------------------------------------------
     def handle_boolean(self, node):
+        print(node.value.value)
         if helpers.is_boolean(node.value.value):
             boolean = builtins.objects.Boolean(self.settings)
             return boolean._initialize_(node.value.value)

@@ -88,6 +88,17 @@ class Datetime(Object):
             return super()._equals_(obj)
     # ------------------------------------------------------------------------------------------
     def _difference_(self, obj):
+        """
+        Retrieves if two datetime objects are different from each other, if it is we return a new boolean object indicating
+        that it is different, otherwise we tell it it is the same. This just works when comparing 2 datatimes.
+
+        Args:
+            obj (any): Any Flow object type is accepted but it only works if the object is a Datetime object.
+
+        Returns:
+            reflow_server.formula.utils.builtins.objects.Boolean.Boolean: Returns a boolean object representing either True or 
+                                                                          False for the difference conditional. 
+        """
         if obj.type == DATETIME_TYPE:
             is_datetime_objects_different = obj.year != self.year or \
                                             obj.month != self.month or \
@@ -105,7 +116,7 @@ class Datetime(Object):
         When it is less than what we do is compare if each part of the Datetime is less than to one another.
 
         Args:
-            obj (reflow_server.formula.utils.builtins.objects.Boolean): Returns a new boolean object
+            obj (any): Any Flow object type is accepted but it only works if the object is a Datetime object.
 
         Returns:
             reflow_server.formula.utils.builtins.objects.Boolean.Boolean: Returns a boolean object representing either True or 

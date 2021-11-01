@@ -136,13 +136,10 @@ from reflow_server.formula.utils.helpers import DatetimeHelper
 
 date_string = f"~D[{datetime.strptime('2012-04-11 11:11:11', '%Y-%m-%d %H:%M:%S').strftime(DatetimeHelper.to_python_format(context.datetime.date_format, context.datetime.time_format))}]"
 datetime_test = r"""
-# Testar comentários
-teste = {
-    "": ~D[2020-10-10]
-    "Valor": 123
-}
+date1 =  ~D[2020-10-10]
+date2 = ~D[2022-11-11]
 
-teste[""]
+Datetime.difference(date2, date1, year=True)
 """
 
 functions_to_test = [
@@ -156,10 +153,11 @@ functions_to_test = [
     #modules,
     #structs,
     #HTTP_library,
-    SMTP_library,
+    #SMTP_library,
     #datetime_test,
     #List_library,
-    #automation_library
+    #automation_library,
+    datetime_test
 ]
 
 import json

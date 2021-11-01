@@ -202,9 +202,9 @@ class Lexer:
         elif keyword == self.settings.if_keywords['else']:
             return Token(TokenType.ELSE, keyword)
         elif keyword == self.settings.boolean_keywords['true']:
-            return Token(TokenType.TRUE, keyword)
+            return Token(TokenType.BOOLEAN, keyword)
         elif keyword == self.settings.boolean_keywords['false']:
-            return Token(TokenType.FALSE, keyword)
+            return Token(TokenType.BOOLEAN, keyword)
         elif keyword == self.settings.null_keyword:
             return Token(TokenType.NULL, keyword)
         elif keyword == self.settings.module_keyword:

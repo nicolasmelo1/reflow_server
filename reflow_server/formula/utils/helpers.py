@@ -13,7 +13,11 @@ def is_string(value):
     return isinstance(value, str)
 # ------------------------------------------------------------------------------------------
 def is_boolean(value):
-    return isinstance(value, bool)
+    try:
+        value = bool(value)
+        return True
+    except Exception as e:
+        return False
 # ------------------------------------------------------------------------------------------
 def is_float(value):
     try:
