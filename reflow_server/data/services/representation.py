@@ -206,7 +206,10 @@ class RepresentationService:
 
     def _representation_user(self, value):
         if not self.load_ids:
-            value = UserExtended.data_.user_full_name_by_user_id(int(value))
+            try: 
+                value = UserExtended.data_.user_full_name_by_user_id(int(value))
+            except ValueError as ve:
+                pass
         return value
 
     def _representation_date(self, value):
