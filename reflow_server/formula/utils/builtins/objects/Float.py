@@ -292,7 +292,8 @@ class Float(Object):
         return float(value)
     # ------------------------------------------------------------------------------------------
     def _safe_representation_(self):
-        return float(self.value)
+        value = str(self.value).replace(self.settings.decimal_point_character, '.')
+        return float(value)
     # ------------------------------------------------------------------------------------------    
     def _hash_(self):   
         # yep
