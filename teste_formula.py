@@ -139,7 +139,7 @@ datetime_test = r"""
 date1 =  ~D[2020-10-10]
 date2 = ~D[2021-11-11]
 
-Datetime.difference(date2, date1)
+Datetime.date_add(date2, months = 20.4)
 """
 
 functions_to_test = [

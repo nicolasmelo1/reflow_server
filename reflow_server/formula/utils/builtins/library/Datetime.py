@@ -106,25 +106,25 @@ class Datetime(LibraryModule):
 
     @functionmethod
     def date_add(value, years=0, months=0, days=0, hours=0, minutes=0, seconds=0, microseconds=0, **kwargs):
-        is_valid_values = (years == 0 or isinstance(years, flow_objects.Integer) or isinstance(years, int)) and \
-                          (months == 0 or isinstance(months, flow_objects.Integer) or isinstance(months, int)) and \
-                          (days == 0 or isinstance(days, flow_objects.Integer) or isinstance(days, int)) and \
-                          (hours == 0 or isinstance(hours, flow_objects.Integer) or isinstance(hours, int)) and \
-                          (minutes == 0 or isinstance(minutes, flow_objects.Integer) or isinstance(minutes, int)) and \
-                          (seconds == 0 or isinstance(seconds, flow_objects.Integer) or isinstance(seconds, int)) and \
-                          (microseconds == 0 or isinstance(microseconds, flow_objects.Integer) or isinstance(microseconds, int)) and \
+        is_valid_values = (years == 0 or isinstance(years, flow_objects.Integer) or isinstance(years, flow_objects.Float)) and \
+                          (months == 0 or isinstance(months, flow_objects.Integer) or isinstance(months, flow_objects.Float)) and \
+                          (days == 0 or isinstance(days, flow_objects.Integer) or isinstance(days, flow_objects.Float)) and \
+                          (hours == 0 or isinstance(hours, flow_objects.Integer) or isinstance(hours, flow_objects.Float)) and \
+                          (minutes == 0 or isinstance(minutes, flow_objects.Integer) or isinstance(minutes, flow_objects.Float)) and \
+                          (seconds == 0 or isinstance(seconds, flow_objects.Integer) or isinstance(seconds, flow_objects.Float)) and \
+                          (microseconds == 0 or isinstance(microseconds, flow_objects.Integer) or isinstance(microseconds, flow_objects.Float)) and \
                           isinstance(value, flow_objects.Datetime)
         if years == None and months == None and days == None and minutes == None and seconds == None and microseconds == None:
             flow_objects.Error(kwargs['__settings__'])._initialize_('Error', 'You should define at least one parameter to add to the date')
 
         elif is_valid_values:
-            years = retrieve_representation(years)
-            months = retrieve_representation(months)
-            days = retrieve_representation(days)
-            hours = retrieve_representation(hours)
-            minutes = retrieve_representation(minutes)
-            seconds = retrieve_representation(seconds)
-            microseconds = retrieve_representation(microseconds)
+            years = int(retrieve_representation(years))
+            months = int(retrieve_representation(months))
+            days = int(retrieve_representation(days))
+            hours = int(retrieve_representation(hours))
+            minutes = int(retrieve_representation(minutes))
+            seconds = int(retrieve_representation(seconds))
+            microseconds = int(retrieve_representation(microseconds))
 
             value = retrieve_representation(value)
 
