@@ -14,7 +14,7 @@ class AnalyticsService:
     def format_request_event(self, event_data, parent_key='', separator='_'):
         """
         Formats the data of the event of a request. Since we don't trust that the front-end will give us the formatted data
-        we need to format it. (yeah, i don't trust anyone, not even myself https://i.kym-cdn.com/entries/icons/facebook/000/017/046/BptVE1JIEAAA3dT.jpg)
+        we need to format it so it doesn't become nested. (yeah, i don't trust anyone, not even myself https://i.kym-cdn.com/entries/icons/facebook/000/017/046/BptVE1JIEAAA3dT.jpg)
 
         Reference: https://stackoverflow.com/a/6027615
 

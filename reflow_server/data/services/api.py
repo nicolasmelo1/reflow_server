@@ -1,7 +1,9 @@
+from reflow_server.authentication.models import UserExtended
 from reflow_server.data.models import DynamicForm, FormValue
 from reflow_server.formulary.models import Form, Field
 from reflow_server.data.services.formulary import FormularyDataService
 
+from datetime import datetime
 import uuid
 import json
 
@@ -63,6 +65,11 @@ class APIService:
         Returns:
             reflow_server.data.services.formulary.FormularyDataService: Returns the formulary service with the formatted data.
         """
+        # section_ids_to_ignore and form_value_ids_to_ignore is for the case when we are updating a formulary data.
+        # if you look closely in the API you will see that the user does not set the sectionId neither the form_value_id when updating
+        # a existing record. So we evaluate this automatically. The idea is simple. When the user is updating we get all of the sections
+        # and form_values and then for each section we pass the sectionId and for each value the form_value_id. When we finish, we will effectively
+        # update the data considering a number of section_ids and form_value_ids. If any of them was not attributed, we will remove from the database.
         section_ids_to_ignore = []
         form_value_ids_to_ignore = []
         formulary_data_service = FormularyDataService(self.user_id, self.company_id, form_name)
@@ -109,16 +116,42 @@ class APIService:
                         
                         field_label_names = section_record.keys()
                         for field_label_name in field_label_names:
-                            field_name_and_id = Field.objects.filter(label_name=field_label_name, form_id=section_id).values('name', 'id').first()
-                            if field_name_and_id:
-                                field_name = field_name_and_id['name']
-                                field_id = field_name_and_id['id']
+                            field_name_type_and_id = Field.objects.filter(label_name=field_label_name, form_id=section_id).values(
+                                'name', 
+                                'type__type', 
+                                'date_configuration_date_format_type__format',
+                                'number_configuration_number_format_type__decimal_separator',
+                                'id'
+                            ).first()
+                            if field_name_type_and_id:
+                                field_name = field_name_type_and_id['name']
+                                field_id = field_name_type_and_id['id']
+                                field_type = field_name_type_and_id['type__type']
+                                field_date_format = field_name_type_and_id['date_configuration_date_format_type__format']
+                                field_number_decimal_separator = field_name_type_and_id['number_configuration_number_format_type__decimal_separator']
 
                                 values = section_record[field_label_name]
                                 if not isinstance(values, list):
                                     values = [values]
 
                                 for value in values:
+                                    if field_type == 'date' and value not in ['', None]:
+                                        try:
+                                            formated_datetime = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S%z"), 
+                                        except ValueError as ve:
+                                            formated_datetime = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+                                        value = datetime.strftime(
+                                            formated_datetime, 
+                                            field_date_format
+                                        )
+                                    elif field_type == 'number' and value not in ['', None]:
+                                        value = str(value).replace('.', field_number_decimal_separator)
+                                    elif field_type == 'user' and value not in ['', None] and isinstance(value, str) and not value.isdigit():
+                                        value = UserExtended.data_.user_id_by_email_and_company_id(value, self.company_id)
+                                        if value == None:
+                                            value = ''
+                                        else:
+                                            value = str(value)
                                     field_value_data = section_data.add_field_value(field_id, field_name, value)
 
                                     if section_data.section_data_id:

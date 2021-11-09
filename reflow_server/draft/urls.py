@@ -2,12 +2,14 @@ from django.conf.urls import re_path, include
 
 from reflow_server.core.decorators import validate_billing, authorize_external_response
 from reflow_server.draft.views import DraftSaveFileView, DraftSaveValueView, DraftEditFileView, DraftRemoveDraftView
-from reflow_server.draft.views.externals import DraftRemoveDraftExternalView
-from reflow_server.authentication.services.routes import register_can_be_public_url
+from reflow_server.draft.views.externals import DraftRemoveDraftExternalView, APIDraftSaveFileExternalView
 from reflow_server.draft.services.routes import register_draft_url
+from reflow_server.authentication.services.routes import register_can_be_public_url
+from reflow_server.authentication.decorators import api_token_required
 
 
 external_urlpatterns = [
+    re_path(r'api/(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/$', api_token_required(APIDraftSaveFileExternalView.as_view()), name='api_external'),
     re_path(r'remove_old_drafts/$', authorize_external_response(DraftRemoveDraftExternalView.as_view()), name='draft_external_remove_old_drafts_view')
 ]
 

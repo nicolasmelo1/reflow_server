@@ -1,12 +1,10 @@
-from reflow_server.billing.models import CompanyBilling
 from django.conf import settings
-from django.utils import timezone
 
-from reflow_server.authentication.models import Company, UserExtended
+from reflow_server.billing.models import CompanyBilling
+from reflow_server.authentication.models import UserExtended
 
 from mixpanel import Mixpanel
 
-from datetime import timedelta
 
 # Formulary_Updated and field_updated events fire for every type of the user
 # this is not ideal for the Analytics user but it is for our logging system.
@@ -70,6 +68,7 @@ class MixpanelService:
                 company_id = int(company_id)
             except Exception as e:
                 pass
+            
             # the company_id is not in trial_company_ids nor paying_company_ids variable, so let's define what the company is
             company_billing = CompanyBilling.objects.filter(company_id=int(company_id)).first()
             if company_billing:
@@ -145,7 +144,7 @@ class MixpanelService:
             'company_type': self.define_company_type(company_id)
         })
     # ------------------------------------------------------------------------------------------
-    def track_formulary_data_udated(self, user_id, company_id, form_id, form_data_id, is_public):
+    def track_formulary_data_updated(self, user_id, company_id, form_id, form_data_id, is_public):
         self.mixpanel.track(user_id, 'Formulary Record Updated', {
             'company_id': company_id,
             'form_id': form_id,
@@ -185,8 +184,7 @@ class MixpanelService:
         })
     # ------------------------------------------------------------------------------------------
     def track_updated_billing_information(self, user_id, company_id, total_paying_value):
-        self.mixpanel.track('Company Updated Billing Information', {
-            'user_id': user_id,
+        self.mixpanel.track(user_id, 'Company Updated Billing Information', {
             'company_id': company_id,
             'company_type': self.define_company_type(company_id),
             'total_paying_value': total_paying_value

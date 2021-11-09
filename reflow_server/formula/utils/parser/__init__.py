@@ -362,7 +362,7 @@ class Parser:
                 argument = self.function_statement()
             else:
                 argument = self.expression()
-            argument.append(argument)
+            arguments.append(argument)
             if TokenType.POSITIONAL_ARGUMENT_SEPARATOR == self.current_token.token_type:
                 self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
         return arguments
@@ -551,7 +551,7 @@ class Parser:
         if self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS, TokenType.ATTRIBUTE, TokenType.LEFT_BRACES]:
             # this is in a while because i can have a function that returns a function like 
             # function do_something() do
-            #   function another_one do
+            #   function another_one() do
             #       "result"
             #   end
             # end

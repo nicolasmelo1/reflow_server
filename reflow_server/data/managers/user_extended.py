@@ -18,6 +18,10 @@ class UserExtendedDataManager(UserManager):
         """
         return self.get_queryset().filter(company_id=company_id, is_active=True)
 
+    def user_id_by_email_and_company_id(self, email, company_id):
+        return self.get_queryset().filter(company_id=company_id, is_active=True, username=email).values_list('id', flat=True).first()
+
+
     def user_by_user_id(self, user_id):
         """
         Retrieves a user by its id.
