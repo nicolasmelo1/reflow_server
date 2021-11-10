@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+from reflow_server.analytics.managers import UserExtendedAnalyticsManager
 from reflow_server.authentication.managers import UserExtendedAuthenticationManager, \
     CompanyAuthenticationManager, PublicAccessAuthenticationManager, APIAccessTokenAuthenticationManager
 from reflow_server.billing.managers import UserExtendedBillingManager, CompanyBillingManager, \
@@ -141,6 +142,7 @@ class UserExtended(AbstractUser):
         db_table = 'users'
 
     objects = models.Manager()
+    analytics_ = UserExtendedAnalyticsManager()
     authentication_ = UserExtendedAuthenticationManager()
     billing_ = UserExtendedBillingManager()
     data_ = UserExtendedDataManager()

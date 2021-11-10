@@ -85,15 +85,6 @@ class BaseConsumer(AsyncWebsocketConsumer):
     - Your methods must always be unique.
     - Don't forget to register your consumers in `settings.py` with the CONSUMERS list tag.
     """
-    group_name = 'default'
-
-
-    async def connect(self):
-        await self.channel_layer.group_add(
-            self.group_name,
-            self.channel_name
-        )
-        await self.accept()
 
     async def disconnect(self, close_code):
         # Leave room group
@@ -181,6 +172,7 @@ class UserConsumer(BaseConsumer, *get_consumers('LOGIN_REQUIRED')):
                 self.channel_name
             )
             await self.accept()
+            await super(UserConsumer, self).after_connect()
         else:
             raise DenyConnection('For `user` group types, your user must be authenticated')
     

@@ -232,11 +232,11 @@ EVENTS = {
     },
     'user_login': {
         'data_parameters': ['user_id', 'company_id'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.analytics.events.SurveyEvents']
     },
     'user_refresh_token': {
         'data_parameters': ['user_id', 'company_id'],
-        'consumers': ['reflow_server.analytics.events.AnalyticsEvents']
+        'consumers': ['reflow_server.analytics.events.AnalyticsEvents', 'reflow_server.analytics.events.SurveyEvents']
     },
     'user_created': {
         'data_parameters': ['user_id', 'company_id'],
@@ -352,6 +352,7 @@ EVENTS = {
 # check reflow_server.core.consumers file
 CONSUMERS = {
     'LOGIN_REQUIRED': [
+        'reflow_server.analytics.consumers.AnalyticsSurveyConsumer',
         'reflow_server.data.consumers.DataConsumer',
         'reflow_server.billing.consumers.BillingConsumer',
         'reflow_server.authentication.consumers.AuthenticationConsumer',

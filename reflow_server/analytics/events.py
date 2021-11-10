@@ -1,4 +1,5 @@
 from reflow_server.analytics.services import AnalyticsService
+from reflow_server.core.utils.channel_layers import ChannelLayer
 
 
 class AnalyticsEvents:
@@ -473,3 +474,34 @@ class AnalyticsEvents:
             notification_configuration_id=notification_configuration_id
         )
     # ------------------------------------------------------------------------------------------
+
+
+class SurveyEvents:
+    def user_login(self, user_id, company_id):
+        """
+        THis event is fired whenever the user login in the platform.
+
+        Args:
+            user_id (int): The UserExtended instance id of the user that just login
+            company_id (int): The company where the user login.
+        """
+        group_name = 'user_{}'.format(user_id)
+        ChannelLayer.broadcast_to_group(group_name, 'verify_if_need_to_display_survey', {
+            'user_id': user_id,
+            'company_id': company_id
+        })
+
+    def user_refresh_token(self, user_id, company_id):
+        """
+        This event is fired whenever the user requests a new refresh_token, this is needed so we count
+        it as a login since the user stay logged as long as needed.
+
+        Args:
+            user_id (int): The UserExtended instance id of the user we just sent the new token to
+            company_id (int): The Company instance id, this might change in the near future and this might not be tracked.
+        """
+        group_name = 'user_{}'.format(user_id)
+        ChannelLayer.broadcast_to_group(group_name, 'verify_if_need_to_display_survey', {
+            'user_id': user_id,
+            'company_id': company_id
+        })
