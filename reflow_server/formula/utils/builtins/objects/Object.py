@@ -73,10 +73,6 @@ class Object:
         from reflow_server.formula.utils.builtins.objects.Error import Error
         Error(self.settings)._initialize_('Error', "Unsuported operation '/' between types {} and {}".format(self.type, obj.type))
     # ------------------------------------------------------------------------------------------
-    def _divide_(self, obj):
-        from reflow_server.formula.utils.builtins.objects.Error import Error
-        Error(self.settings)._initialize_('Error', "Unsuported operation '/' between types {} and {}".format(self.type, obj.type))
-    # ------------------------------------------------------------------------------------------
     def _remainder_(self, obj):
         from reflow_server.formula.utils.builtins.objects.Error import Error
         Error(self.settings)._initialize_('Error', "Unsuported operation '%' between types {} and {}".format(self.type, obj.type))

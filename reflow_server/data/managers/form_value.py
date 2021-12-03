@@ -451,8 +451,7 @@ class FormValueDataManager(models.Manager):
                 field_id=form_field_as_option_id
             ) \
             .order_by(order_by_value) \
-            .values_list('form', flat=True)
-
+            .values_list('form__depends_on_id', flat=True)
         # we force a order of for each form_value that contains the form_id as the value of the field.
         order = Case(*[When(value=str(value), then=pos) for pos, value in enumerate(form_value_order)])
         return self.form_values_by_depends_on_forms_field_ids_field_type_types_and_company_id(company_id, depends_on_forms, [field_id], [field_type]) \

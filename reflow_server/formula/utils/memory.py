@@ -39,7 +39,11 @@ class Record:
             key (str): The key to save this variable to. 
             value (reflow_server.formula.utils.builtins.objects.*): One of the builtin objects generally
         """
-        self.members[key] = value
+
+        if isinstance(self.members.get(key, None), Record):
+            self.members[key].assign(key, value)
+        else:
+            self.members[key] = value
     # ------------------------------------------------------------------------------------------
     def get(self, key):
         """
@@ -57,7 +61,10 @@ class Record:
             reflow_server.formula.utils.builtins.objects.*: Generally one of the following
         """
         try:
-            return self.members[key]
+            if isinstance(self.members[key], Record):
+                return self.members[key].get(key)
+            else:
+                return self.members[key]
         except Exception as e:
             Error(self.settings)._initialize_('MemoryError', '{} was not defined'.format(key))
     # ------------------------------------------------------------------------------------------
@@ -106,11 +113,11 @@ class CallStack:
         Returns:
             reflow_server.formula.utils.memory.Record: Returns the added Record object.
         """
-        record.set_nesting_level(len(self.records))
-        if len(self.records) < 99:
-            self.records.append(record)
-        else:
+        if len(self.records) >= self.settings.max_call_stack_size:
             Error(self.settings)._initialize_('MemoryError', 'Stack is full, this means you are calling too many functions at once, try optimizing your code')
+        
+        record.set_nesting_level(len(self.records))
+        self.records.append(record)
         return record
     # ------------------------------------------------------------------------------------------
     def pop(self):
@@ -229,4 +236,3 @@ class Memory:
     """
     def __init__(self, settings):
         self.stack = CallStack(settings)
-        

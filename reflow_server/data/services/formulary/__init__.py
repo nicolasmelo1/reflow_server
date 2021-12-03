@@ -12,7 +12,7 @@ from reflow_server.data.services.formulary.post_save import PostSave
 
 
 class FormularyDataService(PreSave, PostSave):
-    def __init__(self, user_id, company_id, form_name, public_access_key=None):
+    def __init__(self, user_id, company_id, form_name, public_access_key=None, disable_events=False):
         """
         This object handles the save and update of the data of a single form.
 
@@ -26,6 +26,7 @@ class FormularyDataService(PreSave, PostSave):
         self.company_id = company_id
         self.form_name = form_name
         self.public_access_key = public_access_key
+        self.disable_events = disable_events
         self.post_save_process = list()
     # ------------------------------------------------------------------------------------------
     def add_formulary_data(self, form_data_uuid, form_data_id=None, duplicate=False):
@@ -72,26 +73,27 @@ class FormularyDataService(PreSave, PostSave):
         # register the event that the formulary was updated or created
         formulary_data_was_created = self.formulary_data.form_data_id == None
         is_public = self.public_access_key != None
-        if formulary_data_was_created:
-            Event.register_event('formulary_data_created', {
-                'user_id': self.user_id,
-                'company_id': self.company_id,
-                'form_id': self.form.id,
-                'is_public': is_public,
-                'form_data_id': formulary_instance_id,
-                'data': self.formulary_data
-            })
-        else:
-            Event.register_event('formulary_data_updated', {
-                'user_id': self.user_id,
-                'company_id': self.company_id,
-                'form_id': self.form.id,
-                'is_public': is_public,
-                'form_data_id': formulary_instance_id,
-                'data': self.formulary_data
-            })
-        # updates the pre_notifications
-        PreNotificationService.update(self.company_id)
+        if self.disable_events == False:
+            if formulary_data_was_created:
+                Event.register_event('formulary_data_created', {
+                    'user_id': self.user_id,
+                    'company_id': self.company_id,
+                    'form_id': self.form.id,
+                    'is_public': is_public,
+                    'form_data_id': formulary_instance_id,
+                    'data': self.formulary_data
+                })
+            else:
+                Event.register_event('formulary_data_updated', {
+                    'user_id': self.user_id,
+                    'company_id': self.company_id,
+                    'form_id': self.form.id,
+                    'is_public': is_public,
+                    'form_data_id': formulary_instance_id,
+                    'data': self.formulary_data
+                })
+            # updates the pre_notifications
+            PreNotificationService.update(self.company_id)
     # ------------------------------------------------------------------------------------------
     @property
     def __default_field_values_to_use_in_formulary(self):

@@ -7,6 +7,7 @@ from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.group import GroupService
 from reflow_server.formulary.services.sections import SectionService
 from reflow_server.formulary.services.fields import FieldService
+from reflow_server.formulary.services.bulk_create import BulkCreateService
 from reflow_server.formulary.services.data import FieldOptionsData, DefaultFieldData, FormulaVariableData
 from reflow_server.formulary.relations import DefaultFieldValueValue
 
@@ -67,6 +68,7 @@ class FieldSerializer(serializers.ModelSerializer):
     field_formula_variables = FieldFormulaVariablesSerializer(many=True)
     field_default_field_values = FieldDefaultValuesSerializer(many=True)
     name = serializers.CharField(allow_blank=True, allow_null=True)
+    order = serializers.IntegerField(allow_null=True, required=False, default=1)
 
     def validate_form_field_as_option(self, value):
         if hasattr(self, 'initial_data') and 'type' in self.initial_data and self.initial_data['type'] and value != None:
@@ -315,3 +317,75 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ('id', 'name', 'enabled', 'order', 'form_group')
+
+############################################################################################
+class BulkCreateFieldSerializer(serializers.ModelSerializer):
+    field_option = FieldOptionSerializer(many=True)
+
+    class Meta:
+        model = Field
+        fields = ['label_name',  'required', 'number_configuration_number_format_type', 
+                  'date_configuration_date_format_type', 'period_configuration_period_interval_type',
+                  'type', 'field_option']
+
+
+class BulkCreateFieldRecordDataSerializer(serializers.Serializer):
+    field_name = serializers.CharField()
+    value = serializers.CharField(allow_blank=True)
+
+
+class BulkCreateFormularyRecordDataSerializer(serializers.Serializer):
+    """
+    Serializer for bulk creating the formulary records. This is a list, each item in the list represent one of the fields inside 
+    of the formulary.
+    """
+    data_by_each_field = BulkCreateFieldRecordDataSerializer(many=True)
+    
+
+class BulkCreateFormularySerializer(serializers.Serializer):
+    """
+    Relation used in the BulkCreateGroupSerializer to represent each formulary in reflow.
+    """
+    name = serializers.CharField()
+    section_name = serializers.CharField()
+    fields = BulkCreateFieldSerializer(many=True, required=True, allow_null=False)
+    data = BulkCreateFormularyRecordDataSerializer(many=True, required=False, allow_null=True)
+
+class BulkCreateGroupSerializer(serializers.Serializer):
+    """
+    Serializer that represents a Group of formularies that will be created in the bulk create process.
+
+    Contexts:
+        company_id (int): the company_id of the company that the group will be created for
+        user_id (int): the user_id of the user that is creating the group
+    """
+    name = serializers.CharField()
+    formularies = BulkCreateFormularySerializer(many=True, required=True, allow_null=False)
+
+    def create(self, validated_data):
+        bulk_create_service = BulkCreateService(self.context['user_id'], self.context['company_id'])
+        group_data = bulk_create_service.add_bulk_create_data(validated_data['name'])
+        for formulary in validated_data['formularies']:
+            formulary_data = group_data.add_formulary(formulary['name'])
+            section_data = formulary_data.add_section(formulary['section_name'])
+            for field in formulary['fields']:
+                field_data = section_data.add_field(
+                    label_name=field['label_name'],
+                    required=field.get('required', False),
+                    number_configuration_number_format_type=field.get('number_configuration_number_format_type', None),
+                    date_configuration_date_format_type=field.get('date_configuration_date_format_type', None), 
+                    period_configuration_period_interval_type=field.get('period_configuration_period_interval_type', None), 
+                    field_type=field['type']
+                )
+                for field_option in field['field_option']:
+                    field_data.add_field_option(field_option['option'])
+            if formulary.get('data', None):
+                for data in formulary['data']:
+                    formulary_records_data = formulary_data.add_formulary_records()
+                    section_records_data = formulary_records_data.add_section(formulary['section_name'])
+                    for field_data in data['data_by_each_field']:
+                        section_records_data.add_field(field_data['field_name'], field_data['value'])
+                                 
+        result = bulk_create_service.save()
+        bulk_create_service.save_formularies_records()
+        return result

@@ -63,7 +63,7 @@ class HTTP(LibraryModule):
         })
 
     @functionmethod
-    def delete(url, parameters, headers={}, basic_auth=[], **kwargs):
+    def delete(url, parameters={}, headers={}, basic_auth=[], **kwargs):
         request_function = HTTP.request.get_initialized_function(kwargs['__settings__'], 'HTTP', None)
         return request_function._call_({
             'method':'DELETE', 

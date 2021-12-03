@@ -12,6 +12,15 @@ from reflow_server.kanban.services import KanbanService
 from datetime import datetime
 
 
+class BulkCreationUserData:
+    def __init__(self, email, first_name, last_name, profile, change_password_url):
+        self.email = email
+        self.first_name = first_name
+        self.last_name = last_name
+        self.profile = profile
+        self.change_password_url = change_password_url
+
+
 class UsersService:
     def __init__(self, company_id, user_id):
         self.company = Company.authentication_.company_by_company_id(company_id)
@@ -125,6 +134,40 @@ class UsersService:
                     field=field,
                     user_option_id=created_user_id
                 )
+
+    def add_data_to_bulk_creation(self, email, first_name, last_name, profile, change_password_url):
+        """
+        Will append the data needed to bulk create the users in the platform on a single transaction.
+
+        Args:
+            email (str): The email of the user
+            first_name (str): The first name of the user
+            last_name (str): The last name of the user, the name of the user must contain the first and the last name.
+            profile (reflow_server.authentication.models.Profiles): this is an `reflow_server.authentication.models.Profiles` model.
+            change_password_url (str): The url to change the password of the user.
+        """
+        self.bulk_creation_data = getattr(self, 'bulk_creation_data', [])
+        self.bulk_creation_data.append(BulkCreationUserData(email, first_name, last_name, profile, change_password_url))
+
+    @transaction.atomic
+    def bulk_create(self):
+        if hasattr(self, 'bulk_creation_data'):
+            bulk_creation_data = getattr(self, 'bulk_creation_data')
+            for bulk_creation_user_data in bulk_creation_data:
+                if not UserExtended.authentication_.exists_user_by_email(bulk_creation_user_data.email):   
+                    self.create(
+                        email=bulk_creation_user_data.email,
+                        first_name=bulk_creation_user_data.first_name,
+                        last_name=bulk_creation_user_data.last_name,
+                        profile=bulk_creation_user_data.profile,
+                        has_api_access_key=False,
+                        field_option_ids_accessed_by=[],
+                        form_ids_accessed_by=[],
+                        users_accessed_by=[],
+                        change_password_url=bulk_creation_user_data.change_password_url
+                    )
+        else:
+            raise Exception('You must use `.add_data_to_bulk_creation()` to add the data needed to bulk create the users.')
 
     @staticmethod
     def update_api_access_key_of_user(company_id, user_id, has_api_access_key=False):

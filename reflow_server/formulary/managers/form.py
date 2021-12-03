@@ -5,6 +5,9 @@ class FormFormularyManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
+    def first_form_name_from_group_id(self, group_id):
+        return self.get_queryset().filter(group_id=group_id).order_by('order').values_list('form_name', flat=True).first()
+
     def form_sections_by_section_ids_company_ids_and_main_form_id(self, section_ids, company_id, main_form_id):
         """
         Returns a queryset of Form instances that are sections (so have depends_on as NOT NULL) by it's company_id, and the main_form_id

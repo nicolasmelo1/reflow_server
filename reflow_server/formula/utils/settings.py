@@ -116,6 +116,7 @@ class Settings:
                                                                    languages.
         """
         self.is_testing = is_testing
+        self.max_call_stack_size = 99
         self.sigil_string = '~'
         self.attribute_character = '.'
         self.comment_character = '#'

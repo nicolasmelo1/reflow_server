@@ -8,7 +8,7 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.authentication.serializers.settings import CompanySettingsSerializer, UserSettingsSerializer, \
-    FormularyAndFieldOptionsSerializer
+    FormularyAndFieldOptionsSerializer, BulkCreateUsersSerializer
 from reflow_server.authentication.models import Company, UserExtended
 from reflow_server.authentication.services.users import UsersService
 from reflow_server.formulary.models import Group
@@ -159,3 +159,36 @@ class FormularyAndFieldOptionsView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class BulkCreateUsersView(APIView):
+    """
+    View responsible for bulk creating all of the users inside of the platform, so the admin can create all
+    of the users of his company at once without needing to add one by one as it generally is. OF course the admin
+    will a loose a more fine granulation of what the users can access but he is able to add everyone in one go increasing
+    his probability of willingness to stay in the platform.
+
+    Methods:
+        POST: Creates all of the users inside of the platform.
+    """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def post(self, request, company_id):
+        serializer = BulkCreateUsersSerializer(
+            many=True,
+            data=request.data,
+            context={
+                'user_id': request.user.id,
+                'company_id': company_id
+            }
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'ok'
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'error',
+            'error': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)

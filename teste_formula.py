@@ -30,7 +30,19 @@ function fibonacci(n, a=0, b=1) do
     end
 end
 
-fibonacci(1000)
+fibonacci(30)
+"""
+
+recursion = r"""
+function fibonacci(n) do
+    if n <= 1 do
+        n
+    else do
+        fibonacci(n - 1) + fibonacci(n - 2)
+    end
+end
+
+fibonacci(30)
 """
 
 anonymous_formulas = r"""
@@ -89,23 +101,13 @@ module Struct(a, b=3, c=5)
 module Teste(a, b)
 
 
-struct = Struct{a=2, b=5, c=Teste{1, 2}}
+struct = Struct{a=2, b=[1, 2, function (a, b) do a + b end], c=Teste{1, function (a, b) do a + b end}}
 
-struct.c.a = "Ola"
-
-struct.c.a
+struct.b[2](1, 2)
 """
 
 HTTP_library = r"""
-response = HTTP.post(
-    url="https://maker.ifttt.com/trigger/registro_atualizado_em_negocios/with/key/UsON56lWobTsQ_9eOXhLXytB6Csg6piJVuJDWfw-Cg",  
-    json_data={
-        "value1": "nicolasmelo12@gmail.com",
-        "value2": ~D[2012-04-12 23:12],
-        "value3": "nicolas.melo@reflow.com.br"
-    }
-)
-response.conteudo
+GoogleSheets.authorize()
 """
 
 SMTP_library = r"""
@@ -115,10 +117,11 @@ SMTP.send_email("smtp.gmail.com", 587, "reflow@reflow.com.br", "Reflow1234!@#", 
 
 List_library = r"""
 list = ["a","b","c"]
-new_list = List.map(list, function (elem, ind) do
-    ind
+variable = "teste"
+new_list = List.for_each(list, function (elem, ind) do
+    variable = variable + elem
 end)
-new_list
+variable
 """
 
 automation_library = r"""
@@ -145,6 +148,7 @@ Datetime.date_add(date2, months = 20.4)
 functions_to_test = [
     #simple_arithimetic, 
     #function,
+    #recursion,
     #recursion_and_function_call, 
     #anonymous_formulas,
     #lists,
@@ -155,9 +159,9 @@ functions_to_test = [
     #HTTP_library,
     #SMTP_library,
     #datetime_test,
-    #List_library,
+    List_library,
     #automation_library,
-    datetime_test
+    #datetime_test
 ]
 
 import json

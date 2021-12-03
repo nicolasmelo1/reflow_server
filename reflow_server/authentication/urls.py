@@ -5,7 +5,7 @@ from reflow_server.core.decorators import jwt_required, validate_billing, permis
 from reflow_server.authentication.views import LoginView, TestTokenView, ForgotPasswordView, OnboardingView, \
     RefreshTokenView, ChangePasswordView, CompanyView, UserView, UserVisualizationTypeView
 from reflow_server.authentication.views.settings import CompanySettingsView, UserSettingsView, UserSettingsEditView, \
-    FormularyAndFieldOptionsView
+    FormularyAndFieldOptionsView, BulkCreateUsersView
 
 
 settings_urlpatterns = [
@@ -16,6 +16,7 @@ settings_urlpatterns = [
             re_path(r'^formulary_options/$', validate_billing(FormularyAndFieldOptionsView.as_view()), 
                 name='authentication_settings_formulary_options'
             ),
+            re_path(r'^bulk_create/$', validate_billing(BulkCreateUsersView.as_view()), name='authentication_settings_bulk_create_users'),
         ])),
         re_path(r'^company/$', validate_billing(CompanySettingsView.as_view()), name='authentication_settings_company')
     ]))
@@ -31,7 +32,6 @@ loginrequired_urlpatterns = [
             name='authentication_user_set_visualization_type_id')
         ])),
         re_path(r'^company/$', permission_required(CompanyView.as_view()), name='authentication_company')
-
     ]))
 ]
 

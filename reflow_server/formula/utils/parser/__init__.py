@@ -558,6 +558,18 @@ class Parser:
             # 
             # do_something()() -> Will be "result"
             while self.current_token.token_type in [TokenType.LEFT_PARENTHESIS, TokenType.LEFT_BRACKETS, TokenType.ATTRIBUTE]:
+                if TokenType.ATTRIBUTE == self.current_token.token_type:
+                    self.get_next_token(TokenType.ATTRIBUTE)
+                    right_value = self.current_token
+                    node = nodes.Attribute(node, right_value)
+                    self.get_next_token(TokenType.IDENTITY)
+
+                if TokenType.LEFT_BRACKETS == self.current_token.token_type:
+                    self.get_next_token(TokenType.LEFT_BRACKETS)
+                    slice_value = self.expression()
+                    node = nodes.Slice(node, slice_value)
+                    self.get_next_token(TokenType.RIGHT_BRACKETS)
+
                 if TokenType.LEFT_PARENTHESIS == self.current_token.token_type:
                     self.get_next_token(TokenType.LEFT_PARENTHESIS)
                     function_arguments = []
@@ -575,19 +587,7 @@ class Parser:
                             self.get_next_token(TokenType.POSITIONAL_ARGUMENT_SEPARATOR)
                     self.get_next_token(TokenType.RIGHT_PARENTHESIS)
                     node = nodes.FunctionCall(node, function_arguments)
-                
-                if TokenType.LEFT_BRACKETS == self.current_token.token_type:
-                    self.get_next_token(TokenType.LEFT_BRACKETS)
-                    slice_value = self.expression()
-                    node = nodes.Slice(node, slice_value)
-                    self.get_next_token(TokenType.RIGHT_BRACKETS)
-                
-                if TokenType.ATTRIBUTE == self.current_token.token_type:
-                    self.get_next_token(TokenType.ATTRIBUTE)
-                    right_value = self.current_token
-                    operation = self.primary()
-                    node = nodes.Attribute(node, right_value, operation)
-            
+
             # defines a struct
             if self.current_token.token_type == TokenType.LEFT_BRACES:
                 self.get_next_token(TokenType.LEFT_BRACES)

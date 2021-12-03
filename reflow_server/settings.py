@@ -398,7 +398,8 @@ FORMULA_MODULES = {
         'Datetime',
         'List',
         'String',
-        'Number'
+        'Number',
+        #'GoogleSheets'
     ],
     'automation': [
         'Automation'

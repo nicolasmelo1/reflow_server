@@ -7,10 +7,10 @@ from reflow_server.formulary.views import GetFormularyView, GetGroupsView, UserF
     FormFieldTypeOptionsView, PublicFormularyDataView, DefaultAttachmentToDraftView
 from reflow_server.formulary.views.settings import GroupSettingsView, GroupEditSettingsView, FormularySettingsView, \
     FormularySettingsEditView, SectionSettingsView, SectionSettingsEditView, FieldSettingsView, FieldSettingsEditView, \
-    ConnectionFieldOptionsView, PublicFormSettingsView, DefaultValueAttachmentView
-
+    ConnectionFieldOptionsView, PublicFormSettingsView, DefaultValueAttachmentView, BulkCreateView
 
 settings_urlpatterns = [
+    re_path(r'^bulk_create/$', validate_billing(BulkCreateView.as_view()), name='formulary_bulk_create_settings_view'),
     re_path(r'(?P<form_id>\d+)/public/$', validate_billing(PublicFormSettingsView.as_view()), name='formulary_public_form_settings'),
     re_path(r'(?P<form_id>\d+)/fields/form/field_options/$', validate_billing(ConnectionFieldOptionsView.as_view()), name='formulary_field_options'),
     re_path(r'^groups/', include([

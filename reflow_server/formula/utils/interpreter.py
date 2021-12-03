@@ -196,8 +196,6 @@ class Interpreter:
             return self.handle_integer(node)
         elif node.node_type == NodeType.BOOLEAN:
             return self.handle_boolean(node)
-        else:
-            return node
     # ------------------------------------------------------------------------------------------  
     def handle_program(self, node):
         record = Record(self.settings, '<main>', 'PROGRAM')
@@ -341,7 +339,7 @@ class Interpreter:
         for module_literal in node.module_literals:
             key_string = builtins.objects.String(self.settings)
             key_string._initialize_(module_literal.variable.value.value)
-            module._setattribute_(key_string, module_literal.block)
+            module._setattribute_(key_string, self.evaluate(module_literal.block))
         
         record.assign(module_name, module)
         return module
@@ -541,59 +539,21 @@ class Interpreter:
             record = self.global_memory.stack.peek()
             record.assign(variable_name, variable_value)
 
-        # if we assign to a item in an array
-        elif node.left.node_type == NodeType.SLICE:
-            # variavel[1] -> left_of_slice is the value relative to 'variavel'
-            left_of_slice = node.left 
-            slices_stack = []
-            # we loop trough all slices so we can interpret stuff like variavel[1][2][0] = "teste"
-            # we loop from variavel[1][2][0] to variavel[1][2] to variavel[1] and finish at variavel
-            while left_of_slice.node_type == NodeType.SLICE:
-                slices_stack.append(self.evaluate(left_of_slice.slice))
-                left_of_slice = left_of_slice.left
-            # root_list is the actual root of the value, for example: array[0][1] the root is 'array' variable even though we have another array inside of the array
-            # so for example in an array like [1, [2, [3]]] the root_list is [1, [2, [3]]] as you might expect
-            # if the value on the left is not a variable. Exemple: [1, 2, 3][1] = "Teste" should be acceptable although it does nothing
-            if left_of_slice.node_type == NodeType.VARIABLE:
-                variable_name = left_of_slice.value.value
-                record = self.global_memory.stack.peek()
-                root_list = record.get(variable_name)
-            else:
-                
-                root_list = self.evaluate(left_of_slice)
-            
-            next_list = None
+        elif node.left.node_type in [NodeType.SLICE, NodeType.ATTRIBUTE]:
+            node = node.left
 
-            # now we loop the other way around, from the root to the leaf, so in the example variavel[1][2][0] = "teste"
-            # on the first pass list_to_change will be
-            # 1. variavel[1]
-            # 2. variavel[1][2] and stop there since variavel[1][2][0] is the actual value we want to change
-            # in other words, the list_to_change in the example above is variavel[1][2] (it returns a list)
-            while len(slices_stack) > 0:
-                list_or_dict_to_change = root_list if next_list == None else next_list
-                index_or_key = slices_stack.pop()
-                next_list = list_or_dict_to_change._getitem_(index_or_key)
-            list_or_dict_to_change._setitem_(index_or_key, variable_value)
-        elif node.left.node_type == NodeType.ATTRIBUTE:
-            struct_object = self.evaluate(node.left.left)
-            attribute_right = node.left.right_value
-            atribute_left = node.left.operation
-
-            # if attribute is for example struct.c.a = "ola"
-            # what we need to do is get the struct of struct.c, and after that get
-            # the struct of "a" to assign. It is similar to slice assignment
-            while atribute_left.node_type == NodeType.ATTRIBUTE:
+            if node.node_type == NodeType.SLICE: 
+                object_to_assign_value_to = self.evaluate(node.left)
+                variable_name = node.slice.value.value
                 key_string = builtins.objects.String(self.settings)
-                key_string._initialize_(attribute_right.value)
-                struct_object = struct_object._getattribute_(key_string)
-
-                attribute_right = atribute_left.right_value
-                atribute_left = atribute_left.left
-            
-            key_string = builtins.objects.String(self.settings)
-            key_string._initialize_(attribute_right.value)
-
-            struct_object._setattribute_(key_string, variable_value)
+                key_string._initialize_(variable_name)
+                object_to_assign_value_to._setitem_(key_string, variable_value)
+            elif node.node_type == NodeType.ATTRIBUTE:
+                object_to_assign_value_to = self.evaluate(node.left)
+                variable_name = node.right_value.value
+                key_string = builtins.objects.String(self.settings)
+                key_string._initialize_(variable_name)
+                object_to_assign_value_to._setattribute_(key_string, variable_value)
 
         return variable_value
     # ------------------------------------------------------------------------------------------
@@ -705,13 +665,7 @@ class Interpreter:
     # ------------------------------------------------------------------------------------------
     def handle_attribute(self, node):
         """
-        This is kinda tricky but it makes a lot of sense once you understand.
-        When you are getting the attribute of a struct you need to evaluate it's value otherwise, if it's a module we DO NOT evaluate it's value
-
-        Okay, besides that how it works? similar to functions actually.
-
-        When you call a module or a struct we append all of it's attributes to the call stack so this way it becomes callable. In other words
-        a struct and a module to get attributes from is similar to how we get variables inside the scope of a function.
+        Gets an attribute from a module or a given struct.
 
         Args:
             node (reflow_server.formula.utils.parser.nodes.Attribute): The attribute node to be evaluated
@@ -720,30 +674,9 @@ class Interpreter:
             reflow_server.formula.utils.builtins.objects.*: Returns the evaluated value
         """
         module = self.evaluate(node.left, True)
-        module_name = module.module_name if hasattr(module, 'module_name') else '<module>'
-
-        previous_record = self.global_memory.stack.peek()
-        module_record = Record(self.settings, module_name, 'MODULE')
-        self.global_memory.stack.push(module_record)
-        # Define the scope of the module
-        for key, value in previous_record.members.items():
-            module_record.assign(key, value)
-
-        for index in range(0, len(module.attributes.keys)):
-            key = module.attributes.keys[index]
-            key_string = builtins.objects.String(self.settings)
-            key_string._initialize_(key)
-            attribute = module._getattribute_(key_string)
-            # with this we can handle structs and modules, if it is a struct, we will return the AST to evaluate later,
-            # otherwise we will not evaluate it's value
-            if hasattr(attribute, 'node_type'):
-                attribute = self.evaluate(attribute, True)
-            module_record.assign(key, attribute)
-
-        result = self.evaluate(node.operation, True)
-        self.global_memory.stack.pop()
-        
-        return result
+        key_string = builtins.objects.String(self.settings)
+        key_string = key_string._initialize_(node.right_value.value)
+        return module._getattribute_(key_string)
     # ------------------------------------------------------------------------------------------
     def handle_null(self, node):
         null = builtins.objects.Null(self.settings)
@@ -863,7 +796,6 @@ class Interpreter:
             builtins.objects.Error(self.settings)._initialize_('SyntaxError', 'Cannot interpret float')
     # ------------------------------------------------------------------------------------------
     def handle_boolean(self, node):
-        print(node.value.value)
         if helpers.is_boolean(node.value.value):
             boolean = builtins.objects.Boolean(self.settings)
             return boolean._initialize_(node.value.value)

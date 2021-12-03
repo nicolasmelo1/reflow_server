@@ -31,7 +31,6 @@ class Function(Object):
         if self.interpreter != None and self.function_body != None:
             def create_function_record(parameters):
                 function_record = Record(self.settings, self.function_name, 'FUNCTION')
-
                 # Define the scope of the function in the new function call stack, this means that
                 #
                 # variable = 1
@@ -41,7 +40,7 @@ class Function(Object):
 
                 # 'variable' will be available inside of the function even though it was defined outside of the function.
                 for key, value in self.scope.members.items():
-                    function_record.assign(key, value)
+                    function_record.assign(key, self.scope)
 
                 for parameter_name, parameter_value in parameters.items():
                     function_record.assign(parameter_name, parameter_value)

@@ -117,6 +117,7 @@ class DataSort:
         )
     # ------------------------------------------------------------------------------------------
     def _sort_form(self, order_up_or_down, field_data):
+        print('BREAKPOINT')
         return FormValue.data_.form_depends_on_and_values_for_sort_form_field_types(
             company_id=self.company_id, 
             depends_on_forms=self._data, 

@@ -42,7 +42,12 @@ class FormDataSerializer(serializers.ModelSerializer):
                 section_data_id=section['id']
             )
             for field in section['dynamic_form_value']:
-                section_data.add_field_value(field['field_id'], field['field']['name'], field['value'], field['id'])
+                section_data.add_field_value(
+                    field_id=field['field_id'], 
+                    field_name=field['field']['name'], 
+                    value=field['value'], 
+                    field_value_data_id=field['id']
+                )
         if self.formulary_service.is_valid():
             return data
         else:

@@ -10,7 +10,7 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.formulary.serializers.settings import GroupSerializer, FormularySerializer, \
-    SectionSerializer, FieldSerializer, FieldOptionsSerializer
+    SectionSerializer, FieldSerializer, FieldOptionsSerializer, BulkCreateGroupSerializer
 from reflow_server.formulary.serializers import PublicAccessFormSerializer
 from reflow_server.formulary.services.fields import FieldService
 from reflow_server.formulary.services.default_attachment import DefaultAttachmentService
@@ -369,6 +369,37 @@ class ConnectionFieldOptionsView(APIView):
         })
     # ------------------------------------------------------------------------------------------
 
+@method_decorator(csrf_exempt, name='dispatch')
+class BulkCreateView(APIView):
+    """
+    Bulk creates all of the groups, formularies, sections and fields in a single request inside of reflow.
+
+    The idea is that by that the user is able to send a spreadsheet of all of the data that they want to create
+    and that will be appended inside of reflow.
+
+    Methods:
+        POST: Bulk creates all of the groups, formularies, sections and fields in a single request inside of reflow.
+    """
+    authentication_classes = [CsrfExemptSessionAuthentication]
+
+    def post(self, request, company_id):
+        serializers = BulkCreateGroupSerializer(data=request.data, context={
+            'user_id': request.user.id,
+            'company_id': company_id
+        })
+        if serializers.is_valid():
+            group = serializers.save()
+            return Response({
+                'status': 'ok',
+                'data': {
+                    'primary_form': Form.formulary_.first_form_name_from_group_id(group.id)
+                }
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'error',
+                'error': serializers.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
 ############################################################################################
 @method_decorator(csrf_exempt, name='dispatch')
 class PublicFormSettingsView(APIView):

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from reflow_server.authentication.services.users import UsersService
 from reflow_server.authentication.services.company import CompanyService
 from reflow_server.authentication.services.data import UserAccessedByData
-from reflow_server.authentication.models import UserExtended, Company
+from reflow_server.authentication.models import ProfileType, UserExtended, Company
 from reflow_server.authentication.relations import OptionAccessedByRelation, FormAccessedByRelation, \
     FormularyOptionsRelation, UserAccessedByRelation, HasAPIAccessKeyRelation
 from reflow_server.formulary.models import Group
@@ -127,3 +127,31 @@ class FormularyAndFieldOptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ('id', 'name', 'enabled', 'form_group')
+
+
+class BulkCreateUserListSerializer(serializers.ListSerializer):
+    def save(self):
+        users_service = UsersService(self.context['company_id'], self.context['user_id'])
+        for user_data in self.validated_data:                
+            users_service.add_data_to_bulk_creation( 
+                user_data.get('email'),
+                user_data.get('first_name'),
+                user_data.get('last_name'),
+                ProfileType.authentication_.coordinator_profyle_type(),
+                user_data.get('change_password_url')
+            )
+        
+        users_service.bulk_create()
+
+
+
+class BulkCreateUsersSerializer(serializers.ModelSerializer):
+    """
+    Used for bulk creating in a single go all of the users inside of the reflow platform
+    """
+    change_password_url = serializers.CharField(default='')
+
+    class Meta:
+        model = UserExtended
+        list_serializer_class = BulkCreateUserListSerializer
+        fields = ('email', 'first_name', 'last_name', 'change_password_url')

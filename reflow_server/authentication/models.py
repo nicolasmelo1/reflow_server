@@ -4,7 +4,8 @@ from django.contrib.auth.models import AbstractUser
 
 from reflow_server.analytics.managers import UserExtendedAnalyticsManager
 from reflow_server.authentication.managers import UserExtendedAuthenticationManager, \
-    CompanyAuthenticationManager, PublicAccessAuthenticationManager, APIAccessTokenAuthenticationManager
+    CompanyAuthenticationManager, PublicAccessAuthenticationManager, APIAccessTokenAuthenticationManager, \
+    ProfileTypeAuthenticationManager
 from reflow_server.billing.managers import UserExtendedBillingManager, CompanyBillingManager, \
     AddressHelperBillingManager
 from reflow_server.data.managers import UserExtendedDataManager
@@ -61,6 +62,9 @@ class ProfileType(models.Model):
     class Meta:
         db_table = 'profiles'
         ordering = ('order',)
+
+    objects = models.Manager()
+    authentication_ = ProfileTypeAuthenticationManager()
 
 
 class AddressHelper(models.Model):

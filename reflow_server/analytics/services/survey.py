@@ -36,7 +36,7 @@ class SurveyService:
         On the last one, if the survey have not been answered yet we will show it to him.
 
         Returns:
-            survey_id: (int, None) - The id of the survey to show or None. You might ask yourself, why return just one if two or more surveys
+            (int, None): The id of the survey to show or None. You might ask yourself, why return just one if two or more surveys
             need to be responded? The answer is UX. We can show the other one he needs to respond to tomorrow.
         """        
         if cached_survey_ids['expiry_date'] < datetime.now() or len(cached_survey_ids['surveys']) == 0:

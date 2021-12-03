@@ -1,13 +1,18 @@
 from reflow_server.formula.utils.settings import NodeType
 
 import json
-
+import uuid
 
 ############################################################################################
-class Program:
+class Node:
+    def __init__(self):
+        self.node_id = str(uuid.uuid4())
+############################################################################################
+class Program(Node):
     node_type = NodeType.PROGRAM
 
     def __init__(self, block):
+        super(Program, self).__init__()
         self.block = block
     
     def __str__(self):
@@ -20,10 +25,11 @@ class Program:
             )
         ), indent=4)
 ############################################################################################
-class Block:
+class Block(Node):
     node_type = NodeType.BLOCK
 
     def __init__(self, instructions):
+        super(Block, self).__init__()
         self.instructions = instructions
     
     def __str__(self):
@@ -39,10 +45,11 @@ class Block:
             )
         ), indent=4)
 ############################################################################################
-class IfStatement:
+class IfStatement(Node):
     node_type = NodeType.IF_STATEMENT
 
     def __init__(self, expression, block, else_statement=None):
+        super(IfStatement, self).__init__()
         self.expression = expression
         self.block = block
         self.else_statement = else_statement
@@ -64,10 +71,11 @@ class IfStatement:
             )
         ), indent=4)
 ############################################################################################
-class ModuleDefinition:
+class ModuleDefinition(Node):
     node_type = NodeType.MODULE_DEFINIITION
 
     def __init__(self, variable, parameters, module_literals=[]):
+        super(ModuleDefinition, self).__init__()
         self.variable = variable
         self.parameters = parameters
         self.module_literals = module_literals
@@ -89,10 +97,11 @@ class ModuleDefinition:
             )  
         ), indent=4)
 ############################################################################################
-class ModuleLiteral:
+class ModuleLiteral(Node):
     node_type = NodeType.MODULE_LITERAL
 
     def __init__(self, variable, block):
+        super(ModuleLiteral, self).__init__()
         self.variable = variable
         self.block = block
     
@@ -111,13 +120,13 @@ class ModuleLiteral:
             )  
         ), indent=4)
 ############################################################################################
-class Attribute:
+class Attribute(Node):
     node_type = NodeType.ATTRIBUTE
 
-    def __init__(self, left, right_value, operation):
+    def __init__(self, left, right_value):
+        super(Attribute, self).__init__()
         self.left = left
         self.right_value = right_value 
-        self.operation = operation
 
     def __str__(self):
         return json.dumps(json.loads(
@@ -125,21 +134,20 @@ class Attribute:
                 '{'
                 '   "node": "%s",'
                 '   "left": %s, '
-                '   "right_value": "%s", '
-                '   "operation": %s '
+                '   "right_value": "%s" '
                 '}' % (
                     self.node_type,
                     self.left,
-                    self.right_value.value,
-                    self.operation
+                    self.right_value.value
                 )
             )  
         ), indent=4)
 ############################################################################################
-class FunctionDefinition:
+class FunctionDefinition(Node):
     node_type = NodeType.FUNCTION_DEFINITION
 
     def __init__(self, variable, parameters, block):
+        super(FunctionDefinition, self).__init__()
         self.variable = variable
         self.parameters = parameters
         self.block = block
@@ -161,10 +169,11 @@ class FunctionDefinition:
             )  
         ), indent=4)
 ############################################################################################
-class Struct:
+class Struct(Node):
     node_type = NodeType.STRUCT
 
     def __init__(self, name, arguments):
+        super(Struct, self).__init__()
         self.arguments = arguments
         self.name = name
     
@@ -183,10 +192,11 @@ class Struct:
             )  
         ), indent=4)
 ############################################################################################
-class FunctionCall:
+class FunctionCall(Node):
     node_type = NodeType.FUNCTION_CALL
 
     def __init__(self, name, parameters):
+        super(FunctionCall, self).__init__()
         self.parameters = parameters
         self.name = name
     
@@ -205,10 +215,11 @@ class FunctionCall:
             )  
         ), indent=4)
 ############################################################################################
-class BooleanOperation:
+class BooleanOperation(Node):
     node_type = NodeType.BOOLEAN_OPERATION
 
     def __init__(self, left, right, operation):
+        super(BooleanOperation, self).__init__()
         self.left = left
         self.right = right
         self.operation = operation
@@ -230,10 +241,11 @@ class BooleanOperation:
             )  
         ), indent=4)
 ############################################################################################
-class BinaryOperation:
+class BinaryOperation(Node):
     node_type = NodeType.BINARY_OPERATION
 
     def __init__(self, left, right, operation):
+        super(BinaryOperation, self).__init__()
         self.left = left
         self.right = right
         self.operation = operation
@@ -255,10 +267,11 @@ class BinaryOperation:
             )  
         ), indent=4)
 ############################################################################################
-class BinaryConditional:
+class BinaryConditional(Node):
     node_type = NodeType.BINARY_CONDITIONAL
 
     def __init__(self, left, right, operation):
+        super(BinaryConditional, self).__init__()
         self.left = left
         self.right = right
         self.operation = operation
@@ -280,10 +293,11 @@ class BinaryConditional:
             )
         ), indent=4)  
 ############################################################################################
-class UnaryConditional:
+class UnaryConditional(Node):
     node_type = NodeType.UNARY_CONDITIONAL
 
     def __init__(self, operation, value):
+        super(UnaryConditional, self).__init__()
         self.operation = operation
         self.value = value
     
@@ -302,10 +316,11 @@ class UnaryConditional:
             )
         ), indent=4)   
 ############################################################################################
-class UnaryOperation:
+class UnaryOperation(Node):
     node_type = NodeType.UNARY_OPERATION
 
     def __init__(self, operation, value):
+        super(UnaryOperation, self).__init__()
         self.operation = operation
         self.value = value
     
@@ -324,10 +339,11 @@ class UnaryOperation:
             )  
         ), indent=4) 
 ############################################################################################
-class Boolean:
+class Boolean(Node):
     node_type = NodeType.BOOLEAN
 
     def __init__(self, value):
+        super(Boolean, self).__init__()
         self.value = value
 
     def __str__(self):
@@ -343,10 +359,11 @@ class Boolean:
             )
         ), indent=4) 
 ############################################################################################
-class Integer:
+class Integer(Node):
     node_type = NodeType.INTEGER
 
     def __init__(self, value):
+        super(Integer, self).__init__()
         self.value = value
 
     def __str__(self):
@@ -362,10 +379,11 @@ class Integer:
             )  
         ), indent=4) 
 ############################################################################################
-class Float:
+class Float(Node):
     node_type = NodeType.FLOAT
 
     def __init__(self, value):
+        super(Float, self).__init__()
         self.value = value
     
     def __str__(self):
@@ -381,10 +399,11 @@ class Float:
             )  
         ), indent=4) 
 ############################################################################################
-class String:
+class String(Node):
     node_type = NodeType.STRING
 
     def __init__(self, value):
+        super(String, self).__init__()
         self.value = value
 
     def __str__(self):
@@ -400,10 +419,11 @@ class String:
             ) 
         ), indent=4) 
 ############################################################################################
-class Datetime:
+class Datetime(Node):
     node_type = NodeType.DATETIME
     
     def __init__(self, value):
+        super(Datetime, self).__init__()
         self.value = value
     
     def __str__(self):
@@ -419,10 +439,11 @@ class Datetime:
             ) 
         ))
 ############################################################################################
-class Null:
+class Null(Node):
     node_type = NodeType.NULL
 
     def __init__(self):
+        super(Null, self).__init__()
         self.value = None
     
     def __str__(self):
@@ -438,10 +459,11 @@ class Null:
             ) 
         ), indent=4) 
 ############################################################################################
-class Assign:
+class Assign(Node):
     node_type = NodeType.ASSIGN
 
     def __init__(self, left, right, operation):
+        super(Assign, self).__init__()
         self.left = left
         self.right = right
         self.operation = operation
@@ -463,10 +485,11 @@ class Assign:
             )
         ), indent=4) 
 ############################################################################################
-class Variable:
+class Variable(Node):
     node_type = NodeType.VARIABLE
 
     def __init__(self, value):
+        super(Variable, self).__init__()
         self.value = value
 
     def __str__(self):
@@ -482,10 +505,11 @@ class Variable:
             )
         ), indent=4) 
 ############################################################################################
-class Slice:
+class Slice(Node):
     node_type = NodeType.SLICE
 
     def __init__(self, left, slice_value):
+        super(Slice, self).__init__()
         self.left = left
         self.slice = slice_value
 
@@ -504,10 +528,11 @@ class Slice:
             )
         ), indent=4) 
 ############################################################################################
-class List:
+class List(Node):
     node_type = NodeType.LIST
 
     def __init__(self, members=[]):
+        super(List, self).__init__()
         self.members = members
 
     def __str__(self):
@@ -523,7 +548,7 @@ class List:
             )
         ), indent=4) 
 ############################################################################################
-class Dict:
+class Dict(Node):
     node_type = NodeType.DICT
 
     def __init__(self, members=[]):
@@ -534,6 +559,7 @@ class Dict:
             [key2, value2]
         ]
         """
+        super(Dict, self).__init__()
         self.members = members
     
     def __str__(self):
