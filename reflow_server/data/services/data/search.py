@@ -182,10 +182,9 @@ class DataSearch:
     def _search_user(self, search_item, field_data, form_ids_to_filter):
         first_name = search_item.value.split(' ')[0]
         last_name = search_item.value.split(' ')[1] if len(search_item.value.split(' ')) > 1 else None
-        search_value_dict = self.__search_exact(search_item)
         
         if not last_name:
-            if '__icontains' in search_value_dict.keys():
+            if search_item.exact == False:
                 search_dict = {
                     'first_name__icontains': first_name
                 }
@@ -195,7 +194,7 @@ class DataSearch:
                 }
 
         else:
-            if '__icontains' in search_value_dict.keys():
+            if search_item.exact == False:
                 search_dict = {
                     'first_name__icontains': first_name,
                     'last_name__icontains': last_name
