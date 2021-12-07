@@ -207,7 +207,7 @@ class DataSearch:
                 }
 
         search_values = list(
-            UserExtended.data_.user_ids_for_search_by_search_value_and_company_id(
+            UserExtended.data_.user_ids_for_search_by_search_dict_and_company_id(
                 self.company_id,
                 search_dict
             )
