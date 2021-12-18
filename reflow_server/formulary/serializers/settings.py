@@ -305,8 +305,7 @@ class GroupSerializer(serializers.ModelSerializer):
             return data
 
     def update(self, instance, validated_data):
-        group_service = GroupService(self.context['company_id'])
-        instance = group_service.update_group(
+        instance = self.group_service.update_group(
             instance, 
             validated_data['name'],
             validated_data['enabled'],

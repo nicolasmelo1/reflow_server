@@ -4,7 +4,7 @@ from django.conf import settings
 from reflow_server.authentication.services.routes import register_admin_only_url
 from reflow_server.core.decorators import permission_required
 from reflow_server.billing.views import BillingSettingsView, TotalsView, \
-    VindiWebhookExternalView, AddressOptionsView, CreditCardView
+    VindiWebhookExternalView, AddressOptionsView, CreditCardView, PlanView
 
 
 vindi_urlpatterns = [
@@ -23,6 +23,7 @@ settings_urlpatterns = [
 ]
 
 urlpatterns = [
+    re_path(r'^plans/$', PlanView.as_view(), name='billing_plans_view'),
     re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/', include([
         register_admin_only_url(re_path(r'^settings/', include(settings_urlpatterns))),
     ])),

@@ -5,14 +5,14 @@ class CompanyChargeBillingManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
     
-    def create_company_charge(self, company, total_value, attempt_count):
+    def create_company_charge(self, company_id, total_value, attempt_count):
         """
         Creates a new company charge for a specific company. Remember that Company Charges are the charges
         that a company has already paid.
         Usually this is something that we recieve from the payment gateway.
 
         Args:
-            company (reflow_server.authentication.models.Company): The Company instance that has paid a invoice
+            company_id (int): The Company instance id that has paid a invoice
             total_value (float): How much was the invoice that he paid.
             attempt_count (int): How many tries until he paid.
         
@@ -20,7 +20,7 @@ class CompanyChargeBillingManager(models.Manager):
             reflow_server.billing.models.CompanyCharge: The instance of the created CompanyCharge in our database.
         """
         instance = self.create(
-            company=company,
+            company_id=company_id,
             total_value=total_value,
             attempt_count=attempt_count
         )

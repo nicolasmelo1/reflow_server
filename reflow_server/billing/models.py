@@ -2,7 +2,11 @@ from django.db import models
 
 from reflow_server.billing.managers import CompanyChargeBillingManager, PartnerDefaultAndDiscountsBillingManager, \
     DiscountByIndividualNameForCompanyBillingManager, DiscountCouponBillingManager, CompanyCouponsBillingManager, \
-    CompanyChargeSentBillingManager
+    CompanyChargeSentBillingManager, CurrentCompanyChargeBillingManager, CompanyBillingBillingManager, \
+    BillingPlanPermissionBillingManager, BillingPlanBillingManager
+from reflow_server.dashboard.managers import CurrentCompanyChargeDashboardManager
+from reflow_server.pdf_generator.managers import CurrentCompanyChargePDFGeneratorManager
+from reflow_server.notification.managers import CurrentCompanyChargeNotificationManager
 
 
 class ChargeType(models.Model):
@@ -123,13 +127,17 @@ class CompanyBilling(models.Model):
     vindi_product_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
     vindi_payment_profile_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
     vindi_signature_id = models.CharField(max_length=280, default=None, null=True, db_index=True)
+    plan = models.ForeignKey('billing.BillingPlan', on_delete=models.CASCADE, null=True, blank=True)
     company = models.OneToOneField('authentication.Company', on_delete=models.CASCADE, related_name='billing_company')
     payment_method_type = models.ForeignKey('billing.PaymentMethodType', on_delete=models.CASCADE, null=True)
     charge_frequency_type = models.ForeignKey('billing.ChargeFrequencyType', on_delete=models.CASCADE, null=True)
     invoice_date_type = models.ForeignKey('billing.InvoiceDateType', on_delete=models.CASCADE, null=True)
-    
+
     class Meta:
         db_table = 'company_billing'
+
+    objects = models.Manager()
+    billing_ = CompanyBillingBillingManager()
 
 
 class DiscountByIndividualValueQuantity(models.Model):
@@ -141,8 +149,12 @@ class DiscountByIndividualValueQuantity(models.Model):
 
     Static are discounts that we can give for a lifetime for the user. We do NEVER consider them when calculating the discount
     for a particular quantity, they must be set directly.
+
+    UPDATE: We also consider the plan for giving the discount for a certaing quantity. For example for freemium plan we will have some discounts, for starter
+    plan we will have another type of discounts and for enterprise plan we will have more discounts since the default quantity changes.
     """
     individual_charge_value_type = models.ForeignKey('billing.IndividualChargeValueType', on_delete=models.CASCADE)
+    plan = models.ForeignKey('billing.BillingPlan', on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField()
     value = models.DecimalField(max_digits=10, decimal_places=2)
     name = models.CharField(max_length=250)
@@ -235,6 +247,7 @@ class CompanyInvoiceMails(models.Model):
         db_table = 'company_invoice_mails'
         ordering = ('id',)
 
+
 class CurrentCompanyCharge(models.Model):
     """
     This model holds the current charge for a company. We usually use this model to make the calculation on how much we
@@ -256,6 +269,11 @@ class CurrentCompanyCharge(models.Model):
     class Meta:
         db_table = 'current_company_charge'
 
+    objects = models.Manager()
+    billing_ = CurrentCompanyChargeBillingManager()
+    dashboard_ = CurrentCompanyChargeDashboardManager()
+    pdf_generator_ = CurrentCompanyChargePDFGeneratorManager()
+    notification_ = CurrentCompanyChargeNotificationManager()
 
 class CompanyCharge(models.Model):
     """
@@ -289,3 +307,37 @@ class CompanyChargeSent(models.Model):
 
     objects = models.Manager()
     billing_ = CompanyChargeSentBillingManager()
+
+
+class BillingPlan(models.Model):
+    """
+    This model is responsible for holding the billing plan for a company.
+
+    The billing plan is the plan that a company has. This is the plan that the company is paying for.
+    """
+    name = models.CharField(max_length=250, unique=True)
+    order = models.BigIntegerField(default=1)
+
+    class Meta:
+        db_table = 'billing_plan'
+        ordering = ('order',)
+
+    billing_ = BillingPlanBillingManager()
+
+
+class BillingPlanPermission(models.Model):
+    """
+    This model is each individual charge value for the given billing plan. The idea is that this will have all the default
+    data for the user. This means that the user will not be able to change their individual charge values themselves but will 
+    need to choose another plan to change their individual charge values.
+    """
+    billing_plan = models.ForeignKey('billing.BillingPlan', on_delete=models.CASCADE, related_name='billing_plan_permissions')
+    individual_charge_value_type = models.ForeignKey('billing.IndividualChargeValueType', on_delete=models.CASCADE)
+    default_quantity = models.IntegerField(null=True, default=None)
+    price_multiplicator = models.DecimalField(max_digits=20, decimal_places=10)
+    has_soft_limit = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'billing_plan_permission'
+
+    billing_ = BillingPlanPermissionBillingManager()

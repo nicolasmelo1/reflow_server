@@ -1,5 +1,6 @@
 from reflow_server.pdf_generator.models import PDFGenerated
 from reflow_server.billing.models import CurrentCompanyCharge
+from reflow_server.billing.services import BillingService
 
 
 class PDFGeneratorPermissionsService:
@@ -16,9 +17,7 @@ class PDFGeneratorPermissionsService:
             bool: Returns true or false. True if the user can download a PDF, False if not.
         """
         total_pdfs_of_company = PDFGenerated.pdf_generator_.total_generated_pdfs_by_company_in_current_month(company_id=company_id)
-        permitted_total_pdfs_of_company = CurrentCompanyCharge.objects.filter(company_id=company_id, individual_charge_value_type__name='per_pdf_download')\
-            .order_by('-quantity')\
-            .values_list('quantity', flat=True).first()
+        permitted_total_pdfs_of_company = CurrentCompanyCharge.pdf_generator_.quantity_of_per_charts_permission_for_company_id(company_id=company_id)
         
         if total_pdfs_of_company >= permitted_total_pdfs_of_company:
             return False

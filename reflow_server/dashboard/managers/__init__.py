@@ -1,1 +1,3 @@
 from .form import FormDashboardManager
+from .current_company_charge import CurrentCompanyChargeDashboardManager
+from .dashboard_chart_configuration import DashboardChartConfigurationDashboardManager

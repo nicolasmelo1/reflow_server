@@ -384,6 +384,7 @@ PERMISSIONS = {
         'reflow_server.billing.permissions.BillingBillingPermission',
         'reflow_server.draft.permissions.DraftBillingPermission',
         'reflow_server.dashboard.permissions.ChartsBillingPermission',
+        'reflow_server.notification.permissions.NotificationBillingPermission',
         'reflow_server.pdf_generator.permissions.PDFGeneratorBillingPermission'
     ]
 }

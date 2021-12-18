@@ -2,6 +2,7 @@ from django.db import models
 
 from reflow_server.notification.models.abstract import AbstractNotificationConfiguration
 from reflow_server.theme.managers import NotificationConfigurationThemeManager, NotificationConfigurationVariableThemeManager
+from reflow_server.notification.managers import NotificationConfigurationNotificationManager
 
 
 class NotificationConfiguration(AbstractNotificationConfiguration):
@@ -32,7 +33,7 @@ class NotificationConfiguration(AbstractNotificationConfiguration):
 
     objects = models.Manager()
     theme_ = NotificationConfigurationThemeManager()
-
+    notification_ = NotificationConfigurationNotificationManager()
 
 class NotificationConfigurationVariable(models.Model):
     """

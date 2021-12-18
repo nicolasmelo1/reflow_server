@@ -7,3 +7,4 @@ from .form import FormPDFGeneratorManager
 from .field import FieldPDFGeneratorManager
 from .dynamic_form import DynamicFormPDFGeneratorManager
 from .form_value import FormValuePDFGeneratorManager
+from .current_company_charge import CurrentCompanyChargePDFGeneratorManager

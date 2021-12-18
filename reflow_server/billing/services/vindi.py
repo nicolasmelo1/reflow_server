@@ -50,7 +50,7 @@ class VindiService:
         if hasattr(self, '_cache_total'):
             return self._cache_total
         else:
-            self._cache_total = self.charge_service.get_total_data_from_custom_charge_quantity([]).total
+            self._cache_total = self.charge_service.get_total_data_from_custom_charge_quantity(self.company_billing.plan_id, []).total
             return self._cache_total
     # ------------------------------------------------------------------------------------------
     def __get_correct_payment_method_type(self, payment_method):
@@ -298,27 +298,26 @@ class VindiService:
         Returns:
             bool: Returns True if everything went smoothly and fine, and False if any request faced a problem.
         """
-        pipeline = [
-            self.__create_or_update_client(),   
-            self.__create_or_update_product(),
-            self.__create_or_update_plan(),
-            self.__create_payment_profile(gateway_token),
-            self.__create_or_update_subscription()
-        ]
-        if any([response[0] not in [status.HTTP_200_OK, status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED] for response in pipeline]):
-            raise ConnectionError('We could not connect to Vindi servers.')
-        else:
-            self.company_billing.vindi_plan_id = self.vindi_plan_id
-            self.company_billing.vindi_client_id = self.vindi_client_id
-            self.company_billing.vindi_product_id = self.vindi_product_id
-            self.company_billing.vindi_payment_profile_id = str(self.vindi_payment_profile_id)
-            self.company_billing.vindi_signature_id = self.vindi_signature_id
-            self.company_billing.save()
-            return True
+        self.__create_or_update_client()
+        self.__create_or_update_product()
+        self.__create_or_update_plan()
+        self.__create_payment_profile(gateway_token)
+        self.__create_or_update_subscription()
+  
+        self.company_billing.vindi_plan_id = self.vindi_plan_id
+        self.company_billing.vindi_client_id = self.vindi_client_id
+        self.company_billing.vindi_product_id = self.vindi_product_id
+        self.company_billing.vindi_payment_profile_id = str(getattr(self, 'vindi_payment_profile_id', None))
+        self.company_billing.vindi_signature_id = getattr(self, 'vindi_signature_id', None)
+        self.company_billing.save()
+        return True
     # ------------------------------------------------------------------------------------------
     @staticmethod
     def handle_webhook(data):
         """
+        IMPORTANT: in order to make it better we should move this code to the worker so in case it fails we can retry it again, and we have
+        fallback access to know when it fails.
+
         This is responsible for handling Vindi webhook requests. You just need to send the data recieved and this function takes 
         care of the rest.
 
@@ -336,7 +335,7 @@ class VindiService:
         if event in list(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS.keys()) and data.get(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event], None):
             data = data[settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event]]
 
-            if event == 'subscription_canceled':
+            if ['subscription_canceled', 'charge_rejected', 'charge_canceled'] in event:
                 company_billing = CompanyBilling.objects.filter(vindi_signature_id=data.get('id', -1)).first()
                 if company_billing and not company_billing.is_supercompany:
                     Company.billing_.update_is_active_by_company_id(company_billing.company.id, False)
@@ -348,6 +347,7 @@ class VindiService:
 
             elif event == 'bill_paid':
                 from reflow_server.billing.services.charge import ChargeService
+                from reflow_server.billing.services import BillingService
 
                 vindi_customer_id = data.get('customer', {}).get('id', None)
                 total_value = data.get('amount', 0)
@@ -355,7 +355,9 @@ class VindiService:
                 charges = data.get('charges', [{}])
                 if isinstance(charges, list) and len(charges) > 0:
                     attempt_count = charges[0].get('attempt_count', 0)
-                ChargeService.add_new_company_charge(vindi_customer_id, total_value, attempt_count)
+
+                company_id = CompanyBilling.billing_.company_id_by_vindi_client_id(vindi_customer_id)
+                ChargeService.add_new_company_charge(company_id, total_value, attempt_count)
             elif event == 'bill_created':
                 from reflow_server.billing.services.charge import ChargeService
                 vindi_customer_id = data.get('customer', {}).get('id', None)

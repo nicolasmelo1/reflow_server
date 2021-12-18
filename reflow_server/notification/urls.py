@@ -1,5 +1,6 @@
 from django.conf.urls import re_path, include
 
+from reflow_server.notification.services.routes import register_notification_settings_url
 from reflow_server.core.decorators import validate_billing, authorize_external_response
 from reflow_server.notification.views import NotificationConfigurationView, NotificationConfigurationEditView, NotificationConfigurationFieldsView, \
     UnreadAndReadNotificationView, NotificationsView, PreNotificationExternalView, NotificationConfigurationExternalView, VerifyPreNotificationExternalView
@@ -14,7 +15,9 @@ external_urlpatterns = [
 ]
 
 settings_urlpatterns = [
-    re_path(r'^$', validate_billing(NotificationConfigurationView.as_view()), name='notification_notification_configuration'),
+    register_notification_settings_url(
+        re_path(r'^$', validate_billing(NotificationConfigurationView.as_view()), name='notification_notification_configuration')
+    ),
     re_path(r'^(?P<notification_configuration_id>\d+)/$', validate_billing(NotificationConfigurationEditView.as_view()), name='notification_notification_configuration_edit'),
     re_path(r'^get_fields/(?P<form_id>\d+)/$', validate_billing(NotificationConfigurationFieldsView.as_view()), name='notification_notification_configuration_fields'),
 ]

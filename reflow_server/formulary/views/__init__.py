@@ -96,7 +96,7 @@ class UserFieldTypeOptionsView(APIView):
 
     Methods:
         GET: retrieves all of the users you can select for this field. 
-                  right now, all of the users of a current company
+             right now, all of the users of a current company
     """
     def get(self, request, company_id, form, field_id):
         users_accessed_by = UserAccessedBy.formulary_.users_accessed_by_by_field_id_company_id_and_user_id(field_id, company_id, request.user.id)

@@ -1,7 +1,7 @@
 from django.db import transaction
 
 from reflow_server.authentication.models import UserExtended, Company
-from reflow_server.billing.models import CurrentCompanyCharge, DiscountByIndividualValueQuantity, \
+from reflow_server.billing.models import BillingPlanPermission, CurrentCompanyCharge, DiscountByIndividualValueQuantity, \
     IndividualChargeValueType, DiscountByIndividualNameForCompany, CompanyCharge, \
     CompanyBilling, PartnerDefaultAndDiscounts, CompanyChargeSent
 from reflow_server.billing.services.data import TotalData, CompanyChargeData
@@ -69,7 +69,7 @@ class ChargeService:
         new_curent_company_charges = []
         existing_company_charge_names = []
         for current_company_charge in current_company_charges:
-            if current_company_charge.individual_value_charge_name != 'per_user':
+            if current_company_charge.individual_value_charge_name != 'per_user' and current_company_charge.quantity != None:
                 new_curent_company_charges.append(current_company_charge)
                 existing_company_charge_names.append(current_company_charge.individual_value_charge_name)
         individual_charges_to_add = IndividualChargeValueType.objects.exclude(name__in=existing_company_charge_names)
@@ -82,11 +82,11 @@ class ChargeService:
             # when it's per_user we always count the number of active users in the company
             if individual_charge_value_type.name == 'per_user':
                 quantity = UserExtended.billing_.users_active_by_company_id(company_id=self.company_id).count() 
-            new_curent_company_charges.append(CompanyChargeData(individual_charge_value_type.name, quantity))
+            new_curent_company_charges.append(CompanyChargeData(individual_charge_value_type.id, quantity))
 
         return new_curent_company_charges
         
-    def get_total_data_from_custom_charge_quantity(self, current_company_charges=[]):
+    def get_total_data_from_custom_charge_quantity(self, plan_id, current_company_charges=[]):
         """
         Gets the totals based on a custom value that is not saved in our database. We usually need and use this so the user can have 
         a feedback while changing the quantity values while updating the billing information.
@@ -94,6 +94,7 @@ class ChargeService:
         If you set the current_company_charges as and empty list we will create a fresh TotalData
 
         Args:
+            plan_id (int): The id of the plan selected by the user.
             individual_charge_value_types (list(reflow_server.billing.services.data.CompanyChargeData)): The list of charges for this function
                                                                                                          to calculate. If set to empty we will retrieve
                                                                                                          a fresh TotalData fully validated, respecting the existing data.
@@ -103,11 +104,15 @@ class ChargeService:
         """
         total_data = TotalData(company_id=self.company_id)
         current_company_charges = self.validate_current_company_charges_and_create_new(current_company_charges)
-
         for company_charge in current_company_charges:
             individual_charge_value = IndividualChargeValueType.objects.filter(name=company_charge.individual_value_charge_name).first()
+            plan_increase = BillingPlanPermission.billing_.plan_increase_by_plan_id_and_individual_charge_value_type_id(
+                plan_id,
+                individual_charge_value.id
+            )
+
             if individual_charge_value:
-                discount_from_quantity = self.get_discount_for_quantity(individual_charge_value.id, company_charge.quantity)
+                discount_from_quantity = self.get_discount_for_quantity(plan_id, individual_charge_value.id, company_charge.quantity)
                 discount_from_quantity = discount_from_quantity.value if discount_from_quantity else 1
                 
                 discount_by_individual_charge_type_for_company = self.__get_discount_for_company_from_a_individual_charge_value_type(individual_charge_value.id)
@@ -117,13 +122,15 @@ class ChargeService:
                 discount_percentage = discount_from_quantity * discount_by_individual_charge_type_for_company
                 value = individual_charge_value.value
                 quantity = company_charge.quantity
+                plan_increase = plan_increase if plan_increase != None else 1
                 
                 total_data.add_value(
                     company_charge.individual_value_charge_name, 
                     company_charge.charge_type_name, 
                     value, 
                     quantity, 
-                    discount_percentage
+                    discount_percentage,
+                    plan_increase
                 )
         return total_data
     
@@ -137,11 +144,12 @@ class ChargeService:
             individual_charge_value_type_id=individual_charge_value_type_id
         ).first()
 
-    def get_discount_for_quantity(self, individual_charge_value_type_id, quantity):
+    def get_discount_for_quantity(self, plan_id, individual_charge_value_type_id, quantity):
         """
         Gets the discount for a particular individual_charge_value_type and based on a specific quantity.
 
         Args:
+            plan_id (int): The id of the plan selected by the user.
             individual_charge_value_type_id (int): The id of the individual_charge_value
             quantity (int): the quantity of this particular individual charge
 
@@ -149,6 +157,7 @@ class ChargeService:
             reflow_server.billing.models.DiscountByIndividualValueQuantity: The discount object to consider.
         """
         return DiscountByIndividualValueQuantity.objects.filter(
+            plan_id=plan_id,
             individual_charge_value_type_id=individual_charge_value_type_id, 
             quantity__lte=quantity
         ).order_by('-quantity').first()
@@ -196,7 +205,7 @@ class ChargeService:
             else:
                 quantity = individual_charge_value_type.default_quantity
 
-        discount = self.get_discount_for_quantity(individual_charge_value_type.id, quantity)
+        discount = self.get_discount_for_quantity(self.company_billing.plan_id, individual_charge_value_type.id, quantity)
         
         charge_instance, __ = CurrentCompanyCharge.objects.update_or_create(
             individual_charge_value_type=individual_charge_value_type, 
@@ -211,7 +220,7 @@ class ChargeService:
         return charge_instance
 
     @staticmethod
-    def add_new_company_charge(vindi_customer_id, total_value, attempt_count):
+    def add_new_company_charge(company_id, total_value, attempt_count):
         """
         This static function is responsible for saving to our database that the user has made a payment for a invoice.
         This is nice for us so we can keep track of all of the payments made by the user in our platform, we can easily spot frauds
@@ -220,24 +229,21 @@ class ChargeService:
         We also prevent updates in less than a minute, so two requests being fired at the same time doesn't save twice.
 
         Args:
-            vindi_customer_id (int): the vindi_customer_id so we can filter the company in Company model. So this way we know what user 
-                                     is making a new payment.
+            company_id (int): the company_id that made the payment.
             total_value (float): The amout the user has paid
             attempt_count (int): how many attempts we needed to bill the user.
         """
-        company_billing = CompanyBilling.objects.filter(vindi_client_id=vindi_customer_id).first()
-        if company_billing:
-            today_end = datetime.now()
-            today_start = today_end - timedelta(minutes=1)
-            company_charges_updated_in_the_last_minute = CompanyCharge.billing_.exists_company_charge_created_between_dates_by_company(
-                company_id=company_billing.company.id, date_end=today_end, date_start=today_start
+        today_end = datetime.now()
+        today_start = today_end - timedelta(minutes=1)
+        company_charges_updated_in_the_last_minute = CompanyCharge.billing_.exists_company_charge_created_between_dates_by_company(
+            company_id=company_id, date_end=today_end, date_start=today_start
+        )
+        if not company_charges_updated_in_the_last_minute:
+            CompanyCharge.billing_.create_company_charge(
+                company=company_id,
+                total_value=total_value,
+                attempt_count=attempt_count
             )
-            if not company_charges_updated_in_the_last_minute:
-                CompanyCharge.billing_.create_company_charge(
-                    company=company_billing.company,
-                    total_value=total_value,
-                    attempt_count=attempt_count
-                )
         return True
 
     

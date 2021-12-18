@@ -1,7 +1,8 @@
 from django.db import transaction
+from reflow_server.billing.managers.current_company_charge import CurrentCompanyChargeBillingManager
 
 from reflow_server.core.events import Event
-from reflow_server.billing.models import DiscountByIndividualNameForCompany, CurrentCompanyCharge, CompanyBilling, \
+from reflow_server.billing.models import BillingPlan, DiscountByIndividualNameForCompany, CurrentCompanyCharge, CompanyBilling, \
     PartnerDefaultAndDiscounts, DiscountCoupon, CompanyCoupons
 from reflow_server.billing.services.data import CompanyChargeData
 from reflow_server.billing.services.charge import ChargeService
@@ -41,13 +42,16 @@ class BillingService:
 
         When updating from the inside what we do not loop the `CurrentCompanyCharge` instances and we do not push the updates
         to vindi.
+
+        Args:
+            company_charge_data (list[reflow_server.billing.services.data.CompanyChargeData]): A list of `CompanyChargeData` instances.
         """
         current_company_charge_data = company_charge_data
         if len(company_charge_data) == 0:
             for current_company_charge in CurrentCompanyCharge.objects.filter(company_id=self.company_id):
                 current_company_charge_data.append(
                     CompanyChargeData(
-                        current_company_charge.individual_charge_value_type.name,
+                        current_company_charge.individual_charge_value_type_id,
                         current_company_charge.quantity
                     )
                 )
@@ -105,7 +109,7 @@ class BillingService:
         Sends the events to the users after the billing was updated. 
         So they can update their data.
         """
-        total = self.charge_service.get_total_data_from_custom_charge_quantity([]).total
+        total = self.charge_service.get_total_data_from_custom_charge_quantity(self.company_billing.plan_id, []).total
 
         if is_new_paying_company:
             Event.register_event('new_paying_company', {
@@ -187,7 +191,8 @@ class BillingService:
             bool: returns True to show everything went alright
         """
         billing_service = cls(company_id, user_id)
-        billing_service.company_billing = CompanyBilling.objects.create(company_id=company_id)
+        plan_id = BillingPlan.billing_.starter_plan_id()
+        billing_service.company_billing = CompanyBilling.objects.create(company_id=company_id, plan_id=plan_id)
         billing_service.charge_service = ChargeService(company_id, billing_service.company_billing)
         billing_service.create_discount_by_individual_name_for_company_by_partner_name(partner_name)
         billing_service.create_discount_coupon_for_company(discount_coupon_name)

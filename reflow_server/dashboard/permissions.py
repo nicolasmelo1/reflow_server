@@ -33,7 +33,7 @@ class ChartsBillingPermission:
     def __call__(self, request):
         from reflow_server.dashboard.services.routes import dashboard_settings_url_names
 
-        if request.url_name in dashboard_settings_url_names and request.method in ['PUT', 'POST']:
+        if request.url_name in dashboard_settings_url_names and request.method == 'POST':
 
             for_company = request.data.get('for_company', False) if type(request.data) == dict else False
 

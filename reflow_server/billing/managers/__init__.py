@@ -7,3 +7,7 @@ from .partner_default_and_discounts import PartnerDefaultAndDiscountsBillingMana
 from .discount_by_individual_name_for_company import DiscountByIndividualNameForCompanyBillingManager
 from .discount_coupon import DiscountCouponBillingManager
 from .company_coupons import CompanyCouponsBillingManager
+from .current_company_charge import CurrentCompanyChargeBillingManager
+from .company_billing import CompanyBillingBillingManager
+from .billing_plan_permission import BillingPlanPermissionBillingManager
+from .billing_plan import BillingPlanBillingManager

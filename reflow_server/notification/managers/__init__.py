@@ -1,2 +1,4 @@
 from .form_value import FormValueNotificationManager
 from .user_extended import UserExtendedNotificationManager
+from .notification_configuration import NotificationConfigurationNotificationManager
+from .current_company_charge import CurrentCompanyChargeNotificationManager

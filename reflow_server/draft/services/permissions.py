@@ -1,4 +1,4 @@
-from typing import Text
+from reflow_server.billing.services import BillingService
 from reflow_server.data.models import Attachments
 from reflow_server.rich_text.models import TextImageOption
 from reflow_server.billing.models import CurrentCompanyCharge
@@ -49,6 +49,6 @@ class DraftPermissionService:
         # if the size of the files saved in the database + the size of this new file is less than the current_gb_permitted 
         # for the company
         if all_file_sizes < current_gb_permission_for_company:
-            return True
-        else:
             return False
+        return True
+

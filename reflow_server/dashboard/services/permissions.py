@@ -1,5 +1,7 @@
+from reflow_server.billing.managers import current_company_charge
 from reflow_server.dashboard.models import DashboardChartConfiguration
 from reflow_server.billing.models import CurrentCompanyCharge, CompanyBilling
+from reflow_server.billing.services import BillingService
 
 
 class DashboardPermissionsService:
@@ -85,36 +87,14 @@ class DashboardPermissionsService:
         if CompanyBilling.objects.filter(company_id=company_id, is_supercompany=True).exists():
             return True
         else:
-            charts_quantity_permission = CurrentCompanyCharge.objects.filter(company_id=company_id)
-            charts_quantity_permission_for_company = charts_quantity_permission\
-                                                    .filter(individual_charge_value_type__name='per_chart_company')\
-                                                    .order_by('-quantity')\
-                                                    .values_list('quantity', flat=True).first()
-            charts_quantity_permission_for_user = charts_quantity_permission\
-                                        .filter(individual_charge_value_type__name='per_chart_user')\
-                                        .order_by('-quantity')\
-                                        .values_list('quantity', flat=True).first()
+            charts_quantity_permission = CurrentCompanyCharge.dashboard_.quantity_of_per_charts_permission_for_company_id(company_id)
 
-            current_charts_quantity_for_user = DashboardChartConfiguration.objects.filter(
-                company_id=company_id, 
-                form__form_name=form_name,
-                user_id=user_id, 
-                for_company=False
-            ).exclude(id=dashboard_configuration_id).count()
-            current_charts_quantity_for_company = DashboardChartConfiguration.objects.filter(
-                company_id=company_id, 
-                form__form_name=form_name,
-                for_company=True
-            ).exclude(id=dashboard_configuration_id).count()
-            
-            if not dashboard_configuration_id:
-                if not for_company and current_charts_quantity_for_user + 1 > charts_quantity_permission_for_user:
-                    return False
-                if for_company and current_charts_quantity_for_company + 1 > charts_quantity_permission_for_company:
-                    return False
-            else:
-                if not for_company and current_charts_quantity_for_user >= charts_quantity_permission_for_user:
-                    return False
-                if for_company and current_charts_quantity_for_company >= charts_quantity_permission_for_company:
-                    return False
+            current_charts_quantity_for_page = DashboardChartConfiguration.dashboard_.count_dashboard_chart_configuration_by_form_name_and_company_id_excluding_dashboard_configuration_id(
+                form_name, company_id, dashboard_configuration_id
+            )
+            is_user_adding_a_new_chart = dashboard_configuration_id == None
+            is_user_able_to_add_a_new_chart = current_charts_quantity_for_page + 1 <= charts_quantity_permission
+            if is_user_adding_a_new_chart and not is_user_able_to_add_a_new_chart:
+                return False
+                    
             return True

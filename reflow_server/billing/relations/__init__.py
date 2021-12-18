@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from reflow_server.billing.models import CompanyInvoiceMails
+from reflow_server.billing.models import BillingPlanPermission, CompanyBilling, CompanyInvoiceMails
 
 
 class TotalsByNameRelation(serializers.Serializer):
@@ -14,3 +14,9 @@ class CompanyInvoiceMailsRelation(serializers.ModelSerializer):
     class Meta:
         model = CompanyInvoiceMails
         fields = ('email',)
+
+
+class PlanPermissionsRelation(serializers.ModelSerializer):
+    class Meta:
+        model = BillingPlanPermission
+        fields = ('id', 'individual_charge_value_type_id','default_quantity', 'price_multiplicator',  'has_soft_limit')

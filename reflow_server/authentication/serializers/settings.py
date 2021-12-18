@@ -76,8 +76,8 @@ class UserSettingsSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_accessed_by_data = [UserAccessedByData(user_accessed_by_user['user_option_id'], user_accessed_by_user['field_id']) 
                                  for user_accessed_by_user in validated_data.get('user_accessed_by_user', [])]
-        users_service = UsersService(self.company_id, self.user_id)   
-        return users_service.create( 
+        users_service = UsersService(self.company_id, self.user_id)
+        return users_service.create(
             validated_data.get('email'),
             validated_data.get('first_name'),
             validated_data.get('last_name'),

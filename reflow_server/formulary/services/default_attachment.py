@@ -88,9 +88,10 @@ class DefaultAttachmentService:
             key = file_default_attachments_path + '/' + file_url.split('/{}/'.format(file_default_attachments_path))[1]
             key = urllib.parse.unquote(key)
         else:
-            key = "{file_default_attachments_path}/{default_field_value_instance_id}/".format(
+            key = "{file_default_attachments_path}/{default_field_value_instance_id}/{file_name}".format(
                 file_default_attachments_path=file_default_attachments_path,
-                default_field_value_instance_id=instance.id
+                default_field_value_instance_id=instance.id,
+                file_name=file_name
             )
         return key
     # ------------------------------------------------------------------------------------------

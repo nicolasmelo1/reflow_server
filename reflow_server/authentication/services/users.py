@@ -3,6 +3,7 @@ from django.db import transaction
 from reflow_server.core.events import Event
 from reflow_server.authentication.models import APIAccessToken, UserExtended, Company, VisualizationType
 from reflow_server.billing.services import BillingService
+from reflow_server.core.utils.asynchronous import RunAsyncFunction
 from reflow_server.formulary.models import UserAccessedBy, Field
 from reflow_server.formulary.services.formulary import FormularyService
 from reflow_server.formulary.services.options import FieldOptionsService
@@ -39,7 +40,8 @@ class UsersService:
         """
         When we remove a user we just need to update the billing information
         """
-        BillingService(self.company.id, self.user_id).update_charge()
+        async_function = RunAsyncFunction(BillingService(self.company.id, self.user_id).update_charge)
+        async_function.delay()
 
     @transaction.atomic
     def create(self, email, first_name, last_name, profile, has_api_access_key, field_option_ids_accessed_by=[], form_ids_accessed_by=[], users_accessed_by=[], change_password_url=None):

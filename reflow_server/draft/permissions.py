@@ -16,6 +16,6 @@ class DraftBillingPermission:
         from reflow_server.draft.services.routes import draft_url_names
         
         if request.url_name in draft_url_names and request.method in ['PUT', 'POST']:
-            if not DraftPermissionService.validate_file_upload(self.company_id, request.files):
+            can_company_submit_file = DraftPermissionService.validate_file_upload(self.company_id, request.files)
+            if not can_company_submit_file:
                 raise PermissionsError(detail='invalid_billing', status=status.HTTP_403_FORBIDDEN)
-            

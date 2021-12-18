@@ -4,8 +4,8 @@ from rest_framework.fields import ListField
 from reflow_server.authentication.models import Company, AddressHelper
 from reflow_server.billing.services.data import CompanyChargeData
 from reflow_server.billing.services import VindiService, BillingService, ChargeService
-from reflow_server.billing.models import CompanyBilling, CurrentCompanyCharge, IndividualChargeValueType
-from reflow_server.billing.relations import CompanyInvoiceMailsRelation, TotalsByNameRelation
+from reflow_server.billing.models import BillingPlan, CompanyBilling, CurrentCompanyCharge, IndividualChargeValueType
+from reflow_server.billing.relations import CompanyInvoiceMailsRelation, TotalsByNameRelation, PlanPermissionsRelation
 from reflow_server.billing.utils import validate_cnpj, validate_cpf
 
 
@@ -30,6 +30,7 @@ class CurrentCompanyChargeListSerializer(serializers.ListSerializer):
                     CurrentCompanyCharge(
                         company_id=data.instance.id,
                         discount_by_individual_value=charge_service.get_discount_for_quantity(
+                            instance.plan_id,
                             current_company_charge.individual_value_charge_id,
                             current_company_charge.quantity
                         ),
@@ -40,17 +41,31 @@ class CurrentCompanyChargeListSerializer(serializers.ListSerializer):
             data = current_company_charges
         return super().to_representation(data)
 
-    def create(self, validated_data):
+class ChargesSerializer(serializers.ModelSerializer):
+    individual_charge_value_type_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(allow_null=True)
+
+    class Meta:
+        list_serializer_class = CurrentCompanyChargeListSerializer
+        model = CurrentCompanyCharge
+        fields = ('individual_charge_value_type_id', 'quantity')
+
+
+class CurrentCompanyChargeSerializer(serializers.Serializer):
+    plan_id = serializers.IntegerField()
+    current_company_charges = ChargesSerializer(many=True)
+
+    def save(self):
         instance = CompanyBilling.objects.filter(company_id=self.context['company_id']).first()
         charge_service = ChargeService(self.context['company_id'], instance)
         current_company_charges = [
             CompanyChargeData(
-                individual_value_charge_name=current_company_charge['individual_charge_value_type']['name'], 
+                individual_value_charge_id=current_company_charge['individual_charge_value_type_id'], 
                 quantity=current_company_charge['quantity']
             ) 
-            for current_company_charge in validated_data
+            for current_company_charge in self.validated_data['current_company_charges']
         ]
-        total_data = charge_service.get_total_data_from_custom_charge_quantity(current_company_charges)
+        total_data = charge_service.get_total_data_from_custom_charge_quantity(self.validated_data['plan_id'], current_company_charges)
         data = {
             'total': total_data.total,
             'discounts': total_data.total_without_discounts - total_data.total,
@@ -62,16 +77,6 @@ class CurrentCompanyChargeListSerializer(serializers.ListSerializer):
         }
         return data
 
-class CurrentCompanyChargeSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='individual_charge_value_type.name')
-    quantity = serializers.IntegerField()
-
-    class Meta:
-        list_serializer_class = CurrentCompanyChargeListSerializer
-        model = CurrentCompanyCharge
-        fields = ('name', 'quantity')
-
-
 class TotalsSerializer(serializers.Serializer):
     total = serializers.FloatField()
     discounts = serializers.FloatField()
@@ -80,7 +85,7 @@ class TotalsSerializer(serializers.Serializer):
 
 class CompanySerializer(serializers.ModelSerializer):
     company_invoice_emails = CompanyInvoiceMailsRelation(many=True)
-    current_company_charges = CurrentCompanyChargeSerializer(many=True, error_messages={ 'null': 'blank', 'blank': 'blank' })
+    current_company_charges = ChargesSerializer(many=True, error_messages={ 'null': 'blank', 'blank': 'blank' })
 
     class Meta:
         model = Company
@@ -129,9 +134,10 @@ class PaymentSerializer(serializers.ModelSerializer):
         return data
 
     def update(self, instance, validated_data):
+        print(validated_data['company']['current_company_charges'])
         current_company_charges = [
             CompanyChargeData(
-                individual_value_charge_name=current_company_charge['individual_charge_value_type']['name'], 
+                individual_value_charge_id=current_company_charge['individual_charge_value_type_id'], 
                 quantity=current_company_charge['quantity']
             ) 
             for current_company_charge in validated_data['company']['current_company_charges']
@@ -161,5 +167,12 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = CompanyBilling
         fields = ('gateway_token', 'company', 'payment_method_type_id', 'invoice_date_type_id', 
                   'credit_card_data', 'additional_details', 'cnpj', 'zip_code', 'street', 'state', 
-                  'number', 'neighborhood', 'city', 'country') 
+                  'number', 'neighborhood', 'city', 'country', 'plan_id') 
         
+
+class PlanSerializer(serializers.ModelSerializer):
+    billing_plan_permissions = PlanPermissionsRelation(many=True)
+
+    class Meta:
+        model = BillingPlan
+        fields = ('id', 'name', 'billing_plan_permissions')

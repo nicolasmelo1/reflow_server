@@ -5,13 +5,14 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from reflow_server.billing import serializers
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.authentication.models import AddressHelper
-from reflow_server.billing.models import CompanyBilling
+from reflow_server.billing.models import BillingPlan, CompanyBilling
 from reflow_server.billing.services import VindiService, BillingService
 from reflow_server.billing.serializers import CurrentCompanyChargeSerializer, PaymentSerializer, \
-    AddressOptionsSerializer, TotalsSerializer
+    AddressOptionsSerializer, TotalsSerializer, PlanSerializer
 
 
 class AddressOptionsView(APIView):
@@ -36,7 +37,7 @@ class TotalsView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
 
     def post(self, request, company_id):
-        serializer = CurrentCompanyChargeSerializer(data=request.data, context={'company_id': company_id}, many=True)
+        serializer = CurrentCompanyChargeSerializer(data=request.data, context={'company_id': company_id})
         if serializer.is_valid():
             data = serializer.save()
             serializer = TotalsSerializer(data=data)
@@ -45,6 +46,7 @@ class TotalsView(APIView):
                 'data': serializer.initial_data
             }, status=status.HTTP_200_OK)
         else:
+            print(serializer.errors)
             return Response({
                 'status': 'error'
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -139,4 +141,14 @@ class VindiWebhookExternalView(APIView):
             VindiService.handle_webhook(request.data)
         return Response({
             'status': 'ok'
+        }, status=status.HTTP_200_OK)
+
+
+class PlanView(APIView):
+    def get(self, request):
+        instances = BillingPlan.billing_.all_plans()
+        serializer = PlanSerializer(instance=instances, many=True)
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
         }, status=status.HTTP_200_OK)
