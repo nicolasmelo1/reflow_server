@@ -125,7 +125,7 @@ class BillingService:
             })
 
     @transaction.atomic
-    def update_billing_information(self, payment_method_type_id, invoice_date_type_id, emails, 
+    def update_billing_information(self, plan_id, payment_method_type_id, invoice_date_type_id, emails, 
                                     current_company_charges, cnpj, zip_code, street, state, 
                                     number, neighborhood, country, city, additional_details=None, gateway_token=None):
         """
@@ -135,6 +135,7 @@ class BillingService:
         To understand how we bill for dashboard charts go to: reflow_server.dashboard.services.permissions.DashboardPermissionsService
 
         Args:
+            plan_id (int): The selected reflow_server.billing.models.BillingPlan instance id
             payment_method_type_id (int): the reflow_server.billing.models.PaymentMethodType id to use on this particular company, 
                                           is it credit_card or invoice?
             invoice_date_type_id (int): the id of a single reflow_server.billing.models.InvoiceDateType model, in other words, when the
@@ -170,7 +171,7 @@ class BillingService:
             cnpj, zip_code, street, state, number, neighborhood, country, 
             city, additional_details, push_updates=False
         )
-        self.payment_service.update_payment(payment_method_type_id, invoice_date_type_id, emails, gateway_token=gateway_token, push_updates=True)
+        self.payment_service.update_payment(plan_id, payment_method_type_id, invoice_date_type_id, emails, gateway_token=gateway_token, push_updates=True)
         is_paying_company_after_updating = self.company_billing.is_paying_company
         
         is_new_paying_company = is_paying_company_before_updating == False and is_paying_company_after_updating == True

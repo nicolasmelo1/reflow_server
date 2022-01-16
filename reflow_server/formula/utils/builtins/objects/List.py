@@ -46,4 +46,17 @@ class List(Object):
             self.has_to_request_new_representation = False
 
         return self.cached_representation 
+    # ------------------------------------------------------------------------------------------
+    def _string_(self, ident=4, **kwargs):
+        length = len(self.array)
+        stringfied_representation = '[\n'
+        for index in range(0, length):
+            value_at_index = self.array[index]
+            stringfied_value = value_at_index._string_(ident=ident+4)
+            value_representation = stringfied_value._representation_()
+
+            stringfied_representation += ' ' * ident + f"{value_representation}" + \
+                f"{'' if index == length - 1 else self.settings.positional_argument_separator}\n"
+        stringfied_representation += ' ' * (ident-4) if ident - 4 != 1 else '' + ']'
+        return self.new_string(stringfied_representation)
     

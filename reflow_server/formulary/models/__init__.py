@@ -209,6 +209,7 @@ class FieldType(models.Model):
         db_table = 'field_type'
         ordering = ('order',)
 
+
 #############
 #           #
 #   BUILD   #
@@ -274,6 +275,7 @@ class Form(AbstractForm):
     theme_ = FormThemeManager()
     pdf_generator_ = FormPDFGeneratorManager()
     data_ = FormDataManager()
+
 
 ############################################################################################
 class Field(AbstractField):

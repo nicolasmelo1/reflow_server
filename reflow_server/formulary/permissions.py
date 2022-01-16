@@ -61,5 +61,16 @@ class FormularyPublicPermission:
             else:
                 raise PermissionsError(detail='not_permitted')
     # ------------------------------------------------------------------------------------------
-
-        
+############################################################################################
+class FormularyBillingPermission:
+    """
+    Read reflow_server.core.permissions for further reference on what's this and how it works. So you can create 
+    your own custom permission classes.
+    """
+    def __init__(self, company_id):
+        self.company_id = company_id
+    
+    def __call__(self, request):
+        if request.url_name == 'formulary_settings_forms' and request.method == 'POST':
+            if not FormularyPermissionsService.can_add_new_formulary(self.company_id):
+                raise PermissionsError(detail='invalid_billing', status=status.HTTP_403_FORBIDDEN)

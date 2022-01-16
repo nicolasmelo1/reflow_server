@@ -1,8 +1,10 @@
 from reflow_server.formula.utils.builtins.objects.Object import Object
 from reflow_server.formula.utils.builtins.types import DATETIME_TYPE
+from reflow_server.formula.utils.helpers import DatetimeHelper
 
 from datetime import datetime
 import pytz
+import re
 
 
 class Datetime(Object):
@@ -196,6 +198,41 @@ class Datetime(Object):
             second=self.second,
             microsecond=self.microsecond,
             tzinfo=pytz.timezone(self.timezone)
+        )
+    # ------------------------------------------------------------------------------------------
+    def _string_(self, **kwargs):
+        representation = self._representation_()
+        datetime_helpers = DatetimeHelper()
+
+        datetime_helpers.append_values_by_definition('year', representation.year)
+        datetime_helpers.append_values_by_definition('month', representation.month)
+        datetime_helpers.append_values_by_definition('day', representation.day)
+        datetime_helpers.append_values_by_definition('hour', representation.hour)
+        datetime_helpers.append_values_by_definition('minute', representation.minute)
+        datetime_helpers.append_values_by_definition('second', representation.second)
+        datetime_helpers.append_values_by_definition('microsecond', representation.microsecond)
+
+        date_part_of_representation = self.settings.datetime_date_format
+        time_part_of_representation = self.settings.datetime_time_format
+
+        regex_of_date_format = self.settings.date_format_to_regex(True)
+        matched_date_format = re.findall(regex_of_date_format, self.settings.datetime_date_format)
+
+        for format_string in matched_date_format:
+            value = datetime_helpers.get_value_stringfied_by_format(format_string)
+            if value != None:
+                date_part_of_representation = date_part_of_representation.replace(format_string, value)
+        
+        regex_of_time_format = self.settings.time_format_to_regex(False)
+        matched_time_format = re.findall(regex_of_time_format, self.settings.datetime_time_format)
+        for format_string in matched_time_format:
+            value = datetime_helpers.get_value_stringfied_by_format(format_string)
+            if value != None:
+                time_part_of_representation = time_part_of_representation.replace(format_string, value)
+        
+        return self.new_string(
+            f"{self.settings.sigil_string}{self.settings.datetime_date_character}" + \
+            f"[{date_part_of_representation} {time_part_of_representation}]"
         )
     # ------------------------------------------------------------------------------------------
     def _safe_representation_(self):

@@ -10,3 +10,4 @@ from .default_field_value_attachments import DefaultValueFieldAttachmentsFormula
 from .default_field_value import DefaultFieldValueFormularyManager
 from .user_accessed_by import UserAccessedByFormularyManager
 from .formula_variable import FormulaVariableFormularyManager
+from .current_company_charge import CurrentCompanyChargeFormularyManager

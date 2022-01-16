@@ -27,3 +27,10 @@ class UserExtendedBillingManager(UserManager):
             django.db.models.QuerySet(int): Each integer is a UserExtended instance id.
         """
         return self.users_active_by_company_id(company_id).values_list('id', flat=True)
+
+    def deactivate_all_accounts_except_oldest_by_company_id(self, company_id):
+        user_id_to_ignore = self.get_queryset().filter(company_id=company_id).order_by('-date_joined').values_list('id', flat=True).first()
+        return self.get_queryset().filter(company_id=company_id).exclude(id=user_id_to_ignore).update(is_active=False)
+
+    def reactivate_all_accounts_by_company_id(self, company_id):
+        return self.get_queryset().filter(company_id=company_id).update(is_active=True)

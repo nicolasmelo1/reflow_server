@@ -211,6 +211,9 @@ class Context:
         self.library[original_module_name] = new_library
         return new_library
     # ------------------------------------------------------------------------------------------
+    def add_integration_callback(self, callback):
+        self.integration_callback = callback
+    # ------------------------------------------------------------------------------------------
     def add_reflow_data(self, company_id, user_id, dynamic_form_id=None, automation_id=None, 
                         automation_trigger_data=None, automation_action_data=None, automation_debug_trigger=False):
         self.reflow = Reflow(

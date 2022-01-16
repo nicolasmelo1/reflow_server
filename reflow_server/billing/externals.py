@@ -141,12 +141,17 @@ class VindiExternal(externals.External):
         return self.delete('/payment_profiles/{}'.format(vindi_payment_profile_id))
 
     def get_payment_profile(self, vindi_payment_profile_id):
-        response = self.get('/payment_profiles/{}'.format(vindi_payment_profile_id)).json()
+        response = self.get('/payment_profiles/{}'.format(vindi_payment_profile_id))
+        if response != None:
+            response_json = response.json()
+        else:
+            response_json = {}
+        
         credit_card_info = {
-            'card_number_last_four': response.get('payment_profile', {}).get('card_number_last_four', ''),
-            'card_expiration': response.get('payment_profile', {}).get('card_expiration', ''),
-            'credit_card_code': response.get('payment_profile', {}).get('payment_company', {}).get('code', ''),
-            'payment_company_name': response.get('payment_profile', {}).get('payment_company', {}).get('name', '')
+            'card_number_last_four': response_json.get('payment_profile', {}).get('card_number_last_four', ''),
+            'card_expiration': response_json.get('payment_profile', {}).get('card_expiration', ''),
+            'credit_card_code': response_json.get('payment_profile', {}).get('payment_company', {}).get('code', ''),
+            'payment_company_name': response_json.get('payment_profile', {}).get('payment_company', {}).get('name', '')
         }
         return credit_card_info
 

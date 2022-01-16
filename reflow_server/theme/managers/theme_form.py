@@ -7,6 +7,18 @@ class ThemeFormThemeManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
+    def count_formularies_by_theme_id(self, theme_id):
+        """
+        Counts the number of formularies that are in a theme.
+
+        Args:
+            theme_id (int): The id of the theme to count the formularies from
+
+        Returns:
+            int: The number of formularies in the theme
+        """
+        return self.get_queryset().filter(theme_id=theme_id, depends_on__isnull=True).count()
+
     def theme_form_by_theme_id_and_theme_form_id(self, theme_id, theme_form_id):
         """
         Gets a ThemeForm instance from a theme_id and a theme_form_id. It's important to notice

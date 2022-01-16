@@ -13,3 +13,6 @@ class Error(Object, Exception):
     
     def _representation_(self):
         return f"{self.error_type}: {self.message}"
+    
+    def _string_(self, **kwargs):
+        return self.new_string(f"({self.error_type}): {self.message}")

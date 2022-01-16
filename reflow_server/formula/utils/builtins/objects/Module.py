@@ -21,7 +21,10 @@ class Module(Object):
         return super()._initialize_()
 
     def _setattribute_(self, variable, element):
-        self.attributes.append(variable._hash_(), variable._representation_(), element)
+        self.attributes.append(variable, variable._hash_(), variable._representation_(), element)
 
     def _getattribute_(self, variable):
         return self.attributes.search(variable._hash_(), variable._representation_()).value
+
+    def _string_(self, **kwargs):
+        return self.new_string(f"{self.settings.module_keyword} {self.module_name}")

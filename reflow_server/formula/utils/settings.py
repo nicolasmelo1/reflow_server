@@ -128,6 +128,7 @@ class Settings:
         self.datetime_helper = DatetimeHelper()
 
         self.flow_context = context.flow_context
+        self.integration_callback = context.integration_callback
         self.reflow_automation_action_data = context.reflow.automation.action_data
         self.reflow_automation_trigger_data = context.reflow.automation.trigger_data
         self.reflow_automation_debug_trigger = context.reflow.automation.debug_trigger

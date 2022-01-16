@@ -4,3 +4,5 @@ from .dynamic_form import DynamicFormFormulaManager
 from .formula_variable import FormulaVariableFormulaManager
 from .formula_context_for_company import FormulaContextForCompanyFormulaManager
 from .user_extended import UserExtendedFormulaManager
+from .integration_service_type import IntegrationServiceTypeFormulaManager
+from .integration_authentication import IntegrationAuthenticationFormulaManager

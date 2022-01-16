@@ -28,6 +28,10 @@ class Object:
 
         The original value can be retrieved by calling _representation_(): this is the Python value or the value in whatever language you are using to
         build this interpreter on.
+
+        Args:
+            object_type (str): The type of the object.
+            settings (reflow_server.formula.utils.settings.Settings): The settings of the interpreter.
         """
         self.type = object_type
         self.settings = settings
@@ -37,6 +41,12 @@ class Object:
 
         boolean = Boolean(self.settings)
         return boolean._initialize_(value)
+    # ------------------------------------------------------------------------------------------
+    def new_string(self, value):
+        from reflow_server.formula.utils.builtins.objects.String import String
+
+        string = String(self.settings)
+        return string._initialize_(value)
     # ------------------------------------------------------------------------------------------
     def _initialize_(self):
         return self
@@ -140,6 +150,9 @@ class Object:
     # ------------------------------------------------------------------------------------------    
     def _representation_(self):
         return self
+    # ------------------------------------------------------------------------------------------
+    def _string_(self, **kwargs):
+        return self.new_string('')
     # ------------------------------------------------------------------------------------------    
     def _safe_representation_(self):
         return ''

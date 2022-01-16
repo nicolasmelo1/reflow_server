@@ -4,12 +4,14 @@ from django import db
 from reflow_server.data.models import FormValue
 from reflow_server.data.services.representation import RepresentationService
 from reflow_server.formulary.models import FieldDateFormatType, FormulaVariable, FieldType, FieldNumberFormatType
-from reflow_server.formula.services.data import FormulaVariables, EvaluationData, InternalValue
+from reflow_server.formula.services.data import FormulaVariables, EvaluationData, InternalValue, IntegrationServiceToAuthenticate
 from reflow_server.formula.utils import evaluate
 from reflow_server.formula.utils.helpers import DatetimeHelper
 from reflow_server.formula.services.utils import build_context
 from reflow_server.formula.models import FormulaContextForCompany, FormulaContextType
-from reflow_server.authentication.models import UserExtended 
+from reflow_server.authentication.models import UserExtended
+from reflow_server.integration import services 
+from reflow_server.integration.models import IntegrationServiceType
 
 from datetime import datetime
 import logging
@@ -71,13 +73,22 @@ class FlowFormulaService:
                     formula_variables.add_variable_id(variable_id)
 
         context_type_id = FormulaContextForCompany.formula_.formula_context_for_company_by_company_id(company_id)
+        self.services_user_needs_to_authenticate = []
         self.is_testing = is_testing
         self.context = build_context(context_type_id, 'formula')
+
+        self.context.add_integration_callback(self.callback_for_integration_log_in)
         self.context.add_reflow_data(company_id, user_id, dynamic_form_id=dynamic_form_id)
         
         self.context.datetime.timezone = user_timezone
         
         self.formula = self.__clean_formula(formula, dynamic_form_id, formula_variables)
+    # ------------------------------------------------------------------------------------------
+    def callback_for_integration_log_in(self, service_name):
+        does_service_name_exists = IntegrationServiceType.formula_.exists_service_name(service_name)
+        if does_service_name_exists:
+            integration_service_to_authenticate = IntegrationServiceToAuthenticate(service_name)
+            self.services_user_needs_to_authenticate.append(integration_service_to_authenticate)
     # ------------------------------------------------------------------------------------------
     def __clean_formula(self, formula, dynamic_form_id, formula_variables):
         """
@@ -123,7 +134,7 @@ class FlowFormulaService:
             end
 
         Did you notice? We've changed {{status_555}} with the "Perdido" string.
-        
+        
         Args:
             formula (str): The unformatted formula, with the variable tags ( {{}} )
             dynamic_form_id (int): A reflow_server.data.models.DynamicForm instance id WITH depends_on as NULL
@@ -254,39 +265,47 @@ class FlowFormulaService:
             value_type = formula_result.value.type if formula_result.value else ''
             handler = getattr(self, '_to_internal_value_%s' % value_type, None)
             if handler:
-                return handler(formula_result)               
+                return handler(formula_result)
+            else:
+                stringfied_value = formula_result.value._string_()
+                return InternalValue(stringfied_value._representation_(), '-', field_type=default_field_type)
+      
         elif formula_result.status == 'error':
-            return InternalValue('-' if formula_result.value == 'Unknown' else '-', field_type=default_field_type)
+            return InternalValue('-', '-' if formula_result.value == 'Unknown' else '-', field_type=default_field_type)
     
-        return InternalValue('-', default_field_type)
+        return InternalValue('-', '-', default_field_type)
     # ------------------------------------------------------------------------------------------
     def _to_internal_value_datetime(self, formula_result):
         field_type = FieldType.objects.filter(type='date').first()
         date_format_type = FieldDateFormatType.objects.filter(type='datetime').first()
         value = formula_result.value._representation_().strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
-
-        return InternalValue(value, field_type, date_format_type=date_format_type)
+        stringfied_value = formula_result.value._string_()
+        
+        return InternalValue(stringfied_value._representation_(), value, field_type, date_format_type=date_format_type)
     # ------------------------------------------------------------------------------------------
     def _to_internal_value_int(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
         value = formula_result.value._safe_representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT
+        stringfied_value = formula_result.value._string_()
 
-        return InternalValue(value, field_type, number_format_type=number_format_type)
+        return InternalValue(stringfied_value._representation_(), value, field_type, number_format_type=number_format_type)
     # ------------------------------------------------------------------------------------------
     def _to_internal_value_float(self, formula_result):
         field_type = FieldType.objects.filter(type='number').first()
         number_format_type = FieldNumberFormatType.objects.filter(type='number').first()
         splitted_value = str(formula_result.value._safe_representation_() * settings.DEFAULT_BASE_NUMBER_FIELD_FORMAT).split('.')
         value = splitted_value[0]     
+        stringfied_value = formula_result.value._string_()
 
-        return InternalValue(value, field_type, number_format_type=number_format_type)
+        return InternalValue(stringfied_value._representation_(), value, field_type, number_format_type=number_format_type)
     # ------------------------------------------------------------------------------------------
     def _to_internal_value_string(self, formula_result):
         field_type = FieldType.objects.filter(type='text').first()
         value = formula_result.value._safe_representation_()
+        stringfied_value = formula_result.value._string_()
 
-        return InternalValue(value, field_type)
+        return InternalValue(stringfied_value._representation_(), value, field_type)
     # ------------------------------------------------------------------------------------------
     def __evaluate(self, formula, result):
         """
@@ -308,7 +327,8 @@ class FlowFormulaService:
             status = 'error' if getattr(formula_result, 'type', '') == 'error' else 'ok'
             result.put({
                 'status': status,
-                'value': formula_result
+                'value': formula_result,
+                'integrations_to_authenticate': self.services_user_needs_to_authenticate
             })
         
         if settings.ENV == 'development':
@@ -344,6 +364,7 @@ class FlowFormulaService:
             if process.is_alive():
                 process.terminate()
             result = result.get(timeout=settings.FORMULA_MAXIMUM_EVAL_TIME/2)
+            self.services_user_needs_to_authenticate = result.get('integrations_to_authenticate', [])
             return EvaluationData(result['status'], result['value'])
 
         if settings.ENV == 'development': 

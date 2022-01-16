@@ -119,7 +119,8 @@ class PaymentSerializer(serializers.ModelSerializer):
     country = serializers.CharField(allow_null=True)
     neighborhood = serializers.CharField(error_messages = { 'null': 'blank', 'blank': 'blank'})
     city = serializers.CharField(error_messages = { 'null': 'blank', 'blank': 'blank'})
-
+    plan_id = serializers.IntegerField(allow_null=True)
+    
     def get_credit_card_data(self, obj):
         vindi_service = VindiService(obj.company_id)
         return vindi_service.get_credit_card_info()
@@ -134,7 +135,6 @@ class PaymentSerializer(serializers.ModelSerializer):
         return data
 
     def update(self, instance, validated_data):
-        print(validated_data['company']['current_company_charges'])
         current_company_charges = [
             CompanyChargeData(
                 individual_value_charge_id=current_company_charge['individual_charge_value_type_id'], 
@@ -145,6 +145,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         emails = [company_invoice_email['email'] for company_invoice_email in validated_data['company']['company_invoice_emails']]
 
         self.billing_service.update_billing_information(
+            plan_id=validated_data['plan_id'],
             payment_method_type_id=validated_data['payment_method_type_id'],
             invoice_date_type_id=validated_data['invoice_date_type_id'],
             emails=emails,

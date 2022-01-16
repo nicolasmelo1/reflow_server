@@ -34,3 +34,15 @@ class FormFormularyManager(models.Manager):
             (None, str): Returns the name of the formulary (Remember that the name is similar to the ID of the formulary, it's NOT the label_name)
         """
         return self.get_queryset().filter(id=form_id, group__company_id=company_id).values_list('form_name', flat=True).first()
+    # ------------------------------------------------------------------------------------------
+    def count_main_forms_by_company_id(self, company_id):
+        """
+        Counts all of the formularies (not the sections) of a given company_id.
+
+        Args:
+            company_id (int): The id of a Company instance.
+
+        Returns:
+            int: The number of main forms of a given company_id.
+        """
+        return self.get_queryset().filter(group__company_id=company_id, depends_on_id__isnull=True).count()

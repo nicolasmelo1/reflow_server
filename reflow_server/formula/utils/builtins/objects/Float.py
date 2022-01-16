@@ -291,6 +291,14 @@ class Float(Object):
         value = str(self.value).replace(self.settings.decimal_point_character, '.')
         return float(value)
     # ------------------------------------------------------------------------------------------
+    def _string_(self, **kwargs):
+        representation = self._representation_()
+        if representation % 1 != 0:
+            return self.new_string(str(representation).replace('.', self.settings.decimal_point_character))
+        else:
+            integer_part = str(representation).split('.')[0]
+            return self.new_string(f"{integer_part}{self.settings.decimal_point_character}0")
+    # ------------------------------------------------------------------------------------------
     def _safe_representation_(self):
         value = str(self.value).replace(self.settings.decimal_point_character, '.')
         return float(value)

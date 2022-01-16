@@ -45,17 +45,19 @@ class TestFormulaView(APIView):
                 is_testing=True
             )
             value = formula_service.evaluate()
-            
+            stringfied_representation = value.value._string_()._representation_() if hasattr(value.value, '_string_')  else ''
             if value.status == 'error':
                 return Response({
                     'status': 'error',
-                    'error': str(value.value._representation_()) if hasattr(value.value, '_representation_') else ''
+                    'error': str(stringfied_representation)
                 }, status=status.HTTP_502_BAD_GATEWAY)
             else:
                 return Response({
                     'status': 'ok',
                     'data': {
-                        'result': str(value.value.value) if hasattr(value.value, 'value') else ''
+                        'result': stringfied_representation,
+                        'integrations_to_authenticate': [{'service_name': integrations.service_name } 
+                            for integrations in formula_service.services_user_needs_to_authenticate]
                     }
                 }, status=status.HTTP_200_OK)
         else:

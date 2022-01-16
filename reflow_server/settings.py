@@ -385,7 +385,9 @@ PERMISSIONS = {
         'reflow_server.draft.permissions.DraftBillingPermission',
         'reflow_server.dashboard.permissions.ChartsBillingPermission',
         'reflow_server.notification.permissions.NotificationBillingPermission',
-        'reflow_server.pdf_generator.permissions.PDFGeneratorBillingPermission'
+        'reflow_server.pdf_generator.permissions.PDFGeneratorBillingPermission',
+        'reflow_server.formulary.permissions.FormularyBillingPermission',
+        'reflow_server.theme.permissions.ThemeBillingPermission'
     ]
 }
 
@@ -400,7 +402,7 @@ FORMULA_MODULES = {
         'List',
         'String',
         'Number',
-        #'GoogleSheets'
+        'GoogleSheets'
     ],
     'automation': [
         'Automation'

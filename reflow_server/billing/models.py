@@ -7,6 +7,7 @@ from reflow_server.billing.managers import CompanyChargeBillingManager, PartnerD
 from reflow_server.dashboard.managers import CurrentCompanyChargeDashboardManager
 from reflow_server.pdf_generator.managers import CurrentCompanyChargePDFGeneratorManager
 from reflow_server.notification.managers import CurrentCompanyChargeNotificationManager
+from reflow_server.formulary.managers import CurrentCompanyChargeFormularyManager
 
 
 class ChargeType(models.Model):
@@ -274,7 +275,8 @@ class CurrentCompanyCharge(models.Model):
     dashboard_ = CurrentCompanyChargeDashboardManager()
     pdf_generator_ = CurrentCompanyChargePDFGeneratorManager()
     notification_ = CurrentCompanyChargeNotificationManager()
-
+    formulary_ = CurrentCompanyChargeFormularyManager()
+    
 class CompanyCharge(models.Model):
     """
     The charge of the company, this is after a payment has been made, this is used for analytics. Right now Vindi handles 

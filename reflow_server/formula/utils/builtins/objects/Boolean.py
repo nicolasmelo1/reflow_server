@@ -145,6 +145,10 @@ class Boolean(Object):
     def _representation_(self):
         return bool(self.value)
     # ------------------------------------------------------------------------------------------
+    def _string_(self, **kwargs):
+        representation = self._representation_()
+        return self.new_string(self.settings.boolean_keywords['true'] if representation == True else self.settings.boolean_keywords['false'])
+    # ------------------------------------------------------------------------------------------
     def _safe_representation_(self):
         return bool(self.value)
     # ------------------------------------------------------------------------------------------

@@ -168,6 +168,83 @@ class DatetimeHelper:
                 'value': int(value) if value != '' else 0
             }
 
+    def append_values_by_definition(self, datetime_definition, value):
+        """
+        Different from `append_values` method, this method will append the values by the datetime definition.
+        This means that here we have less `elif` case statements. Also the format of the object is somewhat different
+        from one another. But keep in mind that we append the values to the same instance variables.
+
+        Args:
+            datetime_definition ('year', 'month', 'day',  'hour', 'minute', 'second', 'microsecond'): The datetime definition to be used.
+            value (int | str): The value to append to datetimehelper instance.
+        """
+        if datetime_definition == 'year':
+            self.date_year = {
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_definition == 'month':
+            self.date_month = {
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_definition == 'day':
+            self.date_day = {
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_definition == 'hour':
+            self.date_hour = {
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_definition == 'minute':
+            self.date_minute = {
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_definition == 'second':
+            self.date_second = {
+                'value': int(value) if value != '' else 0
+            }
+        elif datetime_definition == 'microsecond':
+            self.date_microsecond = {
+                'value': int(value) if value != '' else 0
+            }
+    
+    def get_value_stringfied_by_format(self, format):
+        """
+        This gets each value as string by the actual format. Generally this will be used in conjunction with 
+        the `.append_values_by_definition()` method. Different from the `.get_value` this returns the value stringfied and
+        not the actual number. This will also use the format and not the datetimeDefinition like the other method.
+        
+        Args: 
+            format ('YYYY', 'MM', 'DD', 'hh', 'HH', 'mm', 'ss', 'SSS', 'AA'): The format to use for retrieving the value.
+            Needs to exist in the `valid_formats` array.
+
+        Returns:
+            str: The value as string. The value of the format as a string. 
+        """
+        if format == 'YYYY':
+            return self.date_year['value']
+        elif format == 'MM':
+            return f'0{self.date_month["value"]}' if self.date_month['value'] < 10 else self.date_month['value']
+        elif format == 'DD':
+            return f'0{self.date_day["value"]}' if self.date_day['value'] < 10 else self.date_day['value']
+        elif format == 'hh':
+            return f'0{self.date_hour["value"]}' if self.date_hour['value'] < 10 else self.date_hour['value']
+        elif format == 'HH':
+            hour_value = self.date_hour['value'] - 12 if self.date_hour['value'] >= 12 else self.date_hour['value']
+            hour_value = 12 if self.hour_value == 0 else hour_value
+            return f'0{hour_value}' if hour_value < 10 else hour_value
+        elif format == 'mm':
+            return f'0{self.date_minute["value"]}' if self.date_minute['value'] < 10 else self.date_minute['value']
+        elif format == 'ss':
+            return f'0{self.date_second["value"]}' if self.date_second['value'] < 10 else self.date_second['value']
+        elif format == 'SSS':
+            return f'00{self.date_microsecond["value"]}' if self.date_microsecond['value'] < 10 else \
+                   f'0{self.date_microsecond["value"]}' if self.date_microsecond['value'] < 100 else \
+                       self.date_microsecond['value']
+        elif format == 'AA':
+            return 'PM' if self.date_hour['value'] >= 12 else 'AM'
+        else:
+            raise ValueError(f'The format {format} is not supported.')
+    
     def get_value(self, datetime_definition):
         """
         Returns the actual value from the values appended in the `append_values()` method.
@@ -341,7 +418,7 @@ class DynamicArray:
 class HashTable:
     ############################################################################################
     class HashNode:
-        def __init__(self,number_of_removed_elements_when_added, order_added, hasher, key, value):
+        def __init__(self,number_of_removed_elements_when_added, order_added, hasher, raw_key, key, value):
             """
             This is each node of the HashTable. Each node of the hash table is also a linked list.
             So in the worst cenario, if it has a collision we will not take up memory creating new list
@@ -358,6 +435,7 @@ class HashTable:
                 hasher (int): The original hashing number. Sometimes the number can be '1231231231' so when we 
                               fill the space in the hashing table we devide this big integer by the capacity and get
                               the remainder.
+                raw_key (any): The key you are storing, this is the actual value you want to store.
                 key (any): This key can be of any type, this is the actual value yu are storing as key (NOT THE HASH OF THE VALUE)
                            This way we can prevent duplicate keys from being added
                 value (any): The actual value you want to store.
@@ -365,12 +443,13 @@ class HashTable:
             self.number_of_removed_elements_when_added = number_of_removed_elements_when_added
             self.order_added = order_added
             self.hasher = hasher
+            self.raw_key = raw_key
             self.key = key
             self.value = value
             self.next = None
     ############################################################################################
     # ------------------------------------------------------------------------------------------
-    def __init__(self, hashes_keys_and_values=[]):
+    def __init__(self, raw_keys_hashes_keys_and_values=[]):
         """
         This is a HashTable object that uses Chaining as resolution for collisions, it also has a dynamic size, and works similar to DynamicArray. 
         So you probably don't know what hashtables are, so let me try to explain.
@@ -475,17 +554,28 @@ class HashTable:
         self.number_of_elements = 0
         self.capacity = 8
 
+        self.raw_keys = DynamicArray()
         self.indexes = DynamicArray()
         self.keys = DynamicArray()
         self.values = DynamicArray()
 
         self.table = self.make_table(self.capacity)
 
-        for hash_key_and_value in hashes_keys_and_values:
-            the_hash = hash_key_and_value[0]
-            the_key = hash_key_and_value[1]
-            the_value = hash_key_and_value[2]
-            self.append(the_hash, the_key, the_value)
+        for raw_key_hash_key_and_value in raw_keys_hashes_keys_and_values:
+            the_raw_key = raw_key_hash_key_and_value[0]
+            the_hash = raw_key_hash_key_and_value[1]
+            the_key = raw_key_hash_key_and_value[2]
+            the_value = raw_key_hash_key_and_value[3]
+            self.append(the_raw_key, the_hash, the_key, the_value)
+    # ------------------------------------------------------------------------------------------
+    def length(self):
+        """"
+        Returns the number of elements in the Hash Table.
+
+        Returns:
+            int: The number of elements in the Hash Table.
+        """
+        return self.number_of_elements
     # ------------------------------------------------------------------------------------------
     def __add_at_index_and_handle_collision(self, table, index, hash_node):
         """
@@ -556,7 +646,8 @@ class HashTable:
         if node != None:
             if node.key == key:
                 remove_key_index_and_value_at = node.order_added - self.number_of_removed_elements + node.number_of_removed_elements_when_added
-
+                
+                self.raw_keys.remove_at(remove_key_index_and_value_at)
                 self.indexes.remove_at(remove_key_index_and_value_at)
                 self.keys.remove_at(remove_key_index_and_value_at)
                 self.values.remove_at(remove_key_index_and_value_at)
@@ -569,6 +660,7 @@ class HashTable:
                     node = node.next
                 
                 remove_key_index_and_value_at = node.order_added - self.number_of_removed_elements + node.number_of_removed_elements_when_added
+                self.raw_keys.remove_at(remove_key_index_and_value_at)
                 self.indexes.remove_at(remove_key_index_and_value_at)
                 self.keys.remove_at(remove_key_index_and_value_at)
                 self.values.remove_at(remove_key_index_and_value_at)
@@ -580,12 +672,13 @@ class HashTable:
         else:
             raise Exception('Key does not exist in dict')
     # ------------------------------------------------------------------------------------------
-    def append(self, hasher, key, value):
+    def append(self, raw_key, hasher, key, value):
         """
         Appends a new value to the HashTable, we send a hasher, the key and the value, the key is the actual value
         you want to store as list. The value is the value you are storing in this key, and the hasher is the key hashed.
 
         Args:
+            raw_key (any): The key you are storing, this is the actual value you want to store.
             hasher (int): This is the 'key' value hashed. Some other implementations of the hashtable you will see that
                           the hashing is handled inside of the hashtable, on this we let each builtin object implement their own
                           hashing algorithm
@@ -597,12 +690,13 @@ class HashTable:
         if key in self.keys.array:
             self.remove(hasher, key)
 
-        hash_node = self.HashNode(self.number_of_removed_elements, self.number_of_elements, hasher, key, value)
+        hash_node = self.HashNode(self.number_of_removed_elements, self.number_of_elements, hasher, raw_key, key, value)
         hash_index = hasher % self.capacity
         
         if self.number_of_elements + 1 > self.capacity:
             self.__resize(2 * self.capacity)
 
+        self.raw_keys.append(raw_key)
         self.indexes.append(hash_index)
         self.keys.append(key)
         self.values.append(value)

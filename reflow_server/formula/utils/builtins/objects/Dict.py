@@ -9,11 +9,11 @@ class Dict(Object):
     # ------------------------------------------------------------------------------------------    
     def _initialize_(self, values=[]):
         self.values = values
-        hashes_keys_and_values = []
+        raw_keys_hashes_keys_and_values = []
         for value in values:
-            hashes_keys_and_values.append([value[0]._hash_(), value[0]._representation_(), value[1]])
+            raw_keys_hashes_keys_and_values.append([value[0], value[0]._hash_(), value[0]._representation_(), value[1]])
 
-        self.hash_table = HashTable(hashes_keys_and_values)
+        self.hash_table = HashTable(raw_keys_hashes_keys_and_values)
         return super()._initialize_()
     # ------------------------------------------------------------------------------------------    
     def _getitem_(self, key):
@@ -50,7 +50,7 @@ class Dict(Object):
             reflow_server.formula.utils.builtins.objects.*: Returns the object you are storing in the key value.
         """
         self.values.append([key, element])
-        return self.hash_table.append(key._hash_(), key._representation_(), element)
+        return self.hash_table.append(key, key._hash_(), key._representation_(), element)
     # ------------------------------------------------------------------------------------------    
     def _in_(self, obj):
         return self.new_boolean(obj._representation_() in self.hash_table.keys)
@@ -86,3 +86,21 @@ class Dict(Object):
             dictionary_response[key] = python_value
 
         return dictionary_response
+    # ------------------------------------------------------------------------------------------
+    def _string_(self, ident=4, **kwargs):
+        stringfied_representation = '{\n'
+        for index in range(0, self.hash_table.length()):
+            if self.hash_table.keys[index] != None:
+                raw_key = self.hash_table.raw_keys[index]
+                hash = raw_key._hash_()
+                stringfied_raw = raw_key._string_()
+                key = stringfied_raw._representation_()
+                hash_node = self.hash_table.search(hash, key)
+                stringfied_value = hash_node.value._string_(ident=ident+4)
+                value = stringfied_value._representation_()
+
+                stringfied_representation += ' ' * ident + '{}: {}\n'.format(key, value) + \
+                    f"{'' if index == self.hash_table.keys.length() - 1 else self.settings.positional_argument_separator}\n"
+
+        stringfied_representation += ' ' * (ident-4) if ident - 4 != 1 else '' + '}'
+        return self.new_string(stringfied_representation)

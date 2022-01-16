@@ -24,6 +24,7 @@ urlpatterns = [
     re_path(r'^billing/', include('reflow_server.billing.urls'), name='billing_app'),
     re_path(r'^analytics/', include('reflow_server.analytics.urls'), name='analytics_app'),
     re_path(r'^automation/', include('reflow_server.automation.urls'), name='automation_app'),
+    re_path(r'^integration/', include('reflow_server.integration.urls'), name='integration_app'),
     re_path(r'^authentication/', include('reflow_server.authentication.urls'), name='authentication_app'),
     re_path(r'^filter/', include('reflow_server.filter.urls'), name='filter_app'),
     re_path(r'^formula/', include('reflow_server.formula.urls'), name='formula_app'),

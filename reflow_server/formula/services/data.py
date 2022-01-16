@@ -27,9 +27,14 @@ class EvaluationData:
 
 
 class InternalValue:
-    def __init__(self, value, field_type, number_format_type=None, date_format_type=None):
+    def __init__(self, stringfied_value, value, field_type, number_format_type=None, date_format_type=None):
+        self.stringfied_value = stringfied_value
         self.value = value
         self.field_type = field_type
         self.number_format_type = number_format_type
         self.date_format_type = date_format_type
         
+        
+class IntegrationServiceToAuthenticate:
+    def __init__(self, service_name):
+        self.service_name = service_name

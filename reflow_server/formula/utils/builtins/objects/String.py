@@ -177,6 +177,10 @@ class String(Object):
     def _representation_(self):
         return str(self.value)
     # ------------------------------------------------------------------------------------------
+    def _string_(self, **kwargs):
+        representation = self._representation_()
+        return self.__class__(self.settings)._initialize_(f'"{representation}"')
+    # ------------------------------------------------------------------------------------------
     def _safe_representation_(self):
         return str(self.value)
     # ------------------------------------------------------------------------------------------

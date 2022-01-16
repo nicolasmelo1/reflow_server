@@ -1,5 +1,5 @@
-from reflow_server.authentication.models import Company
-from reflow_server.billing.models import CompanyInvoiceMails, PaymentMethodType, InvoiceDateType
+from reflow_server.authentication.models import Company, UserExtended
+from reflow_server.billing.models import BillingPlan, CompanyInvoiceMails, PaymentMethodType, InvoiceDateType
 from reflow_server.billing.services.vindi import VindiService
 
 
@@ -48,8 +48,8 @@ class PaymentService:
         if push_updates:
             self.push_updates()
         return True
-
-    def update_payment(self, payment_method_type_id, invoice_date_type_id, emails, gateway_token=None, push_updates=True):
+    
+    def update_payment(self, plan_id, payment_method_type_id, invoice_date_type_id, emails, gateway_token=None, push_updates=True):
         """
         Updates the payment data of a company
 
@@ -63,9 +63,11 @@ class PaymentService:
         CompanyInvoiceMails.objects.bulk_create([
             CompanyInvoiceMails(email=email, company_id=self.company_id) for email in emails
         ])
+        self.company_billing.plan_id = plan_id
         self.company_billing.payment_method_type_id = payment_method_type_id
         self.company_billing.invoice_date_type_id = invoice_date_type_id
         self.company_billing.save()
+        self.__check_if_selected_plan_is_free(plan_id)
         if push_updates:
             self.push_updates(gateway_token)
         return True
@@ -81,3 +83,13 @@ class PaymentService:
         else:
             return False
 
+    def __check_if_selected_plan_is_free(self, plan_id):
+        """
+        Will check if the selected plan is the Freemium plan and then we remove the users and only let the admin access, otherwise
+        we will enable everyone that was disabled.
+        """
+        is_plan_id_freemium = BillingPlan.billing_.is_plan_id_freemium(plan_id)
+        if is_plan_id_freemium:
+            UserExtended.billing_.deactivate_all_accounts_except_oldest_by_company_id(self.company_id)
+        else:
+            UserExtended.billing_.reactivate_all_accounts_by_company_id(self.company_id)

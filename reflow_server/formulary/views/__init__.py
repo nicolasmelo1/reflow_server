@@ -1,4 +1,3 @@
-from reflow_server.formulary.managers import user_accessed_by
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response

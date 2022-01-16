@@ -340,6 +340,10 @@ class Integer(Object):
     def _representation_(self):
         return int(self.value)
     # ------------------------------------------------------------------------------------------
+    def _string_(self, **kwargs):
+        representation = self._representation_()
+        return self.new_string(str(representation))
+    # ------------------------------------------------------------------------------------------
     def _safe_representation_(self):
         return int(self.value)
     # ------------------------------------------------------------------------------------------
