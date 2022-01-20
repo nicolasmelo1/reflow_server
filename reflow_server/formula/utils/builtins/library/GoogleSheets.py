@@ -40,6 +40,10 @@ class GoogleSheets(LibraryModule):
     
     def _documentation_(self):
         return {
-            'description': "This library is used to interact with Google Sheets.",
-            "methods": {}
+            'description': 'This library is used to interact with Google Sheets.',
+            'methods': {
+                'list_sheets': {
+                    'description': 'Returns a list of all the sheets in your Google Drive account.',
+                }
+            }
         }
