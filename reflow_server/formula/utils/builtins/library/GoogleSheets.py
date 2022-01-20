@@ -16,6 +16,8 @@ class GoogleSheets(LibraryModule):
     @functionmethod
     def list_sheets(**kwargs):
         settings = kwargs['__settings__']
+        conversor = Conversor(settings)
+        
         google_sheets_external = GoogleSheetsExternal()
         integration_service = IntegrationService(settings.reflow_user_id)
         integration_authentication_data = integration_service.retrieve_integration_for_company(
@@ -28,7 +30,6 @@ class GoogleSheets(LibraryModule):
         if integration_authentication_data is None:
             settings.integration_callback('google_sheets')
         else:
-            conversor = Conversor(settings)
             response = google_sheets_external.all_sheets(integration_authentication_data.access_token)
             if response.status_code == 200:
                 response_data = response.json()
