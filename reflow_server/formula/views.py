@@ -46,6 +46,8 @@ class TestFormulaView(APIView):
             )
             value = formula_service.evaluate()
             stringfied_representation = value.value._string_()._representation_() if hasattr(value.value, '_string_')  else ''
+            print('formula_value:', value)
+            print(value.value)
             if value.status == 'error':
                 return Response({
                     'status': 'error',

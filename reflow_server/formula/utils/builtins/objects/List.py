@@ -57,6 +57,6 @@ class List(Object):
 
             stringfied_representation += ' ' * ident + f"{value_representation}" + \
                 f"{'' if index == length - 1 else self.settings.positional_argument_separator}\n"
-        stringfied_representation += ' ' * (ident-4) if ident - 4 != 1 else '' + ']'
+        stringfied_representation += (' ' * (ident-4) if ident - 4 != 1 else '') + ']'
         return self.new_string(stringfied_representation)
     
