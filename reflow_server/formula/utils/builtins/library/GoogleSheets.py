@@ -1,11 +1,7 @@
-from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryModule, functionmethod, \
-    retrieve_representation
-from reflow_server.formula.utils.builtins import objects as flow_objects
+from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryModule, functionmethod
 from reflow_server.formula.utils.helpers import Conversor
 from reflow_server.formula.externals import GoogleSheetsExternal
 from reflow_server.integration.services import IntegrationService
-
-import json
 
 
 class GoogleSheets(LibraryModule):
@@ -17,7 +13,7 @@ class GoogleSheets(LibraryModule):
     def list_sheets(**kwargs):
         settings = kwargs['__settings__']
         conversor = Conversor(settings)
-        
+
         google_sheets_external = GoogleSheetsExternal()
         integration_service = IntegrationService(settings.reflow_user_id)
         integration_authentication_data = integration_service.retrieve_integration_for_company(
