@@ -46,7 +46,7 @@ class DraftPermissionService:
         company_aggregated_file_sizes = company_aggregated_file_sizes if company_aggregated_file_sizes else 0
         company_aggregated_file_sizes = company_aggregated_file_sizes * 0.000000001
         all_file_sizes = new_files_size + company_aggregated_file_sizes
-        # if the size of the files saved in the database + the size of this new file is less than the current_gb_permitted 
+        # if the size of the files saved in the database + the size of this new file is greater than the current_gb_permitted 
         # for the company
         if all_file_sizes > current_gb_permission_for_company:
             return False
