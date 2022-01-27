@@ -452,6 +452,8 @@ AWS_ACCESS_KEY_ID = configuration.AWS_ACCESS_KEY_ID
 LOCALSTACK_ENDPOINT = getattr(configuration, 'LOCALSTACK_ENDPOINT', '')
 LOCALSTACK_PORT = getattr(configuration, 'LOCALSTACK_PORT', '')
 
+FRONT_END_APP_HOST = 'https://app-beta.reflow.com.br'
+
 # S3 CONFIGURATION
 # check core.utils.bucket file
 S3_REGION_NAME = configuration.S3_REGION_NAME

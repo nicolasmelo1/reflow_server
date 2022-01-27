@@ -1,4 +1,4 @@
-from reflow_server.analytics.services import AnalyticsService
+from reflow_server.analytics.services import AnalyticsService, ReflowAnalyticsService
 from reflow_server.core.utils.channel_layers import ChannelLayer
 
 
@@ -37,6 +37,9 @@ class AnalyticsEvents:
             visitor_id (str): This is a reflow_visitor_id that is defined in reflow_tracking application that tracks
                               the user before he is a user of reflow, so check itbefore everything
         """
+        reflow_analytics_service = ReflowAnalyticsService(user_id, company_id)
+        reflow_analytics_service.create_record_in_sales_funnel()
+        
         self.analytics_service.register_event('user_onboarding', 
             user_id=user_id, 
             company_id=company_id,

@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from reflow_server.analytics.managers import UserExtendedAnalyticsManager
+from reflow_server.analytics.managers import UserExtendedAnalyticsManager, CompanyAnalyticsManager
 from reflow_server.authentication.managers import UserExtendedAuthenticationManager, \
     CompanyAuthenticationManager, PublicAccessAuthenticationManager, APIAccessTokenAuthenticationManager, \
     ProfileTypeAuthenticationManager
@@ -115,6 +115,7 @@ class Company(models.Model):
         db_table = 'company'
 
     objects = models.Manager()
+    analytics_ = CompanyAnalyticsManager()
     authentication_ = CompanyAuthenticationManager()
     billing_ = CompanyBillingManager()
 

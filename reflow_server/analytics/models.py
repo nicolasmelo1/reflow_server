@@ -1,7 +1,8 @@
 from django.db import models
 
 from reflow_server.analytics.managers import TypeOfEventAnalyticsManager, EventAnalyticsManager, \
-    SurveyAnalyticsManager, SurveyAnswerAnalyticsManager, SurveyQuestionAnswerAnalyticsManager
+    SurveyAnalyticsManager, SurveyAnswerAnalyticsManager, SurveyQuestionAnswerAnalyticsManager, \
+    CompanyAnalyticsAnalyticsManager
 from reflow_server.authentication.managers import CompanyAnalyticsAuthenticationManager
 
 
@@ -124,6 +125,7 @@ class CompanyAnalytics(models.Model):
         db_table = 'company_analytics'
 
     objects = models.Manager()
+    analytics_ = CompanyAnalyticsAnalyticsManager()
     authentication_ = CompanyAnalyticsAuthenticationManager()
 
 

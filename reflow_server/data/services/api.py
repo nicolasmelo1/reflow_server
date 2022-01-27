@@ -3,6 +3,7 @@ from reflow_server.data.models import DynamicForm, FormValue
 from reflow_server.formulary.models import Form, Field
 from reflow_server.data.services.formulary import FormularyDataService
 
+from dateutil.parser import isoparse 
 from datetime import datetime
 import uuid
 import json
@@ -137,13 +138,13 @@ class APIService:
                                 for value in values:
                                     if field_type == 'date' and value not in ['', None]:
                                         try:
-                                            formated_datetime = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S%z"), 
-                                        except ValueError as ve:
-                                            formated_datetime = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
-                                        value = datetime.strftime(
-                                            formated_datetime, 
-                                            field_date_format
-                                        )
+                                            formated_datetime = isoparse(value), 
+                                            value = datetime.strftime(
+                                                formated_datetime, 
+                                                field_date_format
+                                            )
+                                        except:
+                                            value = ''
                                     elif field_type == 'number' and value not in ['', None]:
                                         value = str(value).replace('.', field_number_decimal_separator)
                                     elif field_type == 'user' and value not in ['', None] and isinstance(value, str) and not value.isdigit():

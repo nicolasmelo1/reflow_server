@@ -3,6 +3,7 @@ from django.db import transaction
 from reflow_server.core.utils.asynchronous import RunAsyncFunction
 from reflow_server.analytics.models import TypeOfEvent, Event, EventData
 from reflow_server.analytics.services.mixpanel import MixpanelService
+from reflow_server.analytics.services.reflow import ReflowAnalyticsService
 
 import collections
 
