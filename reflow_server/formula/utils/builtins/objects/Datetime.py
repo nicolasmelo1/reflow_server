@@ -217,14 +217,16 @@ class Datetime(Object):
 
         regex_of_date_format = self.settings.date_format_to_regex(True)
         matched_date_format = re.findall(regex_of_date_format, self.settings.datetime_date_format)
-
+        matched_date_format = matched_date_format[0] if len(matched_date_format) > 0 else []
         for format_string in matched_date_format:
             value = datetime_helpers.get_value_stringfied_by_format(format_string)
             if value != None:
                 date_part_of_representation = date_part_of_representation.replace(format_string, value)
         
-        regex_of_time_format = self.settings.time_format_to_regex(False)
+        regex_of_time_format = self.settings.time_format_to_regex(True)
         matched_time_format = re.findall(regex_of_time_format, self.settings.datetime_time_format)
+        matched_time_format = matched_time_format[0] if len(matched_time_format) > 0 else []
+        
         for format_string in matched_time_format:
             value = datetime_helpers.get_value_stringfied_by_format(format_string)
             if value != None:

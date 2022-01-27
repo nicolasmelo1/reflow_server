@@ -203,6 +203,7 @@ class Context:
             date_format,
             hour_format
         )
+        self.integration_callback = None
         self.library = {}
         self.reflow = Reflow()
     # ------------------------------------------------------------------------------------------

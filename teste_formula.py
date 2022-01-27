@@ -137,7 +137,7 @@ Automation.trigger_action({
 from datetime import datetime
 from reflow_server.formula.utils.helpers import DatetimeHelper
 
-date_string = f"~D[{datetime.strptime('2012-04-11 11:11:11', '%Y-%m-%d %H:%M:%S').strftime(DatetimeHelper.to_python_format(context.datetime.date_format, context.datetime.time_format))}]"
+#date_string = f"~D[{datetime.strptime('2012-04-11 11:11:11', '%Y-%m-%d %H:%M:%S').strftime(DatetimeHelper.to_python_format(context.datetime.date_format, context.datetime.time_format))}]"
 datetime_test = r"""
 date1 =  ~D[2020-10-10]
 date2 = ~D[2021-11-11]
@@ -157,8 +157,8 @@ functions_to_test = [
     #modules,
     #structs,
     #HTTP_library,
-    SMTP_library,
-    #datetime_test,
+    #SMTP_library,
+    datetime_test,
     #List_library,
     #automation_library,
     #datetime_test
@@ -178,7 +178,7 @@ for function in functions_to_test:
         value = interpreter.evaluate(ast)
     except Error as e:
         value = e
-    print(value._representation_())
+    print(value._string_()._representation_())
 end = time.time()
 
 print(end-start)

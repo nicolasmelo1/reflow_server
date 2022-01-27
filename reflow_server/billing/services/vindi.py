@@ -335,7 +335,7 @@ class VindiService:
         if event in list(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS.keys()) and data.get(settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event], None):
             data = data[settings.VINDI_ACCEPTED_WEBHOOK_EVENTS[event]]
 
-            if ['subscription_canceled', 'charge_rejected', 'charge_canceled'] in event:
+            if event in ['subscription_canceled', 'charge_rejected', 'charge_canceled']:
                 company_billing = CompanyBilling.objects.filter(vindi_signature_id=data.get('id', -1)).first()
                 if company_billing and not company_billing.is_supercompany:
                     Company.billing_.update_is_active_by_company_id(company_billing.company.id, False)

@@ -1,7 +1,6 @@
 from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryModule, functionmethod
 from reflow_server.formula.utils.helpers import Conversor
 from reflow_server.formula.externals import GoogleSheetsExternal
-from reflow_server.integration.services import IntegrationService
 
 
 class GoogleSheets(LibraryModule):
@@ -11,6 +10,8 @@ class GoogleSheets(LibraryModule):
 
     @functionmethod
     def list_sheets(**kwargs):
+        from reflow_server.integration.services import IntegrationService
+
         settings = kwargs['__settings__']
         conversor = Conversor(settings)
 

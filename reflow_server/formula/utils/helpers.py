@@ -218,32 +218,32 @@ class DatetimeHelper:
             Needs to exist in the `valid_formats` array.
 
         Returns:
-            str: The value as string. The value of the format as a string. 
+            str | Npne: The value as string. The value of the format as a string. Or return None if No value is found.
         """
         if format == 'YYYY':
-            return self.date_year['value']
+            return str(self.date_year['value'])
         elif format == 'MM':
-            return f'0{self.date_month["value"]}' if self.date_month['value'] < 10 else self.date_month['value']
+            return f'0{self.date_month["value"]}' if self.date_month['value'] < 10 else str(self.date_month['value'])
         elif format == 'DD':
-            return f'0{self.date_day["value"]}' if self.date_day['value'] < 10 else self.date_day['value']
+            return f'0{self.date_day["value"]}' if self.date_day['value'] < 10 else str(self.date_day['value'])
         elif format == 'hh':
-            return f'0{self.date_hour["value"]}' if self.date_hour['value'] < 10 else self.date_hour['value']
+            return f'0{self.date_hour["value"]}' if self.date_hour['value'] < 10 else str(self.date_hour['value'])
         elif format == 'HH':
             hour_value = self.date_hour['value'] - 12 if self.date_hour['value'] >= 12 else self.date_hour['value']
             hour_value = 12 if self.hour_value == 0 else hour_value
-            return f'0{hour_value}' if hour_value < 10 else hour_value
+            return f'0{hour_value}' if hour_value < 10 else str(hour_value)
         elif format == 'mm':
-            return f'0{self.date_minute["value"]}' if self.date_minute['value'] < 10 else self.date_minute['value']
+            return f'0{self.date_minute["value"]}' if self.date_minute['value'] < 10 else str(self.date_minute['value'])
         elif format == 'ss':
-            return f'0{self.date_second["value"]}' if self.date_second['value'] < 10 else self.date_second['value']
+            return f'0{self.date_second["value"]}' if self.date_second['value'] < 10 else str(self.date_second['value'])
         elif format == 'SSS':
             return f'00{self.date_microsecond["value"]}' if self.date_microsecond['value'] < 10 else \
                    f'0{self.date_microsecond["value"]}' if self.date_microsecond['value'] < 100 else \
-                       self.date_microsecond['value']
+                       str(self.date_microsecond['value'])
         elif format == 'AA':
             return 'PM' if self.date_hour['value'] >= 12 else 'AM'
         else:
-            raise ValueError(f'The format {format} is not supported.')
+            return None
     
     def get_value(self, datetime_definition):
         """
