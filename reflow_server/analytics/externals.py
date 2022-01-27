@@ -34,5 +34,3 @@ class ReflowExternal(externals.External):
                 'Authorization': f'Bearer f7aee1dd-6044-47ae-8981-fc967ffd2962'
             }
         )
-        print('BREAKPOINT')
-        print(response.content)
