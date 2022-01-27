@@ -60,6 +60,6 @@ class ReflowAnalyticsService:
                 partner
             )
         
-        if settings.ENV == 'server':
-            async_task = RunAsyncFunction(async_create_record)
-            async_task.delay()
+        #if settings.ENV == 'server':
+        async_task = RunAsyncFunction(async_create_record)
+        async_task.delay()

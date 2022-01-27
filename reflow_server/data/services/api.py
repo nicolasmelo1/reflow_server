@@ -36,7 +36,7 @@ class APIService:
             if formulary:
                 self.formulary_data_service = self.__transform_data(form_name, data)
                 if not self.formulary_data_service.is_valid():
-                    raise APIException(self.formulary_data_service.errors['reason'], json.loads(self.formulary_data_service.errors))
+                    raise APIException(self.formulary_data_service.errors['reason'], json.dumps(self.formulary_data_service.errors))
             else:
                 raise APIException('invalid_formulary')
             return True
@@ -165,9 +165,9 @@ class APIService:
                                             field_value_data.field_value_data_id.form_value_id
                                             form_value_ids_to_ignore.append(form_value_id)
                             else:
-                                raise APIException('invalid_field_name', json.loads({'label_name': section_label_name, 'type': section_type_name}))
+                                raise APIException('invalid_field_name', json.dumps({'label_name': section_label_name, 'type': section_type_name}))
                 else:
-                    raise APIException('invalid_structure_for_section', json.loads({'label_name': section_label_name, 'type': section_type_name}))
+                    raise APIException('invalid_structure_for_section', json.dumps({'label_name': section_label_name, 'type': section_type_name}))
             else:
                 raise APIException('invalid_section_name', section_label_name)
 
