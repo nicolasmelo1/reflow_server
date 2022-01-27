@@ -138,7 +138,7 @@ class APIService:
                                 for value in values:
                                     if field_type == 'date' and value not in ['', None]:
                                         try:
-                                            formated_datetime = isoparse(value), 
+                                            formated_datetime = isoparse(value)
                                             value = datetime.strftime(
                                                 formated_datetime, 
                                                 field_date_format
