@@ -145,6 +145,8 @@ date2 = ~D[2021-11-11]
 Datetime.date_add(date2, months = 20.4)
 """
 
+float_test = r"""1.2 * 1.5"""
+
 functions_to_test = [
     #simple_arithimetic, 
     #function,
@@ -158,10 +160,11 @@ functions_to_test = [
     #structs,
     #HTTP_library,
     #SMTP_library,
-    datetime_test,
+    #datetime_test,
     #List_library,
     #automation_library,
-    #datetime_test
+    #datetime_test,
+    float_test
 ]
 
 import json
@@ -178,7 +181,7 @@ for function in functions_to_test:
         value = interpreter.evaluate(ast)
     except Error as e:
         value = e
-    print(value._string_()._representation_())
+    print(type(value._representation_()))
 end = time.time()
 
-print(end-start)
+#print(end-start)

@@ -8,7 +8,7 @@ from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
 from reflow_server.authentication.serializers.settings import CompanySettingsSerializer, UserSettingsSerializer, \
-    FormularyAndFieldOptionsSerializer, BulkCreateUsersSerializer
+    FormularyAndFieldOptionsSerializer, BulkCreateUsersSerializer, MeSettingsSerializer
 from reflow_server.authentication.models import Company, UserExtended
 from reflow_server.authentication.services.users import UsersService
 from reflow_server.formulary.models import Group
@@ -192,3 +192,12 @@ class BulkCreateUsersView(APIView):
             'status': 'error',
             'error': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
+class MeSettingsView(APIView):
+    def get(self, request):
+        serializer = MeSettingsSerializer(instance=request.user)
+        
+        return Response({
+            'status': 'ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)

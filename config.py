@@ -58,6 +58,7 @@ class DevelopmentConfig(Config):
     S3_FILE_RICH_TEXT_IMAGE_PATH = config_file['aws']['s3_file_rich_text_image_path']
     S3_FILE_ATTACHMENTS_PATH = config_file['aws']['s3_file_attachments_path']
     S3_COMPANY_LOGO_PATH = config_file['aws']['s3_company_logo_path']
+    S3_USER_PROFILE_IMAGE_PATH = config_file['aws']['s3_user_profile_image_path']
     S3_BUCKET = config_file['aws']['s3_bucket']
 
     SENTRY_DSN = config_file['sentry']['dsn']
@@ -135,6 +136,7 @@ class ServerConfig(Config):
     S3_FILE_RICH_TEXT_IMAGE_PATH = os.environ.get('S3_FILE_RICH_TEXT_IMAGE_PATH', None)
     S3_FILE_ATTACHMENTS_PATH = os.environ.get('S3_FILE_ATTACHMENTS_PATH', None)
     S3_COMPANY_LOGO_PATH = os.environ.get('S3_COMPANY_LOGO_PATH', None)
+    S3_USER_PROFILE_IMAGE_PATH = os.environ.get('S3_USER_PROFILE_IMAGE_PATH', None)
     S3_BUCKET = os.environ.get('S3_BUCKET', None)
 
     SENTRY_DSN = os.environ.get('SENTRY_DSN', None)

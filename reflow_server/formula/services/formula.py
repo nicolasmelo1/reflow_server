@@ -150,11 +150,12 @@ class FlowFormulaService:
                 formula_variable.variable_id
             )
             if len(values) == 1:
-                handler = getattr(self, '_clean_formula_%s' % formula_variable.field_type, None)
+                field_type = values[0]['field_type__type']
+                handler = getattr(self, '_clean_formula_%s' % field_type, None)
                 # if there is no handler for the field type, consider it as a string by default
                 # if you have a handler you can bypass the representation of the data
                 representation = RepresentationService(
-                    field_type=formula_variable.field_type,
+                    field_type=field_type,
                     date_format_type_id=formula_variable.date_format_id,
                     number_format_type_id=formula_variable.number_format_id,
                     form_field_as_option_id=formula_variable.form_field_as_option_id

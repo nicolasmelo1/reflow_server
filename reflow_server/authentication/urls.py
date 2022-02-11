@@ -5,11 +5,11 @@ from reflow_server.core.decorators import jwt_required, validate_billing, permis
 from reflow_server.authentication.views import LoginView, TestTokenView, ForgotPasswordView, OnboardingView, \
     RefreshTokenView, ChangePasswordView, CompanyView, UserView, UserVisualizationTypeView
 from reflow_server.authentication.views.settings import CompanySettingsView, UserSettingsView, UserSettingsEditView, \
-    FormularyAndFieldOptionsView, BulkCreateUsersView
+    FormularyAndFieldOptionsView, BulkCreateUsersView, MeSettingsView
 
 
 settings_urlpatterns = [
-    re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/', include([
+    register_admin_only_url(re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/', include([
         re_path(r'^users/', include([
             re_path(r'^$', validate_billing(UserSettingsView.as_view()), name='authentication_settings_users'),
             re_path(r'^(?P<user_id>\d+)/$', validate_billing(UserSettingsEditView.as_view()), name='authentication_settings_edit_users'),
@@ -19,11 +19,12 @@ settings_urlpatterns = [
             re_path(r'^bulk_create/$', validate_billing(BulkCreateUsersView.as_view()), name='authentication_settings_bulk_create_users'),
         ])),
         re_path(r'^company/$', validate_billing(CompanySettingsView.as_view()), name='authentication_settings_company')
-    ]))
+    ]))),
+    re_path(r'^me/$', validate_billing(MeSettingsView.as_view()), name='authentication_settings_me'),
 ]
 
 loginrequired_urlpatterns = [
-    register_admin_only_url(re_path(r'^settings/', include(settings_urlpatterns))),
+    re_path(r'^settings/', include(settings_urlpatterns)),
     re_path(r'^test_token/$', jwt_required(TestTokenView.as_view()), name='authentication_test_token'),
     re_path(r'^(?P<company_id>(\w+(\.)?(-+)?(_)?)+)/', include([
         re_path(r'^user/', include([

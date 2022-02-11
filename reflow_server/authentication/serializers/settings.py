@@ -155,3 +155,9 @@ class BulkCreateUsersSerializer(serializers.ModelSerializer):
         model = UserExtended
         list_serializer_class = BulkCreateUserListSerializer
         fields = ('email', 'first_name', 'last_name', 'change_password_url')
+
+
+class MeSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserExtended
+        fields = ('id', 'email', 'first_name', 'last_name')
