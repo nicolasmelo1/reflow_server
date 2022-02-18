@@ -193,7 +193,21 @@ class BulkCreateUsersView(APIView):
             'error': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
+
+@method_decorator(csrf_exempt, name='dispatch')
 class MeSettingsView(APIView):
+    """
+    View responsible for getting the user data and for editing the user data. This data is something that the user, and only the user
+    access to. This means that admins will not be able to edit this for him.
+
+    Methods: 
+        GET: retrieves a user data in the profile page so we can edit.
+        POST: Saves a new user data in the profile page.
+    """
+
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    parser_classes = [FormParser, MultiPartParser]
+
     def get(self, request):
         serializer = MeSettingsSerializer(instance=request.user)
         
@@ -201,3 +215,17 @@ class MeSettingsView(APIView):
             'status': 'ok',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        files = {key:request.data.getlist(key) for key in request.data.keys() if key != 'data'}
+        data = json.loads(request.data.get('data', '\{\}'))
+        serializer = MeSettingsSerializer(instance=request.user, data=data)
+        if serializer.is_valid():
+            serializer.save(files=files)
+            return Response({
+                'status': 'ok'
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'error',
+            'error': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)

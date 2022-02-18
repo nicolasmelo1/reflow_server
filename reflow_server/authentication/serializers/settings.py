@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from reflow_server.authentication.services.user import UserService
 from reflow_server.authentication.services.users import UsersService
 from reflow_server.authentication.services.company import CompanyService
 from reflow_server.authentication.services.data import UserAccessedByData
@@ -158,6 +159,16 @@ class BulkCreateUsersSerializer(serializers.ModelSerializer):
 
 
 class MeSettingsSerializer(serializers.ModelSerializer):
+    """
+    This will be used for saving the profile picture of the user in the s3 bucket.
+    """
+    profile_image_url = serializers.CharField(default='', allow_blank=True, allow_null=True, required=False)
+    
+    def save(self, files=None):
+        profile_image = list(files.values())[0] if files and isinstance(files, dict) else None
+        user_service = UserService()
+        return user_service.update_user(self.instance.id, profile_image)
+
     class Meta:
         model = UserExtended
-        fields = ('id', 'email', 'first_name', 'last_name')
+        fields = ('id', 'profile_image_url',)
