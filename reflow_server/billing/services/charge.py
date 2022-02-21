@@ -240,7 +240,7 @@ class ChargeService:
         )
         if not company_charges_updated_in_the_last_minute:
             CompanyCharge.billing_.create_company_charge(
-                company=company_id,
+                company_id=company_id,
                 total_value=total_value,
                 attempt_count=attempt_count
             )
