@@ -14,7 +14,7 @@ class Null(Object):
         return self.value
     # ------------------------------------------------------------------------------------------
     def _string_(self, **kwargs):
-        return self.settings.null_keyword
+        return self.new_string(self.settings.null_keyword)
     # ------------------------------------------------------------------------------------------
     def _safe_representation_(self):
         return self.value

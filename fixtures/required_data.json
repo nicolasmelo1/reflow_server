@@ -275,7 +275,7 @@
             "charge_frequency_type": 1,
             "name": "per_user",
             "charge_group_name": "per_user",
-            "value": "40.00",
+            "value": "41.90",
             "default_quantity": 1,
             "order": 1
         }
