@@ -49,12 +49,14 @@ class SMTP(LibraryModule):
         port = retrieve_representation(port)
         user = retrieve_representation(user)
         password = retrieve_representation(password)
-
+        print('teste')
         if not isinstance(message, SMTPMessage):
             flow_objects.Error(kwargs['__settings__'])._initialize_('AttributeError', 'Run `.build_message()` function first and send the result in the "message" parameter. Example:\n' 
                                                                     'message = SMTP.build_message("example@reflow.com.br", "example@example.com", "Test", "Content")\n'
                                                                     'SMTP.send_email("smtp.gmail.com", 587, "example@reflow.com.br", "Secret", message)')
         
+        print('teste2')
+
         try:
             client = smtplib.SMTP(server, port)
             # validate TLS
@@ -63,14 +65,13 @@ class SMTP(LibraryModule):
                 client.starttls()
             client.ehlo()
             client.login(user, password)
-
+            
             client.sendmail(message.from_email, message.recipients, message.message_string)
             client.close()
         except smtplib.SMTPAuthenticationError as smtpae:
             flow_objects.Error(kwargs['__settings__'])._initialize_('Error', str(smtpae))
         except smtplib.SMTPSenderRefused as smtpsr:
             flow_objects.Error(kwargs['__settings__'])._initialize_('Error', str(smtpsr))
-
         return flow_objects.Null(kwargs['__settings__'])._initialize_()
         
 

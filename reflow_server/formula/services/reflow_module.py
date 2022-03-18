@@ -33,7 +33,6 @@ class ReflowModuleService:
             'number_configuration_number_format_type_id',
             'form_field_as_option_id'
         ).first()
-
         if not isinstance(values, list):
             values = [values]
             
@@ -133,7 +132,7 @@ class ReflowModuleService:
             formulary_service = FormularyDataService(self.user_id, self.company_id, main_formulary.form_name)
             formulary_data = formulary_service.add_formulary_data(str(uuid.uuid4()))
             for section_name, section_field_values in data.items():
-                section = Form.objects.filter(label_name=section_name, depends_on__group__company_id=self.company_id, depends_on__isnull=False).first()
+                section = Form.objects.filter(label_name=section_name, depends_on__group__company_id=self.company_id, depends_on_id=main_formulary.id).first()
                 if section:
                     section_data = formulary_data.add_section_data(
                         section_id=section.id, 

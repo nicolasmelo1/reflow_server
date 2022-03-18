@@ -109,10 +109,11 @@ struct.b[2](1, 2)
 HTTP_library = r"""
 GoogleSheets.authorize()
 """
-SMTP_library = r"""
-message = SMTP.build_message("lleal.melo@outlook.com", ["thais@thaylife.com.br"], "Obrigado por confiar em nossos", "Fulano, a sua apólice acabou de ser emitida e está vigente")
 
-SMTP.send_email("smtp.office365.com", 587, "lleal.melo@outlook.com", "luquinha21", message)
+SMTP_library = r"""
+message = SMTP.build_message("ir@irinstalacoes.com.br", ["nicolas.melo@reflow.com.br"], "Teste", "Fulano, a sua apólice acabou de ser emitida e está vigente")
+
+SMTP.send_email("mail.irinstalacoes.com.br", 587, "ir@irinstalacoes.com.br", "ir.instal@123", message)
 """
 
 List_library = r"""
@@ -159,12 +160,12 @@ functions_to_test = [
     #modules,
     #structs,
     #HTTP_library,
-    #SMTP_library,
+    SMTP_library,
     #datetime_test,
     #List_library,
     #automation_library,
     #datetime_test,
-    float_test
+    #float_test
 ]
 
 import json
