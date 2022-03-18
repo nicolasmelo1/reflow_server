@@ -418,17 +418,13 @@ class DynamicArray:
 class HashTable:
     ############################################################################################
     class HashNode:
-        def __init__(self,number_of_removed_elements_when_added, order_added, hasher, raw_key, key, value):
+        def __init__(self, order_added, hasher, raw_key, key, value):
             """
             This is each node of the HashTable. Each node of the hash table is also a linked list.
             So in the worst cenario, if it has a collision we will not take up memory creating new list
             we just append the next node to the first node. This way we can keep our code more efficient.
 
             Args:
-                number_of_removed_elements_when_added (int): it is not straight forward but we use this so when we remove
-                                                             by the 'order_added' index we can subtract by this number
-                                                             so it can give us the actual index. Read '.remove()' method for further
-                                                             explanation.
                 order_added (int): The order that the node was added, with this we can get the 'key', 'value' and
                                    'index' for the given node respectively from 'keys', 'values' and 'indexes' list
                                    in the HashTable                                            
@@ -440,7 +436,6 @@ class HashTable:
                            This way we can prevent duplicate keys from being added
                 value (any): The actual value you want to store.
             """
-            self.number_of_removed_elements_when_added = number_of_removed_elements_when_added
             self.order_added = order_added
             self.hasher = hasher
             self.raw_key = raw_key
@@ -550,7 +545,6 @@ class HashTable:
         - http://blog.chapagain.com.np/hash-table-implementation-in-python-data-structures-algorithms/#:~:text=Standard%20Implementation&text=Python's%20built%2Din%20%E2%80%9Chash%E2%80%9D,be%2020%2C%20and%20so%20on.
         The last one explains linear probing and chaining better.
         """
-        self.number_of_removed_elements = 0
         self.number_of_elements = 0
         self.capacity = 8
 
@@ -590,10 +584,10 @@ class HashTable:
         """
         if index < len(table):
             if table[index] != None and table[index].key != hash_node.key:
-                node = table[index]
-                while node.next is not None and node.key != hash_node.key:
-                    node = node.next
-                node.next = hash_node
+                already_existing_hash_node = table[index]
+                while already_existing_hash_node.next is not None and already_existing_hash_node.next.key != hash_node.key:
+                    already_existing_hash_node = already_existing_hash_node.next
+                already_existing_hash_node.next = hash_node
             else:
                 # we are adding a fresh new node in the index, we clean hash_node.next for when resizing.
                 hash_node.next = None
@@ -601,7 +595,7 @@ class HashTable:
         else:
             raise Exception('Index to add is out of bounds, resize the array')
     # ------------------------------------------------------------------------------------------
-    def search(self, hasher, key, hash_index=None):
+    def search(self, hasher, key):
         """
         Tries to get the node using the hasher, if it is chained then loop through all nodes to find the key
 
@@ -615,15 +609,22 @@ class HashTable:
         Returns:
             self.NodeType: Returns the node object that holds the value.
         """
-        if hash_index == None:
-            hash_index = hasher % self.capacity
-        node = self.table[hash_index]
-        while node != None and node.key != key and node.next is not None:
-            node = node.next
-        if node == None:
-            raise Exception('Key does not exist in dict')
+        hash_index = hasher % self.capacity
+        is_hash_index_a_valid_index = hash_index < len(self.table)
+        if is_hash_index_a_valid_index:
+            existing_hash_node_at_index = self.table[hash_index]
+            while(
+                existing_hash_node_at_index is not None and \
+                existing_hash_node_at_index.key != key and \
+                existing_hash_node_at_index.next is not None
+            ):
+                existing_hash_node_at_index = existing_hash_node_at_index.next
+            if existing_hash_node_at_index is None:
+                raise Exception(f'Key "{key}" does not exist in dict')
+            else:
+                return existing_hash_node_at_index
         else:
-            return node
+            raise Exception(f'Key "{key}" does not exist in dict')
     # ------------------------------------------------------------------------------------------    
     def remove(self, hasher, key):
         """
@@ -641,36 +642,38 @@ class HashTable:
         okay, so what does we do in 'remove_key_index_and_value_at'
         """
         hash_index = hasher % self.capacity
-        node = self.table[hash_index]
-        
-        if node != None:
-            if node.key == key:
-                remove_key_index_and_value_at = node.order_added - self.number_of_removed_elements + node.number_of_removed_elements_when_added
-                
-                self.raw_keys.remove_at(remove_key_index_and_value_at)
-                self.indexes.remove_at(remove_key_index_and_value_at)
-                self.keys.remove_at(remove_key_index_and_value_at)
-                self.values.remove_at(remove_key_index_and_value_at)
+        is_hash_index_a_valid_index = hash_index < len(self.table)
+        if is_hash_index_a_valid_index:
+            hash_node_to_be_removed = self.table[hash_index]
+            does_key_and_hash_node_exists = key in self.indexes.array and hash_node_to_be_removed is not None
+            
+            if does_key_and_hash_node_exists:
+                # he hash_node_to_be_removed is the first node in the linked list but is not the element we are looking for
+                if hash_node_to_be_removed.key != key:
+                    previous_node_to_update_linked_list = hash_node_to_be_removed
+                    while hash_node_to_be_removed.key != key and hash_node_to_be_removed.next is not None:
+                        previous_node_to_update_linked_list = hash_node_to_be_removed
+                        hash_node_to_be_removed = hash_node_to_be_removed.next
 
-                self.table[hash_index] = None
+                    if hash_node_to_be_removed is None:
+                        raise Exception(f'Key {key} does not exist in dict')
+
+                    # We kept track of the last node in the linked list so we can update the reference and delete it.
+                    # the hashNodeToBeRemoved will lose reference
+                    previous_node_to_update_linked_list.next = hash_node_to_be_removed.next
+                else:
+                    self.table[hash_index] = hash_node_to_be_removed.next
+            
+                for index in range(len(self.keys.array)):
+                    if self.keys.array[index] == key:
+                        self.raw_keys.remove_at(index)
+                        self.indexes.remove_at(index)
+                        self.keys.remove_at(index)
+                        self.values.remove_at(index)
+                
+                self.number_of_elements -= 1
             else:
-                previous = node
-                while node.key != key:
-                    previous = node
-                    node = node.next
-                
-                remove_key_index_and_value_at = node.order_added - self.number_of_removed_elements + node.number_of_removed_elements_when_added
-                self.raw_keys.remove_at(remove_key_index_and_value_at)
-                self.indexes.remove_at(remove_key_index_and_value_at)
-                self.keys.remove_at(remove_key_index_and_value_at)
-                self.values.remove_at(remove_key_index_and_value_at)
-
-                previous.next = None
-
-            self.number_of_removed_elements += 1
-            self.number_of_elements -= 1
-        else:
-            raise Exception('Key does not exist in dict')
+                raise Exception(f'Key {key} does not exist in dict')
     # ------------------------------------------------------------------------------------------
     def append(self, raw_key, hasher, key, value):
         """
@@ -687,16 +690,21 @@ class HashTable:
         """
         # we first check to see if the key was already inserted, if it was this means we are actually changing the value
         # of an existing key so we need to insert again.
-        
+        # WHY DON'T YOU JUST UPDATE THE EXISTING KEY? Because by doing so we would need to separate logic in this method: 
+        # one for updating an existing node and other for inserting a new node. To keep it simple, just consider everything
+        # as adding a new node.
         if key in self.keys.array:
             self.remove(hasher, key)
 
-        hash_node = self.HashNode(self.number_of_removed_elements, self.number_of_elements, hasher, raw_key, key, value)
-        hash_index = hasher % self.capacity
-        
+        # we should resize before retrieving the hashIndex, i was running trough an error and it was hard to debug.
+        # The bug happened because we got the index after resizing. This means the hashIndex would be wrong because after we resize
+        # we change the capacity of the array generating a new hashIndex that should be used in the insertion.
         if self.number_of_elements + 1 > self.capacity:
             self.__resize(2 * self.capacity)
-
+            
+        hash_node = self.HashNode(self.number_of_elements, hasher, raw_key, key, value)
+        hash_index = hasher % self.capacity
+        
         self.raw_keys.append(raw_key)
         self.indexes.append(hash_index)
         self.keys.append(key)
@@ -735,24 +743,26 @@ class HashTable:
 
         for node_index in self.indexes.array:
             if node_index != None:
-                node = self.table[node_index]
+                hash_index = node_index % self.capacity
+                
+                node = self.table[hash_index]
                 previous = node
                 while node is not None:
                     previous = node
                     node = node.next
-
-                    new_index = previous.hasher % new_capacity
                     
-                    new_indexes.append(new_index)
+                    new_hash_index = previous.hasher % new_capacity
+                    
+                    self.__add_at_index_and_handle_collision(new_table, new_hash_index, previous)
+                    
+                    new_indexes.append(new_hash_index)
                     new_keys.append(previous.key)
                     new_raw_keys.append(previous.raw_key)
                     new_values.append(previous.value)
-                    
-                    self.__add_at_index_and_handle_collision(new_table, new_index, previous)
-
+        
         self.indexes = new_indexes
-        self.raw_keys = new_raw_keys
         self.keys = new_keys
+        self.raw_keys = new_raw_keys
         self.values = new_values
         
         self.table = new_table 

@@ -79,12 +79,14 @@ class Dict(Object):
         dictionary_response = {}
 
         for index in range(0, len(self.hash_table.keys)):
-            if self.hash_table.keys[index] != None:
+            if self.hash_table.keys[index] is not None:
                 key = self.hash_table.keys[index]
-                key_index = self.hash_table.indexes[index]
-                value = self.hash_table.search(None, key, key_index)
-                python_value = value.value._representation_()
-                dictionary_response[key] = python_value
+                hash = self.hash_table.indexes[index]
+                raw_key = self.hash_table.raw_keys[index]
+                hash_node = self.hash_table.search(hash, key)
+                actual_representation = raw_key._representation_()
+                python_value = hash_node.value._representation_()
+                dictionary_response[actual_representation] = python_value
 
         return dictionary_response
     # ------------------------------------------------------------------------------------------

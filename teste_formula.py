@@ -107,17 +107,37 @@ struct.b[2](1, 2)
 """
 
 HTTP_library = r"""
-{
-    "taskType": 83344,
-    "idUserFrom": 99075,
-    "idUserTo": 99075,
-    "taskDate": "2022-03-18T18:00:00",
-    "latitude": -23.5533909,
-    "longitude": -46.6542179,
-    "address": "Rua Frei Caneca, 485, 96B",
-    "orientation": "Gotta Catch 'Em All",
-    "priority": 3
-}
+resposta_login = HTTP.post("https://api.auvo.com.br/v2/login/", json_data={
+    "apiKey": "ewBfzwn2UjDH8wAdWQSIMgPzmYH9N6",
+    "apiToken": "ewBfzwn2UjLvgWIk8Tq0kejfE6uS"
+})
+if resposta_login.status_code == 200 do
+    access_token = resposta_login.json["result"]["accessToken"]
+    resposta_criacao_de_task = HTTP.post("https://api.auvo.com.br/v2/tasks/",
+        headers={
+            "Authorization": "Bearer " + access_token
+        }, 
+        json_data={
+            "taskType": 83344,
+            "idUserFrom": 99075,
+            "idUserTo": 99075,
+            "taskDate": "2022-03-18T18:00:00",
+            "latitude": -23.5533909,
+            "longitude": -46.6542179,
+            "address": "Rua Frei Caneca, 485, 96B",
+            "orientation": "Gotta Catch 'Em All",
+            "priority": 3
+        }
+    )
+
+    if resposta_criacao_de_task.status_code == 201 do
+      "Criado com sucesso"
+    else do
+       resposta_criacao_de_task.json
+    end
+else do
+    "Algo de errado não está certo"
+end
 """
 
 SMTP_library = r"""

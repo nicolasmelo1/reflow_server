@@ -108,7 +108,6 @@ class HTTP(LibraryModule):
 
         headers['User-Agent'] = 'FLOW_HTTP'
         headers['X-Powered-By'] = 'reflow'
-
         try:
             request_response = requests.request(
                 method, url=url, json=json_data, data=data, headers=headers, params=parameters, auth=basic_auth
