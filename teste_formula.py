@@ -107,7 +107,17 @@ struct.b[2](1, 2)
 """
 
 HTTP_library = r"""
-GoogleSheets.authorize()
+{
+    "taskType": 83344,
+    "idUserFrom": 99075,
+    "idUserTo": 99075,
+    "taskDate": "2022-03-18T18:00:00",
+    "latitude": -23.5533909,
+    "longitude": -46.6542179,
+    "address": "Rua Frei Caneca, 485, 96B",
+    "orientation": "Gotta Catch 'Em All",
+    "priority": 3
+}
 """
 
 SMTP_library = r"""
@@ -159,8 +169,8 @@ functions_to_test = [
     #dicts,
     #modules,
     #structs,
-    #HTTP_library,
-    SMTP_library,
+    HTTP_library,
+    #SMTP_library,
     #datetime_test,
     #List_library,
     #automation_library,
@@ -182,7 +192,7 @@ for function in functions_to_test:
         value = interpreter.evaluate(ast)
     except Error as e:
         value = e
-    print(type(value._representation_()))
+    print(value._representation_())
 end = time.time()
 
 #print(end-start)

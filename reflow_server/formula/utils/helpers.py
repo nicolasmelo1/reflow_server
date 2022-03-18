@@ -687,6 +687,7 @@ class HashTable:
         """
         # we first check to see if the key was already inserted, if it was this means we are actually changing the value
         # of an existing key so we need to insert again.
+        
         if key in self.keys.array:
             self.remove(hasher, key)
 
@@ -726,6 +727,10 @@ class HashTable:
             new_capacity (int): The new capacity of the hash table table.
         """
         new_indexes = DynamicArray()
+        new_keys = DynamicArray()
+        new_raw_keys = DynamicArray()
+        new_values = DynamicArray()
+        
         new_table = self.make_table(new_capacity) 
 
         for node_index in self.indexes.array:
@@ -737,11 +742,19 @@ class HashTable:
                     node = node.next
 
                     new_index = previous.hasher % new_capacity
+                    
                     new_indexes.append(new_index)
-
+                    new_keys.append(previous.key)
+                    new_raw_keys.append(previous.raw_key)
+                    new_values.append(previous.value)
+                    
                     self.__add_at_index_and_handle_collision(new_table, new_index, previous)
 
         self.indexes = new_indexes
+        self.raw_keys = new_raw_keys
+        self.keys = new_keys
+        self.values = new_values
+        
         self.table = new_table 
         self.capacity = new_capacity
     # ------------------------------------------------------------------------------------------

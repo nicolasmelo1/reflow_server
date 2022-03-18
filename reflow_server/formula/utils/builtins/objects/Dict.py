@@ -79,17 +79,18 @@ class Dict(Object):
         dictionary_response = {}
 
         for index in range(0, len(self.hash_table.keys)):
-            key = self.hash_table.keys[index]
-            key_index = self.hash_table.indexes[index]
-            value = self.hash_table.search(None, key, key_index)
-            python_value = value.value._representation_()
-            dictionary_response[key] = python_value
+            if self.hash_table.keys[index] != None:
+                key = self.hash_table.keys[index]
+                key_index = self.hash_table.indexes[index]
+                value = self.hash_table.search(None, key, key_index)
+                python_value = value.value._representation_()
+                dictionary_response[key] = python_value
 
         return dictionary_response
     # ------------------------------------------------------------------------------------------
     def _string_(self, ident=4, **kwargs):
         stringfied_representation = '{\n'
-        for index in range(0, self.hash_table.length()):
+        for index in range(0, len(self.hash_table.indexes)):
             if self.hash_table.keys[index] != None:
                 raw_key = self.hash_table.raw_keys[index]
                 hash = raw_key._hash_()
