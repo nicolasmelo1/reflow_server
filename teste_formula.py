@@ -170,10 +170,19 @@ from reflow_server.formula.utils.helpers import DatetimeHelper
 
 #date_string = f"~D[{datetime.strptime('2012-04-11 11:11:11', '%Y-%m-%d %H:%M:%S').strftime(DatetimeHelper.to_python_format(context.datetime.date_format, context.datetime.time_format))}]"
 datetime_test = r"""
-date1 =  ~D[2020-10-10]
-date2 = ~D[2021-11-11]
+registro = {
+    "Informações de Recebíveis": {
+      "Segurado": "Fulano de Tal",
+      "Produto": "Seguro de Vida",
+      "Valor da Parcela": 100,
+      "Comissão": 100 * 0.2,
+      "Vencimento da Parcela": ~D[2020-01-01],
+      "Quantidade de Parcelas": 4
+    }
+}
 
-Datetime.date_add(date2, months = 20.4)
+parcelas = List.create_range(1, 4)
+registro["Informações de Recebíveis"]["Vencimento da Parcela"] =  ~D[2020-01-02]
 """
 
 float_test = r"""1.2 * 1.5"""
@@ -189,9 +198,9 @@ functions_to_test = [
     #dicts,
     #modules,
     #structs,
-    HTTP_library,
+    #HTTP_library,
     #SMTP_library,
-    #datetime_test,
+    datetime_test,
     #List_library,
     #automation_library,
     #datetime_test,

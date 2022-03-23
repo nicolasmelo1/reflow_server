@@ -645,7 +645,7 @@ class HashTable:
         is_hash_index_a_valid_index = hash_index < len(self.table)
         if is_hash_index_a_valid_index:
             hash_node_to_be_removed = self.table[hash_index]
-            does_key_and_hash_node_exists = key in self.indexes.array and hash_node_to_be_removed is not None
+            does_key_and_hash_node_exists = key in self.keys.array and hash_node_to_be_removed is not None
             
             if does_key_and_hash_node_exists:
                 # he hash_node_to_be_removed is the first node in the linked list but is not the element we are looking for

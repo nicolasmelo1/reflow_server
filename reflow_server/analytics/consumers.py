@@ -11,6 +11,8 @@ class AnalyticsSurveyConsumer:
         await self.verify_if_need_to_display_survey({'data': {'user_id': self.scope['user'].id}})
 
     async def verify_if_need_to_display_survey(self, event):
+        pass
+        """
         from reflow_server.analytics.services.survey import SurveyService
         survey_service = SurveyService(event['data']['user_id'])
         survey_id = await sync_to_async(survey_service.display_survey_id)()
@@ -23,3 +25,4 @@ class AnalyticsSurveyConsumer:
                     'user_id': event['data']['user_id'] 
                 }
             }))
+        """
