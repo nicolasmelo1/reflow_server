@@ -9,7 +9,7 @@ class ReflowExternal(externals.External):
     def create_new_record(
         self, company_name, closing_forecast, value, responsible, 
         status, contact_name, contact_email, contact_phone, market, next_follow_up, 
-        partner=''
+        partner='', plan='Starter', number_of_users=1
     ):  
         response = self.post(
             url='/api/v0/MQ.844j2Nsnc4mtUDjF7LKkWRqC8BQ/negocios', 
@@ -17,7 +17,6 @@ class ReflowExternal(externals.External):
                 "Informações Gerais": {
                     "Nome da Empresa": company_name,
                     "Previsão de Fechamento": closing_forecast,
-                    "Valor": value,
                     "Responsável": responsible,
                     "Status": status,
                     "Parceiro": partner
@@ -28,6 +27,11 @@ class ReflowExternal(externals.External):
                     "Telefone": contact_phone,
                     "Mercado": market,
                     "Próximo follow-up": next_follow_up
+                },
+                "Valores": {
+                    "Valor do Setup": value,
+                    "Plano": plan,
+                    "Número de usuários": number_of_users
                 }
             },
             headers={

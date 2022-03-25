@@ -36,7 +36,7 @@ class ReflowAnalyticsService:
             company_name = self.company.name
             closing_forecast = (timezone.now() + timedelta(days=15)).isoformat()
             value = 0
-            responsible = 'Lucas Melo'
+            responsible = 'Antonio Ferreira'
             status= 'Novo Lead'
             partner = self.company.partner if self.company.partner != None else ''
             contact_name = f'{self.user.first_name} {self.user.last_name}'
@@ -44,7 +44,9 @@ class ReflowAnalyticsService:
             contact_phone = self.user.phone
             market = sector if sector != None else ''
             next_follow_up = (timezone.now() + timedelta(days=2)).isoformat()
-
+            plan='Starter' 
+            number_of_users=1
+            
             from reflow_server.analytics.externals import ReflowExternal
             ReflowExternal().create_new_record(
                 company_name, 
@@ -57,7 +59,9 @@ class ReflowAnalyticsService:
                 contact_phone, 
                 market, 
                 next_follow_up, 
-                partner
+                partner,
+                plan,
+                number_of_users
             )
         
         if settings.ENV == 'server':
