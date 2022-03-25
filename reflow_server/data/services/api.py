@@ -145,8 +145,10 @@ class APIService:
                                             )
                                         except:
                                             value = ''
-                                    elif field_type == 'number' and value not in ['', None] and field_number_decimal_separator is not None:
-                                        value = str(value).replace('.', field_number_decimal_separator)
+                                    elif field_type == 'number' and value not in ['', None]:
+                                        value = str(value)
+                                        if field_number_decimal_separator is not None:
+                                            value = value.replace('.', field_number_decimal_separator)
                                     elif field_type == 'user' and value not in ['', None] and isinstance(value, str) and not value.isdigit():
                                         value = UserExtended.data_.user_id_by_email_and_company_id(value, self.company_id)
                                         if value == None:
