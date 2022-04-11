@@ -413,7 +413,7 @@ FORMULA_BUILTIN_MODULES_PATH = 'reflow_server.formula.utils.builtins.library'
 
 # CUSTOM ASYNC CONFIGURATION
 # check core.utils.asynchronous file
-ASYNC_RESPONSE_MAXIMUM_CONCURRENCY_THREADS = 20
+ASYNC_RESPONSE_MAXIMUM_CONCURRENCY_THREADS = 25
 
 # CUSTOM JWT CONFIGURATION
 # check authentication.utils.jwt_auth file

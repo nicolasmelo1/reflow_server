@@ -1,3 +1,4 @@
+from reflow_server.core.utils.asynchronous import RunAsyncFunction
 from reflow_server.formulary.managers import default_field_value
 from django.db import transaction
 
@@ -62,38 +63,6 @@ class FormularyDataService(PreSave, PostSave):
         
         self.formulary_data = FormularyData(form_data_uuid, form_data_id)
         return self.formulary_data
-    # ------------------------------------------------------------------------------------------
-    def __send_events_post_save(self, formulary_instance_id): 
-        """
-        Sends all of the events it has to send for the users of the company AFTER the formulary has been saved.
-
-        Args:
-            formulary_instance_id (id): The id of the updated or created DynamicForm instance
-        """
-        # register the event that the formulary was updated or created
-        formulary_data_was_created = self.formulary_data.form_data_id == None
-        is_public = self.public_access_key != None
-        if self.disable_events == False:
-            if formulary_data_was_created:
-                Event.register_event('formulary_data_created', {
-                    'user_id': self.user_id,
-                    'company_id': self.company_id,
-                    'form_id': self.form.id,
-                    'is_public': is_public,
-                    'form_data_id': formulary_instance_id,
-                    'data': self.formulary_data
-                })
-            else:
-                Event.register_event('formulary_data_updated', {
-                    'user_id': self.user_id,
-                    'company_id': self.company_id,
-                    'form_id': self.form.id,
-                    'is_public': is_public,
-                    'form_data_id': formulary_instance_id,
-                    'data': self.formulary_data
-                })
-            # updates the pre_notifications
-            PreNotificationService.update(self.company_id)
     # ------------------------------------------------------------------------------------------
     @property
     def __default_field_values_to_use_in_formulary(self):
@@ -258,10 +227,9 @@ class FormularyDataService(PreSave, PostSave):
 
                 self.add_saved_field_value_to_post_process(section_instance, form_value_instance)
 
-        self.post_save(self.formulary_data) 
+        async_post_save = RunAsyncFunction(self.post_save)
+        async_post_save.delay(formulary_data=self.formulary_data, formulary_id=formulary_instance.id)
 
-        # sends events to the users subscribed
-        self.__send_events_post_save(formulary_instance.id)
 
         return formulary_instance
     # ------------------------------------------------------------------------------------------

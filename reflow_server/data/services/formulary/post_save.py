@@ -1,10 +1,13 @@
 from django.conf import settings
 
+from reflow_server.core.events import Event
 from reflow_server.core.utils.storage import Bucket, BucketUploadException
+from reflow_server.core.utils.asynchronous import RunAsyncFunction
 from reflow_server.data.services.formulary.data import PostSaveData
 from reflow_server.data.models import FormValue, DynamicForm, Attachments
 from reflow_server.formula.services.formula import FlowFormulaService
 from reflow_server.data.services.attachments import AttachmentService
+from reflow_server.notification.services.pre_notification import PreNotificationService
 
 import json
 
@@ -16,7 +19,39 @@ class PostSave:
             return True
         return False
 
-    def post_save(self, formulary_data):
+    def __send_events_post_save(self, formulary_instance_id): 
+        """
+        Sends all of the events it has to send for the users of the company AFTER the formulary has been saved.
+
+        Args:
+            formulary_instance_id (id): The id of the updated or created DynamicForm instance
+        """
+        # register the event that the formulary was updated or created
+        formulary_data_was_created = self.formulary_data.form_data_id == None
+        is_public = self.public_access_key != None
+        if self.disable_events == False:
+            if formulary_data_was_created:
+                Event.register_event('formulary_data_created', {
+                    'user_id': self.user_id,
+                    'company_id': self.company_id,
+                    'form_id': self.form.id,
+                    'is_public': is_public,
+                    'form_data_id': formulary_instance_id,
+                    'data': self.formulary_data
+                })
+            else:
+                Event.register_event('formulary_data_updated', {
+                    'user_id': self.user_id,
+                    'company_id': self.company_id,
+                    'form_id': self.form.id,
+                    'is_public': is_public,
+                    'form_data_id': formulary_instance_id,
+                    'data': self.formulary_data
+                })
+            # updates the pre_notifications
+            PreNotificationService.update(self.company_id)
+    
+    def post_save(self, formulary_data, formulary_id):
         """
         Cleans certains types of data after it has been saved, it's important to notice it calls `process_fieldtype` function
         so you need to be aware of all the possible field_types in order to create another process function for the correct field_type
@@ -26,13 +61,15 @@ class PostSave:
         # FormValues,one is the newly created instance, the other is the old instance to remove, this two instances can cause some
         # weird behaviour and bugs when calculating formulas
         self.__remove_deleted(formulary_data)
-
         for process in self.post_save_process:
             handler = getattr(self, '_post_process_%s' % process.form_value_instance.field.type.type, None)
             if handler:
-                process = handler(process)
+                handler(process)
                             
             process.form_value_instance.save()
+        
+        # sends events to the users subscribed to the company
+        self.__send_events_post_save(formulary_id)
         return None
 
     def __remove_deleted(self, formulary_data):
@@ -74,7 +111,7 @@ class PostSave:
             )
         return None
 
-    def _post_process_formula(self, process):            
+    def _post_process_formula(self, process):   
         if process.form_value_instance.field.formula_configuration not in ('', None):
             
             formula = FlowFormulaService(
@@ -91,15 +128,15 @@ class PostSave:
             process.form_value_instance.number_configuration_number_format_type = formula_result.number_format_type
             process.form_value_instance.date_configuration_date_format_type = formula_result.date_format_type
             process.form_value_instance.value = str(value)
-        return process
-
+            process.form_value_instance.save()
+        
     def _post_process_id(self, process):
         if process.form_value_instance.value == '0':
             last_id = FormValue.data_.last_saved_value_of_id_field_type(process.form_value_instance.field.form.id, process.form_value_instance.field.type.id, process.form_value_instance.field.id)
             value = int(last_id) + 1 if last_id else 1
             process.form_value_instance.value = value
-        return process
-        
+            process.form_value_instance.save()
+
     def _post_process_attachment(self, process):
         if process.form_value_instance.value != '':
             attachment_service = AttachmentService(user_id=self.user_id, company_id=self.company_id)
@@ -134,4 +171,3 @@ class PostSave:
 
             process.form_value_instance.value = attachment_instance.file
             process.form_value_instance.save()
-        return process
