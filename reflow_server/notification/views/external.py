@@ -6,11 +6,11 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from reflow_server.core.utils.csrf_exempt import CsrfExemptSessionAuthentication
+from reflow_server.core.utils.asynchronous import RunAsyncFunction
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.notification.services.notification_configuration import NotificationConfigurationService
 from reflow_server.notification.serializers import PreNotificationSerializer, NotificationDataForBuildSerializer, NotificationSerializer, \
     PreNotificationIdsForBuildSerializer
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class VerifyPreNotificationExternalView(APIView):
@@ -21,7 +21,8 @@ class VerifyPreNotificationExternalView(APIView):
         Methods:
             GET: verify if has a pre_notification to be fired and fires it
         """
-        PreNotificationService.verify_pre_notifications()
+        async_verify_pre_notifications = RunAsyncFunction(PreNotificationService.verify_pre_notifications)
+        async_verify_pre_notifications.delay()
         return Response({
             'status': 'ok'
         }, status=status.HTTP_200_OK)
