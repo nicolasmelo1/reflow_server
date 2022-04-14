@@ -38,7 +38,6 @@ def debounce_to_generate_notification():
             company_id = company_id if company_id is not None and len(args) >= 2 else args[1]
             WAIT_TIME_IN_SECONDS = 10
             
-            
             if company_id not in when_notification_was_generated_by_company_id:
                 when_notification_was_generated_by_company_id[company_id] = dict(
                     last_call_at=time.time(),
