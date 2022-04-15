@@ -104,20 +104,21 @@ class AttachmentService:
         draft_id = DraftService.draft_id_from_draft_string_id(file_name)
         if draft_id != -1:
             draft_instance = Draft.data_.draft_by_draft_id_user_id_and_company_id(draft_id, self.user_id, self.company_id)
-            file_size = draft_instance.file_size
-            real_file_name = draft_instance.value
-            bucket_key = "{file_attachments_path}/{id}/{field}/".format(
-                id=str(form_id), 
-                field=str(field_id), 
-                file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH
-            )
+            if draft_instance is not None:
+                file_size = draft_instance.file_size
+                real_file_name = draft_instance.value
+                bucket_key = "{file_attachments_path}/{id}/{field}/".format(
+                    id=str(form_id), 
+                    field=str(field_id), 
+                    file_attachments_path=settings.S3_FILE_ATTACHMENTS_PATH
+                )
 
-            draft_service = DraftService(self.company_id, self.user_id)
-            url = draft_service.copy_file_from_draft_string_id_to_bucket_key(file_name, bucket_key)
+                draft_service = DraftService(self.company_id, self.user_id)
+                url = draft_service.copy_file_from_draft_string_id_to_bucket_key(file_name, bucket_key)
 
-            attachment_instance.file = real_file_name
-            attachment_instance.file_url = url
-            attachment_instance.file_size = file_size
+                attachment_instance.file = real_file_name
+                attachment_instance.file_url = url
+                attachment_instance.file_size = file_size
 
         attachment_instance.save()
 
