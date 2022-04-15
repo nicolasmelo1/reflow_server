@@ -1,8 +1,5 @@
-from reflow_server.core.utils.asynchronous import RunAsyncFunction
-from reflow_server.formulary.managers import default_field_value
 from django.db import transaction
 
-from reflow_server.core.events import Event
 from reflow_server.authentication.models import UserExtended
 from reflow_server.notification.services.pre_notification import PreNotificationService
 from reflow_server.formulary.models import DefaultFieldValue, Form, Field, PublicAccessField
@@ -227,9 +224,6 @@ class FormularyDataService(PreSave, PostSave):
 
                 self.add_saved_field_value_to_post_process(section_instance, form_value_instance)
 
-        async_post_save = RunAsyncFunction(self.post_save)
-        async_post_save.delay(formulary_data=self.formulary_data, formulary_id=formulary_instance.id)
-
-
+        self.post_save(formulary_data=self.formulary_data, formulary_id=formulary_instance.id)
         return formulary_instance
     # ------------------------------------------------------------------------------------------

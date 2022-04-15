@@ -43,7 +43,9 @@ def debounce_generate_notification_execution():
 
             time_since_last_call_by_company_id = time.time() - debounce_cache_data_of_company_id['last_call_at']
             if time_since_last_call_by_company_id > WAIT_TIME_IN_SECONDS:
-                debounce_cache_data_of_company_id['timer'].cancel()
+                was_timer_defined_for_company_id = debounce_cache_data_of_company_id['timer'] is not None
+                if was_timer_defined_for_company_id:
+                    debounce_cache_data_of_company_id['timer'].cancel()
                 call_function()
             else:
                 is_to_cancel_last_timer_by_company_id = debounce_cache_data_of_company_id['timer'] is not None
