@@ -22,17 +22,26 @@ class ReflowModuleService:
         self.company_id = company_id
         self.user_id = user_id
         self.dynamic_form_id = dynamic_form_id
-    
+        self.cached_formulary = {}
+        self.cached_sections = {}
+        self.cached_fields = {}
+        
     def __handle_field_values_when_creating_or_updating_record(self, section_data, section_instance_id, field_label_name, values):
-        field = Field.objects.filter(label_name=field_label_name, form_id=section_instance_id).values(
-            'id', 
-            'name', 
-            'type__type', 
-            'date_configuration_date_format_type_id', 
-            'date_configuration_date_format_type__format',
-            'number_configuration_number_format_type_id',
-            'form_field_as_option_id'
-        ).first()
+        field_label_name_and_section_instance_id = f'{field_label_name}_{section_instance_id}'
+        if field_label_name_and_section_instance_id in self.cached_fields:
+            field = self.cached_fields[field_label_name_and_section_instance_id]
+        else:
+            field = Field.objects.filter(label_name=field_label_name, form_id=section_instance_id).values(
+                'id', 
+                'name', 
+                'type__type', 
+                'date_configuration_date_format_type_id', 
+                'date_configuration_date_format_type__format',
+                'number_configuration_number_format_type_id',
+                'form_field_as_option_id'
+            ).first()
+            self.cached_fields[field_label_name_and_section_instance_id] = field
+        
         if not isinstance(values, list):
             values = [values]
             
@@ -127,28 +136,54 @@ class ReflowModuleService:
         Returns:
             int: Returns the id of the instance added, if you want to make use of this you can.
         """
-        main_formulary = Form.objects.filter(group__name=template_name, label_name=page_name, group__company_id=self.company_id, depends_on__isnull=True).first()
+        formulary_group_name_label_name_and_company_id = '{}_{}_{}'.format(template_name, page_name, self.company_id)
+        if formulary_group_name_label_name_and_company_id not in self.cached_formulary:
+            main_formulary = Form.objects.filter(
+                group__name=template_name, 
+                label_name=page_name, 
+                group__company_id=self.company_id, 
+                depends_on__isnull=True
+            ).values(
+                'id',
+                'form_name'
+            ).first()
+            self.cached_formulary[formulary_group_name_label_name_and_company_id] = main_formulary
+        else:
+            main_formulary = self.cached_formulary[formulary_group_name_label_name_and_company_id]
+            
         if main_formulary:
-            formulary_service = FormularyDataService(self.user_id, self.company_id, main_formulary.form_name)
+            formulary_service = FormularyDataService(self.user_id, self.company_id, main_formulary['form_name'])
             formulary_data = formulary_service.add_formulary_data(str(uuid.uuid4()))
             for section_name, section_field_values in data.items():
-                section = Form.objects.filter(label_name=section_name, depends_on__group__company_id=self.company_id, depends_on_id=main_formulary.id).first()
+                section_name_company_id_and_formulary_id = '{}_{}_{}'.format(section_name, self.company_id, main_formulary['id'])
+                if section_name_company_id_and_formulary_id not in self.cached_sections:
+                    section = Form.objects.filter(
+                        label_name=section_name, 
+                        depends_on__group__company_id=self.company_id, 
+                        depends_on_id=main_formulary['id']
+                    ).values(
+                        'id',
+                        'type__type'
+                    ).first()
+                    self.cached_sections[section_name_company_id_and_formulary_id] = section
+                else:
+                    section = self.cached_sections[section_name_company_id_and_formulary_id]
                 if section:
                     section_data = formulary_data.add_section_data(
-                        section_id=section.id, 
+                        section_id=section['id'], 
                         uuid=str(uuid.uuid4()) 
                     )
-                    if section.type.type == 'form' and isinstance(section_field_values, dict):
+                    if section['type__type'] == 'form' and isinstance(section_field_values, dict):
                         for field_label_name, values in section_field_values.items():
-                            self.__handle_field_values_when_creating_or_updating_record(section_data, section.id, field_label_name, values)
+                            self.__handle_field_values_when_creating_or_updating_record(section_data, section['id'], field_label_name, values)
 
-                    elif section.type.type == 'multi-form' and (isinstance(section_field_values, list) or isinstance(section_field_values, dict)):
+                    elif section['type__type'] == 'multi-form' and (isinstance(section_field_values, list) or isinstance(section_field_values, dict)):
                         if isinstance(section_field_values, dict):
                             section_field_values = [section_field_values]
                         for multi_section_data_item in section_field_values:
                             if isinstance(multi_section_data_item, dict):
                                 for field_label_name, values in multi_section_data_item.items():
-                                    self.__handle_field_values_when_creating_or_updating_record(section_data, section.id, field_label_name, values)
+                                    self.__handle_field_values_when_creating_or_updating_record(section_data, section['id'], field_label_name, values)
                             else:
                                 raise ReflowModuleServiceException('items_of_multi_section_should_be_a_dict')                  
                     else:

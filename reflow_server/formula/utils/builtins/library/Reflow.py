@@ -2,6 +2,8 @@ from reflow_server.formula.utils.builtins.library.LibraryModule import LibraryMo
 from reflow_server.formula.utils.builtins import objects as flow_objects
 
 
+cached_reflow_module_service = {}
+
 class Reflow(LibraryModule):
     def _initialize_(self, scope):
         super()._initialize_(scope=scope, struct_parameters=[])
@@ -30,11 +32,17 @@ class Reflow(LibraryModule):
         data = retrieve_representation(data)
         
         try:
-            reflow_module_service = ReflowModuleService(
-                settings.reflow_company_id, 
-                settings.reflow_user_id, 
-                settings.reflow_dynamic_form_id
-            )
+            company_id_user_id_and_record_id = f'{settings.reflow_company_id}_{settings.reflow_user_id}_{settings.reflow_dynamic_form_id}'
+            if company_id_user_id_and_record_id in cached_reflow_module_service:
+                reflow_module_service = cached_reflow_module_service[company_id_user_id_and_record_id]
+            else:
+                reflow_module_service = ReflowModuleService(
+                    settings.reflow_company_id, 
+                    settings.reflow_user_id, 
+                    settings.reflow_dynamic_form_id
+                )
+                cached_reflow_module_service[company_id_user_id_and_record_id] = reflow_module_service
+                
             formulary_record_id = reflow_module_service.create_record(template_name, page_name, data)
             return flow_objects.Integer(kwargs['__settings__'])._initialize_(formulary_record_id)
         except ReflowModuleServiceException as rmse:
