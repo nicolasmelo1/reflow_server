@@ -114,7 +114,8 @@ class Keywords:
         self.if_block = if_block
 ############################################################################################
 class ReflowFormula:
-    def __init__(self, dynamic_form_id=None):
+    def __init__(self, dynamic_form_id=None, variables=dict()):
+        self.variables = variables
         self.dynamic_form_id = dynamic_form_id
 ############################################################################################
 class ReflowAutomation:
@@ -125,11 +126,11 @@ class ReflowAutomation:
         self.debug_trigger = debug_trigger
 ############################################################################################
 class Reflow:
-    def __init__(self, company_id=None, user_id=None, dynamic_form_id=None, automation_id=None, automation_trigger_data=None, automation_action_data=None, debug_trigger=False):
+    def __init__(self, company_id=None, user_id=None, dynamic_form_id=None, variables=dict(), automation_id=None, automation_trigger_data=None, automation_action_data=None, debug_trigger=False):
         self.company_id = company_id
         self.user_id = user_id
         self.automation = ReflowAutomation(automation_id, automation_trigger_data, automation_action_data, debug_trigger)
-        self.formula = ReflowFormula(dynamic_form_id)
+        self.formula = ReflowFormula(dynamic_form_id, variables)
 ############################################################################################
 class Context:
     def __init__(self, includes='in', conjunction='and', disjunction='or', inversion='not', 
@@ -215,12 +216,13 @@ class Context:
     def add_integration_callback(self, callback):
         self.integration_callback = callback
     # ------------------------------------------------------------------------------------------
-    def add_reflow_data(self, company_id, user_id, dynamic_form_id=None, automation_id=None, 
+    def add_reflow_data(self, company_id, user_id, dynamic_form_id=None, variables=dict(), automation_id=None, 
                         automation_trigger_data=None, automation_action_data=None, automation_debug_trigger=False):
         self.reflow = Reflow(
             company_id, 
             user_id, 
             dynamic_form_id, 
+            variables,
             automation_id, 
             automation_trigger_data, 
             automation_action_data,

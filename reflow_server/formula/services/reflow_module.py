@@ -1,7 +1,7 @@
 
 from django.conf import settings
 
-from reflow_server.data.models import FormValue
+from reflow_server.data.models import DynamicForm, FormValue
 from reflow_server.data.services.representation import RepresentationService
 from reflow_server.data.services.formulary import FormularyDataService
 from reflow_server.formulary.models import Form, Field
@@ -18,10 +18,11 @@ class ReflowModuleServiceException(Exception):
         super().__init__(reason)
 
 class ReflowModuleService:
-    def __init__(self, company_id, user_id, dynamic_form_id=None):
+    def __init__(self, company_id, user_id, dynamic_form_id=None, variables=dict()):
         self.company_id = company_id
         self.user_id = user_id
         self.dynamic_form_id = dynamic_form_id
+        self.variables = variables
         self.cached_formulary = {}
         self.cached_sections = {}
         self.cached_fields = {}
@@ -41,7 +42,7 @@ class ReflowModuleService:
                 'form_field_as_option_id'
             ).first()
             self.cached_fields[field_label_name_and_section_instance_id] = field
-        
+    
         if not isinstance(values, list):
             values = [values]
             
@@ -71,14 +72,22 @@ class ReflowModuleService:
                 else:
                     raise ReflowModuleServiceException('invalid_value_for_date')
             elif field['type__type'] == 'form':
+                field_ids_that_are_a_form_field_type_variable_from_the_formula = Field.objects.filter(
+                    id__in=self.variables.keys(),
+                    type__type='form'
+                ).values_list('id', flat=True)
+                probably_the_field_original_value = None
+                for field_id in field_ids_that_are_a_form_field_type_variable_from_the_formula:
+                    variable_data = self.variables.get(field_id, None)
+                    is_variable_data_the_same_value_as_the_value_provided = variable_data and (variable_data.cleaned == values[0] \
+                        or variable_data.cleaned[1:-1] == values[0])
+                    if is_variable_data_the_same_value_as_the_value_provided:
+                        probably_the_field_original_value = variable_data.original[0]
+                        break
+                
                 if self.dynamic_form_id:
-                    form_value = FormValue.objects.filter(
-                        form__depends_on_id=self.dynamic_form_id, 
-                        form_field_as_option_id=field['form_field_as_option_id'],
-                        field__type__type=field['type__type']
-                    ).first()
-                    if form_value:
-                        section_data.add_field_value(field['id'], field['name'], form_value.value)
+                    if probably_the_field_original_value:
+                        section_data.add_field_value(field['id'], field['name'], probably_the_field_original_value)
                     else:
                         section_data.add_field_value(field['id'], field['name'], values[0])
                 else:
@@ -150,7 +159,7 @@ class ReflowModuleService:
             self.cached_formulary[formulary_group_name_label_name_and_company_id] = main_formulary
         else:
             main_formulary = self.cached_formulary[formulary_group_name_label_name_and_company_id]
-            
+
         if main_formulary:
             formulary_service = FormularyDataService(self.user_id, self.company_id, main_formulary['form_name'])
             formulary_data = formulary_service.add_formulary_data(str(uuid.uuid4()))

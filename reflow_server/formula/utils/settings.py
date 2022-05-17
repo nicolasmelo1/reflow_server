@@ -135,6 +135,7 @@ class Settings:
         self.reflow_automation_id = context.reflow.automation.id
         self.reflow_company_id = context.reflow.company_id
         self.reflow_user_id = context.reflow.user_id
+        self.reflow_variables = context.reflow.formula.variables
         self.reflow_dynamic_form_id = context.reflow.formula.dynamic_form_id
 
         self.datetime_date_character = context.datetime.date_character

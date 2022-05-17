@@ -19,6 +19,10 @@ import queue
 import multiprocessing
 import re
 
+class VariableData:
+    def __init__(self, original_values, cleaned_values):
+        self.original = original_values
+        self.cleaned = cleaned_values
 
 class FlowFormulaService:
     def __init__(self, formula, user_id, company_id, dynamic_form_id=None, field_id=None, formula_variables=None, is_testing=False):
@@ -73,16 +77,23 @@ class FlowFormulaService:
                     formula_variables.add_variable_id(variable_id)
 
         context_type_id = FormulaContextForCompany.formula_.formula_context_for_company_by_company_id(company_id)
+        self.original_and_cleaned_variables_by_variable_id = {}
         self.services_user_needs_to_authenticate = []
         self.is_testing = is_testing
         self.context = build_context(context_type_id, 'formula')
 
         self.context.add_integration_callback(self.callback_for_integration_log_in)
-        self.context.add_reflow_data(company_id, user_id, dynamic_form_id=dynamic_form_id)
         
         self.context.datetime.timezone = user_timezone
         
         self.formula = self.__clean_formula(formula, dynamic_form_id, formula_variables)
+        
+        self.context.add_reflow_data(
+            company_id, 
+            user_id, 
+            dynamic_form_id=dynamic_form_id, 
+            variables=self.original_and_cleaned_variables_by_variable_id
+        )
     # ------------------------------------------------------------------------------------------
     def callback_for_integration_log_in(self, service_name):
         does_service_name_exists = IntegrationServiceType.formula_.exists_service_name(service_name)
@@ -171,6 +182,12 @@ class FlowFormulaService:
                     value_to_replace = handler(None, None)
                 else:
                     value_to_replace = '""'
+            
+            self.original_and_cleaned_variables_by_variable_id[formula_variable.variable_id] = VariableData(
+                [value.get('value', None) for value in values],
+                value_to_replace
+            )
+            
             formula = formula.replace(variables[index], value_to_replace, 1)
         return formula
     # ------------------------------------------------------------------------------------------

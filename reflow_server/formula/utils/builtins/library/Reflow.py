@@ -39,7 +39,8 @@ class Reflow(LibraryModule):
                 reflow_module_service = ReflowModuleService(
                     settings.reflow_company_id, 
                     settings.reflow_user_id, 
-                    settings.reflow_dynamic_form_id
+                    settings.reflow_dynamic_form_id,
+                    settings.reflow_variables
                 )
                 cached_reflow_module_service[company_id_user_id_and_record_id] = reflow_module_service
                 
