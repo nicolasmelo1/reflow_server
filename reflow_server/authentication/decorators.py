@@ -73,9 +73,8 @@ def logged_in_user_permission_required(function):
     @jwt_required
     @get_company_id_as_int
     def logged_in_user_permission_required_wrap(request, *args, **kwargs):
-        validate_permissions_from_request(request, 'default', **kwargs)
-
         try:
+            validate_permissions_from_request(request, 'default', **kwargs)
             pass
         except PermissionsError as pe:
             return JsonResponse({
