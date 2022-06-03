@@ -30,6 +30,7 @@ class ReflowExternal(externals.External):
                 },
                 "Valores": {
                     "Valor do Setup": value,
+                    "Setup com Desconto": 0,
                     "Plano": plan,
                     "Número de usuários": number_of_users
                 }
@@ -38,3 +39,5 @@ class ReflowExternal(externals.External):
                 'Authorization': f'Bearer f7aee1dd-6044-47ae-8981-fc967ffd2962'
             }
         )
+        print('BREAKPOINT')
+        print(response.content)
