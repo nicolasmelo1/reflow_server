@@ -120,7 +120,7 @@ class Integer(Object):
         object_representation = obj._representation_()
 
         if obj.type in [FLOAT_TYPE, INTEGER_TYPE]:
-            if int(object_representation) == 0:
+            if float(object_representation) == 0:
                 from reflow_server.formula.utils.builtins.objects.Error import Error
                 Error(self.settings)._initialize_('Error', 'Cannot divide by 0')
             elif obj.type == FLOAT_TYPE:
@@ -151,7 +151,7 @@ class Integer(Object):
         object_representation = obj._representation_()
 
         if obj.type in [FLOAT_TYPE, INTEGER_TYPE]:
-            if int(object_representation) == 0:
+            if float(object_representation) == 0:
                 from reflow_server.formula.utils.builtins.objects.Error import Error
                 Error(self.settings)._initialize_('Error', 'Cannot divide by 0')
             elif obj.type == FLOAT_TYPE:
