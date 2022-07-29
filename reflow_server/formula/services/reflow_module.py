@@ -6,6 +6,7 @@ from reflow_server.data.services.representation import RepresentationService
 from reflow_server.data.services.formulary import FormularyDataService
 from reflow_server.formulary.models import Form, Field
 from reflow_server.core.utils.asynchronous import RunAsyncFunction
+from reflow_server.authentication.models import UserExtended
 
 from datetime import datetime
 import uuid
@@ -93,12 +94,15 @@ class ReflowModuleService:
                 else:
                     section_data.add_field_value(field['id'], field['name'], values[0])
             elif field['type__type'] == 'user':
-                if self.dynamic_form_id:
-                    form_value = FormValue.objects.filter(form__depends_on_id=self.dynamic_form_id, field_id=field['id']).first()
-                    if form_value and form_value.type.type == field['type__type']:
-                        section_data.add_field_value(field['id'], field['name'], form_value.value)
-                    else:
-                        section_data.add_field_value(field['id'], field['name'], values[0])
+                splitted_name = values[0].split(' ', 1)
+                first_name = splitted_name[0]
+                last_name = splitted_name[1] if len(splitted_name) > 1 else ''
+                user_id = UserExtended.object.filter(first_name=first_name, last_name=last_name, company_id=self.company_id)\
+                    .values_list('id', flat=True)\
+                    .first()\
+                    
+                if user_id:
+                    section_data.add_field_value(field['id'], field['name'], str(user_id))
                 else:
                     section_data.add_field_value(field['id'], field['name'], values[0])
             else:
