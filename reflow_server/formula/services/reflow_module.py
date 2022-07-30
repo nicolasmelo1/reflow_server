@@ -97,7 +97,7 @@ class ReflowModuleService:
                 splitted_name = values[0].split(' ', 1)
                 first_name = splitted_name[0]
                 last_name = splitted_name[1] if len(splitted_name) > 1 else ''
-                user_id = UserExtended.object.filter(first_name=first_name, last_name=last_name, company_id=self.company_id)\
+                user_id = UserExtended.objects.filter(first_name=first_name, last_name=last_name, company_id=self.company_id)\
                     .values_list('id', flat=True)\
                     .first()\
                     
