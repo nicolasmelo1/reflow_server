@@ -207,13 +207,24 @@ class ChargeService:
 
         discount = self.get_discount_for_quantity(self.company_billing.plan_id, individual_charge_value_type.id, quantity)
         
-        charge_instance, __ = CurrentCompanyCharge.objects.update_or_create(
+        current_company_charge_to_update = CurrentCompanyCharge.objects.filter(
             individual_charge_value_type=individual_charge_value_type, 
-            company_id=self.company_id, 
-            defaults={
-                'discount_by_individual_value': discount,
-                'quantity': quantity
-        })
+            company_id=self.company_id
+        ).first()
+        
+        charge_instance = current_company_charge_to_update
+        
+        if current_company_charge_to_update:
+            current_company_charge_to_update.discount_by_individual_value = discount
+            current_company_charge_to_update.quantity = quantity
+            current_company_charge_to_update.save()
+        else:
+            charge_instance = CurrentCompanyCharge.objects.create(
+                individual_charge_value_type=individual_charge_value_type,
+                company_id=self.company_id,
+                quantity=quantity,
+                discount_by_individual_value=discount
+            )
 
         if push_updates:
             self.push_updates()
