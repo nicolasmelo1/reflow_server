@@ -249,7 +249,8 @@ class ChargeService:
         company_charges_updated_in_the_last_minute = CompanyCharge.billing_.exists_company_charge_created_between_dates_by_company(
             company_id=company_id, date_end=today_end, date_start=today_start
         )
-        if not company_charges_updated_in_the_last_minute:
+        company_id_is_not_none = company_id is not None
+        if not company_charges_updated_in_the_last_minute and company_id_is_not_none:
             CompanyCharge.billing_.create_company_charge(
                 company_id=company_id,
                 total_value=total_value,

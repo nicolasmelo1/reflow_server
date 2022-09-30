@@ -1,4 +1,5 @@
 import functools
+from django.db import IntegrityError
 from django.db.models import Q, Func, F, Value, DateTimeField, CharField
 
 from reflow_server.authentication.models import UserExtended
@@ -206,10 +207,18 @@ class PreNotificationService:
                 # force to just exist ONE pre_notification for this condition
                 PreNotification.objects.filter(has_sent=False, user_id=user_id, dynamic_form_id=form_id, notification_configuration=notification_configuration).delete()
                 try:
-                    PreNotification.objects.update_or_create(has_sent=False, user_id=user_id, dynamic_form_id=form_id, notification_configuration=notification_configuration, defaults={
+                    PreNotification.objects.update_or_create(
+                        has_sent=False, 
+                        user_id=user_id, 
+                        dynamic_form_id=form_id,
+                        notification_configuration=notification_configuration, 
+                        defaults={
                         'when':when
                     })
                 except PreNotification.MultipleObjectsReturned as mor:
+                    pass
+                except IntegrityError as ie:
+                    print('PreNotificationService', ie)
                     pass
             PreNotification.objects.filter(has_sent=False, user_id=user_id, notification_configuration=notification_configuration).exclude(dynamic_form_id__in=[form_id for _, form_id in form_values]).delete()
     

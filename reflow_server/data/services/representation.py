@@ -230,7 +230,7 @@ class RepresentationService:
                 return datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT).strftime(date_format_type.format)
             except ValueError:
                 pass
-        raise ValueError(f'Could not format the date {value} to any format')
+        return value
     
     def _representation_number(self, value):
         if value.lstrip("-").isdigit() and self.number_format_type:

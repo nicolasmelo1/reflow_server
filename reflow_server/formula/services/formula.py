@@ -240,8 +240,10 @@ class FlowFormulaService:
             if value in ['', None] and self.is_testing:
                 python_datetime_value = datetime.now()
             else:
-                python_datetime_value = datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT)
-
+                try:
+                    python_datetime_value = datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT)
+                except ValueError:
+                    return '""'
             flow_formated_datetime = python_datetime_value.strftime(DatetimeHelper.to_python_format(self.context.datetime.date_format, self.context.datetime.time_format))
             return f'~{self.context.datetime.date_character}[{flow_formated_datetime}]'
         else:
