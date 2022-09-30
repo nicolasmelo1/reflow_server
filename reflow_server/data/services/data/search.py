@@ -1,11 +1,13 @@
 from django.conf import settings
 
+from reflow_server.formulary.models import FieldDateFormatType
 from reflow_server.data.models import FormValue
 from reflow_server.authentication.models import UserExtended
 from reflow_server.data.services.data.data import FieldData
 from reflow_server.data.services.representation import RepresentationService
 
 from datetime import datetime
+import itertools
 
 
 class SearchItem:
@@ -123,9 +125,11 @@ class DataSearch:
 
         From 2020-08-06 00:00:00  TO 2020-06-07 23:59:59
         """
+        other_valid_date_format_ids = FieldDateFormatType.objects.exclude(id=field_data.date_format_type_id).values_list('id', flat=True)
         representation_service = RepresentationService(
             field_data.field_type, 
-            field_data.date_format_type_id,
+            # reference: https://stackoverflow.com/a/953097/13158385
+            list(itertools.chain.from_iterable([field_data.date_format_type_id, other_valid_date_format_ids])),
             field_data.number_format_type_id,
             field_data.form_field_as_option_id
         )

@@ -36,7 +36,7 @@ class RepresentationNumberFormatTypeData:
         self.has_to_enforce_decimal = has_to_enforce_decimal
 
 class RepresentationService:
-    def __init__(self, field_type, date_format_type_id, number_format_type_id, form_field_as_option_id, load_ids = False):
+    def __init__(self, field_type, date_format_type_id_or_ids, number_format_type_id, form_field_as_option_id, load_ids = False):
         """
         Used for presenting data from this app to the user, use it everywhere you need to present the data 
         from the backend to the normal user. So use this in serializers, dashboard, totals and etc.
@@ -52,24 +52,29 @@ class RepresentationService:
 
         Args:
             field_type (str): from one of the possible `field_types`, check the `field_type` table in our database for reference
-            date_format_type_id (int): The FieldDateFormatType instance id that the field uses
+            date_format_type_id_or_ids (int | list[int]): The FieldDateFormatType instance id that the field uses. We can pass a list of ids
+            so if the first one fails we can try to use other formats.
             number_format_type_id (int): The FieldNumberFormatType instance id that the field uses
-                                                                                       to format the base number to the desired format
+            to format the base number to the desired format
             form_field_as_option_id (int): The Field or ThemeField instance id of the connected field
             load_ids (bool, optional): retrieves the ids instead of the value in fields_types like `user` or `form`. Defaults to False.
         """
         # making this we don't need to make queries every time date_format_type
         representation_number_format_type = None
-        representation_date_format_type = None
-        if date_format_type_id:
-            if representation_date_format_type_cache.get(date_format_type_id, None):
-                representation_date_format_type = representation_date_format_type_cache[date_format_type_id]
-            else:
-                date_format_type = FieldDateFormatType.objects.filter(id=date_format_type_id).first()
-                representation_date_format_type_cache[date_format_type_id] = RepresentationDateFormatTypeData(
-                    date_format_type.type, date_format_type.format
+        representation_date_format_types = []
+        if date_format_type_id_or_ids:
+            if type(date_format_type_id_or_ids) != list:
+                date_format_type_id_or_ids = [date_format_type_id_or_ids]
+            # we can create a fallback to the other date formats if the first one is not satisfied.
+            for date_format_type_id in date_format_type_id_or_ids:
+                if representation_date_format_type_cache.get(date_format_type_id, None) == None:
+                    date_format_type = FieldDateFormatType.objects.filter(id=date_format_type_id).first()
+                    representation_date_format_type_cache[date_format_type_id] = RepresentationDateFormatTypeData(
+                        date_format_type.type, date_format_type.format
+                    )
+                representation_date_format_types.append(
+                    representation_date_format_type_cache[date_format_type_id]
                 )
-                representation_date_format_type = representation_date_format_type_cache[date_format_type_id]
 
         # making this we don't need to make queries every time to retrieve a number_format_type
         if number_format_type_id:
@@ -92,7 +97,7 @@ class RepresentationService:
         
 
         self.field_type = field_type
-        self.date_format_type = representation_date_format_type
+        self.date_format_types = representation_date_format_types
         self.number_format_type = representation_number_format_type
         self.form_field_as_option_id = form_field_as_option_id
         # sometimes i want to retrieve the id instead of the value
@@ -118,8 +123,14 @@ class RepresentationService:
         return value
 
     def _to_internal_value_date(self, value):
-        return datetime.strptime(value, self.date_format_type.format).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
-    
+        for date_format_type in self.date_format_types:
+            try:
+                return datetime.strptime(value, date_format_type.format).strftime(settings.DEFAULT_DATE_FIELD_FORMAT)
+
+            except ValueError:
+                pass
+        raise ValueError(f'Could not format the date {value} to any format')
+        
     def _to_internal_value_number(self, value):
         value = str(value)
         precision = self.number_format_type.precision
@@ -214,10 +225,12 @@ class RepresentationService:
         return value
 
     def _representation_date(self, value):
-        try:
-            return datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT).strftime(self.date_format_type.format)
-        except ValueError as ve:
-            return value
+        for date_format_type in self.date_format_types:
+            try:
+                return datetime.strptime(value, settings.DEFAULT_DATE_FIELD_FORMAT).strftime(date_format_type.format)
+            except ValueError:
+                pass
+        raise ValueError(f'Could not format the date {value} to any format')
     
     def _representation_number(self, value):
         if value.lstrip("-").isdigit() and self.number_format_type:
