@@ -50,7 +50,7 @@ class ReflowModuleService:
         if field and len(values) > 0:
             representation_service = RepresentationService(
                 field_type=field['type__type'],
-                date_format_type_id=field['date_configuration_date_format_type_id'],
+                date_format_type_id_or_ids=field['date_configuration_date_format_type_id'],
                 number_format_type_id=field['number_configuration_number_format_type_id'],
                 form_field_as_option_id=field['form_field_as_option_id']
             )

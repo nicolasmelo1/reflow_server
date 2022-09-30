@@ -167,7 +167,7 @@ class FlowFormulaService:
                 # if you have a handler you can bypass the representation of the data
                 representation = RepresentationService(
                     field_type=field_type,
-                    date_format_type_id=formula_variable.date_format_id,
+                    date_format_type_id_or_ids=formula_variable.date_format_id,
                     number_format_type_id=formula_variable.number_format_id,
                     form_field_as_option_id=formula_variable.form_field_as_option_id
                 )
