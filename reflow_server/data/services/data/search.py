@@ -129,7 +129,7 @@ class DataSearch:
         representation_service = RepresentationService(
             field_data.field_type, 
             # reference: https://stackoverflow.com/a/953097/13158385
-            list(itertools.chain.from_iterable([field_data.date_format_type_id, other_valid_date_format_ids])),
+            list(itertools.chain.from_iterable([[field_data.date_format_type_id], other_valid_date_format_ids])),
             field_data.number_format_type_id,
             field_data.form_field_as_option_id
         )
